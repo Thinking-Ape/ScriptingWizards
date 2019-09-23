@@ -48,6 +48,15 @@ public class Controller {
             editorController.setEditorHandlers();
         });
 
+        view.getStartScreen().getTutorialBtn().setOnAction(actionEvent -> {
+            Level selectedLevel = model.getCurrentLevel();
+            for(Level l :model.getLevelListCopy()){
+                if(l.isTutorial() && l.getIndex() < selectedLevel.getIndex())selectedLevel = l;
+            }
+            model.selectLevel(selectedLevel.getName());
+            view.setSceneState(SceneState.TUTORIAL);
+        });
+
         view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent -> {
             view.setSceneState(SceneState.START_SCREEN);
         });
