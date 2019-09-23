@@ -1,0 +1,1 @@
+{"maxKnights":3,"isTutorial":true,"requiredLevels":[],"turnsToStars":[5,3],"ai":[],"index":0,"map":[["wall","wall","wall","wall","wall"],["wall",{"flags":["open"],"content":"spawn"},"path",{"flags":["open"],"content":"exit"},"wall"],["wall","wall","wall","wall","wall"]],"locToStars":[5,3]}

@@ -1,0 +1,36 @@
+Spellbook field right of the map
+Knight <variable name> = new Knight(<Direction>); <- tooltips
+push() method? (Rather not)
+dropItem() method (Rather yes)
+define own methods?? (Big!!)
+wizard speech bubbles as tutorial gui?
+language settings
+duplicate code in new lvl, open lvl, edit lvl?
+how to display item currently carried?
+delete() method? (rather not)
+isAlive() method
+make traps trigger via pressure plates also?
+[level descriptions (maybe unnecessary??)]
+data: tutorial progress
+Status whether level is saved or if changes will be lost
+beacon -> every other knight/skeleton mimicks this one! (ambitious!)
+enemies not skeletons but enemy knights? -> need to attack instead of walking into you? (maybe no sword necessary? yes or no?)
+instead of a key -> collect all treasures?? -> exits dont need to be opened but you lose the round if you dont collect all treasure?
+github
+build a prototype
+variable names restrict possible names??
+add all VariableTypes enumerated in the enum
+DIRECTION: NORTH, SOUTH, WEST, EAST
+TURN_DIRECTION: LEFT, RIGHT, AROUND
+
+DONE:
+
+see controller: Line 110 TODO???
+
+19.09:
+indexing
+reload lvl btn? (why again?)
+save player code upon finishing a level? -> store in data!
+reset score for a level in editor
+visualize knights left
+update levellist of "Play" everytime? (because deleting in editor does not delete in "Play"!)
