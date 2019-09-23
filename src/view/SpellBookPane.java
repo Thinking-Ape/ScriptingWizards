@@ -184,24 +184,6 @@ public class SpellBookPane extends StackPane {
             methodHBox.getChildren().add(new Label(");"));
             methodVBox.getChildren().add(methodHBox);
         }
-//        HBox methodHBox1 = new HBox();
-//        methodHBox1.setAlignment(Pos.TOP_LEFT);
-//        methodHBox1.getChildren().add(new SpellBookLabel(SpellBookLabelType.VARIABLE_NAME,"<Knight name>","The name of a Knight Object!"));
-//        methodHBox1.getChildren().add(new Label("."));
-//        methodHBox1.getChildren().add(new SpellBookLabel(SpellBookLabelType.METHOD_CALL,"collect","Collect any item that is in front of the Knight. If an item is already equipped, swap them!"));
-//        methodHBox1.getChildren().add(new Label("();"));
-//        HBox methodHBox2 = new HBox();
-//        methodHBox2.setAlignment(Pos.TOP_LEFT);
-//        methodHBox2.getChildren().add(new SpellBookLabel(SpellBookLabelType.VARIABLE_NAME,"<Knight name>","The name of a Knight Object!"));
-//        methodHBox2.getChildren().add(new Label("."));
-//        methodHBox2.getChildren().add(new SpellBookLabel(SpellBookLabelType.METHOD_CALL,"useItem","Uses any item you have previously collected!"));
-//        methodHBox2.getChildren().add(new Label("();"));
-//        HBox methodHBox3 = new HBox();
-//        methodHBox3.setAlignment(Pos.TOP_LEFT);
-//        methodHBox3.getChildren().add(new SpellBookLabel(SpellBookLabelType.VARIABLE_NAME,"<Knight name>","The name of a Knight Object!"));
-//        methodHBox3.getChildren().add(new Label("."));
-//        methodHBox3.getChildren().add(new SpellBookLabel(SpellBookLabelType.METHOD_CALL,"collect","Collect any item that is in front of the Knight. If an item is already equipped, swap them!"));
-//        methodHBox3.getChildren().add(new Label("();"));
         spellListView.getItems().add(methodVBox);
         // does actually belong here, as it is only concerned with visual effect and not with any functionality
         // maybe add actual functionality later -> move to controller!

@@ -72,6 +72,7 @@ public class View implements PropertyChangeListener {
     private Scene playScene;
     private Scene startScene;
     private Scene editorScene;
+    private Scene tutorialScene;
     private Button backBtn = new Button("Back");
     private SceneState sceneState = SceneState.START_SCREEN;
     private HBox knightsLeftHBox;
@@ -708,15 +709,15 @@ public class View implements PropertyChangeListener {
     }
 
 
-    public void setSceneState(SceneState levelEditor) {
-        sceneState = levelEditor;
+    public void setSceneState(SceneState sceneState) {
+        this.sceneState = sceneState;
 //        stage.getScene().setRoot(new Label());
-        switch (levelEditor){
+        switch (sceneState){
             case START_SCREEN:
                 stage.setScene(startScene);
                 break;
             case LEVEL_EDITOR:
-                prepareRootPane(true);
+                prepareRootPane();
                 if(aiCodeArea != null){
                 aiCodeArea.setEditable(true);
                 aiCodeArea.deselectAll();}
@@ -728,7 +729,7 @@ public class View implements PropertyChangeListener {
                 stage.setScene(levelSelectScene);
                 break;
             case PLAY:
-                prepareRootPane(false);
+                prepareRootPane();
                 if(aiCodeArea != null){
                 aiCodeArea.setEditable(false);
                 aiCodeArea.deselectAll();}
@@ -739,13 +740,21 @@ public class View implements PropertyChangeListener {
                 break;
             case TUTORIAL:
                 //TODO:
+                prepareRootPane();
+                if(aiCodeArea != null){
+                    aiCodeArea.setEditable(false);
+                    aiCodeArea.deselectAll();}
+                codeArea.deselectAll();
+                codeArea.select(0, true);
+                levelOverviewPane.updateUnlockedLevels(model, this);
+                stage.setScene(tutorialScene);
                 break;
 
         }
 
     }
 
-    private void prepareRootPane(boolean b) {
+    private void prepareRootPane(){//(boolean isEditor) {
 
         VBox leftVBox = new VBox();
         if(aiCodeArea!=null)leftVBox.getChildren().add(aiCodeArea);
@@ -753,18 +762,44 @@ public class View implements PropertyChangeListener {
         rootPane.getChildren().clear();
         rootPane.setLeft(leftVBox);
         rootPane.setRight(vBox);
-        if(b) {
-            levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
+        switch (sceneState){
+            case LEVEL_EDITOR:
+                levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
 //            model.getCurrentLevel().addChangeListener(levelEditorModule);
-            rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),new VBox(levelEditorModule.getRightVBox(),spellBookPane)));
-            rootPane.setTop(levelEditorModule.getTopHBox());
-            rootPane.setBottom(new HBox(backBtn,levelEditorModule.getBottomHBox()));
-            editorScene = new Scene(rootPane);
-        }else{
-            rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),spellBookPane));
-            rootPane.setBottom(backBtn);
-            playScene = new Scene(rootPane);
+                rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),new VBox(levelEditorModule.getRightVBox(),spellBookPane)));
+                rootPane.setTop(levelEditorModule.getTopHBox());
+                rootPane.setBottom(new HBox(backBtn,levelEditorModule.getBottomHBox()));
+                editorScene = new Scene(rootPane);
+                break;
+            case LEVEL_SELECT:
+                throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
+//                break;
+            case PLAY:
+                rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),spellBookPane));
+                rootPane.setBottom(backBtn);
+                playScene = new Scene(rootPane);
+                break;
+            case START_SCREEN:
+                throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
+//                break;
+            case TUTORIAL:
+                rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),spellBookPane));
+                rootPane.setBottom(backBtn);
+                tutorialScene = new Scene(rootPane);
+                break;
         }
+//        if(isEditor) {
+//            levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
+////            model.getCurrentLevel().addChangeListener(levelEditorModule);
+//            rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),new VBox(levelEditorModule.getRightVBox(),spellBookPane)));
+//            rootPane.setTop(levelEditorModule.getTopHBox());
+//            rootPane.setBottom(new HBox(backBtn,levelEditorModule.getBottomHBox()));
+//            editorScene = new Scene(rootPane);
+//        }else{
+//            rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),spellBookPane));
+//            rootPane.setBottom(backBtn);
+//            playScene = new Scene(rootPane);
+//        }
 
     }
 
