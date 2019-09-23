@@ -1,5 +1,3 @@
-Spellbook field right of the map
-Knight <variable name> = new Knight(<Direction>); <- tooltips
 push() method? (Rather not)
 dropItem() method (Rather yes)
 define own methods?? (Big!!)
@@ -14,17 +12,27 @@ make traps trigger via pressure plates also?
 data: tutorial progress
 Status whether level is saved or if changes will be lost
 beacon -> every other knight/skeleton mimicks this one! (ambitious!)
-enemies not skeletons but enemy knights? -> need to attack instead of walking into you? (maybe no sword necessary? yes or no?)
+enemies not skeletons but enemy knights (no)? -> need to attack instead of walking into you? (maybe no sword necessary? yes or no?)
 instead of a key -> collect all treasures?? -> exits dont need to be opened but you lose the round if you dont collect all treasure?
-github
 build a prototype
 variable names restrict possible names??
 add all VariableTypes enumerated in the enum
 DIRECTION: NORTH, SOUTH, WEST, EAST
 TURN_DIRECTION: LEFT, RIGHT, AROUND
+allow booleans with other value than true or false!
+atm you cannot edit the intelligent codefield via clicks without have used arrow keys or enter etc. beforehand!
+end goal always to unlock the exit? <- the wizard wants to escape, not the knights!
+show tutorial levels exclusively in tutorial
+tutorial GUI
 
 DONE:
 
+23.09.
+Spellbook field right of the map
+Knight <variable name> = new Knight(<Direction>); <- tooltips
+github
+
+21.09.
 see controller: Line 110 TODO???
 
 19.09:
