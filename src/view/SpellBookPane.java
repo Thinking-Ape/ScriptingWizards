@@ -27,6 +27,7 @@ public class SpellBookPane extends StackPane {
 
     public SpellBookPane(){
         spellListView.setPrefSize(500, 750);
+        spellListView.setMaxSize(500, 750);
         spellListView.getItems().add(new HBox(new SpellBookLabel(SpellBookLabelType.DEFAULT,"Spawn a Knight:", "Declare a new Knight.")));
 //        HBox knightHBox1 = new HBox();
         HBox knightHBox2 = new HBox();
@@ -188,10 +189,11 @@ public class SpellBookPane extends StackPane {
         // does actually belong here, as it is only concerned with visual effect and not with any functionality
         // maybe add actual functionality later -> move to controller!
         spellListView.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume);
-        Rectangle rect = new Rectangle(100,spellListView.getItems().size()*20,Color.WHITE);
-        this.setAlignment(Pos.CENTER);
-        VBox vBox = new VBox(new SpellBookLabel(SpellBookLabelType.DEFAULT,"Spell Book","Contains all spells you've unlocked!"),spellListView);
-        vBox.setAlignment(Pos.CENTER);
-        this.getChildren().addAll(rect,vBox);
+        spellListView.autosize();
+//        Rectangle rect = new Rectangle(spellListView.getPrefWidth()+100,spellListView.getPrefHeight()+50,Color.WHITE);//spellListView.getItems().size()*20,Color.WHITE);
+        this.setAlignment(Pos.TOP_CENTER);
+        VBox vBox = new VBox(new SpellBookLabel(SpellBookLabelType.HEADING,"Spell Book","Contains all spells you've unlocked!"),spellListView);
+        vBox.setAlignment(Pos.TOP_CENTER);
+        this.getChildren().addAll(vBox);//rect,vBox);
     }
 }

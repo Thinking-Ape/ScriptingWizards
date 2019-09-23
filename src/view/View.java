@@ -1,6 +1,7 @@
 package view;
 
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
@@ -77,6 +78,9 @@ public class View implements PropertyChangeListener {
     private SceneState sceneState = SceneState.START_SCREEN;
     private HBox knightsLeftHBox;
     private SpellBookPane spellBookPane = new SpellBookPane();
+    private Label levelNameLabel = new Label();
+    private TextArea tutorialTextArea = new TextArea();
+    private Button showSpellBookBtn = new Button("Show Spellbook");
 
     public View(Model model, Stage stage,boolean isEditor) {
         this.stage = stage;
@@ -85,7 +89,8 @@ public class View implements PropertyChangeListener {
         startScene = new Scene(startScreen);
         cell_size = model.getCurrentLevel().getOriginalMap().getBoundY()>model.getCurrentLevel().getOriginalMap().getBoundX()? GameConstants.MAX_CELL_SIZE/((double)model.getCurrentLevel().getOriginalMap().getBoundY()):GameConstants.MAX_CELL_SIZE/((double)model.getCurrentLevel().getOriginalMap().getBoundX());
         cell_size = Math.round(cell_size);
-
+        tutorialTextArea.setEditable(false);
+        tutorialTextArea.setWrapText(true);
 //        for(CContent content : CContent.values()){
 //            if(new File("resources/images/"+content.getDisplayName()+".png").exists())
 //            contentImageMap.put(content.getDisplayName(),new Image("file:resources/images/"+content.getDisplayName()+".png",cell_size,cell_size,true,true));
@@ -756,6 +761,10 @@ public class View implements PropertyChangeListener {
 
     private void prepareRootPane(){//(boolean isEditor) {
 
+        levelNameLabel.setText(model.getCurrentLevel().getName());
+        actualMapGPane.autosize();
+//        levelNameLabel.autosize();
+//        levelNameLabel.setTranslateX(actualMapGPane.getWidth()/2-75);
         VBox leftVBox = new VBox();
         if(aiCodeArea!=null)leftVBox.getChildren().add(aiCodeArea);
         rootPane = new BorderPane();
@@ -775,7 +784,9 @@ public class View implements PropertyChangeListener {
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
 //                break;
             case PLAY:
-                rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),spellBookPane));
+                VBox vBox = new VBox(levelNameLabel,actualMapGPane,knightsLeftHBox);
+                vBox.setAlignment(Pos.TOP_CENTER);
+                rootPane.setCenter(new HBox(vBox,spellBookPane));
                 rootPane.setBottom(backBtn);
                 playScene = new Scene(rootPane);
                 break;
@@ -783,7 +794,9 @@ public class View implements PropertyChangeListener {
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
 //                break;
             case TUTORIAL:
-                rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),spellBookPane));
+                vBox = new VBox(levelNameLabel,actualMapGPane,knightsLeftHBox);
+                vBox.setAlignment(Pos.TOP_CENTER);
+                rootPane.setCenter(new HBox(vBox,new VBox(tutorialTextArea,showSpellBookBtn)));
                 rootPane.setBottom(backBtn);
                 tutorialScene = new Scene(rootPane);
                 break;

@@ -9,6 +9,6 @@ public enum SpellBookLabelType {
     PARAMETERS,
     STATEMENT,
     CONDITION,
-    DEFAULT
-
+    DEFAULT,
+    HEADING
 }

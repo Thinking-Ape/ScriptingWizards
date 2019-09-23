@@ -20,7 +20,7 @@ import model.util.Point;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-public class JSONParser {
+public abstract class JSONParser {
 
 //    private String rootPath;
 //
@@ -33,7 +33,7 @@ public class JSONParser {
         JSONArray mapLines = new JSONArray();
         GameMap map = level.getOriginalMap();
 
-        for(int y = 0; y < map.getBoundY(); y++){ //TODO: find out why mirror is necessary
+        for(int y = 0; y < map.getBoundY(); y++){
 
             JSONArray mapRow = new JSONArray();
             for(int x = 0; x < map.getBoundX(); x++){
@@ -281,7 +281,7 @@ public class JSONParser {
                 else{
                     levelJSONO.put("loc",oldLoc);
                     levelJSONO.put("turns",oldTurns);
-                    levelJSONO.put("code",unlocksArray.getJSONObject(i).getJSONArray("code"));
+                    if(unlocksArray.getJSONObject(i).has("code"))levelJSONO.put("code",unlocksArray.getJSONObject(i).getJSONArray("code"));
                 }
                 unlocksArray.put(i,levelJSONO);
                 found =true;

@@ -40,6 +40,9 @@ public class SpellBookLabel extends Label {
                 break;
             case DEFAULT:
                 break;
+            case HEADING:
+                this.setStyle("-fx-background-color: white");
+                break;
         }
 //                Label variableTypeLabel = new Label("<VariableType>");
 //                Tooltip typeTooltip = new Tooltip("One of the following: ");

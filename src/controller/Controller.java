@@ -37,6 +37,9 @@ public class Controller {
                 case PLAY:
                     view.setSceneState(SceneState.LEVEL_SELECT);
                     break;
+                case TUTORIAL:
+                    view.setSceneState(SceneState.START_SCREEN);
+                    break;
                 case START_SCREEN:
                     System.exit(0);
                     break;
@@ -57,9 +60,9 @@ public class Controller {
             view.setSceneState(SceneState.TUTORIAL);
         });
 
-        view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent -> {
-            view.setSceneState(SceneState.START_SCREEN);
-        });
+        view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent ->
+            view.setSceneState(SceneState.START_SCREEN)
+        );
         view.getStartScreen().getPlayBtn().setOnAction(actionEvent -> {
             view.setSceneState(SceneState.LEVEL_SELECT);
             view.getLevelOverviewPane().getPlayBtn().setOnAction(actionEvent1 -> {
@@ -86,7 +89,7 @@ public class Controller {
                 ComplexStatement behaviour = codeParser.parseProgramCode();
                 ComplexStatement aiBehaviour = new ComplexStatement();
                 if(aiCodeParser!=null)aiBehaviour = aiCodeParser.parseProgramCode();
-                view.getLevelEditorModule().setDisableAllLevelBtns(true);
+                if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR) view.getLevelEditorModule().setDisableAllLevelBtns(true);
                 //TODO: delete
                 System.out.println(behaviour.print());
                 System.out.println(aiBehaviour.print());
@@ -140,7 +143,7 @@ public class Controller {
                 timeline.play();
                 view.getBtnReset().setDisable(false);
                 view.getBtnExecute().setDisable(true);
-                editorController.setAllEditButtonsToDisable(true);
+                if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR)editorController.setAllEditButtonsToDisable(true);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
