@@ -3,7 +3,12 @@ package view;
 
 //import javafx.scene.control.TextArea;
 
+import javafx.application.Platform;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.geometry.VerticalDirection;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -12,28 +17,31 @@ import javafx.scene.transform.Translate;
 import model.util.GameConstants;
 import model.statement.ComplexStatement;
 import model.statement.Statement;
+import org.intellij.lang.annotations.JdkConstants;
 
 import java.util.*;
 
 public class CodeArea extends HBox {
 
     private VBox rectVBox = new VBox();
-    private VBox rectVBox2 = new VBox();
+//    private VBox rectVBox2 = new VBox();
     private VBox codeVBox = new VBox();
-    private VBox codeVBox2 = new VBox();
+//    private VBox codeVBox2 = new VBox(); is supposed to be scrollable now!
     private List<CodeField> codeFieldList = new ArrayList<>();
     private List<StackPane> rectStackList = new ArrayList<>();
     private boolean isEditable;
     private CodeField selectedCodeField = null;
     private StackPane firstStackPane = new StackPane();
-    private StackPane secondStackPane = new StackPane();
+    private ScrollBar scrollBar = new ScrollBar();
+    private boolean isScrollable = false;
+//    private StackPane secondStackPane = new StackPane();
 
     public CodeArea (){
         isEditable = true;
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
-        rectVBox2.setAlignment(Pos.TOP_LEFT);
-        codeVBox2.setAlignment(Pos.TOP_LEFT);
+//        rectVBox2.setAlignment(Pos.TOP_LEFT);
+//        codeVBox2.setAlignment(Pos.TOP_LEFT);
 //        rectStackList.add(new Rectangle(GameConstants.TEXTFIELD_WIDTH,GameConstants.TEXTFIELD_HEIGHT, GameConstants.getColorFromDepth(0)));
 //        codeFieldList.add(new CodeField("",1,isEditable)); //TODO: depth = 1 oder 0?
 //        draw();
@@ -43,8 +51,8 @@ public class CodeArea extends HBox {
         this.isEditable = isEditable;
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
-        rectVBox2.setAlignment(Pos.TOP_LEFT);
-        codeVBox2.setAlignment(Pos.TOP_LEFT);
+//        rectVBox2.setAlignment(Pos.TOP_LEFT);
+//        codeVBox2.setAlignment(Pos.TOP_LEFT);
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
 //        draw();
     }
@@ -75,77 +83,64 @@ public class CodeArea extends HBox {
 //        int prevDepth = 1;
 
         for(int i = 0; i < codeFieldList.size(); i++){
-//            CodeField codeField = codeFieldList.get(i);
-//            if (prevDepth < codeField.getDepth()){
-//                prevDepth = codeField.getDepth();
-//                depthIndexMap.put(prevDepth,i);
-//            }
-//            if (prevDepth > codeField.getDepth()){
-//                int index = depthIndexMap.get(prevDepth);
-//                prevDepth = codeField.getDepth();
-//                double xTranslate = GameConstants.CODE_OFFSET*(prevDepth);
-//                Rectangle rectangle = new Rectangle(GameConstants.TEXTFIELD_WIDTH-xTranslate,GameConstants.TEXTFIELD_HEIGHT*(i-index), GameConstants.getColorFromDepth(prevDepth+1));
-//                rectangle.getTransforms().add(new Translate(xTranslate,GameConstants.TEXTFIELD_HEIGHT*index,0));
-//                tempList.add(rectangle);
-//            }
-            //TEST
             int depth = codeFieldList.get(i).getDepth();
             StackPane rectStackPane = new StackPane();
             rectStackPane.setAlignment(Pos.CENTER_LEFT);
             for(int j = 1; j <= depth; j++){
                 double xTranslate = GameConstants.CODE_OFFSET*(j-1);
-//                double yTranslate = GameConstants.TEXTFIELD_HEIGHT*(i%GameConstants.MAX_CODE_LINES);
                 Rectangle rectangle = new Rectangle(GameConstants.TEXTFIELD_WIDTH-xTranslate,GameConstants.TEXTFIELD_HEIGHT, GameConstants.getColorFromDepth(j));
                 rectangle.getTransforms().add(new Translate(xTranslate,0,0));
                 rectStackPane.getChildren().add(rectangle);
             }
             output.add(rectStackPane);
-            //TEST
         }
-//        output.add(new Rectangle(GameConstants.TEXTFIELD_WIDTH,GameConstants.TEXTFIELD_HEIGHT*(codeFieldList.size()), GameConstants.getColorFromDepth(1)));
-//        for(int i = tempList.size()-1; i >= 0 ; i--){
-//            output.add(tempList.get(i));
-//        }
         return output;
     }
 
     public void addNewCodeFieldAtIndex(int index, CodeField codeField) {
-//            int prevDepth = index > 0 ? codeFieldList.get(index).depth : 1;
-//            if(codeFieldList.get(index).getText().matches(".*\\{"))prevDepth++;
         codeFieldList.add(index,codeField);
     }
     public void draw(){
         rectStackList = getRectanglesFromList(codeFieldList);
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
-        codeVBox2.getChildren().clear();
-        rectVBox2.getChildren().clear();
-        for(int i = 0; i < codeFieldList.size(); i++){
-            if(i < GameConstants.MAX_CODE_LINES){
+        int bound = (int) Math.round(scrollBar.getValue());
+        System.out.println("A");
+        for(int i = bound; i < codeFieldList.size()+bound; i++){
+            if(i < GameConstants.MAX_CODE_LINES+bound){
                 codeVBox.getChildren().add(codeFieldList.get(i));
                 rectVBox.getChildren().add(rectStackList.get(i));
             }
-            else {
-                codeVBox2.getChildren().add(codeFieldList.get(i));
-                rectVBox2.getChildren().add(rectStackList.get(i));
-            }
+//            else {
+//                codeVBox2.getChildren().add(codeFieldList.get(i));
+//                rectVBox2.getChildren().add(rectStackList.get(i));
+//            }
         }
+        if(codeFieldList.size()>GameConstants.MAX_CODE_LINES){
+            makeScrollable();
+        }
+        else isScrollable = false;
         firstStackPane.getChildren().clear();
         firstStackPane.getChildren().addAll(rectVBox,codeVBox);
-        secondStackPane.getChildren().clear();
-        secondStackPane.getChildren().addAll(rectVBox2,codeVBox2);
-        this.getChildren().clear();
-        this.getChildren().addAll(firstStackPane,secondStackPane);
-    }
-//    public void setText(String... strings) {
-////        textFieldList.clear();
-////        codeNodeList.clear();
+//        secondStackPane.getChildren().clear();
+//        secondStackPane.getChildren().addAll(rectVBox2,codeVBox2);
 //        this.getChildren().clear();
-//        for(String s : strings){
-////            s.replaceAll("\n","");
-//            addCodeField(s);
-//        }
-//    }
+        this.getChildren().add(firstStackPane);//,secondStackPane);
+    }
+
+    private void makeScrollable() {
+        scrollBar.setOrientation(Orientation.VERTICAL);
+        scrollBar.setMin(0);
+        scrollBar.setMax(codeFieldList.size()-GameConstants.MAX_CODE_LINES);
+        scrollBar.setValue(0);
+        scrollBar.setBlockIncrement(1);
+        scrollBar.setVisibleAmount(0.5);
+        rectVBox.autosize();
+        scrollBar.setPrefHeight(rectVBox.getPrefHeight());
+        this.getChildren().add(scrollBar);
+        this.isScrollable = true;
+    }
+
     public List<String> getAllText() {
         List<String> output= new ArrayList<>();
         for(CodeField codeField : codeFieldList){
@@ -153,16 +148,6 @@ public class CodeArea extends HBox {
         }
         return output;
     }
-
-//    public List<CodeField> getCodeFieldListClone() {
-//        return codeFieldList;
-//    }
-
-//    public void resetStyle() {
-//        for(CodeField codeField : codeFieldList){
-//            codeField.resetStyle();
-//        }
-//    }
 
     public int indexOfCodeField(CodeField codeField) {
         return codeFieldList.indexOf(codeField);
@@ -183,13 +168,16 @@ public class CodeArea extends HBox {
     public void select(int index, boolean selectEnd) {
 //        for(int i = 0; i< codeFieldList.size(); i++){
             CodeField codeField = codeFieldList.get(index);
+            if(index >= GameConstants.MAX_CODE_LINES&&isScrollable){
+                scrollBar.setValue(index-GameConstants.MAX_CODE_LINES+1);
+            }
 //            if(index == i){
-                if(codeField.isEditable())codeField.setStyle(null);
-                else codeField.setStyle("-fx-background-color: rgba(200,200,255,0.5);");
-                codeField.requestFocus();
-                if(selectEnd)codeField.selectRange(codeField.getText().length(),codeField.getText().length());
-                else codeField.selectRange(0,0);
-                selectedCodeField = codeField;
+            if(codeField.isEditable())codeField.setStyle(null);
+            else codeField.setStyle("-fx-background-color: rgba(200,200,255,0.5);");
+            codeField.requestFocus();
+            if(selectEnd)codeField.selectRange(codeField.getText().length(),codeField.getText().length());
+            else codeField.selectRange(0,0);
+            selectedCodeField = codeField;
 //            }else {
 //                codeField.resetStyle();
 //            }
@@ -242,7 +230,22 @@ public class CodeArea extends HBox {
     public void setEditable(boolean isEditable){
         this.isEditable = isEditable;
         for(CodeField codeField : codeFieldList){
-            codeField.setEditable(isEditable);
+            if(!codeField.getText().equals("}"))codeField.setEditable(isEditable);
+            else codeField.setEditable(false);
         }
+    }
+
+    public ScrollBar getScrollBar(){
+        return scrollBar;
+    }
+
+    public void scroll(int t1) {
+        codeVBox.getChildren().clear();
+        rectVBox.getChildren().clear();
+        for(int i = t1; i < t1+GameConstants.MAX_CODE_LINES; i++){
+            codeVBox.getChildren().add(codeFieldList.get(i));
+            rectVBox.getChildren().add(rectStackList.get(i));
+        }
+        System.out.println("B");
     }
 }

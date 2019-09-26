@@ -1,6 +1,7 @@
 package controller;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
 import model.util.GameConstants;
 import model.Model;
 import model.statement.ComplexStatement;
@@ -38,6 +39,9 @@ public class CodeAreaController {
 
             });
         }
+        codeArea.getScrollBar().valueProperty().addListener((observableValue, number, t1) -> {
+           codeArea.scroll(Math.round(t1.floatValue()));
+        });
     }
     private void setHandlerForCodeField(CodeField currentCodeField, boolean isAi) {
         currentCodeField.setOnMousePressed(event -> {
@@ -101,7 +105,6 @@ public class CodeAreaController {
                         codeAreaClone.addNewCodeFieldAtIndex(currentIndex+1,bracketCodeField);
                         addedStatementsBalance++;
                     }
-
 //                    if(recompileCode(codeAreaClone)==null){
 //                        codeAreaClone.removeCodeField(newCodeField);
 //                        codeAreaClone.removeCodeField(bracketCodeField);
@@ -214,7 +217,6 @@ public class CodeAreaController {
             setAllHandlersForCodeArea(isAi);
 //            codeArea.getCodeFieldListClone().remove(newCodeField);
 //            codeArea.getCodeFieldListClone().add(currentIndex,removeCodeField1);
-
         });
 //        currentCodeField.setOnKeyTyped(event -> {
 //            if(event.getCharacter().equals(";")||event.getCharacter().equals("{")){
@@ -251,16 +253,17 @@ public class CodeAreaController {
             } else{
                 if(!isError){
                     errorLine = currentIndex;
-                    boolean wasEditable = currentCodeField.isEditable();
+                    boolean isEditable = currentCodeField.isEditable();
                     codeArea.setEditable(false);
 //                  codeArea.
-                    if(wasEditable)currentCodeField.setEditable(true);
+                    if(isEditable)currentCodeField.setEditable(true);
 //                   codeArea.select(currentIndex,selectEnd);
                     isError = true;
                 }
+                else codeArea.setEditable(true);
             }
             if(silentError)currentCodeField.setStyle(null);
-        });
+            });
     }
 
     private CodeArea tryToRecompileCodeArea(CodeArea codeArea, boolean silentError, boolean isAi) throws IllegalAccessException {
