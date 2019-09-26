@@ -5,7 +5,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -26,6 +25,7 @@ import model.enums.CFlag;
 import model.enums.ItemType;
 import model.statement.ComplexStatement;
 import model.util.GameConstants;
+import org.jetbrains.annotations.Contract;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -45,12 +45,12 @@ public class View implements PropertyChangeListener {
     private Model model;
     //Testing
 
-    private Canvas canvas;
+//    private Canvas canvas;
     private double cell_size;
     private StartScreen startScreen;
     private Button btnExecute;
     private Button btnReset;
-    TextArea codeTextArea;
+//    TextArea codeTextArea;
     private CodeArea codeArea = new CodeArea();
     private CodeArea aiCodeArea;
     private VBox vBox;
@@ -58,7 +58,8 @@ public class View implements PropertyChangeListener {
     private Label msgLabel = new Label();
     private Shape[][] mapShapes;
     private GridPane actualMapGPane;
-    private BorderPane rootPane;
+    private StackPane rootPane;
+    private VBox baseContentVBox;
     private Polyline highlight;
     private LevelEditorModule levelEditorModule;
     private int selectedRow=-1;
@@ -82,10 +83,15 @@ public class View implements PropertyChangeListener {
     private TextArea tutorialTextArea = new TextArea();
     private Button showSpellBookBtn = new Button("Show Spellbook");
 
+    private VBox leftVBox = new VBox();
+    private VBox centerVBox= new VBox();
+    private VBox rightVBox= new VBox();
+
     public View(Model model, Stage stage,boolean isEditor) {
         this.stage = stage;
         this.model = model;
         this.startScreen = new StartScreen();
+
         startScene = new Scene(startScreen);
         cell_size = model.getCurrentLevel().getOriginalMap().getBoundY()>model.getCurrentLevel().getOriginalMap().getBoundX()? GameConstants.MAX_CELL_SIZE/((double)model.getCurrentLevel().getOriginalMap().getBoundY()):GameConstants.MAX_CELL_SIZE/((double)model.getCurrentLevel().getOriginalMap().getBoundX());
         cell_size = Math.round(cell_size);
@@ -111,7 +117,8 @@ public class View implements PropertyChangeListener {
         actualMapGPane = new GridPane();
 //        actualMapGPane.setHgap(1);
 //        actualMapGPane.setVgap(1);
-        rootPane = new BorderPane();
+        rootPane = new StackPane();
+        baseContentVBox = new VBox();
 //        hBoxRoot.setSpacing(4);
         stage.setScene(startScene);
         vBox = new VBox();
@@ -157,102 +164,21 @@ public class View implements PropertyChangeListener {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }}
-//        codeTextArea.setText("Knight knight = new Knight(WEST);\n" +
-//                "for(int i = 0; i < 4; i++){\n" +
-//                "knight.turn(5);\n" +
-//                "}\n"+
-//                "boolean aha = true;\n"+
-//                "while(aha){\n" +
-//                "if(knight.canMove()||knight.targetCellIs(GATE)){\n" +
-//                "if(knight.targetIsUnarmed()&&knight.canMove()){\n" +
-//                "knight.move();\n" +
-//                "}\n" +
-//                "else {\n" +
-//                "knight.wait();\n" +
-//                "}\n" +
-//                "}\n" +
-//                "else if(knight.targetCellIs(EXIT)){\n" +
-//                "knight.useItem();\n" +
-//                "}\n" +
-//                "else if(knight.targetCellIs(KEY)) {\n" +
-//                "aha = true;\n" +
-//                "knight.collect();\n" +
-//                "}\n" +
-//                "else if(knight.hasItem(KEY)){\n" +
-//                "knight.turn(WEST);\n" +
-//                "}\n" +
-//                "for(int i = 0; i < 4; i++){\n" +
-//                "knight.turn(EAST);\n" +
-//                "}\n" +
-//                "}");
         vBox.getChildren().addAll(/*codeBoxCompound*/ codeArea,hBox,msgLabel);
 //        canvas = new Canvas(500,500);
 //        canvas.getGraphicsContext2D().setFill(Color.BLACK);
 //        canvas.getGraphicsContext2D().fillRect(20,20,20,20);
 //        canvas.getGraphicsContext2D().fill();
         VBox leftVBox = new VBox();
-        if(aiCodeArea!=null)leftVBox.getChildren().add(aiCodeArea);
-        //TODO: implement better!
-        /*TextArea textArea = new TextArea();
-        textArea.setMinHeight(500);//TODO: make better
-        textArea.setWrapText(true);
-        textArea.setText("Mögliche Methoden: \nnew Knight( | WEST | EAST | NORTH | SOUTH)\n");
-        for(MethodType methodType :MethodType.values()){
-            textArea.setText( textArea.getText()+ methodType.getDisplayName());
-            switch (methodType){
-                default:
-                    textArea.setText( textArea.getText()+ "()");
-                    break;
-                case TURN:
-                    textArea.setText( textArea.getText()+ "(EAST | WEST | AROUND)");
-                    break;
-                case HAS_ITEM:
-                    textArea.setText( textArea.getText()+ "(");
-                    for(CContent content : CContent.values()){
-                        if (content.isCollectible())textArea.setText( textArea.getText()+ content.getDisplayName().toUpperCase()+" | ");
-                    }
-                    textArea.setText(textArea.getText(0,textArea.getText().length()-2));
-                    textArea.setText( textArea.getText()+ ")");
-                    break;
-                case TARGET_CELL_IS:
-                    textArea.setText( textArea.getText()+ "(");
-                    for(CContent content : CContent.values()){
-                        if (!content.isCollectible())textArea.setText( textArea.getText()+ content.getDisplayName().toUpperCase()+" | ");
-                    }
-                    textArea.setText(textArea.getText(0,textArea.getText().length()-2));
-                    textArea.setText( textArea.getText()+ ")");
-                    break;
-                case TARGET_CONTAINS:
-                    textArea.setText( textArea.getText()+ "(");
-                    for(CContent content : CContent.values()){
-                        if (!content.isCollectible())textArea.setText( textArea.getText()+ content.getDisplayName().toUpperCase()+" | ");
-                    }
-                    for(EntityType entityType : EntityType.values()){
-                        textArea.setText( textArea.getText()+ entityType.name().toUpperCase()+" | ");
-                    }
-                    textArea.setText(textArea.getText(0,textArea.getText().length()-2));
-                    textArea.setText( textArea.getText()+ ")");
-                    break;
-            }
-            textArea.setText( textArea.getText()+ "\n");
-        }
-        leftVBox.getChildren().add(textArea);*/
-        //TODO: ^
-//        rootPane.setLeft(leftVBox);
-//        rootPane.setRight(vBox);
-//        if(isEditor) {
-//            levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
-////            model.getCurrentLevel().addChangeListener(levelEditorModule);
-//            rootPane.setCenter(new HBox(actualMapGPane,levelEditorModule.getRightVBox()));
-//            rootPane.setTop(levelEditorModule.getTopHBox());
-//            rootPane.setBottom(levelEditorModule.getBottomHBox());
-//
-//        }else{
-//            rootPane.setCenter(canvas);
-//        }
+        //NULL NO LONGER VALID!
+//        if(aiCodeArea!=null)
+        leftVBox.getChildren().add(aiCodeArea);
+
 
         codeArea.draw();
-        if(aiCodeArea !=null)aiCodeArea.draw();
+        //NULL NO LONGER VALID
+        //if(aiCodeArea !=null)
+        aiCodeArea.draw();
         codeArea.select(0,false);
 
         Level l = model.getCurrentLevel();
@@ -452,58 +378,26 @@ public class View implements PropertyChangeListener {
     }
 
 
-    public Button getBtnExecute() {
-        return btnExecute;
-    }
-    //@Override
-    //TODO: rework
-//    public void notify(Event event) {
-//        switch (event){
-//            case LEVEL_CHANGED:
-//                if(model.getCurrentLevel().hasAi()){
-//                aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour());
-//                setAiCodeArea(aiCodeArea);
-//                aiCodeArea.draw();
-//                }
-//                else {
-//                    setAiCodeArea(null);
-//                }
-//            case MAP_CHANGED:
-//                GameMap cells = model.getCurrentLevel().getCurrentMap();
-//                drawMap(cells);
-//                break;
-//        }
-//
-//    }
-
-    public CodeArea getCodeArea() {
-        return codeArea;
-    }
-
-    public Button getBtnReset() {
-        return btnReset;
-    }
 
     public void setCodeArea(CodeArea codeArea) {
         this.codeArea = codeArea;
         vBox.getChildren().set(0,codeArea);
     }
 
-    public Slider getSpeedSlider() {
-        return speedSlider;
-    }
-
-    public Label getMsgLabel() {
-        return msgLabel;
-    }
-
     public CodeArea getAICodeArea() {
         return aiCodeArea;
     }
 
+    @Contract("null -> fail")
     public void setAiCodeArea(CodeArea newCodeArea) {
+        if(newCodeArea == null)throw new IllegalArgumentException("null is no longer allowed as AiCodeArea! Please use an empty CodeArea instead!");
         this.aiCodeArea = newCodeArea;
-        rootPane.setLeft(aiCodeArea);
+//        rootPane.setLeft(aiCodeArea);
+//        aiCodeArea.setAlignment(Pos.TOP_LEFT);
+        //TODO: DOesnt work like this!!
+        leftVBox.getChildren().clear();
+        leftVBox.getChildren().addAll(new Rectangle(50,50,Color.MAGENTA),new Label("Enemy Script"),aiCodeArea);
+        leftVBox.setAlignment(Pos.TOP_LEFT);
     }
     public GridPane getActualMapGPane(){
         return actualMapGPane;
@@ -629,7 +523,7 @@ public class View implements PropertyChangeListener {
                     aiCodeArea.draw();
                 }
                 else {
-                    setAiCodeArea(null);
+                    setAiCodeArea(new CodeArea(new ComplexStatement(),false));
                 }
                 if(sceneState == SceneState.LEVEL_EDITOR)updateLevelEditorModule();
             case "map":
@@ -694,7 +588,7 @@ public class View implements PropertyChangeListener {
                     aiCodeArea.draw();
                 }
                 else if (!model.getCurrentLevel().hasAi()){
-                    setAiCodeArea(null);
+                    setAiCodeArea(new CodeArea(new ComplexStatement(), false));
                 }
                 break;
             case "isTutorial":
@@ -723,9 +617,11 @@ public class View implements PropertyChangeListener {
                 break;
             case LEVEL_EDITOR:
                 prepareRootPane();
-                if(aiCodeArea != null){
+                //NULL NO LONGER VALID
+                //if(aiCodeArea !=null)
                 aiCodeArea.setEditable(true);
-                aiCodeArea.deselectAll();}
+                aiCodeArea.deselectAll();
+                //}
                 codeArea.deselectAll();
                 codeArea.select(0, true);
                 stage.setScene(editorScene);
@@ -735,9 +631,11 @@ public class View implements PropertyChangeListener {
                 break;
             case PLAY:
                 prepareRootPane();
-                if(aiCodeArea != null){
+                //NULL NO LONGER VALID
+                //if(aiCodeArea !=null)
                 aiCodeArea.setEditable(false);
-                aiCodeArea.deselectAll();}
+                aiCodeArea.deselectAll();
+                //}
                 codeArea.deselectAll();
                 codeArea.select(0, true);
                 levelOverviewPane.updateUnlockedLevels(model, this);
@@ -746,9 +644,11 @@ public class View implements PropertyChangeListener {
             case TUTORIAL:
                 //TODO:
                 prepareRootPane();
-                if(aiCodeArea != null){
-                    aiCodeArea.setEditable(false);
-                    aiCodeArea.deselectAll();}
+                //NULL NO LONGER VALID
+                //if(aiCodeArea !=null)
+                aiCodeArea.setEditable(false);
+                aiCodeArea.deselectAll();
+                //}
                 codeArea.deselectAll();
                 codeArea.select(0, true);
                 levelOverviewPane.updateUnlockedLevels(model, this);
@@ -760,59 +660,70 @@ public class View implements PropertyChangeListener {
     }
 
     private void prepareRootPane(){//(boolean isEditor) {
-
+        rootPane = new StackPane();
         levelNameLabel.setText(model.getCurrentLevel().getName());
-        actualMapGPane.autosize();
-//        levelNameLabel.autosize();
-//        levelNameLabel.setTranslateX(actualMapGPane.getWidth()/2-75);
-        VBox leftVBox = new VBox();
-        if(aiCodeArea!=null)leftVBox.getChildren().add(aiCodeArea);
-        rootPane = new BorderPane();
-        rootPane.getChildren().clear();
-        rootPane.setLeft(leftVBox);
-        rootPane.setRight(vBox);
+        HBox contentHBox = new HBox();
+        setAiCodeArea(aiCodeArea);
+        rightVBox.getChildren().clear();
+        centerVBox.getChildren().clear();
+        rightVBox.setAlignment(Pos.TOP_RIGHT);
+        knightsLeftHBox.setAlignment(Pos.TOP_RIGHT);
+        rightVBox.getChildren().addAll(new Rectangle(50,50,Color.AZURE),new Label("Script"),vBox); //TODO: vBox no longer valid
+        baseContentVBox.getChildren().clear();
+//        rootPane.setLeft(leftVBox);
+//        rootPane.setRight(vBox);
         switch (sceneState){
             case LEVEL_EDITOR:
                 levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
-//            model.getCurrentLevel().addChangeListener(levelEditorModule);
-                rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),new VBox(levelEditorModule.getRightVBox(),spellBookPane)));
-                rootPane.setTop(levelEditorModule.getTopHBox());
-                rootPane.setBottom(new HBox(backBtn,levelEditorModule.getBottomHBox()));
+//                rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),new VBox(levelEditorModule.getRightVBox(),spellBookPane)));
+//                rootPane.setTop(levelEditorModule.getTopHBox());
+//                rootPane.setBottom(new HBox(backBtn,levelEditorModule.getBottomHBox()));
+                HBox editorCenterHBox = new HBox(actualMapGPane,new VBox(levelEditorModule.getRightVBox()));
+                editorCenterHBox.autosize();
+                HBox topCenterHBox = new HBox(levelNameLabel,knightsLeftHBox);
+//                topCenterHBox.setAlignment(Pos.CENTER);
+                topCenterHBox.setSpacing(100);
+                editorCenterHBox.setAlignment(Pos.TOP_CENTER);
+                centerVBox.getChildren().addAll(topCenterHBox,editorCenterHBox,levelEditorModule.getBottomHBox());
                 editorScene = new Scene(rootPane);
+                baseContentVBox.getChildren().add(levelEditorModule.getTopHBox());
                 break;
             case LEVEL_SELECT:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
 //                break;
             case PLAY:
-                VBox vBox = new VBox(levelNameLabel,actualMapGPane,knightsLeftHBox);
-                vBox.setAlignment(Pos.TOP_CENTER);
-                rootPane.setCenter(new HBox(vBox,spellBookPane));
-                rootPane.setBottom(backBtn);
+//                VBox vBox = new VBox(levelNameLabel,actualMapGPane,knightsLeftHBox);
+//                vBox.setAlignment(Pos.TOP_CENTER);
+//                rootPane.setCenter(new HBox(vBox,spellBookPane));
+//                rootPane.setBottom(backBtn);
+
+                topCenterHBox = new HBox(levelNameLabel,knightsLeftHBox);
+
+                centerVBox.getChildren().addAll(topCenterHBox,actualMapGPane);
                 playScene = new Scene(rootPane);
                 break;
             case START_SCREEN:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
 //                break;
             case TUTORIAL:
-                vBox = new VBox(levelNameLabel,actualMapGPane,knightsLeftHBox);
-                vBox.setAlignment(Pos.TOP_CENTER);
-                rootPane.setCenter(new HBox(vBox,new VBox(tutorialTextArea,showSpellBookBtn)));
-                rootPane.setBottom(backBtn);
+//                vBox = new VBox(levelNameLabel,actualMapGPane,knightsLeftHBox);
+//                vBox.setAlignment(Pos.TOP_CENTER);
+
+                topCenterHBox = new HBox(levelNameLabel,knightsLeftHBox);
+
+                centerVBox.getChildren().addAll(topCenterHBox,actualMapGPane);
+//                rootPane.setCenter(new HBox(vBox,new VBox(tutorialTextArea,showSpellBookBtn)));
+//                rootPane.setBottom(backBtn);
                 tutorialScene = new Scene(rootPane);
                 break;
         }
-//        if(isEditor) {
-//            levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
-////            model.getCurrentLevel().addChangeListener(levelEditorModule);
-//            rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),new VBox(levelEditorModule.getRightVBox(),spellBookPane)));
-//            rootPane.setTop(levelEditorModule.getTopHBox());
-//            rootPane.setBottom(new HBox(backBtn,levelEditorModule.getBottomHBox()));
-//            editorScene = new Scene(rootPane);
-//        }else{
-//            rootPane.setCenter(new HBox(new VBox(actualMapGPane,knightsLeftHBox),spellBookPane));
-//            rootPane.setBottom(backBtn);
-//            playScene = new Scene(rootPane);
-//        }
+        contentHBox.getChildren().addAll(leftVBox,centerVBox,rightVBox);
+        contentHBox.setAlignment(Pos.CENTER);
+        contentHBox.setSpacing(100);
+        contentHBox.setPrefWidth(GameConstants.SCREEN_WIDTH);
+
+        baseContentVBox.getChildren().addAll(contentHBox,backBtn);
+        rootPane.getChildren().add(baseContentVBox);
 
     }
 
@@ -877,6 +788,30 @@ public class View implements PropertyChangeListener {
 
     public SceneState getCurrentSceneState() {
         return sceneState;
+    }
+    public Button getBtnExecute() {
+        return btnExecute;
+    }
+
+    public CodeArea getCodeArea() {
+        return codeArea;
+    }
+
+    public Button getBtnReset() {
+        return btnReset;
+    }
+
+    public Slider getSpeedSlider() {
+        return speedSlider;
+    }
+
+    public Label getMsgLabel() {
+        return msgLabel;
+    }
+
+
+    public StackPane getRootPane() {
+        return rootPane;
     }
 }
 /*
