@@ -1,37 +1,46 @@
-push() method? (Rather not)
-dropItem() method (Rather yes)
-define own methods?? (Big!!)
-wizard speech bubbles as tutorial gui?
-language settings
-duplicate code in new lvl, open lvl, edit lvl?
-how to display item currently carried?
-delete() method? (rather not)
-isAlive() method
-make traps trigger via pressure plates also?
-[level descriptions (maybe unnecessary??)]
-data: tutorial progress
-Status whether level is saved or if changes will be lost
-beacon -> every other knight/skeleton mimicks this one! (ambitious!)
-enemies not skeletons but enemy knights (no)? -> need to attack instead of walking into you? (maybe no sword necessary? yes or no?)
-instead of a key -> collect all treasures?? -> exits dont need to be opened but you lose the round if you dont collect all treasure?
-build a prototype -> https://stackoverflow.com/questions/53453212/how-to-deploy-a-javafx-11-desktop-application-with-a-jre
-variable names restrict possible names??
-add all VariableTypes enumerated in the enum
-DIRECTION: NORTH, SOUTH, WEST, EAST
-TURN_DIRECTION: LEFT, RIGHT, AROUND
-allow booleans with other value than true or false!
-atm you cannot edit the intelligent codefield via clicks without have used arrow keys or enter etc. beforehand!
-end goal always to unlock the exit? <- the wizard wants to escape, not the knights! => no open tag!
-show tutorial levels exclusively in tutorial
-tutorial GUI
-if problems with JSONParser -> remove abstract
-display Levelname in Playmode!
-changing level name in editor -> extra button because name of file should be changed and the entry in data and requiredlevel also!!
-Make spellbook open on request and dont always show it!
-tutorialtext in level descriptions -> make editable! (tutorial textarea in texteditor but editable)
-TODO:!! find place for show spellbook button, tutorial textarea + forward and backwards buttons -> stackpane??
+OPTIONAL:
+-push() method? (Rather not)
+-language settings
+-duplicate code in new lvl, open lvl, edit lvl?
+-how to display item currently carried?
+-delete() method? (rather not)
+-make traps trigger via pressure plates also?
+-enemies not skeletons but enemy knights (no)? -> need to attack instead of walking into you? (maybe no sword necessary? yes or no?)
+-instead of a key -> collect all treasures?? -> exits dont need to be opened but you lose the round if you dont collect all treasure?
+-isAlive() method
+-CodeAreaController -> rework? (branch!)
+
+IMPORTANT:
+-----------------------------------
+-dropItem() method (Rather yes)
+-define own methods?? (Big!!)
+-wizard speech bubbles as tutorial gui?
+-data: tutorial progress
+-Status whether level is saved or if changes will be lost
+-beacon -> every other knight/skeleton mimicks this one! (ambitious!)
+-build a prototype -> https://stackoverflow.com/questions/53453212/how-to-deploy-a-javafx-11-desktop-application-with-a-jre
+-variable names restrict possible names??
+-add all VariableTypes enumerated in the enum
+-DIRECTION: NORTH, SOUTH, WEST, EAST
+-TURN_DIRECTION: LEFT, RIGHT, AROUND
+-allow booleans with other value than true or false!
+-end goal always to unlock the exit? <- the wizard wants to escape, not the knights! => no open tag!
+-show tutorial levels exclusively in tutorial
+-tutorial GUI
+-if problems with JSONParser -> remove abstract
+-display Levelname in Playmode!
+-changing level name in editor -> extra button because name of file should be changed and the entry in data and requiredlevel also!!
+-Make spellbook open on request and dont always show it!
+-tutorialtext in level descriptions -> make editable! (tutorial textarea in texteditor but editable)
+-TODO:!! find place for show spellbook button, tutorial textarea + forward and backwards buttons -> stackpane??
+-adjust to codeAreacontroller no longer "null"! Instead ask for isEmpty() [do controller and model search for null tests!]
+---------------------------------------------
 
 DONE:
+
+26.09.
+make codefield scrollable! no 2 blocks!!
+atm you cannot edit the intelligent codefield via clicks without have used arrow keys or enter etc. beforehand!
 
 23.09.
 Levelname in VBOX over level!
