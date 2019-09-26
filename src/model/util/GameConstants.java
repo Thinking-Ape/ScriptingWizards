@@ -4,6 +4,7 @@ import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import model.Cell;
 
+import java.awt.*;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
@@ -22,11 +23,14 @@ public abstract class GameConstants {
     public static final Random RANDOM = new Random();
     public static final String LEVEL_ROOT_PATH = Paths.get("resources/levels/").toString();
     public static final String ROOT_PATH = Paths.get("resources/").toString();
-    public static final int MAX_CODE_LINES = 35;
+    public static final int MAX_CODE_LINES = 30;
     public static final int MAX_LEVEL_SIZE = 15;
     public static final int MIN_LEVEL_SIZE = 3;
     public static final double MAX_CELL_SIZE = 500;
     public static final int MAX_DEPTH = 4;
+    public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+    public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+
 
     //abhängig vom canvas...
     //public static final int CELL_SIZE =
