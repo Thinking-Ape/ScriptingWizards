@@ -1,4 +1,4 @@
-package model.util;
+package util;
 
 public enum VariableType {
     INT("int"),

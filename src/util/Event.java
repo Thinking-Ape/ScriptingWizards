@@ -1,4 +1,4 @@
-package model.util;
+package util;
 
 //TODO: delete?
 public enum Event {

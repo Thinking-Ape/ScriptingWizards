@@ -1,4 +1,4 @@
-package model.util;
+package util;
 
 public interface EventListener {
 

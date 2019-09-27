@@ -1,6 +1,4 @@
-package model.util;
-
-import model.statement.Expression.ExpressionTree;
+package util;
 
 import java.util.ArrayList;
 import java.util.List;

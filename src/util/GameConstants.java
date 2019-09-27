@@ -1,11 +1,10 @@
-package model.util;
+package util;
 
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import model.Cell;
 
 import java.awt.*;
-import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Random;
@@ -30,7 +29,7 @@ public abstract class GameConstants {
     public static final int MAX_DEPTH = 4;
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
-
+    public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
 
     //abhängig vom canvas...
     //public static final int CELL_SIZE =
