@@ -1,5 +1,6 @@
 package view;
 
+import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -189,11 +190,16 @@ public class SpellBookPane extends StackPane {
         // does actually belong here, as it is only concerned with visual effect and not with any functionality
         // maybe add actual functionality later -> move to controller!
         spellListView.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume);
+
         spellListView.autosize();
-//        Rectangle rect = new Rectangle(spellListView.getPrefWidth()+100,spellListView.getPrefHeight()+50,Color.WHITE);//spellListView.getItems().size()*20,Color.WHITE);
-        this.setAlignment(Pos.TOP_CENTER);
+        Rectangle rect = new Rectangle(spellListView.getPrefWidth()+10,spellListView.getPrefHeight()+25,Color.BLACK);//spellListView.getItems().size()*20,Color.WHITE);
+//        this.setMouseTransparent(true);
+        this.setAlignment(Pos.CENTER);
         VBox vBox = new VBox(new SpellBookLabel(SpellBookLabelType.HEADING,"Spell Book","Contains all spells you've unlocked!"),spellListView);
-        vBox.setAlignment(Pos.TOP_CENTER);
-        this.getChildren().addAll(vBox);//rect,vBox);
+        vBox.setAlignment(Pos.CENTER);
+        //makes the layer below this one also receive clicks!
+        vBox.setPickOnBounds(false);
+        this.setPickOnBounds(false);
+        this.getChildren().addAll(rect,vBox);//rect,vBox);
     }
 }

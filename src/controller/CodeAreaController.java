@@ -1,8 +1,7 @@
 package controller;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
-import model.util.GameConstants;
+import util.GameConstants;
 import model.Model;
 import model.statement.ComplexStatement;
 import parser.CodeParser;
@@ -39,9 +38,7 @@ public class CodeAreaController {
 
             });
         }
-        codeArea.getScrollBar().valueProperty().addListener((observableValue, number, t1) -> {
-           codeArea.scroll(Math.round(t1.floatValue()));
-        });
+        codeArea.addListenerToScrollbar((observableValue, number, t1) -> codeArea.scroll(Math.round(t1.floatValue())));
     }
     private void setHandlerForCodeField(CodeField currentCodeField, boolean isAi) {
         currentCodeField.setOnMousePressed(event -> {

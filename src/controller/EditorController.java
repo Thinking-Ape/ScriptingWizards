@@ -11,7 +11,7 @@ import model.enums.CFlag;
 import model.enums.ItemType;
 import model.statement.ComplexStatement;
 import model.statement.SimpleStatement;
-import model.util.GameConstants;
+import util.GameConstants;
 import parser.JSONParser;
 import view.View;
 
@@ -59,6 +59,21 @@ public class EditorController {
         else view.getLevelEditorModule().getHasAiValueLbl().setText(""+false);
         setHandlersForMapCells();
         setHandlersForCellTypeButtons();
+        //TODO: make this section prettier -> look to setHandlersForMapCells
+        int k = view.getSelectedColumn();
+        int h = view.getSelectedRow();
+        changeEditorModuleDependingOnCellContent(k,h);
+        CContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(k, h);
+        view.setCellTypeButtonActive(content);
+        if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setCContentButtonInactive(CContent.EMPTY);
+        if(!testIfNormalContentIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setNormalButtonsInactive();
+        //END OF TODO
+
+        int cellId  = model.getCurrentLevel().getOriginalMap().getCellID(k,h);
+        if(cellId !=-1)view.getLevelEditorModule().getCellIdValueLbl().setText(cellId+"");
+        else view.getLevelEditorModule().getCellIdValueLbl().setText("NONE");
+
+        changeEditorModuleDependingOnCellContent(k,h);
         view.getLevelEditorModule().getSaveLevelBtn().setOnAction(event -> {
             Level level =model.getCurrentLevel();
             if(level.getOriginalMap().findSpawn().getX()==-1){
@@ -80,6 +95,35 @@ public class EditorController {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        });
+
+        view.getLevelEditorModule().getEditTutorialTextBtn().setOnAction(evt -> {
+            Dialog<ButtonType> editTutorialDialog = new Dialog<>();
+            TextArea tutorialTextArea = new TextArea();
+            tutorialTextArea.setWrapText(true);
+            tutorialTextArea.setAccessibleText("Type your tutorial text here!");
+            editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+            editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+            editTutorialDialog.getDialogPane().setContent(tutorialTextArea);
+
+            Optional<ButtonType> o  = editTutorialDialog.showAndWait();
+            if(o.isPresent()&& o.get() == ButtonType.OK){
+                String tutorialText = tutorialTextArea.getText();
+                int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText())-1;
+                model.getCurrentLevel().setTutorialLine(index,tutorialText);
+                //TODO: evaluate necessity
+                setEditorHandlers();
+            }
+        });
+
+        view.getLevelEditorModule().getDeleteTutorialTextBtn().setOnAction(evt -> {
+            Optional<ButtonType> o  = new Alert(Alert.AlertType.NONE,"Do you really want to delete this tutorial text?",ButtonType.OK, ButtonType.CANCEL).showAndWait();
+            if(o.isPresent()&& o.get() == ButtonType.OK){
+                int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText())-1;
+                model.getCurrentLevel().deleteTutorialLine(index);
+                //TODO: evaluate necessity
+                setEditorHandlers();
             }
         });
 
@@ -132,7 +176,7 @@ public class EditorController {
         });
         view.getLevelEditorModule().getDeleteLevelBtn().setOnAction(event -> {
 
-            Alert deleteAlert = new Alert(Alert.AlertType.WARNING, "You are about to permanently delete this level!", ButtonType.OK,ButtonType.CANCEL);
+            Alert deleteAlert = new Alert(Alert.AlertType.NONE, "You are about to permanently delete this level!", ButtonType.OK,ButtonType.CANCEL);
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
                 File file = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString()+"/"+model.getCurrentLevel().getName()+".json");
@@ -152,7 +196,7 @@ public class EditorController {
         });
         view.getLevelEditorModule().getResetLevelScoresBtn().setOnAction(event -> {
 
-            Alert deleteAlert = new Alert(Alert.AlertType.WARNING, "You are about to reset the score for this level!", ButtonType.OK,ButtonType.CANCEL);
+            Alert deleteAlert = new Alert(Alert.AlertType.NONE, "You are about to reset the score for this level!", ButtonType.OK,ButtonType.CANCEL);
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
                 try {
@@ -173,11 +217,11 @@ public class EditorController {
 
         view.getLevelEditorModule().getReloadLevelBtn().setOnAction(event -> {
 
-            Alert deleteAlert = new Alert(Alert.AlertType.WARNING, "You are about to reload this level! Unsaved changes will be discarded!", ButtonType.OK,ButtonType.CANCEL);
+            Alert deleteAlert = new Alert(Alert.AlertType.NONE, "You are about to reload this level! Unsaved changes will be discarded!", ButtonType.OK,ButtonType.CANCEL);
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
                 if(!GameConstants.arrayContains(JSONParser.getAllLevelNames(),model.getCurrentLevel().getName())){
-                    new Alert(Alert.AlertType.WARNING, "This Level has not been saved yet!", ButtonType.OK).showAndWait();
+                    new Alert(Alert.AlertType.NONE, "This Level has not been saved yet!", ButtonType.OK).showAndWait();
                     return;
                 }
                 try {
@@ -332,7 +376,7 @@ public class EditorController {
         });
         view.getLevelEditorModule().getEditLvlBtn().setOnAction(event -> {
             Dialog<ButtonType> changeLvlDialog = new Dialog<>();
-            TextField nameTField = new TextField(model.getCurrentLevel().getName());
+//            TextField nameTField = new TextField(model.getCurrentLevel().getName());
 //            TextField heightTField = new TextField(model.getCurrentLevel().getOriginalMap().getBoundY()+"");
 //            TextField widthTField = new TextField(model.getCurrentLevel().getOriginalMap().getBoundX()+"");
             Slider heightSlider = new Slider();
@@ -359,18 +403,21 @@ public class EditorController {
             TextField turns2StarsTField = new TextField(model.getCurrentLevel().getTurnsToStars()[0]+"");
             TextField turns3StarsTField = new TextField(model.getCurrentLevel().getTurnsToStars()[1]+"");
 
-            nameTField.textProperty().addListener((observableValue, s, t1) -> {
-                if(t1.matches("(\\d+.*)+")){
-                    nameTField.setText(s);
-                }
-            });
+//            nameTField.textProperty().addListener((observableValue, s, t1) -> {
+//                if(t1.matches("(\\d+.*)+")){
+//                    nameTField.setText(s);
+//                }
+//            });
             addChangeListenerForIntTFields(/*heightTField,widthTField,*/loc2StarsTField,loc3StarsTField,turns2StarsTField,turns3StarsTField);
             CheckBox hasAiCheckBox = new CheckBox();
             CheckBox isTutorialCheckBox = new CheckBox();
-            HBox hBox = new HBox(new Label("Name:"),nameTField,sizeVBox,maxKnightsVBox,new VBox(new Label("*** max. LoC: "),new Label("** max. LoC: ")),new VBox(loc3StarsTField,loc2StarsTField),new VBox(new Label("*** max. Turns: "),new Label("** max. Turns: ")),new VBox(turns3StarsTField,turns2StarsTField),
+            //new Label("Name:"),nameTField,
+            HBox hBox = new HBox(sizeVBox,maxKnightsVBox,new VBox(new Label("*** max. LoC: "),new Label("** max. LoC: ")),new VBox(loc3StarsTField,loc2StarsTField),new VBox(new Label("*** max. Turns: "),new Label("** max. Turns: ")),new VBox(turns3StarsTField,turns2StarsTField),
                     new Label("Has AI"),hasAiCheckBox,new Label("Is Tutorial"),isTutorialCheckBox);
             hasAiCheckBox.setSelected(model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0);
             isTutorialCheckBox.setSelected(model.getCurrentLevel().isTutorial());
+            // allow only those levels to be a tutorial whose predecessor is a tutorial to avoid weird required level dependencies!
+            if(!model.getLevelWithIndex(model.getCurrentLevel().getIndex()-1).isTutorial())isTutorialCheckBox.setDisable(true);
             changeLvlDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
             changeLvlDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
             changeLvlDialog.getDialogPane().setContent(hBox);
@@ -386,7 +433,8 @@ public class EditorController {
                 model.getCurrentLevel().setMaxKnights((int)maxKnightsSlider.getValue());
                 model.getCurrentLevel().changeLocToStars(new Integer[]{Integer.valueOf(loc2StarsTField.getText()),Integer.valueOf(loc3StarsTField.getText())});
                 model.getCurrentLevel().changeTurnsToStars(new Integer[]{Integer.valueOf(turns2StarsTField.getText()),Integer.valueOf(turns3StarsTField.getText())});
-                model.getCurrentLevel().setName(nameTField.getText());
+                // Level name should not be changed via this menu as it makes a lot of changes necessary
+                //                model.getCurrentLevel().setName(nameTField.getText());
                 model.getCurrentLevel().setIsTutorial(isTutorialCheckBox.isSelected());
 //                view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());
                 if(!hasAiCheckBox.isSelected())model.getCurrentLevel().setAiBehaviour(new ComplexStatement());
@@ -401,8 +449,42 @@ public class EditorController {
                 setEditorHandlers();
             }
         });
+
+    view.getLevelEditorModule().getChangeLvlNameBtn().setOnAction(event -> {
+        Dialog<ButtonType> changeLvlNameDialog = new Dialog<>();
+        TextField nameTField = new TextField(model.getCurrentLevel().getName());
+
+            nameTField.textProperty().addListener((observableValue, s, t1) -> {
+                if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Z|a-z|ä|Ä|ö|Ö|ü|Ü|ß]*\\d*")){
+                    nameTField.setText(s);
+                }
+            });
+        HBox hBox = new HBox(new Label("Name:"),nameTField);
+        changeLvlNameDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        changeLvlNameDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+        changeLvlNameDialog.getDialogPane().setContent(hBox);
+
+        Optional<ButtonType> o  = changeLvlNameDialog.showAndWait();
+        if(o.isPresent()&& o.get() == ButtonType.OK){
+            String oldName = model.getCurrentLevel().getName();
+            try {
+                if(JSONParser.changeLevelName(oldName,nameTField.getText())){
+                    new Alert(Alert.AlertType.NONE, "The level has been renamed!", ButtonType.OK).showAndWait();
+                    model.getCurrentLevel().setName(nameTField.getText());
+                }
+                else
+                    new Alert(Alert.AlertType.NONE, "The level could not be renamed!", ButtonType.OK).showAndWait();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            //TODO: next line necessary?
+//            setEditorHandlers();
+        }
+    });
         if(view.getSelectedColumn()!=-1 && view.getSelectedRow()!=-1)view.highlightInMap(view.getSelectedColumn(),view.getSelectedRow());
-    }
+}
 
     private void formatSlider(Slider slider,int min, int max) {
 
@@ -508,7 +590,7 @@ public class EditorController {
                                 model.getCurrentLevel().getOriginalMap().setCellId(view.getSelectedColumn(),view.getSelectedRow(),id);
                                 view.getLevelEditorModule().getCellIdValueLbl().setText(id!=-1 ? ""+id : "NONE");
                             }
-                            else new Alert(Alert.AlertType.WARNING,"Id "+id+" already in use",ButtonType.OK).showAndWait();
+                            else new Alert(Alert.AlertType.NONE,"Id "+id+" already in use",ButtonType.OK).showAndWait();
                         }
                     }
                     setEditorHandlers();
@@ -555,7 +637,7 @@ public class EditorController {
                             }
                         }
                     }
-                    else new Alert(Alert.AlertType.CONFIRMATION, "There are no more Pressure Plates with a unique Cell Id to add", ButtonType.OK).showAndWait();
+                    else new Alert(Alert.AlertType.NONE, "There are no more Pressure Plates with a unique Cell Id to add", ButtonType.OK).showAndWait();
                     setEditorHandlers();
                 });
             }

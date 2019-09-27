@@ -5,7 +5,7 @@ import javafx.animation.Timeline;
 import javafx.util.Duration;
 import model.*;
 import model.statement.ComplexStatement;
-import model.util.GameConstants;
+import util.GameConstants;
 import parser.CodeParser;
 import parser.JSONParser;
 import view.SceneState;
@@ -27,9 +27,22 @@ public class Controller {
         CodeAreaController codeAreaController = new CodeAreaController(view,model);
         EditorController editorController = new EditorController(view,model,codeAreaController);
         codeAreaController.setAllHandlersForCodeArea(false);
+        view.getShowSpellBookBtn().setOnAction(evt -> {
+            view.toggleShowSpellBook();
+            boolean isVisible = view.getSpellBookPane().isVisible();
+            view.getActualMapGPane().setMouseTransparent(isVisible);
+            view.getCellItemSelectionPane().setMouseTransparent(isVisible);
+            view.getCellTypeSelectionPane().setMouseTransparent(isVisible);
+            view.getLevelEditorModule().getBottomHBox().setMouseTransparent(isVisible);
+            view.getBtnExecute().setMouseTransparent(isVisible);
+            view.getBtnReset().setMouseTransparent(isVisible);
+            view.getSpeedSlider().setMouseTransparent(isVisible);
+
+        });
         view.getBackBtn().setOnAction(actionEvent -> {
             switch (view.getCurrentSceneState()){
                 case LEVEL_EDITOR:
+                    view.getShowSpellBookBtn().setText("Show Spellbook");
                     view.setSceneState(SceneState.START_SCREEN);
                     break;
                 case LEVEL_SELECT:
