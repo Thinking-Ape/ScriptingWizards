@@ -1,15 +1,15 @@
 package parser;
 
 import model.enums.*;
-import model.util.GameConstants;
+import util.GameConstants;
 import model.statement.*;
 import model.statement.Condition.*;
 import model.statement.Expression.ExpressionLeaf;
 import model.statement.Expression.ExpressionTree;
 import model.statement.Expression.ExpressionType;
-import model.util.StringPair;
-import model.util.Variable;
-import model.util.VariableType;
+import util.StringPair;
+import util.Variable;
+import util.VariableType;
 
 import java.util.*;
 import java.util.regex.Matcher;

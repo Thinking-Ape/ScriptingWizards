@@ -10,13 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Cell;
 import model.enums.ItemType;
-import model.util.GameConstants;
+import util.GameConstants;
 import model.GameMap;
 import model.Level;
 import model.enums.CContent;
 import model.enums.CFlag;
 import model.statement.ComplexStatement;
-import model.util.Point;
+import util.Point;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -432,5 +432,46 @@ public abstract class JSONParser {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static void saveRequiredLevels(Level level) throws IOException {
+        Path filePath = Path.of(GameConstants.LEVEL_ROOT_PATH,level.getName()+".json");
+        String jsonString = String.join("", Files.readAllLines(filePath));
+
+        JSONObject levelJSONObject = new JSONObject(jsonString);
+        JSONArray requiredLevelsArray = new JSONArray();
+        fillJSONArrayWithObjects(requiredLevelsArray,level.getRequiredLevels().toArray());
+        if(requiredLevelsArray.length() > 0)  levelJSONObject.put("requiredLevels", requiredLevelsArray);
+        else levelJSONObject.put("requiredLevels", new JSONArray());
+        try (FileWriter file = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+level.getName()+".json")) {
+            file.write(levelJSONObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean changeLevelName(String oldName, String newName) throws IOException {
+        Path source = Paths.get(GameConstants.LEVEL_ROOT_PATH,oldName+".json");
+        Path newPath = Paths.get(GameConstants.LEVEL_ROOT_PATH,newName+".json");
+        File file = new File(newPath.toUri());
+        if(file.exists())return false;
+        Files.move(source, source.resolveSibling(newName+".json"));
+        Path dataPath = Paths.get(GameConstants.ROOT_PATH,"data.json");
+        String jsonString = String.join("", Files.readAllLines(dataPath));
+        JSONObject dataObject = new JSONObject(jsonString);
+        JSONArray unlocksArray = dataObject.getJSONArray("unlocks");
+        String s;
+        for(int i = 0; i<unlocksArray.length();i++){
+            s=unlocksArray.getJSONObject(i).getString("name");
+            if(s.equals(oldName)){
+                unlocksArray.getJSONObject(i).put("name",newName);
+            }
+        }
+        try (FileWriter dataFile = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
+            dataFile.write(dataObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 }

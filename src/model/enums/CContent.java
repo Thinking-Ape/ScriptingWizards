@@ -1,6 +1,6 @@
 package model.enums;
 
-import model.util.GameConstants;
+import util.GameConstants;
 
 public enum CContent {
 

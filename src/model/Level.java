@@ -3,8 +3,8 @@ package model;
 import javafx.util.Pair;
 import model.enums.*;
 import model.statement.*;
-import model.util.GameConstants;
-import model.util.Point;
+import util.GameConstants;
+import util.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -16,8 +16,9 @@ public class Level implements PropertyChangeListener {
 
     private PropertyChangeSupport changeSupport;
     private boolean isTutorial;
+    private List<String> tutorialMessages;
     private int index;
-    private GameMap originalMap; //eventuell in eigene Klasse auslagern
+    private GameMap originalMap;
     private GameMap currentMap;
     private List<String> requiredLevels;
     private Integer[] locToStars;
@@ -42,11 +43,9 @@ public class Level implements PropertyChangeListener {
         this.isTutorial = isTutorial;
         this.maxKnights = maxKnights;
         this.usedKnights = 0;
-//        this.index = index;
         this.originalMap = new GameMap(originalArray);
-//        setStandardFlags(originalMap);
         this.currentMap = new GameMap(originalArray);
-        originalMap.addChangeListener(this);
+        this.originalMap.addChangeListener(this);
         this.turnsTaken = 0;
         this.aiBehaviour = aiBehaviour;
         this.evaluator = new CodeEvaluator();
@@ -55,6 +54,8 @@ public class Level implements PropertyChangeListener {
         this.locToStars = locToStars;
         this.requiredLevels = new ArrayList<>(Arrays.asList(requiredLevels));
         this.changeSupport = new PropertyChangeSupport(this);
+        this.tutorialMessages = new ArrayList<>();
+        if(isTutorial)tutorialMessages.add("");
     }
 
 
@@ -140,43 +141,13 @@ public class Level implements PropertyChangeListener {
         }
     }
 
-//    private void setStandardFlags(GameMap map) {
-//        for(int x = 0; x < map.getBoundX(); x++) for(int y = 0; y < map.getBoundY(); y++){
-//            Cell cell = map.getContentAtXY(x,y);
-//                if(cell.getContent() != CContent.EXIT){
-//                    cell.setFlagValue(CFlag.TRAVERSABLE,false);
-//                    cell.setFlagValue(CFlag.COLLECTIBLE,false);
-//                }
-//                if(cell.getContent().isTraversable()&&cell.getEntity()==null){
-//                    cell.setFlagValue(CFlag.TRAVERSABLE,true);
-//                }
-//                if(cell.getContent().isCollectible()){
-//                    cell.setFlagValue(CFlag.COLLECTIBLE,true);
-//            }
-//        }
-//    }
-
-//    private void win() {
-//        System.out.println("Success!");
-//        isWon = true;
-//    }
-
-
-    public void setPlayerBehaviour(ComplexStatement playerBehaviour) throws IllegalAccessException {
+    public void setPlayerBehaviour(ComplexStatement playerBehaviour) {
         this.playerBehaviour = playerBehaviour;
-
-        //changeSupport.firePropertyChange("playerBehaviour", this.playerBehaviour, playerBehaviour);
-//        this.linesOfCode = playerBehaviour.getActualSize();
     }
 
     public ComplexStatement getPlayerBehaviour() {
         return playerBehaviour;
     }
-
-   /* //TODO: maybe allow access to the map instead??
-    public Cell getOriginalCellAt(int x, int y) {
-        return originalMap.getContentAtXY(x,y);
-    }*/
 
     public void reset()  {
 //        playerBehaviour.resetCounter();
@@ -214,13 +185,6 @@ public class Level implements PropertyChangeListener {
         this.aiBehaviour = aiBehaviour;
         if(oldAiBehaviour.getStatementListSize() != aiBehaviour.getStatementListSize())changeSupport.firePropertyChange("aiBehaviour", oldAiBehaviour,aiBehaviour);
     }
-
-  /*  public int getHeight() {
-        return originalMap.getBoundY();
-    }
-    public int getWidth() {
-        return originalMap.getBoundX();
-    }*/
 
     public void setName(String name) {
         String oldName = this.name;
@@ -383,8 +347,16 @@ public class Level implements PropertyChangeListener {
         index = i;
         changeSupport.firePropertyChange("index", null,this);
     }
-//    public void setSpeed(double speed) {
-//        this.speed = speed;
-//    }
-//    public double getSpeed(){return speed;}
+    public void addTutorialLine(String tutorialLine){
+        tutorialMessages.add(tutorialLine);
+    }
+    public void setTutorialLine(int index, String tutorialLine){
+        tutorialMessages.set(index,tutorialLine);
+        changeSupport.firePropertyChange("tutorial", null,tutorialLine);
+    }
+
+    public void deleteTutorialLine(int index) {
+        tutorialMessages.remove(index);
+        changeSupport.firePropertyChange("tutorialDeletion", null,index);
+    }
 }

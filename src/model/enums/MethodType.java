@@ -1,11 +1,10 @@
 package model.enums;
 
-import model.util.GameConstants;
-import model.util.VariableType;
+import util.VariableType;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static model.util.VariableType.*;
+import static util.VariableType.*;
 
 public enum MethodType {
     MOVE("move\\(\\)",DEFAULT, "Moves this Knight one cell in the target direction, if the target cell is free."),

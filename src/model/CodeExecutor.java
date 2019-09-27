@@ -5,9 +5,9 @@ import model.statement.Assignment;
 import model.statement.MethodCall;
 import model.statement.Statement;
 import model.statement.StatementType;
-import model.util.GameConstants;
-import model.util.Point;
-import model.util.VariableType;
+import util.GameConstants;
+import util.Point;
+import util.VariableType;
 
 public class CodeExecutor {
     int noStackOverflow; //TODO: evaluate

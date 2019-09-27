@@ -1,6 +1,6 @@
 package model.statement.Condition;
 
-import model.util.GameConstants;
+import util.GameConstants;
 
 public enum BooleanType {
     BOOLEAN(GameConstants.ANY_CHAR,GameConstants.ANY_CHAR),

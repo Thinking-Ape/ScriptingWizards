@@ -1,7 +1,7 @@
 package model.statement.Expression;
 
 import javafx.util.Pair;
-import model.util.GameConstants;
+import util.GameConstants;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

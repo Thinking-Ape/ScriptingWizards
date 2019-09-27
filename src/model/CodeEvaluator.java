@@ -6,12 +6,11 @@ import model.statement.Condition.*;
 import model.statement.Expression.ExpressionLeaf;
 import model.statement.Expression.ExpressionTree;
 import model.statement.Expression.ExpressionType;
-import model.util.GameConstants;
-import model.util.Point;
-import model.util.Variable;
-import model.util.VariableType;
+import util.GameConstants;
+import util.Point;
+import util.Variable;
+import util.VariableType;
 
-import java.lang.annotation.Target;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

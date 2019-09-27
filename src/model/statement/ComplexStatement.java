@@ -1,6 +1,6 @@
 package model.statement;
 
-import model.util.Variable;
+import util.Variable;
 
 import java.util.ArrayList;
 import java.util.HashSet;

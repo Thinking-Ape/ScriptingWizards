@@ -1,6 +1,6 @@
 package model.statement.Condition;
 
-import model.util.GameConstants;
+import util.GameConstants;
 
 public enum ConditionType {
     AND('&','&'),

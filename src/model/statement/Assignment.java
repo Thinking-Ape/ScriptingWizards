@@ -1,8 +1,8 @@
 package model.statement;
 
-import model.util.VariableType;
+import util.VariableType;
 import model.statement.Expression.ExpressionTree;
-import model.util.Variable;
+import util.Variable;
 
 
 public class Assignment extends SimpleStatement {

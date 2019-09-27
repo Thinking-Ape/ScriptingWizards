@@ -1,6 +1,6 @@
 package model;
 
-import model.util.GameConstants;
+import util.GameConstants;
 import parser.JSONParser;
 import view.View;
 
@@ -9,8 +9,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Model implements PropertyChangeListener {
     private Set<Level> levelSet;
@@ -96,9 +94,19 @@ public class Model implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-//        if(evt.getPropertyName().equals("index")){
-//            levelSet.replace(((Level)evt.getNewValue()).getIndex()-1, (Level)evt.getNewValue());
-//        }
+        if(evt.getPropertyName().equals("name")){
+            for(Level l : levelSet){
+                if(l.getRequiredLevels().contains(evt.getOldValue())){
+                    l.getRequiredLevels().remove(evt.getOldValue());
+                    l.getRequiredLevels().add((String)evt.getNewValue());
+                    try {
+                        JSONParser.saveRequiredLevels(l);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
        changeSupport.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
         //TODO: updateUnlocks if things changed??
     }
@@ -154,7 +162,7 @@ public class Model implements PropertyChangeListener {
 //        Level oldLevel = levelSet.get(currentLevelIndex-1);
     }
 
-    private Level getLevelWithIndex(int i) {
+    public Level getLevelWithIndex(int i) {
         for(Level l : levelSet){
             if(l.getIndex() == i) return l;
         }
