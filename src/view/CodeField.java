@@ -2,7 +2,7 @@ package view;
 
 import javafx.scene.control.TextField;
 import javafx.scene.transform.Translate;
-import model.util.GameConstants;
+import util.GameConstants;
 
 public class CodeField extends TextField {
 

@@ -3,21 +3,18 @@ package view;
 
 //import javafx.scene.control.TextArea;
 
-import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.geometry.VerticalDirection;
 import javafx.scene.control.ScrollBar;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Translate;
-import model.util.GameConstants;
+import util.GameConstants;
 import model.statement.ComplexStatement;
 import model.statement.Statement;
-import org.intellij.lang.annotations.JdkConstants;
 
 import java.util.*;
 
@@ -34,6 +31,7 @@ public class CodeArea extends HBox {
     private StackPane firstStackPane = new StackPane();
     private ScrollBar scrollBar = new ScrollBar();
     private boolean isScrollable = false;
+    private boolean hasListener = false;
 //    private StackPane secondStackPane = new StackPane();
 
     public CodeArea (){
@@ -105,7 +103,6 @@ public class CodeArea extends HBox {
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
         int bound = (int) Math.round(scrollBar.getValue());
-        System.out.println("A");
         for(int i = bound; i < codeFieldList.size()+bound; i++){
             if(i < GameConstants.MAX_CODE_LINES+bound){
                 codeVBox.getChildren().add(codeFieldList.get(i));
@@ -246,6 +243,12 @@ public class CodeArea extends HBox {
             codeVBox.getChildren().add(codeFieldList.get(i));
             rectVBox.getChildren().add(rectStackList.get(i));
         }
-        System.out.println("B");
+    }
+    public void addListenerToScrollbar(ChangeListener<Number> changeListener){
+        // make sure the Listener is only added once!
+        if(!hasListener){
+            scrollBar.valueProperty().addListener(changeListener);
+            hasListener = true;
+        }
     }
 }

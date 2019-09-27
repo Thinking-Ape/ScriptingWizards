@@ -1,5 +1,6 @@
 package view;
 
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -7,11 +8,8 @@ import javafx.scene.transform.Translate;
 import model.Level;
 import model.enums.CContent;
 import model.enums.ItemType;
-import model.statement.ComplexStatement;
-import model.util.GameConstants;
+import util.GameConstants;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 
 
@@ -67,7 +65,7 @@ public class LevelEditorModule {
     private ChoiceBox<String> trapChoiceBox = new ChoiceBox<>();
     private VBox cellTypeVBox = new VBox(new Label("Cell Content:"),cellTypeSelectionGPane);
     private VBox cellItemVBox = new VBox(new Label("Item:"),cellItemSelectionGPane);//,cellIDHBox, addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView,exitOpenCheckBox);
-    private VBox rightVBox = new VBox(new HBox(cellTypeVBox,cellItemVBox));
+
     private Button saveLevelBtn = new Button("Save Level");
     private Button deleteLevelBtn = new Button("Delete Level");
     private Button openLevelBtn = new Button("Open Level");
@@ -78,14 +76,32 @@ public class LevelEditorModule {
     private VBox requiredLVBOX = new VBox(requiredLevelsLabel,requiredLevelsLView);
 //    private TextField levelNameTField = new TextField();
 
-    private HBox topHBox =new HBox(new HBox(hasAiLbl,hasAiValueLbl),new HBox(levelNameLbl,levelNameValueLbl),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new HBox(maxKnightsLbl,maxKnightsValueLbl),new HBox(), new HBox(maxLocVbox,maxLocValueVbox), new HBox(maxTurnsVbox,maxTurnsValueVbox), new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn, new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
+    private Button changeLvlNameBtn = new Button("Change Level Name");
+    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new HBox(hasAiLbl,hasAiValueLbl),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new HBox(maxKnightsLbl,maxKnightsValueLbl),new HBox(), new HBox(maxLocVbox,maxLocValueVbox), new HBox(maxTurnsVbox,maxTurnsValueVbox), new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
 
+    private Label tutorialTextLbl = new Label("Tutorial Text Nr.");
+    private Label tutorialNumberValueLbl = new Label("1");
+    private HBox tutorialTopHBox = new HBox(tutorialTextLbl,tutorialNumberValueLbl);
+    private TextArea tutorialTextArea = new TextArea();
+    private Button editTutorialTextBtn = new Button("Edit Text");
+    private Button nextOrNewTutorialTextBtn = new Button("New Tutorial Text");
+    private Button prevTutorialTextBtn = new Button("Previous\nTutorial Text");
+    private Button deleteTutorialTextBtn = new Button("Delete Text");
+    private HBox editDeleteTutHBox = new HBox(editTutorialTextBtn,deleteTutorialTextBtn);
+    private HBox prevNextTutHBox = new HBox(prevTutorialTextBtn,nextOrNewTutorialTextBtn);
+    private VBox tutorialVBox = new VBox(tutorialTopHBox,tutorialTextArea,editDeleteTutHBox,prevNextTutHBox);
+    private VBox rightVBox = new VBox(cellTypeVBox,cellItemVBox,tutorialVBox);
     public LevelEditorModule(Level level){
 //        if(level.getAIBehaviour().getStatementListSize()==0) hasAICheckBox.setSelected(false);
 //        else hasAICheckBox.setSelected(true);
-        GameConstants.applyValueFormat(indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
+        GameConstants.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
         topHBox.setSpacing(20);
         cellTypeVBox.setAlignment(Pos.CENTER);
+        cellItemVBox.setAlignment(Pos.CENTER);
+        cellItemSelectionGPane.setAlignment(Pos.CENTER);
+        rightVBox.setAlignment(Pos.CENTER);
+        rightVBox.setSpacing(50);
+        tutorialTextArea.setEditable(false);
 //        cellIDHBox.setVisible(false);
 //        addLinkedCellBtn.setVisible(false);
 //        removeLinkedCellBtn.setVisible(false);
@@ -309,42 +325,34 @@ public class LevelEditorModule {
     public Button getMoveIndexDownBtn() {
         return moveIndexDownBtn;
     }
-//    @Override
-//    public void propertyChange(PropertyChangeEvent evt) {
-////        if(evt.getNewValue().equals(evt.getOldValue()))return;
-//        switch (evt.getPropertyName()){
-//            case "name":
-//                levelNameValueLbl.setText(""+ evt.getNewValue());
-//                break;
-//            case "requiredLevels":
-//                requiredLevelsLView.getItems().clear();
-//                List<String> requiredLevelsList = (List<String>)evt.getNewValue();
-//                requiredLevelsLView.getItems().addAll(requiredLevelsList);
-//                break;
-//            case "width":
-//                widthValueLbl.setText(""+evt.getNewValue());
-//                break;
-//            case "height":
-//                heightValueLbl.setText(""+evt.getNewValue());
-//                break;
-//            case "locToStars":
-//                Integer[] locToStars = (Integer[])evt.getNewValue();
-//                maxLoc3StarsVLbl.setText(""+locToStars[1]);
-//                maxLoc2StarsVLbl.setText(""+locToStars[0]);
-//                break;
-//            case "turnsToStars":
-//                Integer[] turnsToStars = (Integer[])evt.getNewValue();
-//                maxTurns3StarsVLbl.setText(""+turnsToStars[1]);
-//                maxTurns2StarsVLbl.setText(""+turnsToStars[0]);
-//                break;
-//            case "maxKnights":
-//                maxKnightsValueLbl.setText(""+evt.getNewValue());
-//                break;
-//            case "aiBehaviour":
-//                ComplexStatement aiBehaviour = (ComplexStatement)evt.getNewValue();
-//                if(aiBehaviour.getStatementListSize()>0)hasAiValueLbl.setText(""+true);
-//                else hasAiValueLbl.setText(""+false);
-//                break;
-//        }
-//    }
+    public Button getChangeLvlNameBtn(){
+        return changeLvlNameBtn;
+    }
+
+    public Label getTutorialNumberValueLbl() {
+        return tutorialNumberValueLbl;
+    }
+
+    public TextArea getTutorialTextArea() {
+        return tutorialTextArea;
+    }
+
+    public Button getEditTutorialTextBtn() {
+        return editTutorialTextBtn;
+    }
+
+    public Button getNextOrNewTutorialTextBtn() {
+        return nextOrNewTutorialTextBtn;
+    }
+
+    public Button getPrevTutorialTextBtn() {
+        return prevTutorialTextBtn;
+    }
+
+    public Button getDeleteTutorialTextBtn() {
+        return deleteTutorialTextBtn;
+    }
+    public VBox getTutorialVBox() {
+        return tutorialVBox;
+    }
 }
