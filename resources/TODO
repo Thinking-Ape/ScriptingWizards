@@ -12,33 +12,42 @@ OPTIONAL:
 
 IMPORTANT:
 -----------------------------------
--dropItem() method (Rather yes)
--define own methods?? (Big!!)
--wizard speech bubbles as tutorial gui?
--data: tutorial progress
--Status whether level is saved or if changes will be lost
--beacon -> every other knight/skeleton mimicks this one! (ambitious!)
 -build a prototype -> https://stackoverflow.com/questions/53453212/how-to-deploy-a-javafx-11-desktop-application-with-a-jre
 -variable names restrict possible names??
 -add all VariableTypes enumerated in the enum
+-end goal always to unlock the exit? <- the wizard wants to escape, not the knights! => no open tag!
+
+-dropItem() method (Rather yes)
+-define own methods?? (Big!!)
+-wizard speech bubbles as tutorial gui?
+-beacon -> every other knight/skeleton mimicks this one! (ambitious!)
 -DIRECTION: NORTH, SOUTH, WEST, EAST
 -TURN_DIRECTION: LEFT, RIGHT, AROUND
 -allow booleans with other value than true or false!
--end goal always to unlock the exit? <- the wizard wants to escape, not the knights! => no open tag!
--show tutorial levels exclusively in tutorial
--tutorial GUI
+-tutorial GUI -> make user codearea smaller when tutorial is active??
 -if problems with JSONParser -> remove abstract
--display Levelname in Playmode!
--changing level name in editor -> extra button because name of file should be changed and the entry in data and requiredlevel also!!
--Make spellbook open on request and dont always show it!
+-data: tutorial progress
+-Status whether level is saved or if changes will be lost
 -tutorialtext in level descriptions -> make editable! (tutorial textarea in texteditor but editable)
--TODO:!! find place for show spellbook button, tutorial textarea + forward and backwards buttons -> stackpane??
--adjust to codeAreacontroller no longer "null"! Instead ask for isEmpty() [do controller and model search for null tests!]
+-create a spellbook for Skeletons (steal() instead of collect?? attack?)
+-change RequiredLevellist from String to Levels to avoid confusion with what needs to be saved
+OR
+-reimplement saving mechanism? New class UnsavedData or similarly named
+-LevelOverviewPane: replace level descriptions with other information like max knights, level_size and requirements for certain star ratings!
+-TODO: tutorialDeletion in view as a case!!
 ---------------------------------------------
 
 DONE:
 
+27.09.
+Make spellbook open on request and dont always show it!
+find place for show spellbook button, tutorial textarea + forward and backwards buttons -> stackpane??
+show tutorial levels exclusively in tutorial (??? maybe its okay to show in play scene?)
+display Levelname in Playmode!
+changing level name in editor -> extra button because name of file should be changed and the entry in data and requiredlevel also!!
+
 26.09.
+TODO:[might still be an issue]adjust to codeAreacontroller no longer "null"! Instead ask for isEmpty() [do controller and model search for null tests!]
 make codefield scrollable! no 2 blocks!!
 atm you cannot edit the intelligent codefield via clicks without have used arrow keys or enter etc. beforehand!
 
