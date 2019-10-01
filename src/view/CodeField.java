@@ -1,6 +1,8 @@
 package view;
 
+import javafx.beans.value.ChangeListener;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Translate;
 import util.GameConstants;
 
@@ -8,6 +10,7 @@ public class CodeField extends TextField {
 
     private int depth;
     private boolean isEmpty;
+    private boolean hasListener = false;
 //    Text text;
 
     public CodeField(String code, int depth, boolean isEditable){
@@ -36,6 +39,13 @@ public class CodeField extends TextField {
 //                text.setText(oldValue);
 //            }
 //        });
+        Text text = new Text(code);
+        if(text.getLayoutBounds().getWidth() > getMaxWidth()-15)throw new IllegalArgumentException("This code line is too long!");
+    }
+
+    public void addListener(ChangeListener<String> changeListener){
+        if(!hasListener)textProperty().addListener(changeListener) ;
+        hasListener = true;
     }
 
     public int getDepth() {

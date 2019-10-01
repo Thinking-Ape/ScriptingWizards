@@ -58,7 +58,7 @@ public class CodeArea extends HBox {
         this(behaviour,true);
     }
 
-    private List<CodeField> getCodeFieldsFromStatement(ComplexStatement complexStatement) {
+    private List<CodeField> getCodeFieldsFromStatement(ComplexStatement complexStatement) throws IllegalArgumentException {
         Statement statement;
         List<CodeField> output = new ArrayList<>();
         for(int i = 0; i < complexStatement.getStatementListSize(); i++){

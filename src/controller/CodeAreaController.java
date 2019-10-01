@@ -1,6 +1,7 @@
 package controller;
 
 import javafx.application.Platform;
+import javafx.scene.text.Text;
 import util.GameConstants;
 import model.Model;
 import model.statement.ComplexStatement;
@@ -8,6 +9,8 @@ import parser.CodeParser;
 import view.CodeArea;
 import view.CodeField;
 import view.View;
+
+import java.awt.*;
 
 public class CodeAreaController {
 
@@ -43,11 +46,11 @@ public class CodeAreaController {
     private void setHandlerForCodeField(CodeField currentCodeField, boolean isAi) {
         currentCodeField.setOnMousePressed(event -> {
             if(gameRunning)return;
-            view.getCodeArea().deselectAll();
-            if(view.getAICodeArea()!=null)view.getAICodeArea().deselectAll();
+            if(view.getCodeArea().getSelectedCodeField()!=currentCodeField)view.getCodeArea().deselectAll();
+            if(view.getAICodeArea().getSelectedCodeField()!=currentCodeField)view.getAICodeArea().deselectAll();
             addedStatementsBalance = 0;
             codeArea = !isAi ? view.getCodeArea() : view.getAICodeArea();
-            codeArea.select(currentCodeField, true);
+//            codeArea.select(currentCodeField, true);
             silentError = false;
             selectEnd = true;
             currentIndex = codeArea.indexOfCodeField(currentCodeField);
@@ -60,6 +63,10 @@ public class CodeAreaController {
 //            }
 //            codeArea.draw();
 //            codeArea.select(currentIndex,true);
+        });
+        currentCodeField.addListener((observableValue, s, t1) -> {
+            Text text = new Text(t1);
+            if(text.getLayoutBounds().getWidth() > currentCodeField.getLayoutBounds().getWidth()-15)currentCodeField.setText(s);
         });
         currentCodeField.setOnKeyPressed(event -> {
             if(gameRunning)return;
@@ -228,11 +235,9 @@ public class CodeAreaController {
     private void recreateCodeAreaIfCodeCorrect(CodeArea codeAreaClone, CodeField currentCodeField,boolean isAi) {
         Platform.runLater(()->{
             CodeArea newCodeArea = null;
-            try {
-                newCodeArea = tryToRecompileCodeArea(codeAreaClone,silentError,isAi);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
+
+            newCodeArea = tryToRecompileCodeArea(codeAreaClone,silentError,isAi);
+
             if(newCodeArea != null){
                 isError = false;
 //                int i = 1;
@@ -257,13 +262,13 @@ public class CodeAreaController {
 //                   codeArea.select(currentIndex,selectEnd);
                     isError = true;
                 }
-                else codeArea.setEditable(true);
+//                else codeArea.setEditable(true);
             }
             if(silentError)currentCodeField.setStyle(null);
             });
     }
 
-    private CodeArea tryToRecompileCodeArea(CodeArea codeArea, boolean silentError, boolean isAi) throws IllegalAccessException {
+    private CodeArea tryToRecompileCodeArea(CodeArea codeArea, boolean silentError, boolean isAi) {
         ComplexStatement complexStatement = recompileCode(codeArea,isAi);
         CodeArea codeArea1 = isAi ? view.getAICodeArea() : view.getCodeArea();
         if(complexStatement != null){
@@ -277,7 +282,11 @@ public class CodeAreaController {
             codeArea1.getCodeFieldListClone().get(errorLine).resetStyle();
             view.getMsgLabel().setText("");
             if(silentError)return null;
-            return new CodeArea(complexStatement);
+            try {
+                return new CodeArea(complexStatement);
+            }catch (IllegalArgumentException e){
+                view.getMsgLabel().setText(e.getMessage());
+            }
 //            return true;
         }
         else {
@@ -288,6 +297,7 @@ public class CodeAreaController {
             codeArea1.highlightError(errorLine); //errorline
             return null;
         }
+        return null; //TODO: evaluate this whole mess!
     }
 
 
