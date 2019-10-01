@@ -25,11 +25,12 @@ public abstract class GameConstants {
     public static final int MAX_CODE_LINES = 30;
     public static final int MAX_LEVEL_SIZE = 15;
     public static final int MIN_LEVEL_SIZE = 3;
-    public static final double MAX_CELL_SIZE = 500;
+    public static final double MAX_GAMEMAP_SIZE = 650;
     public static final int MAX_DEPTH = 4;
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
+//    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 
     //abhängig vom canvas...
     //public static final int CELL_SIZE =
