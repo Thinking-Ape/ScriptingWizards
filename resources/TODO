@@ -9,6 +9,8 @@ OPTIONAL:
 -instead of a key -> collect all treasures?? -> exits dont need to be opened but you lose the round if you dont collect all treasure?
 -isAlive() method
 -CodeAreaController -> rework? (branch!)
+-Key looks kinda bad...
+-create a spellbook for Skeletons (steal() instead of collect?? attack?)
 
 IMPORTANT:
 -----------------------------------
@@ -17,27 +19,33 @@ IMPORTANT:
 -add all VariableTypes enumerated in the enum
 -end goal always to unlock the exit? <- the wizard wants to escape, not the knights! => no open tag!
 
+-change RequiredLevellist from String to Levels to avoid confusion with what needs to be saved
+    OR
+    -reimplement saving mechanism? New class UnsavedData or similarly named
+    OR
+    -message upon saving: the following levels will be saved too, due to changes they are connected to
+-LevelOverviewPane: replace level descriptions with other information like max knights, level_size and requirements for certain star ratings!
+-Exit needs more gold/shininess!
+-Fullscreen mode
 -dropItem() method (Rather yes)
 -define own methods?? (Big!!)
 -wizard speech bubbles as tutorial gui?
 -beacon -> every other knight/skeleton mimicks this one! (ambitious!)
 -DIRECTION: NORTH, SOUTH, WEST, EAST
 -TURN_DIRECTION: LEFT, RIGHT, AROUND
--allow booleans with other value than true or false!
 -tutorial GUI -> make user codearea smaller when tutorial is active??
--if problems with JSONParser -> remove abstract
 -data: tutorial progress
 -Status whether level is saved or if changes will be lost
--tutorialtext in level descriptions -> make editable! (tutorial textarea in texteditor but editable)
--create a spellbook for Skeletons (steal() instead of collect?? attack?)
--change RequiredLevellist from String to Levels to avoid confusion with what needs to be saved
-OR
--reimplement saving mechanism? New class UnsavedData or similarly named
--LevelOverviewPane: replace level descriptions with other information like max knights, level_size and requirements for certain star ratings!
--TODO: tutorialDeletion in view as a case!!
+-Why is every assignment parsed twice?? (codeparser -> parseassignment sout -> twice in commandline)
 ---------------------------------------------
 
 DONE:
+
+1.10.
+allow booleans with other value than true or false!
+tutorialDeletion in view as a case!!
+tutorialtext in level descriptions -> make editable! (tutorial textarea in texteditor but editable)
+Back btn and others should be inactive when game is running!
 
 27.09.
 Make spellbook open on request and dont always show it!
