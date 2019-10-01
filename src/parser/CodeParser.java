@@ -258,12 +258,6 @@ public class CodeParser {
             }
             return new ConditionalStatement(null,true);
         }
-        else if(mcMatcher.matches()){
-            code = mcMatcher.toMatchResult().group();
-            code = stripCode(code);
-            MethodCall methodCall = parseMethodCall(code,depth);
-            return methodCall;
-        }
         else if(asMatcher.matches()){
             code = asMatcher.toMatchResult().group();
             code = stripCode(code);
@@ -275,6 +269,12 @@ public class CodeParser {
             code = stripCode(code);
             Assignment assignment = parseAssignment(code,depth);
             return assignment;
+        }
+        else if(mcMatcher.matches()){
+            code = mcMatcher.toMatchResult().group();
+            code = stripCode(code);
+            MethodCall methodCall = parseMethodCall(code,depth);
+            return methodCall;
         }
 
         else {
@@ -308,7 +308,8 @@ public class CodeParser {
         String parameters = tempStatements.second().substring(0,tempStatements.second().length()-1);
         if(!parameters.equals("")&&checkExpressionTreeForUnknownVars(new ExpressionLeaf(parameters),depth))
             throw new IllegalStateException(parameters+ " contains unknown Variables!");
-        if(depthStatementMap.get(depth-1).getVariable(objectName)==null)throw new IllegalArgumentException("Variable " +objectName +" not in scope!");
+        if(depthStatementMap.get(depth-1).getVariable(objectName)==null)
+            throw new IllegalArgumentException("Variable " +objectName +" not in scope!");
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
         if(mType == null) throw new IllegalArgumentException("Method " + mType + " is not a valid method!");
         testForCorrectParameters(parameters,mType);
@@ -373,9 +374,9 @@ public class CodeParser {
             variable = tempStatements.first();
             value = tempStatements.second();
         }
+//        if(StatementType.getMatcher(StatementType.METHOD_CALL,value ).matches());
         ExpressionTree valueTree = ExpressionTree.expressionTreeFromString(value.trim()); //0
         //TODO: expand to make it more readable!
-
         if(valueTree.getLeftNode() != null){
             String vTypeString = valueTree.getLeftNode().getText().replaceAll("new ","");
          if( EntityType.getValueFromName(vTypeString)!=null && !valueTree.getRightNode().getText().equals("")&&Direction.getValueFromString(valueTree.getRightNode().getText())==null)  throw new IllegalArgumentException(valueTree.getRightNode().getText()+ " is not a Direction!");
@@ -427,6 +428,7 @@ public class CodeParser {
 //            if(valueTree.getText().matches("\\(.*\\)"))
 //                return checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(valueTree.getText().substring(1,valueTree.getText().length()-1)),depth);
             //TODO: only allow the right ENUMS when writing those methods!
+            if(MethodType.getMethodTypeFromCall(valueTree.getText())!=null)return false;
             if(valueTree.getText().matches("(-?\\d+|LEFT|RIGHT|AROUND|false|true|EAST|NORTH|SOUTH|WEST|"+GameConstants.RAND_INT_REGEX+")"))return false; //TODO: CHECK PARAMETERS!
             if(currentForVariable != null && valueTree.getText().equals(currentForVariable.getName())) return false;
             return depthStatementMap.get(depth-1).getVariable(valueTree.getText())==null;
@@ -488,7 +490,8 @@ public class CodeParser {
 
         }
         ExpressionTree expressionTree = ExpressionTree.expressionTreeFromString(code);
-        if(!code.matches(".+\\..+\\(.*\\)|true|false"))throw new IllegalArgumentException(code+ " is not a known boolean!");
+        if(checkExpressionTreeForUnknownVars(expressionTree,depth))
+            throw new IllegalArgumentException(expressionTree.getText()+" contains unknown Variables");
         return  new ConditionLeaf(expressionTree, BooleanType.BOOLEAN,null);
     }
 

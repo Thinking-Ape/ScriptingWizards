@@ -171,11 +171,13 @@ public class CodeEvaluator {
         if(variable!= null)return evaluateNumericalExpression(variable.getValue());
         else return Integer.valueOf(variableString);
     }
-    private boolean evaluateBoolVariable(String variableString) {
+    private boolean evaluateBoolVariable(String variableString) throws IllegalAccessException {
         if(variableString.equals("true")||variableString.equals("false"))return Boolean.valueOf(variableString);
         variableString = variableString.trim();
         Variable variable =  currentStatement.getParentStatement().getVariable(variableString);
+        if(variable.getValue().getText().equals("true")||variable.getValue().getText().equals("false"))
         return Boolean.valueOf(variable.getValue().getText());
+        else return evaluateBooleanExpression(new ConditionLeaf(ExpressionTree.expressionTreeFromString(variable.getValue().getText()),BooleanType.BOOLEAN,null));
     }
 
     private String removeBrackets(String expression) {
