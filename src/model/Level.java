@@ -37,15 +37,14 @@ public class Level implements PropertyChangeListener {
     private CodeEvaluator evaluator;
 
 
-    public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, String[] requiredLevels, int maxKnights, int index, boolean isTutorial) {
+    public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, String[] requiredLevels, int maxKnights, int index, boolean isTutorial,List<String> tutorialEntryList) {
         this.name = name;
         this.index = index;
         this.isTutorial = isTutorial;
         this.maxKnights = maxKnights;
         this.usedKnights = 0;
-        this.originalMap = new GameMap(originalArray);
-        this.currentMap = new GameMap(originalArray);
-        this.originalMap.addChangeListener(this);
+        this.originalMap = new GameMap(originalArray,this);
+        this.currentMap = originalMap.clone();
         this.turnsTaken = 0;
         this.aiBehaviour = aiBehaviour;
         this.evaluator = new CodeEvaluator();
@@ -55,7 +54,10 @@ public class Level implements PropertyChangeListener {
         this.requiredLevels = new ArrayList<>(Arrays.asList(requiredLevels));
         this.changeSupport = new PropertyChangeSupport(this);
         this.tutorialMessages = new ArrayList<>();
-        if(isTutorial)tutorialMessages.add("");
+        if(isTutorial){
+            if(tutorialEntryList.size() > 0)tutorialMessages.addAll(tutorialEntryList);
+            else tutorialMessages.add("");
+        }
     }
 
 
@@ -205,7 +207,7 @@ public class Level implements PropertyChangeListener {
                 else newMap[x][y] = new Cell(CContent.WALL);
             }
         }
-        originalMap = new GameMap(newMap);
+        originalMap = new GameMap(newMap,this);
         currentMap = originalMap.clone();
         if(oldHeight != newHeight)changeSupport.firePropertyChange("height", oldHeight, newHeight);
         //notifyListener(Event.LEVEL_CHANGED);
@@ -222,7 +224,7 @@ public class Level implements PropertyChangeListener {
                 else newMap[x][y] = new Cell(CContent.WALL);
             }
         }
-        originalMap = new GameMap(newMap);
+        originalMap = new GameMap(newMap,this);
         currentMap = originalMap.clone();
         if(oldWidth != newWidth)changeSupport.firePropertyChange("width", oldWidth, newWidth);
         //notifyListener(Event.LEVEL_CHANGED);
@@ -290,8 +292,9 @@ public class Level implements PropertyChangeListener {
     }
 //TODO: only if they differ
     public void changeTurnsToStars(Integer[] turnsToStars) {
+        Integer[] oldTurnsToStars = this.turnsToStars;
         this.turnsToStars = turnsToStars;
-        changeSupport.firePropertyChange("turnsToStars", this.turnsToStars, turnsToStars);
+        changeSupport.firePropertyChange("turnsToStars",oldTurnsToStars, turnsToStars);
     }
     //TODO: only if they differ
     public void setRequiredLevels(List<String> requiredLevelNames) {
@@ -347,8 +350,8 @@ public class Level implements PropertyChangeListener {
         index = i;
         changeSupport.firePropertyChange("index", null,this);
     }
-    public void addTutorialLine(String tutorialLine){
-        tutorialMessages.add(tutorialLine);
+    public void addTutorialLine(int i,String tutorialLine){
+        tutorialMessages.add(i,tutorialLine);
     }
     public void setTutorialLine(int index, String tutorialLine){
         tutorialMessages.set(index,tutorialLine);
@@ -358,5 +361,10 @@ public class Level implements PropertyChangeListener {
     public void deleteTutorialLine(int index) {
         tutorialMessages.remove(index);
         changeSupport.firePropertyChange("tutorialDeletion", null,index);
+    }
+
+    //TODO: getTutorialEntryListSize instead of this
+    public List<String> getTutorialEntryList() {
+        return tutorialMessages;
     }
 }

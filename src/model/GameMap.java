@@ -21,12 +21,13 @@ public class GameMap /*implements PropertyChangeListener*/ {
     private Cell[][] cellArray2D;
     private Map<String,Point> entityCellMap;
 
-    public GameMap(Cell[][] cellArray2D){
+    public GameMap(Cell[][] cellArray2D, PropertyChangeListener pCL){
         if(cellArray2D.length == 0) throw new IllegalArgumentException("Cannot have a boundX of 0!");
      this.cellArray2D = cloneArray(cellArray2D);
      this.boundX = cellArray2D.length;
      this.boundY = cellArray2D[0].length;
      this.changeSupport = new PropertyChangeSupport(this);
+     changeSupport.addPropertyChangeListener(pCL);
      entityCellMap = new HashMap<>();
     }
 
@@ -41,7 +42,7 @@ public class GameMap /*implements PropertyChangeListener*/ {
     }
 
     public GameMap clone(){
-        return new GameMap(cellArray2D);
+        return new GameMap(cellArray2D,null);
     }
 
     public int getBoundX(){
@@ -315,9 +316,9 @@ public class GameMap /*implements PropertyChangeListener*/ {
         cellArray2D[pair.getKey().getX()][pair.getKey().getY()] = pair.getValue();
     }*/
 
-    public void addChangeListener(PropertyChangeListener listener) {
-        this.changeSupport.addPropertyChangeListener(listener);
-    }
+//    public void addChangeListener(PropertyChangeListener listener) {
+//        this.changeSupport.addPropertyChangeListener(listener);
+//    }
 
     public ItemType getItem(Point targetPoint) {
         return cellArray2D[targetPoint.getX()][targetPoint.getY()].getItem();
