@@ -71,6 +71,8 @@ public class Controller {
             }
             model.selectLevel(selectedLevel.getName());
             view.setSceneState(SceneState.TUTORIAL);
+            view.getTutorialPane().getNextBtn().setOnAction(evt -> view.getTutorialPane().next());
+            view.getTutorialPane().getPrevBtn().setOnAction(evt -> view.getTutorialPane().prev());
         });
 
         view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent ->
@@ -91,6 +93,7 @@ public class Controller {
         view.getBtnExecute().setOnAction(actionEvent -> {
             view.getCodeArea().deselectAll();
             view.getCodeArea().setEditable(false);
+            view.setBtnDisableWhenRunning(true);
             codeAreaController.setGameRunning(true);
             CodeParser codeParser = new CodeParser(view.getCodeArea().getAllText(),true);
             CodeParser aiCodeParser = null;
@@ -162,7 +165,9 @@ public class Controller {
             }
         });
         view.getBtnReset().setOnAction(actionEvent -> {
-            view.getLevelEditorModule().setDisableAllLevelBtns(false);
+            view.setBtnDisableWhenRunning(false);
+            if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR){
+                view.getLevelEditorModule().setDisableAllLevelBtns(false);}
             view.getCodeArea().setEditable(true);
             if(view.getAICodeArea()!=null)view.getAICodeArea().setEditable(true);
             view.getCodeArea().select(0,true);
