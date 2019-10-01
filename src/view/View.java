@@ -87,15 +87,17 @@ public class View implements PropertyChangeListener {
     private VBox centerVBox = new VBox();
     private VBox rightVBox = new VBox();
     private VBox speedVBox;
+    private TutorialPane tutorialPane;
 
     public View(Model model, Stage stage, boolean isEditor) {
         this.stage = stage;
         this.model = model;
         this.startScreen = new StartScreen();
+        tutorialPane = new TutorialPane();
         backBtn.setPrefSize(100, 50);
         showSpellBookBtn.setPrefHeight(75);
         startScene = new Scene(startScreen);
-        cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_CELL_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_CELL_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
+        cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
         cell_size = Math.round(cell_size);
         tutorialTextArea.setEditable(false);
         tutorialTextArea.setWrapText(true);
@@ -165,7 +167,7 @@ public class View implements PropertyChangeListener {
                         //"Knight k = new Knight(WEST);","k.collect();","k.move();","k.useItem();","k.move();");
                         //"Knight k = new Knight(EAST);","k.move();","k.move();","k.turn(EAST);","if(k.targetIsUnarmed()){","k.move();","k.turn(WEST);","k.move();","k.move();","}","else {","k.turn(2);","k.move();","k.turn(EAST);","k.move();","k.move();","}");
                         //"int i = 10;","Knight k = new Knight(WEST);","k.move();","for(int j = 0;j < i;j = j + 1;){","k.wait();","}","k.turn(2);","k.move();");
-                        "Knight knight = new Knight(WEST);", "knight.collect();", "knight.move();", "int turns = 0;", "while(true){", "if((!knight.targetIsDanger()) && knight.canMove()){", "knight.move();", "}", "else if (knight.canMove() || knight.targetCellIs(GATE)){", "knight.wait();", "}", "else if (knight.targetContains(SKELETON)){", "knight.useItem();", "}", "else if (knight.targetContains(KEY) && !knight.hasItem(SWORD)){", "knight.collect();", "}", "else if (turns < 2){", "turns = turns + 1;", "knight.turn(RIGHT);", "}", "else {", "knight.turn(LEFT);", "}", "}");
+                        "Knight knight = new Knight(EAST);","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","if (b) {","knight.turn(AROUND);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON)) {","knight.useItem();","}","else if (knight.targetContains(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","knight.turn(RIGHT);","}","else {","knight.turn(LEFT);","}","}");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -204,7 +206,7 @@ public class View implements PropertyChangeListener {
     }
 
     private GridPane getGridPaneFromMap(GameMap map) {
-        cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_CELL_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_CELL_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
+        cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
         cell_size = Math.round(cell_size);
         testKnightImage = new Image("file:resources/images/Knight.png", cell_size, cell_size, true, true);
         enemyImage = new Image("file:resources/images/TestEnemy.png", cell_size, cell_size, true, true);
@@ -239,7 +241,14 @@ public class View implements PropertyChangeListener {
 //                    imageView.setFitHeight(cell_size);
                     stackPane.getChildren().add(imageView);
                 }
-                if (cell.getItem() != null) stackPane.getChildren().add(getItemShape(cell.getItem()));
+                String itemString = cell.getItem() != null ? cell.getItem().getDisplayName() : "";
+                if (cell.getItem() != null && !contentImageMap.containsKey(itemString)) stackPane.getChildren().add(getItemShape(cell.getItem()));
+                else {
+                    ImageView imageView = new ImageView(contentImageMap.get(itemString));
+//                    imageView.setFitWidth(cell_size);
+//                    imageView.setFitHeight(cell_size);
+                    stackPane.getChildren().add(imageView);
+                }
 //                if(cell.getEntity()!=null)stackPane.getChildren().add(getEntityShape(cell.getEntity()));
                 if (cell.getEntity() != null) {
 
@@ -522,6 +531,7 @@ public class View implements PropertyChangeListener {
         levelEditorModule.getIsTutorialValueLbl().setText(model.getCurrentLevel().isTutorial() + "");
         levelEditorModule.getIndexValueLbl().setText((model.getCurrentLevel().getIndex() + 1) + "");
         levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
+        levelEditorModule.updateTutorialSection(model.getCurrentLevel());
     }
 
     @Override
@@ -617,6 +627,15 @@ public class View implements PropertyChangeListener {
             case "tutorial":
                 levelEditorModule.getTutorialTextArea().setText(""+evt.getNewValue());
                 break;
+            case "tutorialDeletion":
+                int index = (int)evt.getNewValue();
+                if(model.getCurrentLevel().getTutorialEntryList().size() > index)
+                    levelEditorModule.getTutorialTextArea().setText(""+model.getCurrentLevel().getTutorialEntryList().get(index));
+                else{
+                    levelEditorModule.getTutorialTextArea().setText(""+model.getCurrentLevel().getTutorialEntryList().get(index-1));
+                    levelEditorModule.getTutorialNumberValueLbl().setText(""+(index));
+                }
+                break;
         }
     }
 
@@ -661,11 +680,8 @@ public class View implements PropertyChangeListener {
             case TUTORIAL:
                 //TODO:
                 prepareRootPane();
-                //NULL NO LONGER VALID
-                //if(aiCodeArea !=null)
                 aiCodeArea.setEditable(false);
                 aiCodeArea.deselectAll();
-                //}
                 codeArea.deselectAll();
                 codeArea.select(0, true);
                 levelOverviewPane.updateUnlockedLevels(model, this);
@@ -714,6 +730,7 @@ public class View implements PropertyChangeListener {
                 topCenterHBox = new HBox(levelNameLabel, knightsLeftHBox);
                 centerVBox.getChildren().addAll(topCenterHBox, actualMapGPane);
                 tutorialScene = new Scene(rootPane);
+                tutorialPane.setEntries(model.getCurrentLevel().getTutorialEntryList());
                 break;
         }
         contentHBox.getChildren().addAll(leftVBox, centerVBox, rightVBox);
@@ -726,6 +743,10 @@ public class View implements PropertyChangeListener {
         baseContentVBox.getChildren().addAll(contentHBox, bottomHBox);
         rootPane.getChildren().add(baseContentVBox);
         rootPane.getChildren().add(spellBookPane);
+        if(getCurrentSceneState() == SceneState.TUTORIAL){
+            rootPane.setAlignment(Pos.BOTTOM_RIGHT);
+            rootPane.getChildren().add(tutorialPane);
+        }
         spellBookPane.setVisible(false);
     }
 
@@ -838,6 +859,16 @@ public class View implements PropertyChangeListener {
     public SpellBookPane getSpellBookPane() {
         return spellBookPane;
     }
+
+    public void setBtnDisableWhenRunning(boolean b) {
+        backBtn.setDisable(b);
+        speedSlider.setDisable(b);
+        showSpellBookBtn.setDisable(b);
+    }
+
+    public TutorialPane getTutorialPane() {
+        return tutorialPane;
+    }
 }
 /*
 
@@ -916,5 +947,5 @@ public class View implements PropertyChangeListener {
             }
         }
     }
-
+"Knight knight = new Knight(EAST);","knight.collect();","knight.move();","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContains(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"
  */

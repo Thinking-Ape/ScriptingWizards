@@ -1,5 +1,6 @@
 package controller;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -99,19 +100,20 @@ public class EditorController {
         });
 
         view.getLevelEditorModule().getEditTutorialTextBtn().setOnAction(evt -> {
+            int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
             Dialog<ButtonType> editTutorialDialog = new Dialog<>();
-            TextArea tutorialTextArea = new TextArea();
+            TextArea tutorialTextArea = new TextArea(model.getCurrentLevel().getTutorialEntryList().get(index-1));
             tutorialTextArea.setWrapText(true);
             tutorialTextArea.setAccessibleText("Type your tutorial text here!");
             editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
             editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
             editTutorialDialog.getDialogPane().setContent(tutorialTextArea);
-
+            Platform.runLater(tutorialTextArea::requestFocus);
             Optional<ButtonType> o  = editTutorialDialog.showAndWait();
+            tutorialTextArea.requestFocus();
             if(o.isPresent()&& o.get() == ButtonType.OK){
                 String tutorialText = tutorialTextArea.getText();
-                int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText())-1;
-                model.getCurrentLevel().setTutorialLine(index,tutorialText);
+                model.getCurrentLevel().setTutorialLine(index-1,tutorialText);
                 //TODO: evaluate necessity
                 setEditorHandlers();
             }
@@ -120,11 +122,65 @@ public class EditorController {
         view.getLevelEditorModule().getDeleteTutorialTextBtn().setOnAction(evt -> {
             Optional<ButtonType> o  = new Alert(Alert.AlertType.NONE,"Do you really want to delete this tutorial text?",ButtonType.OK, ButtonType.CANCEL).showAndWait();
             if(o.isPresent()&& o.get() == ButtonType.OK){
-                int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText())-1;
-                model.getCurrentLevel().deleteTutorialLine(index);
+                int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
+                model.getCurrentLevel().deleteTutorialLine(index-1);
+                if(model.getCurrentLevel().getTutorialEntryList().size()<=2){
+                    if(model.getCurrentLevel().getTutorialEntryList().size()==1){
+                        view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(true);
+                        view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
+                        view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
+                    }
+                    else if(index == 1)view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
+                    else view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
+                }
                 //TODO: evaluate necessity
                 setEditorHandlers();
             }
+        });
+
+        view.getLevelEditorModule().getNewTutorialTextBtn().setOnAction(evt -> {
+            int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
+            view.getLevelEditorModule().getTutorialNumberValueLbl().setText(""+(index+1));
+//            if(index == model.getCurrentLevel().getTutorialEntryList().size()){
+            view.getLevelEditorModule().getTutorialTextArea().setText("");
+            model.getCurrentLevel().addTutorialLine(index,"");
+//            }
+//            else{
+//                view.getLevelEditorModule().getTutorialTextArea().setText(model.getCurrentLevel().getTutorialEntryList().get(index));
+//                if(index+1 == model.getCurrentLevel().getTutorialEntryList().size()){
+//                    view.getLevelEditorModule().getNextOrNewTutorialTextBtn().setText("New Entry");
+//                }
+//            }
+            view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(false);
+            view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
+            //TODO: evaluate necessity
+            setEditorHandlers();
+
+        });
+
+        view.getLevelEditorModule().getPrevTutorialTextBtn().setOnAction(evt -> {
+            int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
+            view.getLevelEditorModule().getTutorialTextArea().setText(model.getCurrentLevel().getTutorialEntryList().get(index-2));
+            view.getLevelEditorModule().getTutorialNumberValueLbl().setText((index-1)+"");
+            view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(false);
+            if(index-1 == 1){
+                view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
+            }
+            //TODO: evaluate necessity
+            setEditorHandlers();
+
+        });
+        view.getLevelEditorModule().getNextTutorialTextBtn().setOnAction(evt -> {
+            int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
+            view.getLevelEditorModule().getTutorialTextArea().setText(model.getCurrentLevel().getTutorialEntryList().get(index));
+            view.getLevelEditorModule().getTutorialNumberValueLbl().setText((index+1)+"");
+            view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
+            if(index+1 == model.getCurrentLevel().getTutorialEntryList().size()){
+                view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
+            }
+            //TODO: evaluate necessity
+            setEditorHandlers();
+
         });
 
         view.getLevelEditorModule().getOpenLevelBtn().setOnAction(event -> {
@@ -286,7 +342,7 @@ public class EditorController {
                     locToStars[0] = 0;
                     locToStars[1] = 0;
                     int index = model.getAmountOfLevels();
-                    model.addLevel(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new String[0],3,index,false)); //TODO!
+                    model.addLevel(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new String[0],3,index,false,null)); //TODO!
                     model.selectLevel(nameTField.getText());
                     //TODO: model.getCurrentLevel().addListener(view);
                     view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());
@@ -417,7 +473,7 @@ public class EditorController {
             hasAiCheckBox.setSelected(model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0);
             isTutorialCheckBox.setSelected(model.getCurrentLevel().isTutorial());
             // allow only those levels to be a tutorial whose predecessor is a tutorial to avoid weird required level dependencies!
-            if(!model.getLevelWithIndex(model.getCurrentLevel().getIndex()-1).isTutorial())isTutorialCheckBox.setDisable(true);
+            if(model.getCurrentLevel().getIndex()!= 0 && !model.getLevelWithIndex(model.getCurrentLevel().getIndex()-1).isTutorial())isTutorialCheckBox.setDisable(true);
             changeLvlDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
             changeLvlDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
             changeLvlDialog.getDialogPane().setContent(hBox);

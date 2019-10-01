@@ -84,13 +84,15 @@ public class LevelEditorModule {
     private HBox tutorialTopHBox = new HBox(tutorialTextLbl,tutorialNumberValueLbl);
     private TextArea tutorialTextArea = new TextArea();
     private Button editTutorialTextBtn = new Button("Edit Text");
-    private Button nextOrNewTutorialTextBtn = new Button("New Tutorial Text");
-    private Button prevTutorialTextBtn = new Button("Previous\nTutorial Text");
+    private Button nextTutorialTextBtn = new Button("Next Entry");
+    private Button newTutorialTextBtn = new Button("New Entry");
+    private Button prevTutorialTextBtn = new Button("Previous Entry");
     private Button deleteTutorialTextBtn = new Button("Delete Text");
-    private HBox editDeleteTutHBox = new HBox(editTutorialTextBtn,deleteTutorialTextBtn);
-    private HBox prevNextTutHBox = new HBox(prevTutorialTextBtn,nextOrNewTutorialTextBtn);
-    private VBox tutorialVBox = new VBox(tutorialTopHBox,tutorialTextArea,editDeleteTutHBox,prevNextTutHBox);
+    private HBox editTutHBox = new HBox(editTutorialTextBtn,deleteTutorialTextBtn,newTutorialTextBtn);
+    private HBox prevNextTutHBox = new HBox(prevTutorialTextBtn,nextTutorialTextBtn);
+    private VBox tutorialVBox = new VBox(tutorialTopHBox,tutorialTextArea,editTutHBox,prevNextTutHBox);
     private VBox rightVBox = new VBox(cellTypeVBox,cellItemVBox,tutorialVBox);
+
     public LevelEditorModule(Level level){
 //        if(level.getAIBehaviour().getStatementListSize()==0) hasAICheckBox.setSelected(false);
 //        else hasAICheckBox.setSelected(true);
@@ -102,6 +104,14 @@ public class LevelEditorModule {
         rightVBox.setAlignment(Pos.CENTER);
         rightVBox.setSpacing(50);
         tutorialTextArea.setEditable(false);
+        tutorialTextArea.setMaxWidth(300);
+        tutorialTextArea.setMouseTransparent(true);
+        tutorialTextArea.setWrapText(true);
+
+        editTutHBox.setAlignment(Pos.TOP_CENTER);
+        prevNextTutHBox.setAlignment(Pos.TOP_CENTER);
+        updateTutorialSection(level);
+
 //        cellIDHBox.setVisible(false);
 //        addLinkedCellBtn.setVisible(false);
 //        removeLinkedCellBtn.setVisible(false);
@@ -155,6 +165,19 @@ public class LevelEditorModule {
         topHBox.setAlignment(Pos.BASELINE_CENTER);
     }
 
+    void updateTutorialSection(Level level) {
+        boolean notEnoughEntries = false;
+        if(level.getTutorialEntryList().size() <= 1){
+            notEnoughEntries = true;
+        }
+        prevTutorialTextBtn.setDisable(notEnoughEntries);
+        nextTutorialTextBtn.setDisable(notEnoughEntries);
+        if(level.getTutorialEntryList().size() == 0 || notEnoughEntries)deleteTutorialTextBtn.setDisable(true);
+        else {
+            tutorialTextArea.setText(level.getTutorialEntryList().get(0));
+            deleteTutorialTextBtn.setDisable(false);
+        }
+    }
 
 
     public VBox getRightVBox(){
@@ -298,8 +321,16 @@ public class LevelEditorModule {
         saveLevelBtn.setDisable(b);
         reloadLevelBtn.setDisable(b);
         resetLevelScoresBtn.setDisable(b);
-        getEditLvlBtn().setDisable(b);
+        changeLvlBtn.setDisable(b);
         editRequiredLevelsBtn.setDisable(b);
+        moveIndexUpBtn.setDisable(b);
+        moveIndexDownBtn.setDisable(b);
+        changeLvlNameBtn.setDisable(b);
+        deleteTutorialTextBtn.setDisable(b);
+        prevTutorialTextBtn.setDisable(b);
+        editTutorialTextBtn.setDisable(b);
+        nextTutorialTextBtn.setDisable(b);
+        newTutorialTextBtn.setDisable(b);
     }
 
     public Button getResetLevelScoresBtn() {
@@ -341,8 +372,10 @@ public class LevelEditorModule {
         return editTutorialTextBtn;
     }
 
-    public Button getNextOrNewTutorialTextBtn() {
-        return nextOrNewTutorialTextBtn;
+    public Button getNewTutorialTextBtn() {
+        return newTutorialTextBtn;
+    } public Button getNextTutorialTextBtn() {
+        return nextTutorialTextBtn;
     }
 
     public Button getPrevTutorialTextBtn() {
