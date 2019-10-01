@@ -61,6 +61,7 @@ public abstract class JSONParser {
             }
             mapLines.put(mapRow);
         }
+
         JSONArray requiredLevelsArray = new JSONArray();
         fillJSONArrayWithObjects(requiredLevelsArray,level.getRequiredLevels().toArray());
         JSONArray locToStarsArray = new JSONArray();
@@ -76,6 +77,13 @@ public abstract class JSONParser {
         levelJSONObject.put("maxKnights",level.getMaxKnights());
         levelJSONObject.put("index",level.getIndex());
         levelJSONObject.put("isTutorial",level.isTutorial());
+        if(level.isTutorial()){
+            JSONArray tutorialJSONArray = new JSONArray();
+            for(String entry : level.getTutorialEntryList()){
+                tutorialJSONArray.put(entry);
+            }
+            levelJSONObject.put("tutorialEntries", tutorialJSONArray);
+        }
         JSONArray aiJSONArray = new JSONArray();
         if(level.getAIBehaviour()!=null){
             for(String s : level.getAIBehaviour().print().split("\\n")){
@@ -162,6 +170,14 @@ public abstract class JSONParser {
         Integer[] locToStars = new Integer[locToStarsArray.length()];
         fillArrayFromJSON(locToStars,locToStarsArray,true);
         JSONArray requiredLevelsArray = jsonObject.optJSONArray("requiredLevels");
+        List<String> tutorialEntryList = new ArrayList<>();
+        if(isTutorial){
+            JSONArray tutorialJSONArray = jsonObject.optJSONArray("tutorialEntries");
+            if(tutorialJSONArray!=null)
+            for(int i = 0; i < tutorialJSONArray.length(); i++){
+                tutorialEntryList.add(""+tutorialJSONArray.get(i));
+            }
+        }
         String[] requiredLevels;
         if(requiredLevelsArray != null){
             requiredLevels = new String[requiredLevelsArray.length()];
@@ -169,7 +185,7 @@ public abstract class JSONParser {
         }else requiredLevels= new String[0];
         int maxKnights = jsonObject.optInt("maxKnights");
         if(maxKnights == 0)maxKnights = 3;
-        return new Level(name,/*GameConstants.mirror(originalState)*/originalState,complexStatement,turnsToStars,locToStars,requiredLevels,maxKnights,index,isTutorial);
+        return new Level(name,/*GameConstants.mirror(originalState)*/originalState,complexStatement,turnsToStars,locToStars,requiredLevels,maxKnights,index,isTutorial,tutorialEntryList);
     }
 
     private static void fillArrayFromJSON(Object[] turnsToStars, JSONArray turnsToStarsArray,boolean isInteger) {
@@ -274,7 +290,7 @@ public abstract class JSONParser {
                     levelJSONO.put("turns",turns);
                     for(String codeLine : playerBehaviour.print().split("\\n")){
                         if(codeLine.equals(""))continue;
-                        behaviourJArray.put(s);
+                        behaviourJArray.put(codeLine);
                     }
                     levelJSONO.put("code",behaviourJArray);
                 }
