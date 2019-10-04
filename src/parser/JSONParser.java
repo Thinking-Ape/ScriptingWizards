@@ -10,15 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Cell;
 import model.enums.ItemType;
-import util.GameConstants;
+import utility.GameConstants;
 import model.GameMap;
 import model.Level;
 import model.enums.CContent;
 import model.enums.CFlag;
 import model.statement.ComplexStatement;
-import util.Point;
+import utility.Point;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import utility.Util;
 
 public abstract class JSONParser {
 
@@ -198,7 +199,7 @@ public abstract class JSONParser {
 
     private static Cell parseCell(String string) {
         CContent content;
-        if(GameConstants.stringInEnum(CContent.class,string))content= CContent.valueOf(string.toUpperCase());
+        if(Util.stringInEnum(CContent.class,string))content= CContent.valueOf(string.toUpperCase());
         else throw new IllegalArgumentException("CellContent " + string + " does not exist!");
         return new Cell(content);
     }
@@ -216,7 +217,7 @@ public abstract class JSONParser {
             flags.add(flag);
         }
         CContent content = CContent.EMPTY;
-        if(GameConstants.stringInEnum(CContent.class,contentString))content= CContent.valueOf(contentString.toUpperCase());
+        if(Util.stringInEnum(CContent.class,contentString))content= CContent.valueOf(contentString.toUpperCase());
 
         int id = -1;
         if(!idString.equals("")){
@@ -285,7 +286,7 @@ public abstract class JSONParser {
             if(s.equals(name)){
                 JSONObject levelJSONO  = new JSONObject();
                 levelJSONO.put("name",name);
-                if((loc < oldLoc ||oldLoc==-1) && (turns < oldTurns ||oldTurns==-1)){
+                if((loc <= oldLoc ||oldLoc==-1) && (turns <= oldTurns ||oldTurns==-1)){
                     levelJSONO.put("loc",loc);
                     levelJSONO.put("turns",turns);
                     for(String codeLine : playerBehaviour.print().split("\\n")){
@@ -409,6 +410,7 @@ public abstract class JSONParser {
         String jsonString = String.join("", Files.readAllLines(filePath));
 
         JSONObject jsonObject = new JSONObject(jsonString);
+        jsonObject.put("tutorialProgress", -1);
         JSONArray unlocksArray = jsonObject.getJSONArray("unlocks");
         String s;
         for(int i = 0; i<unlocksArray.length();i++){
@@ -489,5 +491,44 @@ public abstract class JSONParser {
             e.printStackTrace();
         }
         return true;
+    }
+
+    public static void saveTutorialProgress(int index) throws IOException {
+        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
+        String jsonString = String.join("", Files.readAllLines(filePath));
+        JSONObject jsonObject = new JSONObject(jsonString);
+        jsonObject.put("tutorialProgress", index);
+        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
+            file.write(jsonObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int getTutorialProgressIndex() throws IOException {
+        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
+        String jsonString = String.join("", Files.readAllLines(filePath));
+        JSONObject jsonObject = new JSONObject(jsonString);
+        return jsonObject.optInt("tutorialProgress",-1);
+    }
+
+    public static List<String> getBestCode(String levelName) throws IOException {
+        List<String> output = new ArrayList<>();
+        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
+        String jsonString = String.join("", Files.readAllLines(filePath));
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks");
+        String s;
+        for(int i = 0; i<unlocksArray.length();i++){
+            s=unlocksArray.getJSONObject(i).getString("name");
+            if(s.equals(levelName)){
+                JSONArray codeArray = unlocksArray.getJSONObject(i).optJSONArray("code");
+                for(int j = 0; j<codeArray.length();j++){
+                    output.add(codeArray.getString(j));
+                }
+                return output;
+            }
+        }
+        return output;
     }
 }

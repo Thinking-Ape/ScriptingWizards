@@ -12,8 +12,9 @@ import model.enums.CFlag;
 import model.enums.ItemType;
 import model.statement.ComplexStatement;
 import model.statement.SimpleStatement;
-import util.GameConstants;
+import utility.GameConstants;
 import parser.JSONParser;
+import utility.Util;
 import view.View;
 
 import java.io.File;
@@ -55,7 +56,7 @@ public class EditorController {
 
     public void setEditorHandlers() {
 //        CodeAreaController codeAreaController2 = new CodeAreaController(view,model);
-        if(view.getAICodeArea() != null)
+        if(model.getCurrentLevel().hasAi())
             codeAreaController.setAllHandlersForCodeArea(true);
         else view.getLevelEditorModule().getHasAiValueLbl().setText(""+false);
         setHandlersForMapCells();
@@ -276,7 +277,7 @@ public class EditorController {
             Alert deleteAlert = new Alert(Alert.AlertType.NONE, "You are about to reload this level! Unsaved changes will be discarded!", ButtonType.OK,ButtonType.CANCEL);
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
-                if(!GameConstants.arrayContains(JSONParser.getAllLevelNames(),model.getCurrentLevel().getName())){
+                if(!Util.arrayContains(JSONParser.getAllLevelNames(),model.getCurrentLevel().getName())){
                     new Alert(Alert.AlertType.NONE, "This Level has not been saved yet!", ButtonType.OK).showAndWait();
                     return;
                 }
@@ -443,7 +444,7 @@ public class EditorController {
             Slider maxKnightsSlider = new Slider();
             Label maxKnightsLbl = new Label();
             maxKnightsSlider.valueProperty().addListener((observableValue, number, t1) -> maxKnightsLbl.setText(t1.intValue()+""));
-            GameConstants.applyValueFormat(heightLbl,widthLbl,maxKnightsLbl);
+            Util.applyValueFormat(heightLbl,widthLbl,maxKnightsLbl);
             widthSlider.valueProperty().addListener((observableValue, number, t1) -> widthLbl.setText(t1.intValue()+""));
             VBox sizeVBox = new VBox(new HBox(new Label("Width: "),widthLbl),widthSlider,new HBox(new Label("Height: "),heightLbl),heightSlider);
             sizeVBox.setAlignment(Pos.CENTER);
@@ -615,11 +616,11 @@ public class EditorController {
                     }
                     setEditorHandlers();
                 });
-                view.getLevelEditorModule().getExitOpenCheckBox().setOnAction(event -> {
-                    boolean t1 = view.getLevelEditorModule().getExitOpenCheckBox().isSelected();
-                    model.getCurrentLevel().getOriginalMap().setFlag(view.getSelectedColumn(),view.getSelectedRow(),CFlag.OPEN,t1);
-                    setEditorHandlers();
-                });
+//                view.getLevelEditorModule().getExitOpenCheckBox().setOnAction(event -> {
+//                    boolean t1 = view.getLevelEditorModule().getExitOpenCheckBox().isSelected();
+//                    model.getCurrentLevel().getOriginalMap().setFlag(view.getSelectedColumn(),view.getSelectedRow(),CFlag.OPEN,t1);
+//                    setEditorHandlers();
+//                });
                 view.getLinkedCellsListView().setOnMouseClicked(event -> {
                     if(view.getLinkedCellsListView().getSelectionModel().getSelectedItem()!=null){
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setVisible(true);
@@ -729,11 +730,11 @@ public class EditorController {
             view.setItemButtonInactive(item);
         }
         else view.setItemButtonInactive(null);
-        if(content == CContent.EXIT){
-            view.getLevelEditorModule().activateExitOpenCheckbox();
-            view.getLevelEditorModule().getExitOpenCheckBox().setSelected(map.cellHasFlag(x,y,CFlag.OPEN));
-        }
-        else if(content == CContent.TRAP){
+//        if(content == CContent.EXIT){
+//            view.getLevelEditorModule().activateExitOpenCheckbox();
+//            view.getLevelEditorModule().getExitOpenCheckBox().setSelected(map.cellHasFlag(x,y,CFlag.OPEN));
+//        }
+        if(content == CContent.TRAP){
             view.getLevelEditorModule().activateTrapChoicebox();
 
             ChoiceBox<String> choiceBox = view.getLevelEditorModule().getTrapChoiceBox();

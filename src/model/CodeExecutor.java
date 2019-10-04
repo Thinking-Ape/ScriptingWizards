@@ -1,13 +1,12 @@
 package model;
 
 import model.enums.*;
-import model.statement.Assignment;
-import model.statement.MethodCall;
-import model.statement.Statement;
-import model.statement.StatementType;
-import util.GameConstants;
-import util.Point;
-import util.VariableType;
+import model.statement.*;
+import model.statement.Expression.ExpressionTree;
+import utility.GameConstants;
+import utility.Point;
+import utility.Variable;
+import utility.VariableType;
 
 public class CodeExecutor {
     int noStackOverflow; //TODO: evaluate
@@ -34,9 +33,8 @@ public class CodeExecutor {
             if(assignment.getVariable().getVariableType() == VariableType.KNIGHT){
                 method_Called = true;
                 String name = assignment.getVariable().getName();
-                Direction direction = Direction.NORTH;
-                if(assignment.getVariable().getValue().getRightNode() != null)direction = Direction.getValueFromString(assignment.getVariable().getValue().getRightNode().getText().toUpperCase());
-                if(direction == null)direction = Direction.NORTH;
+                Direction direction = evaluateDirection(assignment.getVariable().getValue().getRightNode(),assignment.getParentStatement());
+
                 Point spawn = gameMap.findSpawn();
                 if(spawn.getX() == -1)throw new IllegalStateException("No spawn found!");
                 gameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
@@ -48,16 +46,16 @@ public class CodeExecutor {
             }else if(assignment.getVariable().getVariableType() == VariableType.SKELETON){ //TODO: stattdessen ENEMY?
                 method_Called = true;
                 String name = assignment.getVariable().getName();
-                Direction direction = Direction.NORTH;
+                Direction direction = evaluateDirection(assignment.getVariable().getValue().getRightNode(),assignment.getParentStatement());
                 String spawnId = "";
                 if(assignment.getVariable().getValue().getRightNode() != null){
                     String s =assignment.getVariable().getValue().getRightNode().getText();
                     if(s.matches(".*,.*")){
 
-                        direction = Direction.valueOf(s.split(",")[0].toUpperCase());
+                        direction = Direction.valueOf(s.split(",")[0]);
                         spawnId =s.split(",")[1];
                     }
-                    else direction = Direction.getValueFromString(assignment.getVariable().getValue().getRightNode().getText().toUpperCase());
+                    else direction = Direction.getValueFromString(assignment.getVariable().getValue().getRightNode().getText());
 
                 }
                 if(direction == null)direction = Direction.NORTH;
@@ -80,33 +78,57 @@ public class CodeExecutor {
         return method_Called;
     }
 
+    private Direction evaluateDirection(ExpressionTree rightNode, ComplexStatement parentStatement) {
+        Direction output = Direction.NORTH;
+        Variable dirVar = parentStatement.getVariable(rightNode.getText());
+        if(rightNode != null)output = Direction.getValueFromString(rightNode.getText());
+        if(output == null){
+            if(dirVar != null && dirVar.getVariableType() == VariableType.DIRECTION)return evaluateDirection(dirVar.getValue(),parentStatement);
+        }
+        return output;
+    }
+
     private void tryToUseItem(Point actorPos) {
         String name = gameMap.getEntity(actorPos).getName();
         Point targetPos =  gameMap.getTargetPoint(name);
         Entity actorEntity = gameMap.getEntity(actorPos);
         CContent targetContent = gameMap.getContentAtXY(targetPos);
         if(actorEntity.getItem() == ItemType.KEY&&targetContent == CContent.EXIT){
-            if(!gameMap.cellHasFlag(targetPos.getX(),targetPos.getY(),CFlag.OPEN)){
-                actorEntity.setItem(null);
-                gameMap.setFlag(targetPos.getX(), targetPos.getY(),CFlag.OPEN,true);
-            }
-        }
-        if(actorEntity.getItem() == ItemType.BOULDER&&targetContent.isTraversable()){
-            if(gameMap.getEntity(targetPos) == null){
-                actorEntity.setItem(null);
-                gameMap.setItem(targetPos,ItemType.BOULDER);
-
-            }
-//            else {
-//                actorCell.getEntity().setItem(null);
-//                targetCell.setEntity(new Entity(null,null,EntityType.BOULDER));
+//            if(!gameMap.cellHasFlag(targetPos.getX(),targetPos.getY(),CFlag.OPEN)){
+//                actorEntity.setItem(null);
+//                gameMap.setFlag(targetPos.getX(), targetPos.getY(),CFlag.OPEN,true);
 //            }
+            actorEntity.setItem(null);
+            hasWon = true;
         }
+//        if(actorEntity.getItem() == ItemType.BOULDER&&targetContent.isTraversable()){
+//            if(gameMap.getEntity(targetPos) == null){
+//                actorEntity.setItem(null);
+//                gameMap.setItem(targetPos,ItemType.BOULDER);
+//
+//            }
+////            else {
+////                actorCell.getEntity().setItem(null);
+////                targetCell.setEntity(new Entity(null,null,EntityType.BOULDER));
+////            }
+//        }
         if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CContent.DIRT){
             gameMap.setContent(targetPos,CContent.PATH);
         }
         if(actorEntity.getItem() == ItemType.SWORD&&gameMap.getEntity(targetPos) != null){
             gameMap.kill(targetPos); //TODO: maybe -> targetCell.kill();??
+        }
+    }
+
+    private void tryToDropItem(Point actorPos) {
+        String name = gameMap.getEntity(actorPos).getName();
+        Point targetPos =  gameMap.getTargetPoint(name);
+        Entity actorEntity = gameMap.getEntity(actorPos);
+        CContent targetContent = gameMap.getContentAtXY(targetPos);
+
+        if(targetContent.isTraversable()&&gameMap.isCellFree(targetPos)){
+                gameMap.setItem(targetPos,actorEntity.getItem());
+                actorEntity.setItem(null);
         }
     }
 
@@ -129,8 +151,11 @@ public class CodeExecutor {
         }
         return false;
     }
-    private void tryToTurnCell(Point actorPoint,String direction){
+    private void tryToTurnCell(Point actorPoint,String direction,MethodCall mc){
         Entity entity = gameMap.getEntity(actorPoint);
+
+        direction = evaluateTurnDirection(direction,mc);
+
         switch (entity.getDirection()){
             case NORTH:
                 if(direction.equals("LEFT"))
@@ -167,6 +192,13 @@ public class CodeExecutor {
         }
     }
 
+    private String evaluateTurnDirection(String direction, MethodCall mc) {
+        String output = direction;
+        Variable tdirVar = mc.getParentStatement().getVariable(direction);
+        if(tdirVar!=null && tdirVar.getVariableType() == VariableType.TURN_DIRECTION)return evaluateTurnDirection(tdirVar.getValue().getText(),mc);
+        else return output;
+    }
+
     private void tryToMoveCell(String name, boolean isPlayer) {
 //        Cell output = entityCell;
         Point targetPoint = gameMap.getTargetPoint(name);
@@ -184,11 +216,11 @@ public class CodeExecutor {
 
         if((gameMap.getContentAtXY(targetPoint).isTraversable()||isOpen) && gameMap.isCellFree(targetPoint)){
             CContent targetContent =gameMap.getContentAtXY(targetPoint);
-            if(targetContent==CContent.EXIT){
-                if(isPlayer)hasWon = true;
-                return;
-                //TODO: replace with better handling in controller!
-            }
+//            if(targetContent==CContent.EXIT){
+//                if(isPlayer)hasWon = true;
+//                return;
+//                //TODO: replace with better handling in controller!
+//            }
             if(targetContent==CContent.TRAP && gameMap.cellHasFlag(targetPoint,CFlag.ARMED)){
                 gameMap.kill(actorPoint);
             }
@@ -230,7 +262,7 @@ public class CodeExecutor {
                 tryToMoveCell(name,isPlayer); //TODO: stattdessen mit getTargetPoint()?
                 break;
             case TURN:
-                tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText());//evaluateIntVariable(methodCall.getExpressionTree().getRightNode().getText()));
+                tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightNode().getText()));
                 break;
             case USE_ITEM:
                 if(gameMap.getEntity(position).getItem()==null)break;
@@ -238,6 +270,10 @@ public class CodeExecutor {
                 break;
             case COLLECT:
                 tryToCollect(position);
+                break;
+            case DROP_ITEM:
+                if(gameMap.getEntity(position).getItem()==null)break;
+                tryToDropItem(position);
                 break;
         }
     }

@@ -2,16 +2,25 @@ package controller;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 import model.*;
 import model.statement.ComplexStatement;
-import util.GameConstants;
+import model.statement.SimpleStatement;
+import utility.GameConstants;
 import parser.CodeParser;
 import parser.JSONParser;
+import view.CodeArea;
 import view.SceneState;
 import view.View;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Controller {
     private Model model;
@@ -64,15 +73,25 @@ public class Controller {
             editorController.setEditorHandlers();
         });
 
+        view.getStartScreen().getExitBtn().setOnAction(actionEvent -> {
+            System.exit(0);
+        });
+
         view.getStartScreen().getTutorialBtn().setOnAction(actionEvent -> {
             Level selectedLevel = model.getCurrentLevel();
+            int minIndex = 0;
+            try {
+                minIndex = JSONParser.getTutorialProgressIndex();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             for(Level l :model.getLevelListCopy()){
-                if(l.isTutorial() && l.getIndex() < selectedLevel.getIndex())selectedLevel = l;
+                if(l.isTutorial() && l.getIndex() < selectedLevel.getIndex() && l.getIndex() > minIndex)selectedLevel = l;
             }
             model.selectLevel(selectedLevel.getName());
             view.setSceneState(SceneState.TUTORIAL);
-            view.getTutorialPane().getNextBtn().setOnAction(evt -> view.getTutorialPane().next());
-            view.getTutorialPane().getPrevBtn().setOnAction(evt -> view.getTutorialPane().prev());
+            view.getTutorialGroup().getNextBtn().setOnAction(evt -> view.getTutorialGroup().next());
+            view.getTutorialGroup().getPrevBtn().setOnAction(evt -> view.getTutorialGroup().prev());
         });
 
         view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent ->
@@ -87,34 +106,29 @@ public class Controller {
         });
 
 
-//        view.getSpeedSlider().valueProperty().addListener(a -> {
-//            model.getCurrentLevel().setSpeed(view.getSpeedSlider().getValue());
-//        });
         view.getBtnExecute().setOnAction(actionEvent -> {
-            view.getCodeArea().deselectAll();
-            view.getCodeArea().setEditable(false);
-            view.setBtnDisableWhenRunning(true);
-            codeAreaController.setGameRunning(true);
+
             CodeParser codeParser = new CodeParser(view.getCodeArea().getAllText(),true);
-            CodeParser aiCodeParser = null;
-            if(view.getAICodeArea() != null) {
-                view.getAICodeArea().setEditable(false);
-                aiCodeParser = new CodeParser(view.getAICodeArea().getAllText(),false);
-            }
+            CodeParser aiCodeParser = new CodeParser(view.getAICodeArea().getAllText(),false);
             try {
                 ComplexStatement behaviour = codeParser.parseProgramCode();
                 ComplexStatement aiBehaviour = new ComplexStatement();
-                if(aiCodeParser!=null)aiBehaviour = aiCodeParser.parseProgramCode();
+                if(model.getCurrentLevel().hasAi())aiBehaviour = aiCodeParser.parseProgramCode();
                 if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR) view.getLevelEditorModule().setDisableAllLevelBtns(true);
                 //TODO: delete
                 System.out.println(behaviour.print());
                 System.out.println(aiBehaviour.print());
-                if(view.getAICodeArea() != null)
-                view.getAICodeArea().deselectAll();
-                view.getCodeArea().deselectAll();
                 model.getCurrentLevel().setPlayerBehaviour(behaviour);
                 //TODO: model.getCurrentLevel().addListener(view);
                 model.getCurrentLevel().setAiBehaviour(aiBehaviour);
+                view.getAICodeArea().deselectAll();
+                view.getCodeArea().deselectAll();
+                view.getCodeArea().setEditable(false);
+                view.getAICodeArea().setEditable(false);
+                view.getCodeArea().setDisable(true);
+                view.getAICodeArea().setDisable(true);
+                view.setBtnDisableWhenRunning(true);
+                codeAreaController.setGameRunning(true);
 //                model.getCurrentLevel().setCurrentMapToOriginal();
                 timeline = new Timeline();
 
@@ -125,7 +139,6 @@ public class Controller {
                         model.getCurrentLevel().executeTurn();
                         view.drawMap(model.getCurrentLevel().getCurrentMap());
                         if (model.getCurrentLevel().isWon()){
-                            System.out.println("Success!");
                             int turns = model.getCurrentLevel().getTurnsTaken();
                             int loc = behaviour.getActualSize();
                             int turnStars = 1;
@@ -142,11 +155,23 @@ public class Controller {
                                 model.updateFinishedList();
 //                            }
                             timeline.stop();
-                            view.getLevelEditorModule().setDisableAllLevelBtns(false);
+                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,"You have won!", ButtonType.OK).showAndWait());
+                            if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)view.getLevelEditorModule().setDisableAllLevelBtns(false);
+                            if(view.getCurrentSceneState() == SceneState.TUTORIAL){
+                                JSONParser.saveTutorialProgress(model.getCurrentLevel().getIndex());
+                                Level l = model.getLevelWithIndex(model.getCurrentLevel().getIndex()+1);
+                                if(l != null && l.isTutorial())
+                                    model.selectLevel(l.getName());
+                            }
+                            if(view.getCurrentSceneState() == SceneState.PLAY){
+                                Level l = model.getLevelWithIndex(model.getCurrentLevel().getIndex()+1);
+                                if(l != null)
+                                    model.selectLevel(l.getName());
+                            }
                         }
                         if (model.getCurrentLevel().isLost()){
-                            System.out.println("You lost!");
                             timeline.stop();
+                            Platform.runLater(()->new Alert(Alert.AlertType.NONE,"You have lost!", ButtonType.OK).showAndWait());
                         }
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
@@ -167,10 +192,10 @@ public class Controller {
         view.getBtnReset().setOnAction(actionEvent -> {
             view.setBtnDisableWhenRunning(false);
             if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR){
-                view.getLevelEditorModule().setDisableAllLevelBtns(false);}
-            view.getCodeArea().setEditable(true);
-            if(view.getAICodeArea()!=null)view.getAICodeArea().setEditable(true);
-            view.getCodeArea().select(0,true);
+                view.getLevelEditorModule().setDisableAllLevelBtns(false);
+                if(model.getCurrentLevel().hasAi())view.getAICodeArea().setEditable(true);
+                editorController.setAllEditButtonsToDisable(false);
+                editorController.setHandlersForMapCells();}
             codeAreaController.setGameRunning(false);
             timeline.stop();
             model.getCurrentLevel().reset();
@@ -178,9 +203,38 @@ public class Controller {
 //            view.notify(Event.LEVEL_CHANGED);
             view.getBtnReset().setDisable(true);
             view.getBtnExecute().setDisable(false);
-            editorController.setAllEditButtonsToDisable(false);
-            editorController.setHandlersForMapCells();
-//            setEditorHandlers();
+            editorController.setEditorHandlers();
+            view.getCodeArea().setEditable(true);
+            view.getCodeArea().setDisable(false);
+            view.getAICodeArea().setDisable(false);
+            view.getCodeArea().select(0,true);
+            codeAreaController.setAllHandlersForCodeArea(false);
+        });
+        view.getLoadBestCode().setOnAction(actionEvent -> {
+            List<String> bestCode = new ArrayList<>();
+            try {
+                bestCode = JSONParser.getBestCode(model.getCurrentLevel().getName());
+//                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
+                if(bestCode.size() !=0){
+                    CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode));
+                    view.setCodeArea(codeArea);
+                    codeArea.draw();
+                    codeAreaController.setAllHandlersForCodeArea(false);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        });
+        view.getClearCode().setOnAction(actionEvent -> {
+            ComplexStatement complexStatement = new ComplexStatement();
+            complexStatement.addSubStatement(new SimpleStatement());
+            CodeArea codeArea = new CodeArea(complexStatement);
+            view.setCodeArea(codeArea);
+            codeArea.draw();
+            codeAreaController.setAllHandlersForCodeArea(false);
+
         });
 
     }

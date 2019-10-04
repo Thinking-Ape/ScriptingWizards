@@ -2,15 +2,13 @@ package controller;
 
 import javafx.application.Platform;
 import javafx.scene.text.Text;
-import util.GameConstants;
+import utility.GameConstants;
 import model.Model;
 import model.statement.ComplexStatement;
 import parser.CodeParser;
 import view.CodeArea;
 import view.CodeField;
 import view.View;
-
-import java.awt.*;
 
 public class CodeAreaController {
 
@@ -272,7 +270,9 @@ public class CodeAreaController {
         ComplexStatement complexStatement = recompileCode(codeArea,isAi);
         CodeArea codeArea1 = isAi ? view.getAICodeArea() : view.getCodeArea();
         if(complexStatement != null){
-            if(!isAi)model.getCurrentLevel().setPlayerBehaviour(complexStatement);
+            if(!isAi){
+                model.getCurrentLevel().setPlayerBehaviour(complexStatement);
+            }
             else {
                 model.getCurrentLevel().setAiBehaviour(complexStatement);
                 setAllHandlersForCodeArea(true);
@@ -291,6 +291,9 @@ public class CodeAreaController {
         }
         else {
             view.getBtnExecute().setDisable(true);
+            if(isAi)view.getCodeArea().setDisable(true);
+            else view.getAICodeArea().setDisable(true);
+            if(isAi)view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
             if(silentError)return null;
             view.getMsgLabel().setText(errorMessage );//+" In Line " +errorLine);
 //            if(errorLine > currentIndex)errorLine -= addedStatementsBalance;
@@ -309,6 +312,9 @@ public class CodeAreaController {
         try{
             complexStatement = codeParser.parseProgramCode();
             view.getBtnExecute().setDisable(false);
+            if(isAi)view.getLevelEditorModule().getSaveLevelBtn().setDisable(false);
+            if(isAi)view.getCodeArea().setDisable(false);
+            else view.getAICodeArea().setDisable(false);
         }catch (Exception e){
 //            errorLine = codeParser.getCurrentLine()-1;
             errorMessage = e.getMessage();
