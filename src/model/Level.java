@@ -3,8 +3,8 @@ package model;
 import javafx.util.Pair;
 import model.enums.*;
 import model.statement.*;
-import util.GameConstants;
-import util.Point;
+import utility.GameConstants;
+import utility.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -56,7 +56,7 @@ public class Level implements PropertyChangeListener {
         this.tutorialMessages = new ArrayList<>();
         if(isTutorial){
             if(tutorialEntryList.size() > 0)tutorialMessages.addAll(tutorialEntryList);
-            else tutorialMessages.add("");
+//            else tutorialMessages.add("");
         }
     }
 
@@ -145,6 +145,7 @@ public class Level implements PropertyChangeListener {
 
     public void setPlayerBehaviour(ComplexStatement playerBehaviour) {
         this.playerBehaviour = playerBehaviour;
+        changeSupport.firePropertyChange("playerBehaviour", null,null);
     }
 
     public ComplexStatement getPlayerBehaviour() {

@@ -12,9 +12,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Translate;
-import util.GameConstants;
+import utility.GameConstants;
 import model.statement.ComplexStatement;
 import model.statement.Statement;
+import utility.Util;
 
 import java.util.*;
 
@@ -86,7 +87,7 @@ public class CodeArea extends HBox {
             rectStackPane.setAlignment(Pos.CENTER_LEFT);
             for(int j = 1; j <= depth; j++){
                 double xTranslate = GameConstants.CODE_OFFSET*(j-1);
-                Rectangle rectangle = new Rectangle(GameConstants.TEXTFIELD_WIDTH-xTranslate,GameConstants.TEXTFIELD_HEIGHT, GameConstants.getColorFromDepth(j));
+                Rectangle rectangle = new Rectangle(GameConstants.TEXTFIELD_WIDTH-xTranslate,GameConstants.TEXTFIELD_HEIGHT, Util.getColorFromDepth(j));
                 rectangle.getTransforms().add(new Translate(xTranslate,0,0));
                 rectStackPane.getChildren().add(rectangle);
             }

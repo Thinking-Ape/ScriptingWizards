@@ -4,7 +4,7 @@ import javafx.util.Pair;
 import model.enums.CContent;
 import model.enums.CFlag;
 import model.enums.ItemType;
-import util.Point;
+import utility.Point;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;

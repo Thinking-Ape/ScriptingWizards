@@ -4,7 +4,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Translate;
-import util.GameConstants;
+import utility.GameConstants;
 
 public class CodeField extends TextField {
 

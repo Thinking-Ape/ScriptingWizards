@@ -1,7 +1,7 @@
 package model;
 
-import util.GameConstants;
 import parser.JSONParser;
+import utility.Util;
 import view.View;
 
 import java.beans.PropertyChangeEvent;
@@ -62,7 +62,7 @@ public class Model implements PropertyChangeListener {
             if(l.getIndex() > index){
                 l.setIndex(l.getIndex()-1);
             }
-            if(GameConstants.listContains(l.getRequiredLevels(), currentLevel.getName()))
+            if(Util.listContains(l.getRequiredLevels(), currentLevel.getName()))
             l.getRequiredLevels().remove(currentLevel.getName());
         }
         currentLevelIndex--;

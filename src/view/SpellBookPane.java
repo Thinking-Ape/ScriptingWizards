@@ -142,6 +142,7 @@ public class SpellBookPane extends StackPane {
                 case COLLECT:
                 case CAN_MOVE:
                 case WAIT:
+                case DROP_ITEM:
                 case TARGET_IS_DANGER:
                     break;
                 case TURN:
@@ -155,6 +156,7 @@ public class SpellBookPane extends StackPane {
                         i++;
                         tooltipString.append(iT.name().toUpperCase());
                     }
+                    tooltipString.append(". If left blank will return true if any Item is held!");
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<ItemType>", tooltipString.toString()));
                     break;
                 case TARGET_CELL_IS:
@@ -167,7 +169,18 @@ public class SpellBookPane extends StackPane {
                     }
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<CellContent>", tooltipString.toString()));
                     break;
-                case TARGET_CONTAINS:
+                case TARGET_CONTAINS_ENTITY:
+                    tooltipString = new StringBuilder("One of the following: ");
+                    i = 0;
+                    for(EntityType entity : EntityType.values()){
+                        if(i>0)tooltipString.append(", ");
+                        i++;
+                        tooltipString.append(entity.name().toUpperCase());
+                    }
+                    tooltipString.append(". If left blank any ItemType will return true!");
+                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<EntityType>", tooltipString.toString()));
+                    break;
+                case TARGET_CONTAINS_ITEM:
                     tooltipString = new StringBuilder("One of the following: ");
                     i = 0;
                     for(ItemType iT : ItemType.values()){
@@ -175,12 +188,8 @@ public class SpellBookPane extends StackPane {
                         i++;
                         tooltipString.append(iT.name().toUpperCase());
                     }
-                    for(EntityType entity : EntityType.values()){
-                        if(i>0)tooltipString.append(", ");
-                        i++;
-                        tooltipString.append(entity.name().toUpperCase());
-                    }
-                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<ItemType or EntityType>", tooltipString.toString()));
+                    tooltipString.append(". If left blank any EntityType will return true!");
+                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<ItemType>", tooltipString.toString()));
                     break;
             }
             methodHBox.getChildren().add(new Label(");"));

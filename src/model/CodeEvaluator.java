@@ -6,10 +6,10 @@ import model.statement.Condition.*;
 import model.statement.Expression.ExpressionLeaf;
 import model.statement.Expression.ExpressionTree;
 import model.statement.Expression.ExpressionType;
-import util.GameConstants;
-import util.Point;
-import util.Variable;
-import util.VariableType;
+import utility.GameConstants;
+import utility.Point;
+import utility.Variable;
+import utility.VariableType;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -91,6 +91,8 @@ public class CodeEvaluator {
 
                 if(assignment.getVariable().getVariableType()==VariableType.KNIGHT)lastStatementSummonedKnight = true;
                 switch(assignment.getVariable().getVariableType()){
+                    default:variable2 = new Variable(assignment.getVariable().getVariableType(), assignment.getVariable().getName(), assignment.getVariable().getValue());
+                    break;
                     case INT: variable2 = new Variable(assignment.getVariable().getVariableType(),assignment.getVariable().getName(),ExpressionTree.expressionTreeFromString(evaluateNumericalExpression(assignment.getVariable().getValue())+""));
                         break;
                     case BOOLEAN: variable2 = new Variable(assignment.getVariable().getVariableType(),assignment.getVariable().getName(),ExpressionTree.expressionTreeFromString(evaluateBoolVariable(assignment.getVariable().getValue().getText())+""));
@@ -100,8 +102,9 @@ public class CodeEvaluator {
                         //TODO: seems to do nothing
                         variable2 = new Variable(assignment.getVariable().getVariableType(),assignment.getVariable().getName(),ExpressionTree.expressionTreeFromString(assignment.getVariable().getValue().getText()));
 //                        throw new IllegalAccessException("Not implemented yet!");
+                        break;
                     case DEFAULT:
-//                        System.out.println(assignment.getVariable().getDisplayName()+" "+assignment.getVariable().getValue().getText());
+
                         break;
                 }
                 assert variable2 != null;
@@ -114,7 +117,7 @@ public class CodeEvaluator {
 
     public boolean testCondition(Condition condition) throws IllegalAccessException {
         if(condition == null)return true;
-        if(condition.getConditionType() == ConditionType.SIMPLE){
+        if(condition.getConditionType() == ConditionType.SINGLE){
             return evaluateBooleanExpression((ConditionLeaf)condition);
         }
         boolean evaluateLeft = false;
@@ -159,8 +162,8 @@ public class CodeEvaluator {
         variableString = variableString.trim();
         Matcher matcher = Pattern.compile(GameConstants.RAND_INT_REGEX).matcher(variableString);
         if(matcher.matches()){
-            int bnd1 = Integer.valueOf(matcher.group(1));
-            int bnd2 = Integer.valueOf(matcher.group(2));
+            int bnd1 =evaluateNumericalExpression(ExpressionTree.expressionTreeFromString(matcher.group(1)));
+            int bnd2 =evaluateNumericalExpression(ExpressionTree.expressionTreeFromString(matcher.group(2)));
             int rndInt = GameConstants.RANDOM.nextInt(bnd2+1-bnd1)+bnd1; //TODO: random doesnt work as intended yet!
 
             return rndInt;
@@ -176,8 +179,11 @@ public class CodeEvaluator {
         variableString = variableString.trim();
         Variable variable =  currentStatement.getParentStatement().getVariable(variableString);
         if(variable.getValue().getText().equals("true")||variable.getValue().getText().equals("false"))
-        return Boolean.valueOf(variable.getValue().getText());
-        else return evaluateBooleanExpression(new ConditionLeaf(ExpressionTree.expressionTreeFromString(variable.getValue().getText()),BooleanType.BOOLEAN,null));
+            return Boolean.valueOf(variable.getValue().getText());
+        else {
+            Condition condition = Condition.getConditionFromString(variable.getValue().getText());
+            return testCondition(condition);
+        }
     }
 
     private String removeBrackets(String expression) {
@@ -192,14 +198,14 @@ public class CodeEvaluator {
     private boolean evaluateBooleanExpression(ConditionLeaf conditionLeaf) throws IllegalAccessException {
         ExpressionTree leftTree = conditionLeaf.getLeftTree();
         ExpressionTree rightTree = conditionLeaf.getRightTree();
-        if(conditionLeaf.getSimpleConditionType() == BooleanType.BOOLEAN){
-            if(leftTree.getExpressionType() == ExpressionType.CAL){
-                String objectName = leftTree.getLeftNode().getText(); //TODO: ????Does Cal have to be an Expression? -> just objectString.methodString(parameterString)??:
-                String methodName = leftTree.getRightNode().getLeftNode() == null ? leftTree.getRightNode().getText().substring(0,leftTree.getRightNode().getText().length()-2) : leftTree.getRightNode().getLeftNode().getText();
-                String parameters = leftTree.getRightNode().getLeftNode() == null ? "" : leftTree.getRightNode().getRightNode().getText();
-                if(GameConstants.SHOW_BOOLEAN_METHODS)System.out.println(objectName+"."+methodName+"("+parameters+")");
-                return evaluateBooleanMethodCall(objectName,methodName,parameters);
-            }
+        if(conditionLeaf.getSimpleConditionType() == BooleanType.CAL){
+            String objectName = leftTree.getText(); //TODO: ????Does Cal have to be an Expression? -> just objectString.methodString(parameterString)??:
+            String methodName = rightTree.getLeftNode() == null ? rightTree.getText().substring(0,rightTree.getText().length()-2) : rightTree.getLeftNode().getText();
+            String parameters = rightTree.getRightNode() == null ? "" : rightTree.getRightNode().getText();
+            if(GameConstants.SHOW_BOOLEAN_METHODS)System.out.println(objectName+"."+methodName+"("+parameters+")");
+            return evaluateBooleanMethodCall(objectName,methodName,parameters);
+        }
+        if(conditionLeaf.getSimpleConditionType() == BooleanType.SIMPLE){
             return evaluateBoolVariable(leftTree.getText());
         }
         int leftEvaluated =  evaluateNumericalExpression(leftTree);
@@ -234,6 +240,8 @@ public class CodeEvaluator {
             Entity actorEntity = gameMap.getEntity(actorPoint);
             Entity targetEntity = gameMap.getEntity(targetPoint);
             switch (MethodType.getMethodTypeFromName(methodName)){
+                case DROP_ITEM:
+                case WAIT:
                 case MOVE:
                 case TURN:
                 case USE_ITEM:
@@ -242,13 +250,15 @@ public class CodeEvaluator {
                 case CAN_MOVE:
                     return gameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || gameMap.cellHasFlag(targetPoint,CFlag.OPEN));
                 case HAS_ITEM:
-                    return actorEntity.getItem() != null && (actorEntity.getItem() == ItemType.getValueFromName(parameterString) || parameterString.equals("ANY"));
+                    return actorEntity.getItem() != null && (actorEntity.getItem() == ItemType.getValueFromName(parameterString) || parameterString.equals(""));
                 case TARGET_CELL_IS:
                     return targetContent == CContent.getValueFromName(parameterString);
                 case TARGET_IS_DANGER:
                     return gameMap.cellHasFlag(targetPoint,CFlag.PREPARING)||gameMap.cellHasFlag(targetPoint,CFlag.ARMED)||!(targetEntity==null || targetEntity.getEntityType()!= EntityType.SKELETON);
-                case TARGET_CONTAINS:
-                    return (targetEntity!=null && targetEntity.getEntityType()==EntityType.getValueFromName(parameterString)) || (gameMap.getItem(targetPoint)!=null&&gameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString));
+                case TARGET_CONTAINS_ENTITY:
+                    return (targetEntity!=null && (targetEntity.getEntityType()==EntityType.getValueFromName(parameterString)||parameterString.equals("")));
+                case TARGET_CONTAINS_ITEM:
+                    return (gameMap.getItem(targetPoint)!=null&&(gameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString)||parameterString.equals("")));
 
             }
 
