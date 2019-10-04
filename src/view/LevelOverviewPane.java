@@ -7,7 +7,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import model.Level;
 import model.Model;
-import util.GameConstants;
+import utility.GameConstants;
 import parser.JSONParser;
 
 
@@ -19,7 +19,7 @@ public class LevelOverviewPane extends VBox {
 
     public LevelOverviewPane(Model model, View view){
         updateUnlockedLevels(model, view);
-        HBox hBox = new HBox(playBtn,backBtn);
+        HBox hBox = new HBox(backBtn,playBtn);
         hBox.setSpacing(100);
         this.getChildren().addAll(levelListView,hBox);
         this.setAlignment(Pos.CENTER);
@@ -41,7 +41,7 @@ public class LevelOverviewPane extends VBox {
         for(String s : JSONParser.getUnlockedLevelNames()){
             Level l = model.getLevelWithName(s);
             if(GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!l.isTutorial()){
-                LevelEntry le = new LevelEntry(view.getImageFromMap(l.getOriginalMap()),s,"Dies ist ein Level! Es ist echt toll! \n Ich könnte noch Stunden darüber reden, wie toll es ist, aber mir geht gleich der Platz aus! Schade! Wirklich schade!");
+                LevelEntry le = new LevelEntry(view.getImageFromMap(l.getOriginalMap()),s,"Has AI: "+l.hasAi()+", Max Knights: " + l.getMaxKnights()+"\nMax Turns for ***: "+l.getTurnsToStars()[1]+", Max Turns for **: "+l.getTurnsToStars()[0]+"\nMax LOC for ***: "+l.getLocToStars()[1]+", Max LOC for **: "+l.getLocToStars()[0]);
                 levelListView.setFixedCellSize(125);
                 levelListView.getItems().add(le);
             }

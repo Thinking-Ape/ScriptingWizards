@@ -8,7 +8,7 @@ import javafx.scene.transform.Translate;
 import model.Level;
 import model.enums.CContent;
 import model.enums.ItemType;
-import util.GameConstants;
+import utility.Util;
 
 import java.util.List;
 
@@ -50,7 +50,7 @@ public class LevelEditorModule {
 
     //    Button[][] mapButtons; //already in View
 //    private Button[][] cellTypeButtons = new Button[][]{};
-    private CheckBox exitOpenCheckBox = new CheckBox("Open");
+//    private CheckBox exitOpenCheckBox = new CheckBox("Open");
 //    private CheckBox hasAICheckBox = new CheckBox("Has AI");
     private GridPane cellTypeSelectionGPane = new GridPane();
     private GridPane cellItemSelectionGPane = new GridPane();
@@ -59,7 +59,7 @@ public class LevelEditorModule {
     private Button addLinkedCellBtn = new Button("Add Linked Cell");
     private Button removeLinkedCellBtn = new Button("Remove Linked Cell");
     private Button changeCellIdBtn = new Button("Change Cell ID");
-    private HBox cellIDHBox = new HBox(cellIdLbl, cellIdValueLbl,changeCellIdBtn);
+//    private HBox cellIDHBox = new HBox(cellIdLbl, cellIdValueLbl,changeCellIdBtn);
     //TODO: ListView<Integer>?
     private ListView<Integer> linkedCellListView = new ListView<>();
     private ChoiceBox<String> trapChoiceBox = new ChoiceBox<>();
@@ -91,12 +91,13 @@ public class LevelEditorModule {
     private HBox editTutHBox = new HBox(editTutorialTextBtn,deleteTutorialTextBtn,newTutorialTextBtn);
     private HBox prevNextTutHBox = new HBox(prevTutorialTextBtn,nextTutorialTextBtn);
     private VBox tutorialVBox = new VBox(tutorialTopHBox,tutorialTextArea,editTutHBox,prevNextTutHBox);
-    private VBox rightVBox = new VBox(cellTypeVBox,cellItemVBox,tutorialVBox);
+    private VBox cellDetailVBox = new VBox();
+    private VBox rightVBox = new VBox(cellTypeVBox,new HBox(cellItemVBox,cellDetailVBox),tutorialVBox);
 
     public LevelEditorModule(Level level){
 //        if(level.getAIBehaviour().getStatementListSize()==0) hasAICheckBox.setSelected(false);
 //        else hasAICheckBox.setSelected(true);
-        GameConstants.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
+        Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
         topHBox.setSpacing(20);
         cellTypeVBox.setAlignment(Pos.CENTER);
         cellItemVBox.setAlignment(Pos.CENTER);
@@ -230,9 +231,9 @@ public class LevelEditorModule {
     public Button getEditLvlBtn() {
         return changeLvlBtn;
     }
-    public HBox getCellIDHBox(){
-        return cellIDHBox;
-    }
+//    public HBox getCellIDHBox(){
+//        return cellIDHBox;
+//    }
 
     public Button getAddLinkedCellBtn() {
         return addLinkedCellBtn;
@@ -244,35 +245,35 @@ public class LevelEditorModule {
     public Button getNewLevelBtn() {
         return newLevelBtn;
     }
-    public CheckBox getExitOpenCheckBox(){
-        return exitOpenCheckBox;
-    }
+//    public CheckBox getExitOpenCheckBox(){
+//        return exitOpenCheckBox;
+//    }
     public Label getHasAiValueLbl(){
         return hasAiValueLbl;
     }
 
     public void activateCellIDHBox(){
         deactivateCellDetails();
-        rightVBox.getChildren().add(cellIDHBox);
+        cellDetailVBox.getChildren().addAll(cellIdLbl, cellIdValueLbl,changeCellIdBtn);
     }
     public void activateLinkedCellBtns(){
         deactivateCellDetails();
-        rightVBox.getChildren().addAll(addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView);
+        cellDetailVBox.getChildren().addAll(addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView);
     }
 
-    public void activateExitOpenCheckbox(){
-        deactivateCellDetails();
-        rightVBox.getChildren().add(exitOpenCheckBox);
-    }
+//    public void activateExitOpenCheckbox(){
+//        deactivateCellDetails();
+//        cellDetailVBox.getChildren().add(exitOpenCheckBox);
+//    }
     public void activateTrapChoicebox(){
         deactivateCellDetails();
-        rightVBox.getChildren().add(trapChoiceBox);
+        cellDetailVBox.getChildren().add(trapChoiceBox);
     }
     public void deactivateCellDetails(){
-        rightVBox.getChildren().remove(cellIDHBox);
-        rightVBox.getChildren().removeAll(addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView);
-        rightVBox.getChildren().remove(exitOpenCheckBox);
-        rightVBox.getChildren().remove(trapChoiceBox);
+        cellDetailVBox.getChildren().removeAll(cellIdLbl, cellIdValueLbl,changeCellIdBtn);
+        cellDetailVBox.getChildren().removeAll(addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView);
+//        cellDetailVBox.getChildren().remove(exitOpenCheckBox);
+        cellDetailVBox.getChildren().remove(trapChoiceBox);
     }
 
     public Button getDeleteLevelBtn() {
