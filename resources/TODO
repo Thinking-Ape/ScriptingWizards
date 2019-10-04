@@ -9,37 +9,57 @@ OPTIONAL:
 -instead of a key -> collect all treasures?? -> exits dont need to be opened but you lose the round if you dont collect all treasure?
 -isAlive() method
 -CodeAreaController -> rework? (branch!)
--Key looks kinda bad...
 -create a spellbook for Skeletons (steal() instead of collect?? attack?)
+-TURN_DIRECTION enum: LEFT, RIGHT, AROUND
+-tutorial GUI -> make user codearea smaller when tutorial is active??
 
 IMPORTANT:
 -----------------------------------
 -build a prototype -> https://stackoverflow.com/questions/53453212/how-to-deploy-a-javafx-11-desktop-application-with-a-jre
--variable names restrict possible names??
+-variable names restrict possible names?? (kinda already done...)
 -add all VariableTypes enumerated in the enum
--end goal always to unlock the exit? <- the wizard wants to escape, not the knights! => no open tag!
-
+-Why is every assignment parsed twice?? (codeparser -> parseassignment sout -> twice in commandline)
+-unlock statementtypes
+-endless loop -> popup and reset!
+-Status whether level is saved or if changes will be lost
 -change RequiredLevellist from String to Levels to avoid confusion with what needs to be saved
     OR
     -reimplement saving mechanism? New class UnsavedData or similarly named
     OR
     -message upon saving: the following levels will be saved too, due to changes they are connected to
--LevelOverviewPane: replace level descriptions with other information like max knights, level_size and requirements for certain star ratings!
+
 -Exit needs more gold/shininess!
--Fullscreen mode
--dropItem() method (Rather yes)
 -define own methods?? (Big!!)
 -wizard speech bubbles as tutorial gui?
 -beacon -> every other knight/skeleton mimicks this one! (ambitious!)
--DIRECTION: NORTH, SOUTH, WEST, EAST
--TURN_DIRECTION: LEFT, RIGHT, AROUND
--tutorial GUI -> make user codearea smaller when tutorial is active??
--data: tutorial progress
--Status whether level is saved or if changes will be lost
--Why is every assignment parsed twice?? (codeparser -> parseassignment sout -> twice in commandline)
+-instead of ItemType null -> ItemType.NONE
+-evaluateRandom is never used? Check if randoms are working properly
+-CodeEvaluator vs CodeExecutor?!
+-knight.getItemType() + knight.getDirection() + etc.
+-CodeArea Nullpointer -> check this!
+-optimize levels on automation
+-very ugly things happen in controller!!!
+-very ugly things happen in view concerning codeareas!!
 ---------------------------------------------
 
 DONE:
+
+4.10.
+end goal always to unlock the exit? <- the wizard wants to escape, not the knights! => no open tag!
+knight icons left of map
+button to load best code yet (with which you completed a specific level)
+LevelOverviewPane: replace level descriptions with other information like max knights, level_size and requirements for certain star ratings!
+Fullscreen mode
+let randInt take variables!
+data: tutorial progress
+variable assignment causes nullpointer! + what if variables get variables as value (no recursion yet?)
+CodeParser TestForCorrectValueType!
+
+2.10.
+variables must not be named LEFT, RIGHT, AROUND, EAST, WEST, NORTH, SOUTH, KEY
+DIRECTION: NORTH, SOUTH, WEST, EAST
+Booleans and Expressions -> find better solution! (merge the 2 so they work together!)
+dropItem() method
 
 1.10.
 allow booleans with other value than true or false!
