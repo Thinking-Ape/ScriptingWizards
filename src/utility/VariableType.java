@@ -1,4 +1,4 @@
-package util;
+package utility;
 
 public enum VariableType {
     INT("int"),

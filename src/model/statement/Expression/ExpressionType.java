@@ -1,16 +1,15 @@
 package model.statement.Expression;
 
-import util.GameConstants;
+import utility.GameConstants;
 
 public enum ExpressionType {
 
-    CAL('.'), //eventuell wieder verwenden?
+    //TODO: CAL('.'),
     ADD('+'),
     SUB('-'),
     DIV('/'),
     MULT('*'),
     MOD('%'),
-//    ARGS(','), //TODO: doesnt work atm
     SIMPLE(GameConstants.ANY_CHAR);
 
    ExpressionType(char c1){
@@ -33,8 +32,5 @@ public enum ExpressionType {
     public char getFirstCharacter() {
         return c1;
     }
-//    public char getSecondCharacter() {
-//        return c2;
-//    }
 
    }

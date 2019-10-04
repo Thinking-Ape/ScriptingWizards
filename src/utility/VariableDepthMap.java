@@ -1,4 +1,4 @@
-package util;
+package utility;
 
 import model.statement.Expression.ExpressionTree;
 

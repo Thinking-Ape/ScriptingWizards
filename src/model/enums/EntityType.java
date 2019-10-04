@@ -1,6 +1,6 @@
 package model.enums;
 
-import util.GameConstants;
+import utility.Util;
 
 public enum EntityType {
     KNIGHT,
@@ -14,6 +14,6 @@ public enum EntityType {
     }
 
     public String getDisplayName() {
-        return GameConstants.getDisplayableString(name());
+        return Util.getDisplayableString(name());
     }
 }

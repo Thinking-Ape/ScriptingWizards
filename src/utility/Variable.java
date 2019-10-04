@@ -1,5 +1,9 @@
-package util;
+package utility;
 
+import model.enums.CContent;
+import model.enums.Direction;
+import model.enums.EntityType;
+import model.enums.ItemType;
 import model.statement.Expression.ExpressionTree;
 
 public class Variable {
@@ -9,6 +13,8 @@ public class Variable {
 
     public Variable( VariableType variableType,String variableName, ExpressionTree value) {
         this.name = variableName.trim();
+        if(Direction.getValueFromString(name)!=null || ItemType.getValueFromName(name) != null || CContent.getValueFromName(name) != null || EntityType.getValueFromName(name) != null || name.equals("AROUND")|| name.equals("LEFT")|| name.equals("RIGHT")|| name.equals("EAST")|| name.equals("NORTH")|| name.equals("SOUTH")|| name.equals("WEST"))
+            throw new IllegalArgumentException("A variable must not be named: " + name + "!" );
         this.value = value;
         this.variableType = variableType;
     }

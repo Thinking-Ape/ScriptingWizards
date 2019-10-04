@@ -1,4 +1,4 @@
-package util;
+package utility;
 
 //TODO: delete?
 public enum Event {

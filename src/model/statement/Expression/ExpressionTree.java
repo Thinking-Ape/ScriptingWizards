@@ -1,27 +1,24 @@
 package model.statement.Expression;
 
 import javafx.util.Pair;
-import util.GameConstants;
+import utility.Util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 public class ExpressionTree {
-
-    //int depth; // TODO: Fragwürdig! Braucht man das wirklich?
-    ExpressionType expressionType;
+    private ExpressionType expressionType;
     private ExpressionTree leftNode;
     private ExpressionTree rightNode;
 
-    public ExpressionTree(ExpressionTree leftNode, ExpressionType expressionType, ExpressionTree rightNode){//}, int depth){
+    public ExpressionTree(ExpressionTree leftNode, ExpressionType expressionType, ExpressionTree rightNode){
         this.leftNode = leftNode;
         this.rightNode = rightNode;
         this.expressionType = expressionType;
-        //this.depth = depth;
     }
-    protected ExpressionTree(ExpressionType expressionType){//}, int depth){
-        this(null,expressionType,null);//,depth);
+    protected ExpressionTree(ExpressionType expressionType){
+        this(null,expressionType,null);
     }
 
     public ExpressionType getExpressionType() {
@@ -40,7 +37,7 @@ public class ExpressionTree {
         String leftNodeText = leftNode.getText();
         String rightNodeText = rightNode.getText();
         if(leftNode.getLeftNode() != null || leftNode.getRightNode() != null) leftNodeText = "("+leftNode.getText()+")";
-        if((rightNode.getLeftNode() != null || rightNode.getRightNode() != null) && expressionType!= ExpressionType.CAL) rightNodeText = "("+rightNode.getText()+")";
+        if(rightNode.getLeftNode() != null || rightNode.getRightNode() != null) rightNodeText = "("+rightNode.getText()+")"; // && expressionType!= ExpressionType.CAL)
         switch (expressionType){
 
             case ADD:
@@ -53,8 +50,8 @@ public class ExpressionTree {
                 return "" + leftNodeText + " * " + rightNodeText+"";
             case MOD:
                 return "" + leftNodeText + " % " + rightNodeText+"";
-            case CAL:
-                return leftNodeText +"." +rightNodeText;
+//            case CAL:
+//                return leftNodeText +"." +rightNodeText;
             case SIMPLE:
                 String expression =leftNodeText +"(" +rightNodeText+")";
                 return expression;
@@ -64,13 +61,13 @@ public class ExpressionTree {
     public static ExpressionTree expressionTreeFromString(String code){//}, int level) {
 
         code = code.trim();
-        code = removeUnnecessaryBrackets(code);
+        code = Util.removeUnnecessaryBrackets(code);
 
-        Pair<ExpressionType,Integer> expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.CAL);
-        if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
-            return expressionTreeWithType(code, expressionTypeAtPos);
-        }
-        expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.ADD,ExpressionType.SUB);
+//        Pair<ExpressionType,Integer> expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.CAL);
+//        if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
+//            return expressionTreeWithType(code, expressionTypeAtPos);
+//        }
+        Pair<ExpressionType,Integer> expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.ADD,ExpressionType.SUB);
         if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
             ExpressionTree e = expressionTreeWithType(code, expressionTypeAtPos);
 //            System.out.println(e.getText()+e.getExpressionType());
@@ -110,43 +107,12 @@ public class ExpressionTree {
             expressionType = ExpressionType.getExpressionTypeFromChars(c);
 
             if(expressionType!= ExpressionType.SIMPLE && depth == 0){
-                if(GameConstants.arrayContains(expressionTypes,expressionType)){
-//                    if(expressionType == ExpressionType.SUB){if(code.matches("\\(? *([\\d+|.+] *[\\+|-|\\*|\\/|\\%])* *[\\d+|.+] *\\)? *- *\\(? *([\\d+|.+] *[\\+|-|\\*|\\/|\\%])* *[\\d+|.+] *\\)?"))
+                if(Util.arrayContains(expressionTypes,expressionType)){
                     return new Pair<>(expressionType,i);
-
-//                    else  return new Pair<>(null,-1);}
-//                    else return new Pair<>(expressionType,i);
                 }
             }
         }
         return new Pair<>(null,-1);
-    }
-
-   /* private static int[] getDepthArrayFromCode(String code) {
-        int[] output = new int[code.length()];
-        int depth = 0;
-        for(int i = 0; i < code.length();i++){
-            char c = code.charAt(i);
-            if(c == '(') {depth++;}
-            output[i]=depth;
-            if(c == ')') {depth--;}
-        }
-        return output;
-    }*/
-
-    private static String removeUnnecessaryBrackets(String code) {
-        if(code.length()<=2)return code;
-        int depth = 0;
-        int amountOfDepthZeros = 0;
-        for(int i =0; i < code.length();i++){
-            char c = code.charAt(i);
-            if(c == '(') {depth++;}
-            if(depth == 0) amountOfDepthZeros++;
-            if(c == ')') {depth--;}
-        }
-        if(amountOfDepthZeros==0)
-            return removeUnnecessaryBrackets(code.substring(1,code.length()-1));
-        else return code;
     }
 
     public boolean equals(ExpressionTree expressionTree){

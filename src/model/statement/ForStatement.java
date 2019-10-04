@@ -1,7 +1,7 @@
 package model.statement;
 
 import model.statement.Condition.Condition;
-import util.Variable;
+import utility.Variable;
 
 import java.util.HashSet;
 

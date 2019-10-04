@@ -1,4 +1,4 @@
-package util;
+package utility;
 
 public class StringPair {
     String first,second;

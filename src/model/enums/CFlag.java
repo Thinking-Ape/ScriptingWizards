@@ -1,6 +1,6 @@
 package model.enums;
 
-import util.GameConstants;
+import utility.Util;
 
 public enum CFlag {
     OPEN,
@@ -19,6 +19,6 @@ public enum CFlag {
     }
 
     public String getDisplayName() {
-        return GameConstants.getDisplayableString(name());
+        return Util.getDisplayableString(name());
     }
 }

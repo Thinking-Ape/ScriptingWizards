@@ -1,6 +1,6 @@
 package model.enums;
 
-import util.GameConstants;
+import utility.Util;
 
 public enum ItemType {
 
@@ -18,6 +18,6 @@ public enum ItemType {
     }
 
     public String getDisplayName() {
-        return GameConstants.getDisplayableString(name());
+        return Util.getDisplayableString(name());
     }
 }

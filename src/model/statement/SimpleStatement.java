@@ -7,12 +7,12 @@ public class SimpleStatement implements Statement {
     ComplexStatement parentStatement;
 
     SimpleStatement(StatementType statementType) {
-//        this.expressionTree = new ExpressionTree(new ExpressionLeaf(variable,depth+1), ExpressionType.BOOLEAN,new ExpressionLeaf(value,depth+1),depth);
+//        this.expressionTree = new ExpressionTree(new ExpressionLeaf(variable,depth+1), ExpressionType.SINGLE,new ExpressionLeaf(value,depth+1),depth);
         this.statementType = statementType;
 //        this.depth = depth;
     }
     public SimpleStatement() {
-//        this.expressionTree = new ExpressionTree(new ExpressionLeaf(variable,depth+1), ExpressionType.BOOLEAN,new ExpressionLeaf(value,depth+1),depth);
+//        this.expressionTree = new ExpressionTree(new ExpressionLeaf(variable,depth+1), ExpressionType.SINGLE,new ExpressionLeaf(value,depth+1),depth);
         this.statementType = StatementType.SIMPLE;
 //        this.depth = depth;
     }

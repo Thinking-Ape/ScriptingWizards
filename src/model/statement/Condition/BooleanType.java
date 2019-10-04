@@ -1,15 +1,16 @@
 package model.statement.Condition;
 
-import util.GameConstants;
+import utility.GameConstants;
 
 public enum BooleanType {
-    BOOLEAN(GameConstants.ANY_CHAR,GameConstants.ANY_CHAR),
+    SIMPLE(GameConstants.ANY_CHAR,GameConstants.ANY_CHAR),
     GR_EQ('>','='),
     LE_EQ('<','='),
     GR('>', GameConstants.ANY_CHAR),
     LE('<',GameConstants.ANY_CHAR),
     NEQ('!','='),
-    EQ('=','=');
+    EQ('=','='),
+    CAL('.',GameConstants.ANY_CHAR);
 
     BooleanType(char c1, char c2){
         this.c1 = c1;
@@ -24,7 +25,7 @@ public enum BooleanType {
                 if(conditionType.getSecondCharacter() == GameConstants.ANY_CHAR || c2 == conditionType.getSecondCharacter()) return conditionType;
             }
         }
-        return BooleanType.BOOLEAN;
+        return BooleanType.SIMPLE;
     }
 
     public char getFirstCharacter() {

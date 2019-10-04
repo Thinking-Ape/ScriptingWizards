@@ -1,12 +1,12 @@
 package model.statement.Condition;
 
-import util.GameConstants;
+import utility.GameConstants;
 
 public enum ConditionType {
     AND('&','&'),
     OR('|','|'),
     NEGATION('!',GameConstants.ANY_CHAR),
-    SIMPLE(GameConstants.ANY_CHAR,GameConstants.ANY_CHAR);
+    SINGLE(GameConstants.ANY_CHAR,GameConstants.ANY_CHAR);
 
     ConditionType(char c1, char c2){
         this.c1 = c1;
@@ -21,7 +21,7 @@ public enum ConditionType {
                 if(conditionType.getSecondCharacter() == GameConstants.ANY_CHAR || c2 == conditionType.getSecondCharacter()) return conditionType;
             }
         }
-        return ConditionType.SIMPLE;
+        return ConditionType.SINGLE;
     }
 
     public char getFirstCharacter() {

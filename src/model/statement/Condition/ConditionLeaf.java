@@ -10,8 +10,7 @@ public class ConditionLeaf implements Condition {
     private ConditionType conditionType;
 
     public ConditionLeaf(ExpressionTree leftTree, BooleanType simpleConditionType, ExpressionTree rightTree) {
-//        super(ConditionType.SIMPLE,depth);
-        conditionType = ConditionType.SIMPLE;
+        conditionType = ConditionType.SINGLE;
         if(rightTree != null&&rightTree.getText().charAt(0)=='(') System.out.println(rightTree.getText());
         this.leftTree = leftTree;
         this.rightTree = rightTree;
@@ -37,7 +36,7 @@ public class ConditionLeaf implements Condition {
             case LE:
                 output += " < ";
                 break;
-            case BOOLEAN:
+            case SIMPLE:
                 return output;
             case GR_EQ:
                 output += " >= ";
@@ -47,6 +46,9 @@ public class ConditionLeaf implements Condition {
                 break;
             case NEQ:
                 output += " != ";
+                break;
+            case CAL:
+                output += ".";
                 break;
         }
         return output + rightTree.getText();

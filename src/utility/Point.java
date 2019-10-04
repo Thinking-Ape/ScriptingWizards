@@ -1,4 +1,4 @@
-package util;
+package utility;
 
 public class Point {
     int x,y;

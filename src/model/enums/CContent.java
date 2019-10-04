@@ -1,6 +1,6 @@
 package model.enums;
 
-import util.GameConstants;
+import utility.Util;
 
 public enum CContent {
 
@@ -39,7 +39,7 @@ public enum CContent {
     public String getDisplayName(){
 //        String output = toString().substring(0,1);
 //        return output + toString().substring(1).toLowerCase();
-        return GameConstants.getDisplayableString(name());
+        return Util.getDisplayableString(name());
     }
     public boolean isTraversable() {
         return isTraversable;
