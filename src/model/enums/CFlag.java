@@ -7,7 +7,9 @@ public enum CFlag {
     TRIGGERED,
     ARMED,
     UNARMED,
-    PREPARING;
+    PREPARING,
+    TURNED, //only used for GATE and merely fulfills a visual purpose
+    USED_UP; //only used for SPAWN when there are no more knights to spawn!
     //HURTING("Hurting"),
     //COLLECTIBLE("Collectible");
 

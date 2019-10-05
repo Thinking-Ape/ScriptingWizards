@@ -137,4 +137,13 @@ public abstract class Util {
         }
 
     }
+
+    public static <T> String getRegEx(T[] values) {
+        StringBuilder output = new StringBuilder("(");
+        for(T t : values){
+            output.append(t.toString().toUpperCase()+"|");
+        }
+        output.replace(output.length()-1, output.length(), ")");
+        return output.toString();
+    }
 }

@@ -45,6 +45,7 @@ public class CodeExecutor {
                 }
             }else if(assignment.getVariable().getVariableType() == VariableType.SKELETON){ //TODO: stattdessen ENEMY?
                 method_Called = true;
+                if(gameMap.getEnemySpawnList().size()==0)return true;
                 String name = assignment.getVariable().getName();
                 Direction direction = evaluateDirection(assignment.getVariable().getValue().getRightNode(),assignment.getParentStatement());
                 String spawnId = "";
@@ -101,17 +102,6 @@ public class CodeExecutor {
             actorEntity.setItem(null);
             hasWon = true;
         }
-//        if(actorEntity.getItem() == ItemType.BOULDER&&targetContent.isTraversable()){
-//            if(gameMap.getEntity(targetPos) == null){
-//                actorEntity.setItem(null);
-//                gameMap.setItem(targetPos,ItemType.BOULDER);
-//
-//            }
-////            else {
-////                actorCell.getEntity().setItem(null);
-////                targetCell.setEntity(new Entity(null,null,EntityType.BOULDER));
-////            }
-//        }
         if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CContent.DIRT){
             gameMap.setContent(targetPos,CContent.PATH);
         }

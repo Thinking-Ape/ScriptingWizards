@@ -136,7 +136,7 @@ public class CodeEvaluator {
     }
     //TODO: parentStatement?
     private int evaluateNumericalExpression(ExpressionTree node) throws IllegalAccessException {
-        if(node.getText().equals(""))return 0;
+        if(node.getText().equals(""))throw new IllegalArgumentException("Cant be blank!");
         if(node.getExpressionType() == ExpressionType.SIMPLE){
             return evaluateIntVariable(node.getText());
         }
@@ -208,20 +208,55 @@ public class CodeEvaluator {
         if(conditionLeaf.getSimpleConditionType() == BooleanType.SIMPLE){
             return evaluateBoolVariable(leftTree.getText());
         }
-        int leftEvaluated =  evaluateNumericalExpression(leftTree);
-        int rightEvaluated = evaluateNumericalExpression(rightTree);
+        int leftEvaluated , rightEvaluated;
         switch (conditionLeaf.getSimpleConditionType()){
             case GR_EQ:
+                leftEvaluated =  evaluateNumericalExpression(leftTree);
+                rightEvaluated = evaluateNumericalExpression(rightTree);
                 return leftEvaluated >= rightEvaluated;
             case LE_EQ:
+                leftEvaluated =  evaluateNumericalExpression(leftTree);
+                rightEvaluated = evaluateNumericalExpression(rightTree);
                 return leftEvaluated <= rightEvaluated;
             case GR:
+                leftEvaluated =  evaluateNumericalExpression(leftTree);
+                rightEvaluated = evaluateNumericalExpression(rightTree);
                 return leftEvaluated > rightEvaluated;
             case LE:
+                leftEvaluated =  evaluateNumericalExpression(leftTree);
+                rightEvaluated = evaluateNumericalExpression(rightTree);
                 return leftEvaluated < rightEvaluated;
             case NEQ:
+                Variable var1 = currentStatement.getParentStatement().getVariable(leftTree.getText());
+                Variable var2 = currentStatement.getParentStatement().getVariable(rightTree.getText());
+                VariableType vt1 = VariableType.getVariableTypeFromValue(leftTree.getText());
+                VariableType vt2 = VariableType.getVariableTypeFromValue(rightTree.getText());
+                boolean var1Found = var1!=null && var1.getVariableType() != VariableType.INT;
+                boolean var2Found = var2!=null && var2.getVariableType() != VariableType.INT;
+
+                if(var1Found || var2Found)return evaluateBooleanExpression(new ConditionLeaf(var1Found ? var1.getValue() : leftTree, conditionLeaf.getSimpleConditionType(),var2Found ? var2.getValue() : rightTree));
+                boolean vt1Found = vt1 !=VariableType.DEFAULT && vt1 != VariableType.INT;
+                boolean vt2Found = vt2 !=VariableType.DEFAULT && vt2 != VariableType.INT;
+                if(vt1Found && vt2Found) return !leftTree.getText().equals(rightTree.getText());
+
+                leftEvaluated =  evaluateNumericalExpression(leftTree);
+                rightEvaluated = evaluateNumericalExpression(rightTree);
                 return leftEvaluated != rightEvaluated;
             case EQ:
+                var1 = currentStatement.getParentStatement().getVariable(leftTree.getText());
+                var2 = currentStatement.getParentStatement().getVariable(rightTree.getText());
+                vt1 = VariableType.getVariableTypeFromValue(leftTree.getText());
+                vt2 = VariableType.getVariableTypeFromValue(rightTree.getText());
+                var1Found = var1!=null && var1.getVariableType() != VariableType.INT;
+                var2Found = var2!=null && var2.getVariableType() != VariableType.INT;
+
+                if(var1Found || var2Found)return evaluateBooleanExpression(new ConditionLeaf(var1Found ? var1.getValue() : leftTree, conditionLeaf.getSimpleConditionType(),var2Found ? var2.getValue() : rightTree));
+                vt1Found = vt1 !=VariableType.DEFAULT && vt1 != VariableType.INT;
+                vt2Found = vt2 !=VariableType.DEFAULT && vt2 != VariableType.INT;
+                if(vt1Found && vt2Found) return leftTree.getText().equals(rightTree.getText());
+
+                leftEvaluated =  evaluateNumericalExpression(leftTree);
+                rightEvaluated = evaluateNumericalExpression(rightTree);
                 return leftEvaluated == rightEvaluated;
         }
         throw new IllegalArgumentException(leftTree.getText()+" is not a valid boolean!");
