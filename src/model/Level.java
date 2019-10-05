@@ -35,6 +35,7 @@ public class Level implements PropertyChangeListener {
     //TODO: change to enum state? (LevelStates: RUNNING, AI_FINISHED, LOST, WON)
     private CodeExecutor executor;
     private CodeEvaluator evaluator;
+    private boolean isStackOverflow;
 
 
     public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, String[] requiredLevels, int maxKnights, int index, boolean isTutorial,List<String> tutorialEntryList) {
@@ -77,13 +78,14 @@ public class Level implements PropertyChangeListener {
             }
             noStackOverflow++;
             if(noStackOverflow > 500){
-                System.out.println("You might have caused an endless loop! Please avoid long loops that do not include any game methods!");
+                this.isStackOverflow = true;
                 isLost = true;
                 break;
             }
             if(usedKnights <= maxKnights)method_Called_1 = executor.executeBehaviour(statement,currentMap, true);
             else usedKnights--;
 
+            if(usedKnights == maxKnights && currentMap.findSpawn().getX() != -1)currentMap.setContent(currentMap.findSpawn(), CContent.PATH);
 //            if(executor.hasWon())win();
 
         }
@@ -362,6 +364,10 @@ public class Level implements PropertyChangeListener {
     public void deleteTutorialLine(int index) {
         tutorialMessages.remove(index);
         changeSupport.firePropertyChange("tutorialDeletion", null,index);
+    }
+
+    public boolean isStackOverflow() {
+        return isStackOverflow;
     }
 
     //TODO: getTutorialEntryListSize instead of this

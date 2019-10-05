@@ -12,15 +12,14 @@ import java.util.*;
 
 public class Model implements PropertyChangeListener {
     private Set<Level> levelSet;
-//    private Player player;
+    private Map<Level,List<LevelChange>> levelChangeMap;
     private int currentLevelIndex;
-    private List<Level> finishList;
+    private List<Level> finishedLevelsList;
     private PropertyChangeSupport changeSupport;
-    // Settings settings?
 
     public Model(){
         levelSet = new HashSet<>();
-        finishList = new ArrayList<>();
+        finishedLevelsList = new ArrayList<>();
         currentLevelIndex = 0;
         changeSupport = new PropertyChangeSupport(this);
     }
@@ -82,11 +81,11 @@ public class Model implements PropertyChangeListener {
     }
 
     public void updateFinishedList() throws IOException {
-        finishList.add(getCurrentLevel());
+        finishedLevelsList.add(getCurrentLevel());
         for(Level l : levelSet){
             int foundLevels = 0;
             for(String requiredLevelName : l.getRequiredLevels()){
-                for(Level fL : finishList)if(fL.getName().equals(requiredLevelName))foundLevels++;
+                for(Level fL : finishedLevelsList)if(fL.getName().equals(requiredLevelName))foundLevels++;
             }
             if(foundLevels == l.getRequiredLevels().size())JSONParser.updateUnlocks(l);
         }
