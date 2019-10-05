@@ -6,12 +6,17 @@ OPTIONAL:
 -delete() method? (rather not)
 -make traps trigger via pressure plates also?
 -enemies not skeletons but enemy knights (no)? -> need to attack instead of walking into you? (maybe no sword necessary? yes or no?)
--instead of a key -> collect all treasures?? -> exits dont need to be opened but you lose the round if you dont collect all treasure?
 -isAlive() method
 -CodeAreaController -> rework? (branch!)
 -create a spellbook for Skeletons (steal() instead of collect?? attack?)
 -TURN_DIRECTION enum: LEFT, RIGHT, AROUND
 -tutorial GUI -> make user codearea smaller when tutorial is active??
+-CodeEvaluator vs CodeExecutor?!
+-very ugly things happen in controller!!!
+-very ugly things happen in view concerning codeareas!!
+-instead of ItemType null -> ItemType.NONE
+-evaluateRandom is never used? Check if randoms are working properly
+-CodeArea Nullpointer -> check this!
 
 IMPORTANT:
 -----------------------------------
@@ -20,29 +25,31 @@ IMPORTANT:
 -add all VariableTypes enumerated in the enum
 -Why is every assignment parsed twice?? (codeparser -> parseassignment sout -> twice in commandline)
 -unlock statementtypes
--endless loop -> popup and reset!
 -Status whether level is saved or if changes will be lost
 -change RequiredLevellist from String to Levels to avoid confusion with what needs to be saved
     OR
     -reimplement saving mechanism? New class UnsavedData or similarly named
     OR
     -message upon saving: the following levels will be saved too, due to changes they are connected to
+-changes as a class? to make saving better -> store in model also keep a change list
 
 -Exit needs more gold/shininess!
 -define own methods?? (Big!!)
 -wizard speech bubbles as tutorial gui?
 -beacon -> every other knight/skeleton mimicks this one! (ambitious!)
--instead of ItemType null -> ItemType.NONE
--evaluateRandom is never used? Check if randoms are working properly
--CodeEvaluator vs CodeExecutor?!
 -knight.getItemType() + knight.getDirection() + etc.
--CodeArea Nullpointer -> check this!
 -optimize levels on automation
--very ugly things happen in controller!!!
--very ugly things happen in view concerning codeareas!!
+-let gate have a flag that is purely visual? -> horizontal/vertical
+-select a level on each entering the editor?
+-requiredlevels arent ordered in levelviewlist as in opening screen
+-instead of removing the spawn redraw it without the glow
 ---------------------------------------------
 
 DONE:
+5.10.
+tutorial opening screen if tutprogress == -1
+endless loop -> popup and reset!
+remove spawn when there are no knight tokens left
 
 4.10.
 end goal always to unlock the exit? <- the wizard wants to escape, not the knights! => no open tag!
