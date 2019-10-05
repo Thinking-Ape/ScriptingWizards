@@ -566,7 +566,7 @@ public class EditorController {
             if(t1.matches("0(\\d+)")){
                 textField.setText(textField.getText().substring(1));
             }
-            if(t1.length() > 2)textField.setText(s);
+            if(t1.length() > 3)textField.setText(s);
 //            if(Integer.valueOf(textField.getText())>GameConstants.MAX_LEVEL_SIZE)
 //                textField.setText(""+GameConstants.MAX_LEVEL_SIZE);
 
@@ -798,18 +798,18 @@ public class EditorController {
             if(i*rowC+j > view.getCellTypeSelectionPane().getChildren().size()-1)return;
             Button btn = (Button) view.getCellTypeSelectionPane().getChildren().get(i*rowC+j);
             final CContent content = CContent.getValueFromName(btn.getText().toUpperCase().replaceAll(" ", "_"));
-            btn.setOnMousePressed(mouseEvent -> {
+            btn.setOnAction(mouseEvent -> {
                 //TODO: darf es wirklich nur einen geben?
                 if(content == null) throw new IllegalStateException("Content: " + btn.getText().toUpperCase().replaceAll(" ", "_") + " doesnt exist!");
-//                if(content == CContent.SPAWN){
-//                    for(int x = 0; x < gameMap.getBoundX();x++){
-//                        for(int y = 0; y < gameMap.getBoundY();y++){
-//                            if(gameMap.getContentAtXY(x,y) == CContent.SPAWN){
-//                                gameMap.setItem(x,y,null);
-//                            }
-//                        }
-//                    }
-//                }
+                if(content == CContent.SPAWN){
+                    for(int x = 0; x < gameMap.getBoundX();x++){
+                        for(int y = 0; y < gameMap.getBoundY();y++){
+                            if(gameMap.getContentAtXY(x,y) == CContent.SPAWN){
+                                gameMap.setContent(x,y,CContent.PATH);
+                            }
+                        }
+                    }
+                }
                 gameMap.setContent(view.getSelectedColumn(),view.getSelectedRow(),content);
                 int id = gameMap.getCellID(view.getSelectedColumn(),view.getSelectedRow());
                 if(id!=-1){
@@ -839,9 +839,6 @@ public class EditorController {
                     model.getCurrentLevel().getOriginalMap().setItem(view.getSelectedColumn(),view.getSelectedRow(),item);
                     view.setAllItemTypeButtonActive();
                     view.setItemButtonInactive(item);
-//                model.getCurrentLevel().setCurrentMapToOriginal(); //TODO: improve this mess!!
-//                view.notify(Event.MAP_CHANGED);
-
                 setHandlersForMapCells();
                 view.highlightInMap(view.getSelectedColumn(),view.getSelectedRow());
             });

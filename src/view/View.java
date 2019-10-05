@@ -25,6 +25,7 @@ import model.enums.CContent;
 import model.enums.CFlag;
 import model.enums.ItemType;
 import model.statement.ComplexStatement;
+import parser.JSONParser;
 import utility.GameConstants;
 import org.jetbrains.annotations.Contract;
 
@@ -35,6 +36,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -90,8 +92,9 @@ public class View implements PropertyChangeListener {
     private VBox speedVBox;
     private TutorialGroup tutorialGroup;
 
-    private Button loadBestCode = new Button("Load Best Code");
-    private Button clearCode = new Button("Clear Code");
+    private Button loadBestCodeBtn = new Button("Load Best Code");
+    private Button clearCodeBtn = new Button("Clear Code");
+    private IntroductionPane introductionPane = IntroductionPane.getInstance();
 
     public View(Model model, Stage stage, boolean isEditor) {
         this.stage = stage;
@@ -166,7 +169,7 @@ public class View implements PropertyChangeListener {
         });
         //TODO: delete
 
-        hBox.getChildren().addAll(debugBtn,loadBestCode,clearCode);
+        hBox.getChildren().addAll(debugBtn, loadBestCodeBtn, clearCodeBtn);
         if (model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0)
             aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(), isEditor);
         else aiCodeArea = new CodeArea();
@@ -178,7 +181,8 @@ public class View implements PropertyChangeListener {
                         //"Knight k = new Knight(EAST);","k.move();","k.move();","k.turn(EAST);","if(k.targetIsUnarmed()){","k.move();","k.turn(WEST);","k.move();","k.move();","}","else {","k.turn(2);","k.move();","k.turn(EAST);","k.move();","k.move();","}");
                         //"int i = 10;","Knight k = new Knight(WEST);","k.move();","for(int j = 0;j < i;j = j + 1;){","k.wait();","}","k.turn(2);","k.move();");
                         //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContainsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-                        "Knight knight = new Knight(NORTH);", "knight.collect();", "knight.move();", "knight.useItem();", "knight.move();");
+                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 8;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}","knight.useItem();","knight.move();");
+                        //"Knight knight = new Knight(NORTH);", "knight.collect();", "knight.move();", "knight.useItem();", "knight.move();");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -693,8 +697,18 @@ public class View implements PropertyChangeListener {
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
                 codeArea.select(0, true);
-                levelOverviewPane.updateUnlockedLevels(model, this);
-                stage.getScene().setRoot(rootPane);
+//                levelOverviewPane.updateUnlockedLevels(model, this);
+                try {
+                    if(JSONParser.getTutorialProgressIndex()==-1){
+                        stage.getScene().setRoot(introductionPane);
+                        introductionPane.getTutorialGroup().getNextBtn().requestFocus();
+                    }
+                    else {
+                        stage.getScene().setRoot(rootPane);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
 
         }
@@ -874,18 +888,28 @@ public class View implements PropertyChangeListener {
         backBtn.setDisable(b);
         speedSlider.setDisable(b);
         showSpellBookBtn.setDisable(b);
+        loadBestCodeBtn.setDisable(b);
+        clearCodeBtn.setDisable(b);
     }
 
     public TutorialGroup getTutorialGroup() {
         return tutorialGroup;
     }
 
-    public Button getLoadBestCode() {
-        return loadBestCode;
+    public Button getLoadBestCodeBtn() {
+        return loadBestCodeBtn;
     }
 
-    public Button getClearCode() {
-        return clearCode;
+    public Button getClearCodeBtn() {
+        return clearCodeBtn;
+    }
+
+    public IntroductionPane getIntroductionPane() {
+        return introductionPane;
+    }
+
+    public Stage getStage() {
+        return stage;
     }
 }
 //KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContainsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"

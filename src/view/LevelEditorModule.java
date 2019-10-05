@@ -48,10 +48,6 @@ public class LevelEditorModule {
     private Button moveIndexUpBtn = new Button("Move Level Up");
     private Button moveIndexDownBtn = new Button("Move Level Down");
 
-    //    Button[][] mapButtons; //already in View
-//    private Button[][] cellTypeButtons = new Button[][]{};
-//    private CheckBox exitOpenCheckBox = new CheckBox("Open");
-//    private CheckBox hasAICheckBox = new CheckBox("Has AI");
     private GridPane cellTypeSelectionGPane = new GridPane();
     private GridPane cellItemSelectionGPane = new GridPane();
     private Label cellIdValueLbl = new Label("");
@@ -59,8 +55,6 @@ public class LevelEditorModule {
     private Button addLinkedCellBtn = new Button("Add Linked Cell");
     private Button removeLinkedCellBtn = new Button("Remove Linked Cell");
     private Button changeCellIdBtn = new Button("Change Cell ID");
-//    private HBox cellIDHBox = new HBox(cellIdLbl, cellIdValueLbl,changeCellIdBtn);
-    //TODO: ListView<Integer>?
     private ListView<Integer> linkedCellListView = new ListView<>();
     private ChoiceBox<String> trapChoiceBox = new ChoiceBox<>();
     private VBox cellTypeVBox = new VBox(new Label("Cell Content:"),cellTypeSelectionGPane);
@@ -74,10 +68,8 @@ public class LevelEditorModule {
     private Button reloadLevelBtn = new Button("Reload Level");
     private HBox bottomHBox = new HBox(newLevelBtn, openLevelBtn, saveLevelBtn, deleteLevelBtn, reloadLevelBtn, resetLevelScoresBtn);
     private VBox requiredLVBOX = new VBox(requiredLevelsLabel,requiredLevelsLView);
-//    private TextField levelNameTField = new TextField();
-
     private Button changeLvlNameBtn = new Button("Change Level Name");
-    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new HBox(hasAiLbl,hasAiValueLbl),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new HBox(maxKnightsLbl,maxKnightsValueLbl),new HBox(), new HBox(maxLocVbox,maxLocValueVbox), new HBox(maxTurnsVbox,maxTurnsValueVbox), new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
+    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new HBox(maxKnightsLbl,maxKnightsValueLbl),new HBox(), new HBox(maxLocVbox,maxLocValueVbox), new HBox(maxTurnsVbox,maxTurnsValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
 
     private Label tutorialTextLbl = new Label("Tutorial Text Nr.");
     private Label tutorialNumberValueLbl = new Label("1");

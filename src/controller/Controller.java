@@ -3,10 +3,10 @@ package controller;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.control.ScrollPane;
 import javafx.util.Duration;
 import model.*;
 import model.statement.ComplexStatement;
@@ -40,9 +40,11 @@ public class Controller {
             view.toggleShowSpellBook();
             boolean isVisible = view.getSpellBookPane().isVisible();
             view.getActualMapGPane().setMouseTransparent(isVisible);
-            view.getCellItemSelectionPane().setMouseTransparent(isVisible);
-            view.getCellTypeSelectionPane().setMouseTransparent(isVisible);
-            view.getLevelEditorModule().getBottomHBox().setMouseTransparent(isVisible);
+            if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR){
+                view.getCellItemSelectionPane().setMouseTransparent(isVisible);
+                view.getCellTypeSelectionPane().setMouseTransparent(isVisible);
+                view.getLevelEditorModule().getBottomHBox().setMouseTransparent(isVisible);
+            }
             view.getBtnExecute().setMouseTransparent(isVisible);
             view.getBtnReset().setMouseTransparent(isVisible);
             view.getSpeedSlider().setMouseTransparent(isVisible);
@@ -90,8 +92,46 @@ public class Controller {
             }
             model.selectLevel(selectedLevel.getName());
             view.setSceneState(SceneState.TUTORIAL);
-            view.getTutorialGroup().getNextBtn().setOnAction(evt -> view.getTutorialGroup().next());
-            view.getTutorialGroup().getPrevBtn().setOnAction(evt -> view.getTutorialGroup().prev());
+            view.getIntroductionPane().getStartTutorialBtn().setOnAction(evt -> {
+                view.getStage().getScene().setRoot(view.getRootPane());
+            });
+            view.getIntroductionPane().getBackBtn().setOnAction(evt -> {
+                view.setSceneState(SceneState.START_SCREEN);
+            });
+            view.getTutorialGroup().getNextBtn().setOnAction(evt -> {view.getTutorialGroup().next();
+                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
+                ScrollPane sp = (ScrollPane)view.getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
+                sp.setCache(false);
+                for (Node n : sp.getChildrenUnmodifiable()) {
+                    n.setCache(false);
+                }});
+            view.getTutorialGroup().getPrevBtn().setOnAction(evt -> {view.getTutorialGroup().prev();
+                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
+                ScrollPane sp = (ScrollPane)view.getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
+                sp.setCache(false);
+                for (Node n : sp.getChildrenUnmodifiable()) {
+                    n.setCache(false);
+                }});
+            view.getIntroductionPane().getTutorialGroup().getNextBtn().setOnAction(evt -> {
+                view.getIntroductionPane().getTutorialGroup().next();
+                if(view.getIntroductionPane().getTutorialGroup().isLastMsg())view.getIntroductionPane().getStartTutorialBtn().setDisable(false);
+                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
+                ScrollPane sp = (ScrollPane)view.getIntroductionPane().getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
+                sp.setCache(false);
+                for (Node n : sp.getChildrenUnmodifiable()) {
+                    n.setCache(false);
+                }
+            });
+            view.getIntroductionPane().getTutorialGroup().getPrevBtn().setOnAction(evt -> {
+                view.getIntroductionPane().getTutorialGroup().prev();
+                view.getIntroductionPane().getStartTutorialBtn().setDisable(true);
+                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
+                ScrollPane sp = (ScrollPane)view.getIntroductionPane().getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
+                sp.setCache(false);
+                for (Node n : sp.getChildrenUnmodifiable()) {
+                    n.setCache(false);
+                }
+            });
         });
 
         view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent ->
@@ -148,14 +188,13 @@ public class Controller {
                             if(loc <= model.getCurrentLevel().getLocToStars()[0]) locStars = 2;
                             if(loc <= model.getCurrentLevel().getLocToStars()[1]) locStars = 3;
                             double nStars = (turnStars + locStars)/2.0;
-                            System.out.println("You earned " + (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (")+turns + " Turns, " + loc + " Lines of Code)" );
                             //TODO: really not in editor??!
 //                            if(view.getCurrentSceneState()==SceneState.PLAY){
                                 JSONParser.storeProgressIfBetter(model.getCurrentLevel().getName(),turns,loc,model.getCurrentLevel().getPlayerBehaviour());
                                 model.updateFinishedList();
 //                            }
                             timeline.stop();
-                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,"You have won!", ButtonType.OK).showAndWait());
+                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,"You have won!\n\"You earned \" + (int)nStars + (Math.round(nStars)!=(int)nStars ? \".5\" : \"\") + (nStars > 1 ? \" Stars! (\" : \" Star! (\")+turns + \" Turns, \" + loc + \" Lines of Code)\"", ButtonType.OK).showAndWait());
                             if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)view.getLevelEditorModule().setDisableAllLevelBtns(false);
                             if(view.getCurrentSceneState() == SceneState.TUTORIAL){
                                 JSONParser.saveTutorialProgress(model.getCurrentLevel().getIndex());
@@ -171,7 +210,9 @@ public class Controller {
                         }
                         if (model.getCurrentLevel().isLost()){
                             timeline.stop();
-                            Platform.runLater(()->new Alert(Alert.AlertType.NONE,"You have lost!", ButtonType.OK).showAndWait());
+                            if(model.getCurrentLevel().isStackOverflow())
+                                Platform.runLater(()->new Alert(Alert.AlertType.NONE,"You might have accidentally caused an endless loop! You are not allowed to use big loops without method calls!", ButtonType.OK).showAndWait());
+                            else Platform.runLater(()->new Alert(Alert.AlertType.NONE,"You have lost!", ButtonType.OK).showAndWait());
                         }
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
@@ -210,7 +251,7 @@ public class Controller {
             view.getCodeArea().select(0,true);
             codeAreaController.setAllHandlersForCodeArea(false);
         });
-        view.getLoadBestCode().setOnAction(actionEvent -> {
+        view.getLoadBestCodeBtn().setOnAction(actionEvent -> {
             List<String> bestCode = new ArrayList<>();
             try {
                 bestCode = JSONParser.getBestCode(model.getCurrentLevel().getName());
@@ -227,7 +268,7 @@ public class Controller {
                 e.printStackTrace();
             }
         });
-        view.getClearCode().setOnAction(actionEvent -> {
+        view.getClearCodeBtn().setOnAction(actionEvent -> {
             ComplexStatement complexStatement = new ComplexStatement();
             complexStatement.addSubStatement(new SimpleStatement());
             CodeArea codeArea = new CodeArea(complexStatement);

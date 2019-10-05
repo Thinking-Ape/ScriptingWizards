@@ -1,8 +1,11 @@
 package view;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -29,9 +32,14 @@ public class TutorialGroup extends Group {
     public TutorialGroup(){
         currentTutorialMessage.setEditable(false);
         currentTutorialMessage.setWrapText(true);
+        currentTutorialMessage.setMouseTransparent(true);
+        // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
+        currentTutorialMessage.setCache(false);
 //        String tabString = "\t";
         Rectangle wizard = new Rectangle(50,50,Color.BLUE);
-        HBox hb = new HBox(new VBox(currentTutorialMessage,navigationHBox),wizard);
+        VBox vb = new VBox(currentTutorialMessage,navigationHBox);
+        vb.setSpacing(10);
+        HBox hb = new HBox(vb,wizard);
 //        hb.setAlignment(Pos.BOTTOM_RIGHT);
         this.getChildren().addAll(hb);
 //        this.setMinSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
@@ -76,5 +84,9 @@ public class TutorialGroup extends Group {
             currentTutorialMessage.setText(tutorialEntries.get(0));
             nextBtn.setDisable(false);
         }
+    }
+
+    public boolean isLastMsg() {
+        return index == tutorialEntries.size()-1;
     }
 }

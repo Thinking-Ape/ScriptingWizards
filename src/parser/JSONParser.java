@@ -23,12 +23,6 @@ import utility.Util;
 
 public abstract class JSONParser {
 
-//    private String rootPath;
-//
-//    public JSONParser(String rootPath){
-//        this.rootPath = rootPath;
-//    }
-
     public static void saveLevel(Level level) throws IllegalAccessException {
         JSONObject levelJSONObject = new JSONObject();
         JSONArray mapLines = new JSONArray();
@@ -111,21 +105,10 @@ public abstract class JSONParser {
         Path filePath = Path.of(GameConstants.LEVEL_ROOT_PATH,filePathString);
         System.out.println(filePathString);
         String jsonString = String.join("", Files.readAllLines(filePath));
-
         JSONObject jsonObject = new JSONObject(jsonString);
-
-//        int width = jsonObject.getInt("width");
-//        int height = jsonObject.getInt("height");
         int index = jsonObject.optInt("index");
         boolean isTutorial = jsonObject.optBoolean("isTutorial");
         Point spawn = new Point(-1,-1);
-
-//        int ticksPerSecond = jsonObject.optInt("ticksPerSecond",5);
-
-
-//        int[] neededGems = readIntegerArrayFromJSON(levelJSONObject, "gems");
-//        int[] maximumTime = readIntegerArrayFromJSON(levelJSONObject, "time");
-
 
         JSONArray mapLines = jsonObject.getJSONArray("map");
 
@@ -186,7 +169,7 @@ public abstract class JSONParser {
         }else requiredLevels= new String[0];
         int maxKnights = jsonObject.optInt("maxKnights");
         if(maxKnights == 0)maxKnights = 3;
-        return new Level(name,/*GameConstants.mirror(originalState)*/originalState,complexStatement,turnsToStars,locToStars,requiredLevels,maxKnights,index,isTutorial,tutorialEntryList);
+        return new Level(name,originalState,complexStatement,turnsToStars,locToStars,requiredLevels,maxKnights,index,isTutorial,tutorialEntryList);
     }
 
     private static void fillArrayFromJSON(Object[] turnsToStars, JSONArray turnsToStarsArray,boolean isInteger) {
