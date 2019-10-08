@@ -85,6 +85,7 @@ public class CodeExecutor {
         if(rightNode != null)output = Direction.getValueFromString(rightNode.getText());
         if(output == null){
             if(dirVar != null && dirVar.getVariableType() == VariableType.DIRECTION)return evaluateDirection(dirVar.getValue(),parentStatement);
+            else return Direction.NORTH;
         }
         return output;
     }
@@ -202,7 +203,7 @@ public class CodeExecutor {
             gameMap.kill(targetPoint);
         }
 
-        boolean isOpen = gameMap.cellHasFlag(targetPoint, CFlag.OPEN);
+        boolean isOpen = gameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ gameMap.cellHasFlag(targetPoint, CFlag.INVERTED);
 
         if((gameMap.getContentAtXY(targetPoint).isTraversable()||isOpen) && gameMap.isCellFree(targetPoint)){
             CContent targetContent =gameMap.getContentAtXY(targetPoint);

@@ -35,7 +35,7 @@ public class Controller {
 //        setActionHandlerForTextFields(view.getCodeBoxCompound().getVBox());
         CodeAreaController codeAreaController = new CodeAreaController(view,model);
         EditorController editorController = new EditorController(view,model,codeAreaController);
-        codeAreaController.setAllHandlersForCodeArea(false);
+//        codeAreaController.setAllHandlersForCodeArea();
         view.getShowSpellBookBtn().setOnAction(evt -> {
             view.toggleShowSpellBook();
             boolean isVisible = view.getSpellBookPane().isVisible();
@@ -194,8 +194,8 @@ public class Controller {
                                 model.updateFinishedList();
 //                            }
                             timeline.stop();
-                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,"You have won!\n\"You earned \" + (int)nStars + (Math.round(nStars)!=(int)nStars ? \".5\" : \"\") + (nStars > 1 ? \" Stars! (\" : \" Star! (\")+turns + \" Turns, \" + loc + \" Lines of Code)\"", ButtonType.OK).showAndWait());
-                            if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)view.getLevelEditorModule().setDisableAllLevelBtns(false);
+                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,"You have won!"+"\nYou earned "  + (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (")+turns + " Turns, " + loc + " Lines of Code)", ButtonType.OK).showAndWait());
+//                            if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)view.getLevelEditorModule().setDisableAllLevelBtns(false);
                             if(view.getCurrentSceneState() == SceneState.TUTORIAL){
                                 JSONParser.saveTutorialProgress(model.getCurrentLevel().getIndex());
                                 Level l = model.getLevelWithIndex(model.getCurrentLevel().getIndex()+1);
@@ -244,12 +244,12 @@ public class Controller {
 //            view.notify(Event.LEVEL_CHANGED);
             view.getBtnReset().setDisable(true);
             view.getBtnExecute().setDisable(false);
-            editorController.setEditorHandlers();
+//            editorController.setEditorHandlers();
             view.getCodeArea().setEditable(true);
             view.getCodeArea().setDisable(false);
             view.getAICodeArea().setDisable(false);
             view.getCodeArea().select(0,true);
-            codeAreaController.setAllHandlersForCodeArea(false);
+//            codeAreaController.setAllHandlersForCodeArea(false);
         });
         view.getLoadBestCodeBtn().setOnAction(actionEvent -> {
             List<String> bestCode = new ArrayList<>();
@@ -257,11 +257,12 @@ public class Controller {
                 bestCode = JSONParser.getBestCode(model.getCurrentLevel().getName());
 //                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
                 if(bestCode.size() !=0){
-                    CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode));
-                    view.setCodeArea(codeArea);
-                    codeArea.draw();
-                    codeAreaController.setAllHandlersForCodeArea(false);
+                    CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode),false);
+                    view.setCodeArea(codeArea,false);
+//                    codeArea.draw();
+//                    codeAreaController.setAllHandlersForCodeArea(false);
                 }
+                else new Alert(Alert.AlertType.NONE,"No best code stored!",ButtonType.OK).showAndWait();
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
@@ -271,10 +272,10 @@ public class Controller {
         view.getClearCodeBtn().setOnAction(actionEvent -> {
             ComplexStatement complexStatement = new ComplexStatement();
             complexStatement.addSubStatement(new SimpleStatement());
-            CodeArea codeArea = new CodeArea(complexStatement);
-            view.setCodeArea(codeArea);
-            codeArea.draw();
-            codeAreaController.setAllHandlersForCodeArea(false);
+            CodeArea codeArea = new CodeArea(complexStatement,false);
+            view.setCodeArea(codeArea,false);
+//            codeArea.draw();
+//            codeAreaController.setAllHandlersForCodeArea(false);
 
         });
 

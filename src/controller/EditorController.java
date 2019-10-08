@@ -15,8 +15,11 @@ import model.statement.SimpleStatement;
 import utility.GameConstants;
 import parser.JSONParser;
 import utility.Util;
+import view.SceneState;
 import view.View;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -24,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class EditorController {
+public class EditorController implements PropertyChangeListener {
 
     View view;
     Model model;
@@ -36,6 +39,7 @@ public class EditorController {
     public EditorController(View view, Model model, CodeAreaController codeAreaController){
         this.model = model;
         this.view = view;
+        view.addPropertyChangeListener(this);
         this.codeAreaController = codeAreaController;
 //        this.map = model.getCurrentLevel().getOriginalMap();
 
@@ -56,8 +60,8 @@ public class EditorController {
 
     public void setEditorHandlers() {
 //        CodeAreaController codeAreaController2 = new CodeAreaController(view,model);
-        if(model.getCurrentLevel().hasAi())
-            codeAreaController.setAllHandlersForCodeArea(true);
+        if(model.getCurrentLevel().hasAi())view.getLevelEditorModule().getHasAiValueLbl().setText(""+true);
+//            codeAreaController.setAllHandlersForCodeArea(true);
         else view.getLevelEditorModule().getHasAiValueLbl().setText(""+false);
         setHandlersForMapCells();
         setHandlersForCellTypeButtons();
@@ -116,7 +120,7 @@ public class EditorController {
                 String tutorialText = tutorialTextArea.getText();
                 model.getCurrentLevel().setTutorialLine(index-1,tutorialText);
                 //TODO: evaluate necessity
-                setEditorHandlers();
+//                setEditorHandlers();
             }
         });
 
@@ -135,7 +139,7 @@ public class EditorController {
                     else view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
                 }
                 //TODO: evaluate necessity
-                setEditorHandlers();
+//                setEditorHandlers();
             }
         });
 
@@ -155,7 +159,7 @@ public class EditorController {
             view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(false);
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
             //TODO: evaluate necessity
-            setEditorHandlers();
+//            setEditorHandlers();
 
         });
 
@@ -168,7 +172,7 @@ public class EditorController {
                 view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
             }
             //TODO: evaluate necessity
-            setEditorHandlers();
+//            setEditorHandlers();
 
         });
         view.getLevelEditorModule().getNextTutorialTextBtn().setOnAction(evt -> {
@@ -180,7 +184,7 @@ public class EditorController {
                 view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
             }
             //TODO: evaluate necessity
-            setEditorHandlers();
+//            setEditorHandlers();
 
         });
 
@@ -221,7 +225,7 @@ public class EditorController {
 //                    view.notify(Event.MAP_CHANGED);
 //                    view.notify(Event.LEVEL_CHANGED);
                 }
-                setEditorHandlers();
+//                setEditorHandlers();
             }catch (Exception e){
                 //TODO delete
             }
@@ -247,7 +251,7 @@ public class EditorController {
                     }
                     //TODO: model.getCurrentLevel().addListener(view);
 //                    view.notify(Event.LEVEL_CHANGED);
-                    setEditorHandlers();
+//                    setEditorHandlers();
                 }
             }
         });
@@ -288,7 +292,7 @@ public class EditorController {
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
-                setEditorHandlers();
+//                setEditorHandlers();
             }
         });
         view.getLevelEditorModule().getNewLevelBtn().setOnAction(event -> {
@@ -348,7 +352,7 @@ public class EditorController {
                     //TODO: model.getCurrentLevel().addListener(view);
                     view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());
 //                    codeAreaController2.setAllHandlersForCodeArea(true);
-                    setEditorHandlers();
+//                    setEditorHandlers();
                     try {
                         JSONParser.saveLevel(model.getCurrentLevel());
                     } catch (IllegalAccessException e) {
@@ -400,7 +404,7 @@ public class EditorController {
         view.getLevelEditorModule().getMoveIndexDownBtn().setOnAction(actionEvent -> {
             int currentLevelIndex = model.getCurrentLevel().getIndex();
             if(currentLevelIndex == 0){
-                setEditorHandlers();
+//                setEditorHandlers();
                 return;
             }
             try {
@@ -421,7 +425,7 @@ public class EditorController {
         view.getLevelEditorModule().getMoveIndexUpBtn().setOnAction(actionEvent -> {
             int currentLevelIndex = model.getCurrentLevel().getIndex();
             if(currentLevelIndex == model.getAmountOfLevels()-1){
-                setEditorHandlers();
+//                setEditorHandlers();
                 return;
             }
             try {
@@ -503,7 +507,7 @@ public class EditorController {
 //                view.notify(Event.LEVEL_CHANGED);
 //                view.setAiCodeArea(new CodeArea(model.getCurrentLevel().getAIBehaviour()));
 //                view.getAICodeArea().draw();
-                setEditorHandlers();
+//                setEditorHandlers();
             }
         });
 
@@ -608,13 +612,14 @@ public class EditorController {
                         index = view.getLinkedCellsListView().getSelectionModel().getSelectedIndex();
                     }
                     view.getLinkedCellsListView().getItems().remove(index);
-                    view.getLinkedCellsListView().setMaxHeight(view.getLinkedCellsListView().getItems().size() * GameConstants.TEXTFIELD_HEIGHT);
+                    int size = view.getLinkedCellsListView().getItems().size();
+                    view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
                     model.getCurrentLevel().getOriginalMap().removeCellLinkedId(view.getSelectedColumn(),view.getSelectedRow(),id);
                     if(view.getLinkedCellsListView().getItems().size()==0){
                         view.getLinkedCellsListView().setVisible(false);
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
                     }
-                    setEditorHandlers();
+//                    setEditorHandlers();
                 });
 //                view.getLevelEditorModule().getExitOpenCheckBox().setOnAction(event -> {
 //                    boolean t1 = view.getLevelEditorModule().getExitOpenCheckBox().isSelected();
@@ -626,7 +631,7 @@ public class EditorController {
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setVisible(true);
                     }
                     else view.getLevelEditorModule().getRemoveLinkedCellBtn().setVisible(false);
-                    setEditorHandlers();
+//                    setEditorHandlers();
                 });
                 view.getLevelEditorModule().getChangeCellIdBtn().setOnAction(event->{
                     Dialog<ButtonType> newLevelDialog = new Dialog<>();
@@ -650,7 +655,7 @@ public class EditorController {
                             else new Alert(Alert.AlertType.NONE,"Id "+id+" already in use",ButtonType.OK).showAndWait();
                         }
                     }
-                    setEditorHandlers();
+//                    setEditorHandlers();
                 });
 //                view.getCellIdTField().textProperty().addListener((observableValue, s, t1) -> {
 //                    int c = 0;
@@ -690,12 +695,14 @@ public class EditorController {
                             if (!cellHasLinkedId) {
                                 map.addLinkedCellId(view.getSelectedColumn(),view.getSelectedRow(),s.get());
                                 view.getLinkedCellsListView().getItems().add(s.get());
-                                view.getLinkedCellsListView().setMaxHeight(view.getLinkedCellsListView().getItems().size() * GameConstants.TEXTFIELD_HEIGHT);
+                                //TODO: duplicate code in view.getLevelEditorModule().getRemoveLinkedCellBtn().setOnAction(actionEvent -> {
+                                int size = view.getLinkedCellsListView().getItems().size();
+                                view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
                             }
                         }
                     }
                     else new Alert(Alert.AlertType.NONE, "There are no more Pressure Plates with a unique Cell Id to add", ButtonType.OK).showAndWait();
-                    setEditorHandlers();
+//                    setEditorHandlers();
                 });
             }
 
@@ -766,7 +773,15 @@ public class EditorController {
         }
         else if(content == CContent.GATE){
             view.getLevelEditorModule().activateLinkedCellBtns();
-            //TODO: ListView<Integer>?
+            view.getLevelEditorModule().getIsTurnedCBox().setSelected(map.cellHasFlag(x,y,CFlag.TURNED));
+            view.getLevelEditorModule().getIsTurnedCBox().setOnAction(evt -> {
+                map.setFlag(x, y, CFlag.TURNED,view.getLevelEditorModule().getIsTurnedCBox().isSelected());
+            });
+
+            view.getLevelEditorModule().getIsInvertedCBox().setSelected(map.cellHasFlag(x,y,CFlag.INVERTED));
+            view.getLevelEditorModule().getIsInvertedCBox().setOnAction(evt -> {
+                map.setFlag(x, y, CFlag.INVERTED,view.getLevelEditorModule().getIsInvertedCBox().isSelected());
+            });
             ListView<Integer> listView =  view.getLevelEditorModule().getLinkedCellListView();
             listView.getItems().clear();
             //TODO: only gate has linked cells?
@@ -776,7 +791,7 @@ public class EditorController {
             }
             if(linkedCellListSize>0){
                 listView.setMaxHeight(linkedCellListSize*GameConstants.TEXTFIELD_HEIGHT);
-                listView.setMaxWidth(GameConstants.TEXTFIELD_WIDTH/2);
+                listView.setMaxWidth(GameConstants.TEXTFIELD_WIDTH/4);
                 view.getLinkedCellsListView().setVisible(true);
             }else {
                 view.getLinkedCellsListView().setVisible(false);
@@ -843,5 +858,10 @@ public class EditorController {
                 view.highlightInMap(view.getSelectedColumn(),view.getSelectedRow());
             });
         }
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if(evt.getPropertyName().equals("map")&&view.getCurrentSceneState()== SceneState.LEVEL_EDITOR&&!codeAreaController.isGameRunning())setEditorHandlers();
     }
 }

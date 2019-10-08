@@ -287,7 +287,7 @@ public abstract class JSONParser {
                 found =true;
             }
         }
-        if(!found)throw new IllegalAccessException("You shouldnt have been able to play Level:\"" + name +"\"!");
+        if(!found)return;
         jsonObject.put("unlocks",unlocksArray);
         try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
             file.write(jsonObject.toString());
@@ -506,6 +506,7 @@ public abstract class JSONParser {
             s=unlocksArray.getJSONObject(i).getString("name");
             if(s.equals(levelName)){
                 JSONArray codeArray = unlocksArray.getJSONObject(i).optJSONArray("code");
+                if(codeArray == null)return new ArrayList<>();
                 for(int j = 0; j<codeArray.length();j++){
                     output.add(codeArray.getString(j));
                 }

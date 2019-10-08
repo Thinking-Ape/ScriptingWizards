@@ -1,5 +1,6 @@
 package view;
 
+import controller.EditorController;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -35,6 +36,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -46,6 +48,7 @@ public class View implements PropertyChangeListener {
 
     private Stage stage;
     private Model model;
+    private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
     //Testing
 
     //    private Canvas canvas;
@@ -54,7 +57,7 @@ public class View implements PropertyChangeListener {
     private Button btnExecute;
     private Button btnReset;
     //    TextArea codeTextArea;
-    private CodeArea codeArea = new CodeArea();
+    private CodeArea codeArea = new CodeArea(false);
     private CodeArea aiCodeArea;
     private VBox vBox;
     private Slider speedSlider;
@@ -96,6 +99,7 @@ public class View implements PropertyChangeListener {
     private Button clearCodeBtn = new Button("Clear Code");
     private IntroductionPane introductionPane = IntroductionPane.getInstance();
 
+
     public View(Model model, Stage stage, boolean isEditor) {
         this.stage = stage;
         this.model = model;
@@ -107,11 +111,6 @@ public class View implements PropertyChangeListener {
         cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
         cell_size = Math.round(cell_size);
         tutorialTextArea.setEditable(false);
-        tutorialTextArea.setWrapText(true);
-//        for(CContent content : CContent.values()){
-//            if(new File("resources/images/"+content.getDisplayName()+".png").exists())
-//            contentImageMap.put(content.getDisplayName(),new Image("file:resources/images/"+content.getDisplayName()+".png",cell_size,cell_size,true,true));
-//        }
         knightsLeftVBox = new VBox();
         knightsLeftVBox.setSpacing(cell_size / 4);
         for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
@@ -171,8 +170,8 @@ public class View implements PropertyChangeListener {
 
         hBox.getChildren().addAll(debugBtn, loadBestCodeBtn, clearCodeBtn);
         if (model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0)
-            aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(), isEditor);
-        else aiCodeArea = new CodeArea();
+            aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(), isEditor,true);
+        else aiCodeArea = new CodeArea(true);
         //"Knight knight = new Knight(WEST);","int turns = 0;","while(true){","if(knight.targetIsUnarmed() && knight.canMove()){","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)){","knight.wait();","}","else if (knight.targetCellIs(EXIT)){","knight.useItem();","}","else if (knight.targetCellIs(KEY)){","knight.collect();","}","else if (turns < 2){","turns = turns + 1;","knight.turn(EAST);","}","else {","knight.turn(WEST);","}","}"
         if (true) {
             try {
@@ -181,26 +180,17 @@ public class View implements PropertyChangeListener {
                         //"Knight k = new Knight(EAST);","k.move();","k.move();","k.turn(EAST);","if(k.targetIsUnarmed()){","k.move();","k.turn(WEST);","k.move();","k.move();","}","else {","k.turn(2);","k.move();","k.turn(EAST);","k.move();","k.move();","}");
                         //"int i = 10;","Knight k = new Knight(WEST);","k.move();","for(int j = 0;j < i;j = j + 1;){","k.wait();","}","k.turn(2);","k.move();");
                         //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContainsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 8;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}","knight.useItem();","knight.move();");
+                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
                         //"Knight knight = new Knight(NORTH);", "knight.collect();", "knight.move();", "knight.useItem();", "knight.move();");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
-        vBox.getChildren().addAll(/*codeBoxCompound*/ codeArea, hBox, msgLabel);
-//        canvas = new Canvas(500,500);
-//        canvas.getGraphicsContext2D().setFill(Color.BLACK);
-//        canvas.getGraphicsContext2D().fillRect(20,20,20,20);
-//        canvas.getGraphicsContext2D().fill();
+        vBox.getChildren().addAll(codeArea, hBox, msgLabel);
         VBox leftVBox = new VBox();
-        //NULL NO LONGER VALID!
-//        if(aiCodeArea!=null)
         leftVBox.getChildren().add(aiCodeArea);
 
 
-        codeArea.draw();
-        //NULL NO LONGER VALID
-//        if(aiCodeArea !=null)
         aiCodeArea.draw();
         codeArea.select(0, false);
 
@@ -217,14 +207,14 @@ public class View implements PropertyChangeListener {
         for (int i = 0; i < model.getCurrentLevel().getMaxKnights() - model.getCurrentLevel().getUsedKnights(); i++) {
             knightsLeftVBox.getChildren().add(new Rectangle(cell_size / 2, cell_size, Color.LIGHTGREY));
         }
-
+        changeSupport.firePropertyChange("map", null, null);
     }
 
     private GridPane getGridPaneFromMap(GameMap map) {
         cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
         cell_size = Math.round(cell_size);
         testKnightImage = new Image("file:resources/images/Knight.png", cell_size, cell_size, true, true);
-        enemyImage = new Image("file:resources/images/TestEnemy.png", cell_size, cell_size, true, true);
+        enemyImage = new Image("file:resources/images/Skeleton.png", cell_size, cell_size, true, true);
         File folder = new File(Paths.get(GameConstants.ROOT_PATH + "/images").toString());
         File[] listOfFiles = folder.listFiles();
         assert listOfFiles != null;
@@ -246,14 +236,33 @@ public class View implements PropertyChangeListener {
 //                GridPane.setColumnIndex(mapShapes[row][column],column);
                 StackPane stackPane = new StackPane();
                 String contentString = cell.getContent().getDisplayName();
+
+                boolean isTurned = false;
+                boolean isInverted = false;
+                boolean isOpen = false;
                 for (CFlag flag : CFlag.values()) {
-                    if (cell.hasFlag(flag)) contentString += "_" + flag.getDisplayName();
+                    if (cell.hasFlag(flag)) {
+                        if(flag == CFlag.TURNED && (isTurned = true))continue;
+                        if(flag == CFlag.INVERTED){
+                            isInverted = true;
+                            if(!isOpen)contentString += "_" + CFlag.OPEN.getDisplayName();
+                            else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
+                            continue;
+                        }
+                        if(flag == CFlag.OPEN ){
+                            isOpen = true;
+                            if(!isInverted)contentString += "_" + CFlag.OPEN.getDisplayName();
+                            else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
+                            continue;
+                        }
+                        contentString += "_" + flag.getDisplayName();
+                    }
                 }
+                if(cell.hasFlag(CFlag.INVERTED))System.out.println(contentString);
                 if (shape != null && !contentImageMap.containsKey(contentString)) stackPane.getChildren().add(shape);
                 else {
                     ImageView imageView = new ImageView(contentImageMap.get(contentString));
-//                    imageView.setFitWidth(cell_size);
-//                    imageView.setFitHeight(cell_size);
+                    if(isTurned)imageView.setRotate(270);
                     stackPane.getChildren().add(imageView);
                 }
                 String itemString = cell.getItem() != null ? cell.getItem().getDisplayName() : "";
@@ -409,27 +418,38 @@ public class View implements PropertyChangeListener {
     }
 
 
-    public void setCodeArea(CodeArea codeArea) {
-        this.codeArea = codeArea;
-        vBox.getChildren().set(0, codeArea);
+    @Contract("null -> fail")
+    public void setCodeArea(CodeArea codeArea,boolean isAi) {
+        if(isAi){
+            if (codeArea == null)
+                throw new IllegalArgumentException("null is no longer allowed as AiCodeArea! Please use an empty CodeArea instead!");
+            this.aiCodeArea = codeArea;
+            leftVBox.getChildren().clear();
+            leftVBox.getChildren().addAll(new Rectangle(50, 50, Color.MAGENTA), new Label("Enemy Script"), aiCodeArea);
+            leftVBox.setAlignment(Pos.TOP_LEFT);
+        }
+        else {this.codeArea = codeArea;
+        vBox.getChildren().set(0, codeArea);}
+        codeArea.draw();
+        changeSupport.firePropertyChange("codeArea", null, codeArea);
     }
 
     public CodeArea getAICodeArea() {
         return aiCodeArea;
     }
 
-    @Contract("null -> fail")
-    public void setAiCodeArea(CodeArea newCodeArea) {
-        if (newCodeArea == null)
-            throw new IllegalArgumentException("null is no longer allowed as AiCodeArea! Please use an empty CodeArea instead!");
-        this.aiCodeArea = newCodeArea;
-//        rootPane.setLeft(aiCodeArea);
-//        aiCodeArea.setAlignment(Pos.TOP_LEFT);
-        //TODO: DOesnt work like this!!
-        leftVBox.getChildren().clear();
-        leftVBox.getChildren().addAll(new Rectangle(50, 50, Color.MAGENTA), new Label("Enemy Script"), aiCodeArea);
-        leftVBox.setAlignment(Pos.TOP_LEFT);
-    }
+//    @Contract("null -> fail")
+//    public void setAiCodeArea(CodeArea newCodeArea) {
+//        if (newCodeArea == null)
+//            throw new IllegalArgumentException("null is no longer allowed as AiCodeArea! Please use an empty CodeArea instead!");
+//        this.aiCodeArea = newCodeArea;
+////        rootPane.setLeft(aiCodeArea);
+////        aiCodeArea.setAlignment(Pos.TOP_LEFT);
+//        //TODO: DOesnt work like this!!
+//        leftVBox.getChildren().clear();
+//        leftVBox.getChildren().addAll(new Rectangle(50, 50, Color.MAGENTA), new Label("Enemy Script"), aiCodeArea);
+//        leftVBox.setAlignment(Pos.TOP_LEFT);
+//    }
 
     public GridPane getActualMapGPane() {
         return actualMapGPane;
@@ -548,6 +568,8 @@ public class View implements PropertyChangeListener {
         levelEditorModule.getIndexValueLbl().setText((model.getCurrentLevel().getIndex() + 1) + "");
         levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
         levelEditorModule.updateTutorialSection(model.getCurrentLevel());
+        levelEditorModule.getMaxKnightsValueLbl().setText(model.getCurrentLevel().getMaxKnights()+"");
+        levelEditorModule.getHasAiValueLbl().setText(model.getCurrentLevel().hasAi()+"");
     }
 
     @Override
@@ -559,11 +581,10 @@ public class View implements PropertyChangeListener {
                 selectedRow = 0;
                 selectedColumn = 0;
                 if (model.getCurrentLevel().hasAi()) {
-                    aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour());
-                    setAiCodeArea(aiCodeArea);
-                    aiCodeArea.draw();
+                    aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true);
+                    setCodeArea(aiCodeArea,true);
                 } else {
-                    setAiCodeArea(new CodeArea(new ComplexStatement(), false));
+                    setCodeArea(new CodeArea(new ComplexStatement(), false),true);
                 }
                 if (sceneState == SceneState.LEVEL_EDITOR) updateLevelEditorModule();
             case "map":
@@ -628,11 +649,11 @@ public class View implements PropertyChangeListener {
                 if (aiBehaviour.getStatementListSize() > 0) levelEditorModule.getHasAiValueLbl().setText("" + true);
                 else levelEditorModule.getHasAiValueLbl().setText("" + false);
                 if (model.getCurrentLevel().hasAi() && ((ComplexStatement) evt.getOldValue()).getStatementListSize() == 0) {
-                    aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour());
-                    setAiCodeArea(aiCodeArea);
-                    aiCodeArea.draw();
+                    aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true);
+                    setCodeArea(aiCodeArea,true);
+//                    aiCodeArea.draw();
                 } else if (!model.getCurrentLevel().hasAi()) {
-                    setAiCodeArea(new CodeArea(new ComplexStatement(), false));
+                    setCodeArea(new CodeArea(new ComplexStatement(), false),true);
                 }
                 break;
             case "isTutorial":
@@ -719,7 +740,8 @@ public class View implements PropertyChangeListener {
         rootPane.setPrefSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
         levelNameLabel.setText(model.getCurrentLevel().getName());
         HBox contentHBox = new HBox();
-        setAiCodeArea(aiCodeArea);
+        setCodeArea(aiCodeArea,true);
+        setCodeArea(codeArea,false);
         rightVBox.getChildren().clear();
         centerVBox.getChildren().clear();
         rightVBox.setAlignment(Pos.TOP_RIGHT);
@@ -910,6 +932,10 @@ public class View implements PropertyChangeListener {
 
     public Stage getStage() {
         return stage;
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener editorController) {
+        changeSupport.addPropertyChangeListener(editorController);
     }
 }
 //KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContainsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"

@@ -3,6 +3,7 @@ package view;
 
 //import javafx.scene.control.TextArea;
 
+import controller.CodeAreaController;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -17,6 +18,8 @@ import model.statement.ComplexStatement;
 import model.statement.Statement;
 import utility.Util;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.*;
 
 public class CodeArea extends HBox {
@@ -33,9 +36,12 @@ public class CodeArea extends HBox {
     private ScrollBar scrollBar = new ScrollBar();
     private boolean isScrollable = false;
     private boolean hasListener = false;
+//    private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
+    private boolean isAi = false;
 //    private StackPane secondStackPane = new StackPane();
 
-    public CodeArea (){
+    public CodeArea (boolean isAi){
+        this.isAi = isAi;
         isEditable = true;
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
@@ -46,8 +52,9 @@ public class CodeArea extends HBox {
 //        draw();
     }
 
-    public CodeArea (ComplexStatement behaviour,boolean isEditable) {
+    public CodeArea (ComplexStatement behaviour,boolean isEditable, boolean isAi) {
         this.isEditable = isEditable;
+        this.isAi = isAi;
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
 //        rectVBox2.setAlignment(Pos.TOP_LEFT);
@@ -55,8 +62,8 @@ public class CodeArea extends HBox {
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
 //        draw();
     }
-    public CodeArea (ComplexStatement behaviour) {
-        this(behaviour,true);
+    public CodeArea (ComplexStatement behaviour, boolean isAi) {
+        this(behaviour,true,isAi);
     }
 
     private List<CodeField> getCodeFieldsFromStatement(ComplexStatement complexStatement) throws IllegalArgumentException {
@@ -99,7 +106,7 @@ public class CodeArea extends HBox {
     public void addNewCodeFieldAtIndex(int index, CodeField codeField) {
         codeFieldList.add(index,codeField);
     }
-    public void draw(){
+    void draw(){
         rectStackList = getRectanglesFromList(codeFieldList);
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
@@ -122,7 +129,7 @@ public class CodeArea extends HBox {
         firstStackPane.getChildren().addAll(rectVBox,codeVBox);
 //        secondStackPane.getChildren().clear();
 //        secondStackPane.getChildren().addAll(rectVBox2,codeVBox2);
-//        this.getChildren().clear();
+        this.getChildren().clear();
         this.getChildren().add(firstStackPane);//,secondStackPane);
     }
 
@@ -217,7 +224,7 @@ public class CodeArea extends HBox {
     }
 
     public CodeArea createClone(){
-        CodeArea codeAreaClone = new CodeArea();
+        CodeArea codeAreaClone = new CodeArea(isAi);
         codeAreaClone.isEditable = isEditable;
         codeAreaClone.rectStackList = rectStackList;
         int i = 0;
@@ -251,5 +258,9 @@ public class CodeArea extends HBox {
             scrollBar.valueProperty().addListener(changeListener);
             hasListener = true;
         }
+    }
+
+    public boolean isAi() {
+        return isAi;
     }
 }

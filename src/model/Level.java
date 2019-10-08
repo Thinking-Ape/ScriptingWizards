@@ -85,7 +85,7 @@ public class Level implements PropertyChangeListener {
             if(usedKnights <= maxKnights)method_Called_1 = executor.executeBehaviour(statement,currentMap, true);
             else usedKnights--;
 
-            if(usedKnights == maxKnights && currentMap.findSpawn().getX() != -1)currentMap.setContent(currentMap.findSpawn(), CContent.PATH);
+            if(usedKnights == maxKnights && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
 //            if(executor.hasWon())win();
 
         }
@@ -112,21 +112,25 @@ public class Level implements PropertyChangeListener {
             final Cell cell = currentMap.getCellAtXYClone(x,y);
             CContent content = currentMap.getContentAtXY(x,y);
             boolean notAllTriggered = false;
-            if(content == CContent.GATE){
-                for (int i = 0; i < cell.getLinkedCellsSize();i++){
-                    if(!currentMap.findCellWithId(currentMap.getLinkedCellId(x,y,i)).hasFlag(CFlag.TRIGGERED)){
-                        currentMap.kill(x,y);
-                        currentMap.setFlag(x,y,CFlag.OPEN,false);
-                        notAllTriggered = true;
-//                        break;
-                    }
-                }
-                if(!notAllTriggered)
-                    currentMap.setFlag(x,y,CFlag.OPEN,true);
-            }
             if(content == CContent.PRESSURE_PLATE){
                 if(cell.getEntity()!=null||cell.getItem()==ItemType.BOULDER)currentMap.setFlag(x,y,CFlag.TRIGGERED,true);
                 else currentMap.setFlag(x,y,CFlag.TRIGGERED,false);
+            }
+            if(content == CContent.GATE){
+                for (int i = 0; i < cell.getLinkedCellsSize();i++){
+                    if(!currentMap.findCellWithId(currentMap.getLinkedCellId(x,y,i)).hasFlag(CFlag.TRIGGERED)){
+                        if(!currentMap.cellHasFlag(x, y, CFlag.INVERTED))currentMap.kill(x,y);
+
+                        currentMap.setFlag(x,y,CFlag.OPEN,false);
+                        notAllTriggered = true;
+
+//                        break;
+                    }
+                }
+                if(!notAllTriggered){
+                    if(currentMap.cellHasFlag(x, y, CFlag.INVERTED))currentMap.kill(x,y);
+                    currentMap.setFlag(x,y,CFlag.OPEN,true);
+                }
             }
             if(cell.hasFlag(CFlag.UNARMED)&&cell.hasFlag(CFlag.ARMED)||cell.hasFlag(CFlag.UNARMED)&&cell.hasFlag(CFlag.PREPARING)||cell.hasFlag(CFlag.PREPARING)&&cell.hasFlag(CFlag.ARMED))
                 throw new IllegalStateException("A cell is not allowed to have more than 1 of these flags: armed, preparing or unarmed!");
