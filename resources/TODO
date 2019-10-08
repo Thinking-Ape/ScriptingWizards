@@ -43,6 +43,12 @@ IMPORTANT:
 -select a level on each entering the editor?
 -requiredlevels arent ordered in levelviewlist as in opening screen
 -instead of removing the spawn redraw it without the glow
+-merge new variabletype functionality with regexes used elsewhere
+-> figure out how to evaluate values of conditions and assignments!
+-gate make path as dark as other paths!
+-boulder -> barrel that can roll?
+-changelog
+-codearea controller listens to codearea
 ---------------------------------------------
 
 DONE:
