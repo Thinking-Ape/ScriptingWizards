@@ -1,0 +1,1 @@
+{"maxKnights":3,"isTutorial":false,"requiredLevels":[],"turnsToStars":[0,0],"ai":["Skeleton sk = new Skeleton(SOUTH);","sk.move();","sk.move();"],"index":8,"map":[["wall","wall","wall","wall","wall"],["wall","enemy_spawn","path","path","wall"],["wall","path","path","path","wall"],["wall","spawn","path","path","wall"],["wall","wall","wall","wall","wall"]],"locToStars":[0,0]}
