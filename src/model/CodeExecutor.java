@@ -15,10 +15,6 @@ public class CodeExecutor {
     private boolean hasLost = false;
 
 
-//    public CodeExecutor(GameMap gameMap){
-//        this.gameMap = gameMap;
-//    }
-
     boolean executeBehaviour(Statement statement,GameMap gameMap, boolean isPlayer) throws IllegalAccessException {
         this.gameMap  = gameMap;
         boolean method_Called = false;
@@ -37,12 +33,9 @@ public class CodeExecutor {
 
                 Point spawn = gameMap.findSpawn();
                 if(spawn.getX() == -1)throw new IllegalStateException("No spawn found!");
-                gameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
-                if(!gameMap.eCMapContains(name)) gameMap.eCMapPut(name,new Point(spawn.getX(), spawn.getY()));
-                else {
-                    if(statement.getStatementType() == StatementType.ASSIGNMENT) gameMap.getEntity(gameMap.ecMapGet(name)).deleteIdentity();
-                    gameMap.ecMapReplace(name,new Point(spawn.getX(),spawn.getY()));
-                }
+                if(statement.getStatementType() == StatementType.ASSIGNMENT) gameMap.getEntity(name).deleteIdentity();
+                if(gameMap.isCellFree(gameMap.findSpawn()))gameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
+
             }else if(assignment.getVariable().getVariableType() == VariableType.SKELETON){ //TODO: stattdessen ENEMY?
                 method_Called = true;
                 if(gameMap.getEnemySpawnList().size()==0)return true;
@@ -71,8 +64,6 @@ public class CodeExecutor {
                     }
                 }
                 else gameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
-                if(!gameMap.eCMapContains(name)) gameMap.eCMapPut(name,spawnPoint);
-                else gameMap.ecMapReplace(name,spawnPoint);
             }
 
         }
@@ -96,13 +87,13 @@ public class CodeExecutor {
         Entity actorEntity = gameMap.getEntity(actorPos);
         CContent targetContent = gameMap.getContentAtXY(targetPos);
         if(actorEntity.getItem() == ItemType.KEY&&targetContent == CContent.EXIT){
-//            if(!gameMap.cellHasFlag(targetPos.getX(),targetPos.getY(),CFlag.OPEN)){
-//                actorEntity.setItem(null);
-//                gameMap.setFlag(targetPos.getX(), targetPos.getY(),CFlag.OPEN,true);
-//            }
             actorEntity.setItem(null);
+            gameMap.setFlag(targetPos, CFlag.OPEN, true);
             hasWon = true;
         }
+//        if(actorEntity.getItem() == ItemType.BEACON){
+//            beaconEntity = actorEntity;
+//        }
         if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CContent.DIRT){
             gameMap.setContent(targetPos,CContent.PATH);
         }
@@ -193,15 +184,15 @@ public class CodeExecutor {
     private void tryToMoveCell(String name, boolean isPlayer) {
 //        Cell output = entityCell;
         Point targetPoint = gameMap.getTargetPoint(name);
-        Point actorPoint = gameMap.ecMapGet(name);
-        Entity targetEntity = gameMap.getEntity(targetPoint);
+        Point actorPoint = gameMap.getEntityPosition(name);
+//        Entity targetEntity = gameMap.getEntity(targetPoint);
         Entity actorEntity = gameMap.getEntity(actorPoint);
-        if(targetEntity != null && targetEntity.getEntityType() == EntityType.SKELETON && actorEntity.getEntityType() == EntityType.KNIGHT){
-            gameMap.kill(actorPoint);
-        }
-        if(targetEntity != null && targetEntity.getEntityType() == EntityType.KNIGHT && actorEntity.getEntityType() == EntityType.SKELETON){
-            gameMap.kill(targetPoint);
-        }
+//        if(targetEntity != null && targetEntity.getEntityType() == EntityType.SKELETON && actorEntity.getEntityType() == EntityType.KNIGHT){
+//            gameMap.kill(actorPoint);
+//        }
+//        if(targetEntity != null && targetEntity.getEntityType() == EntityType.KNIGHT && actorEntity.getEntityType() == EntityType.SKELETON){
+//            gameMap.kill(targetPoint);
+//        }
 
         boolean isOpen = gameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ gameMap.cellHasFlag(targetPoint, CFlag.INVERTED);
 
@@ -215,7 +206,10 @@ public class CodeExecutor {
             if(targetContent==CContent.TRAP && gameMap.cellHasFlag(targetPoint,CFlag.ARMED)){
                 gameMap.kill(actorPoint);
             }
+
+            gameMap.removeEntity(actorPoint);
             gameMap.setEntity(targetPoint,  actorEntity );
+
 
             if(targetContent == CContent.PRESSURE_PLATE){
                 gameMap.setFlag(targetPoint,CFlag.TRIGGERED,true);
@@ -223,8 +217,6 @@ public class CodeExecutor {
             if(gameMap.getContentAtXY(actorPoint) == CContent.PRESSURE_PLATE){
                 gameMap.setFlag(actorPoint,CFlag.TRIGGERED,false);
             }
-            gameMap.setEntity(actorPoint,null);
-            gameMap.ecMapReplace(name, targetPoint);
 //            output = targetCell;
         }
 //        return output;
@@ -243,12 +235,20 @@ public class CodeExecutor {
 
     private void executeMethodCall(MethodCall methodCall, boolean isPlayer) throws IllegalAccessException {
         String name = methodCall.getExpressionTree().getLeftNode().getText();
-        Point position = gameMap.ecMapGet(name);
-        if(position == null){
-            if(isPlayer)hasLost=true;
+        Point position = gameMap.getEntityPosition(name);
+        if(position == null ){
+            if(isPlayer&& gameMap.getAmountOfKnights() == 0)hasLost=true;
             return;
         }
         switch (methodCall.getMethodType()){
+            case ATTACK:
+                // Can't attack with an item in hand
+                if(gameMap.getEntity(name).getItem()!=null)return;
+                if(isPlayer)throw new IllegalAccessException("You cannot attack as Player!");
+                gameMap.setFlag(position , CFlag.ACTION,true );
+                gameMap.kill(gameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
+                break;
+
             case MOVE:
                 tryToMoveCell(name,isPlayer); //TODO: stattdessen mit getTargetPoint()?
                 break;
@@ -278,6 +278,5 @@ public class CodeExecutor {
 
     void reset(){
         hasWon = false;
-        hasLost = false;
-    }
+        hasLost = false;}
 }

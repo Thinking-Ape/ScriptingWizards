@@ -114,14 +114,6 @@ public class ComplexStatement implements Statement {
         return statementList.size();
     }
 
-//    @Override
-//    public void resetCounter() {
-//        counter = -1;
-//        for(Statement statement : statementList){
-//            statement.resetCounter();
-//        }
-//    }
-
     //TODO: Statement-Iterator-class?
     /** Gives the next substatement in the List. If the counter reaches the end of the List,
      * the instance of this Object is returned instead.
@@ -143,15 +135,6 @@ public class ComplexStatement implements Statement {
         }
         return nextStatement;
     }
-//    public void skip(int depth){
-//        if(this.depth == depth){
-//            counter++;
-//        }
-//        else{
-//            if(counter==-1)counter++;
-//            else statementList.get(counter).skip(depth);
-//        }
-//    }
     public void skip(){
         counter++;
     }
@@ -171,9 +154,4 @@ public class ComplexStatement implements Statement {
     public boolean isComplex(){
         return true;
     }
-
-
-//    public void incrementCounter() {
-//        counter ++;
-//    }
 }

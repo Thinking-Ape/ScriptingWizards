@@ -52,35 +52,12 @@ public class SimpleStatement implements Statement {
         return parentStatement == null ? 1 : parentStatement.getDepth() + 1;
     }
 
-//    @Override
-//    public void skip() {
-//        //do nothing
-//    }
-
-//    @Override
-//    public void updateVariable(Variable variable) throws IllegalAccessException {
-//        throw new IllegalAccessException("You shall not call this method for a simple statement!");
-//    }
-//
-//    @Override
-//    public Variable getVariable(String variableName) throws IllegalAccessException {
-//        throw new IllegalAccessException("You shall not call this method for a simple statement!");
-//    }
-
-//    String getText(){
-//        //gets overriden
-//        return "";
-//    }
-
-//    @Override
-//    public void setDepth(int depth) {
-//        this.depth = depth;
-//    }
 
     @Override
     public String getText() {
         return "";
     }
+
 
     @Override
     public String print() {
@@ -96,4 +73,6 @@ public class SimpleStatement implements Statement {
     public boolean isComplex() {
         return false;
     }
+
+
 }

@@ -8,9 +8,7 @@ import utility.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Level implements PropertyChangeListener {
 
@@ -65,9 +63,9 @@ public class Level implements PropertyChangeListener {
     public void executeTurn() throws IllegalAccessException {
         turnsTaken++;
         int noStackOverflow = 0;
+        removeVisualFlags();
         boolean method_Called_1 = false, method_Called_2 = false;
         while(!method_Called_1 && !isWon()&&!isLost()) {
-//            if(noStackOverflow >= 100) throw new IllegalStateException("You're not allowed to call more than 100 Lines of Code without a MethodCall!");
             Statement statement = evaluator.evaluateNext(playerBehaviour,currentMap);
             if(evaluator.lastStatementSummonedKnight()){
                 usedKnights++;
@@ -86,24 +84,23 @@ public class Level implements PropertyChangeListener {
             else usedKnights--;
 
             if(usedKnights == maxKnights && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
-//            if(executor.hasWon())win();
-
         }
         while(!method_Called_2&& !isLost() && !isWon() &&!aiFinished&& GameConstants.IS_AI_ACTIVE&&aiBehaviour!=null) {
-            //if (noStackOverflow >= 100)                throw new IllegalStateException("You're not allowed to call more than 100 Lines of Code without a MethodCall!");
             Statement statement = evaluator.evaluateNext(aiBehaviour,currentMap);
             if (statement == null) {
                 aiFinished = true;
                 break;
             }
-//            noStackOverflow++;
-
             method_Called_2 = executor.executeBehaviour(statement,currentMap,false);
         }
-//        if(method_Called_1)
-//        setStandardFlags(currentMap);
         applyGameLogicToCells();
-        //notifyListener(Event.MAP_CHANGED); //TODO: how to do this?
+    }
+
+    private void removeVisualFlags() {
+        for(int x = 0; x < currentMap.getBoundX(); x++)for(int y = 0; y < currentMap.getBoundY(); y++){
+            final Cell cell = currentMap.getCellAtXYClone(x,y);
+            if(cell.hasFlag(CFlag.DEATH))currentMap.setFlag(x, y, CFlag.ACTION,false);
+            if(cell.hasFlag(CFlag.ACTION))currentMap.setFlag(x, y, CFlag.ACTION,false);}
     }
 
 
@@ -132,20 +129,18 @@ public class Level implements PropertyChangeListener {
                     currentMap.setFlag(x,y,CFlag.OPEN,true);
                 }
             }
-            if(cell.hasFlag(CFlag.UNARMED)&&cell.hasFlag(CFlag.ARMED)||cell.hasFlag(CFlag.UNARMED)&&cell.hasFlag(CFlag.PREPARING)||cell.hasFlag(CFlag.PREPARING)&&cell.hasFlag(CFlag.ARMED))
-                throw new IllegalStateException("A cell is not allowed to have more than 1 of these flags: armed, preparing or unarmed!");
-            if(cell.hasFlag(CFlag.UNARMED)){
-                currentMap.setFlag(x,y,CFlag.UNARMED,false);
-                currentMap.setFlag(x,y,CFlag.PREPARING,true);
-            }else if(cell.hasFlag(CFlag.PREPARING)){
+
+            if(cell.getContent() == CContent.TRAP){
+            if(cell.hasFlag(CFlag.PREPARING)&&cell.hasFlag(CFlag.ARMED))
+                throw new IllegalStateException("A cell is not allowed to have more than 1 of these flags: armed or preparing!");
+            if(cell.hasFlag(CFlag.PREPARING)){
                 currentMap.setFlag(x,y,CFlag.PREPARING,false);
                 currentMap.setFlag(x,y,CFlag.ARMED,true);
                 currentMap.kill(x,y);
 //                cell.setItem(null);
             }else if(cell.hasFlag(CFlag.ARMED)){
                 currentMap.setFlag(x,y,CFlag.ARMED,false);
-                currentMap.setFlag(x,y,CFlag.UNARMED,true);
-            }
+            } else currentMap.setFlag(x,y,CFlag.PREPARING,true);}
         }
     }
 
@@ -379,3 +374,70 @@ public class Level implements PropertyChangeListener {
         return tutorialMessages;
     }
 }
+
+/*public void executeTurn() throws IllegalAccessException {
+        turnsTaken++;
+        int noStackOverflow = 0;
+        boolean method_Called_1 = false, method_Called_2 = false;
+//        List<String> notDoneYet = new ArrayList<>(currentMap.getEntityNames());
+        while(!method_Called_1 && !isWon()&&!isLost()) {
+//            if(noStackOverflow >= 100) throw new IllegalStateException("You're not allowed to call more than 100 Lines of Code without a MethodCall!");
+
+            Map<String,Statement> beaconStatements = new HashMap<>();
+            Statement statement=null;
+//            if(executor.getBeaconEntity()!=null){
+//                beaconStatements = evaluator.evaluateNextWithBeacon(playerBehaviour, currentMap,currentMap.getEntityNames(),executor.getBeaconEntity().getName());
+//            }
+//            else {
+                statement= evaluator.evaluateNext(playerBehaviour,currentMap);
+
+                if(statement==null){
+                    isLost=true;
+                    break;
+                }
+//            }
+            if(evaluator.lastStatementSummonedKnight()){
+                usedKnights++;
+            }
+            noStackOverflow++;
+            if(noStackOverflow > 500){
+                this.isStackOverflow = true;
+                isLost = true;
+                break;
+            }
+            if(usedKnights <= maxKnights){
+//                if(executor.getBeaconEntity() != null){
+//                    List<String> nowDone = new ArrayList<>();
+//                for(String name : notDoneYet){
+//                    if(beaconStatements.get(name)!=null){ if(executor.executeBehaviour(beaconStatements.get(name),currentMap, true,currentMap.getEntity(currentMap.getEntityPosition(name))))nowDone.add(name);}
+//                    else isLost = true;
+//                }
+//                notDoneYet.removeAll(nowDone);
+//                method_Called_1 = notDoneYet.size() == 0;
+//                }
+//                else
+                method_Called_1 = executor.executeBehaviour(statement,currentMap, true);
+            }
+            else usedKnights--;
+
+            if(usedKnights == maxKnights && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
+//            if(executor.hasWon())win();
+
+        }
+        while(!method_Called_2&& !isLost() && !isWon() &&!aiFinished&& GameConstants.IS_AI_ACTIVE&&aiBehaviour!=null) {
+            //if (noStackOverflow >= 100)                throw new IllegalStateException("You're not allowed to call more than 100 Lines of Code without a MethodCall!");
+            Statement statement = evaluator.evaluateNext(aiBehaviour,currentMap);
+            if (statement == null) {
+                aiFinished = true;
+                break;
+            }
+//            noStackOverflow++;
+
+            method_Called_2 = executor.executeBehaviour(statement,currentMap,false);
+        }
+//        if(method_Called_1)
+//        setStandardFlags(currentMap);
+        applyGameLogicToCells();
+        //notifyListener(Event.MAP_CHANGED); //TODO: how to do this?
+    }
+*/

@@ -19,6 +19,7 @@ public enum MethodType {
     WAIT("wait\\(\\)",DEFAULT,"This Knight skips a turn."),
     TARGET_IS_DANGER("targetIsDanger\\(\\)",BOOLEAN,"Returns a boolean value corresponding to whether this Knight's target cell will kill it upon moving forward."),
     DROP_ITEM("dropItem\\(\\)",DEFAULT,"Drops any item currently held by this Knight."),
+    ATTACK("attack\\(\\)",DEFAULT,"Only for Skeletons!")
     ;
 
 
