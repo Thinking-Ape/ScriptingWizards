@@ -3,15 +3,13 @@ package model;
 import javafx.util.Pair;
 import model.enums.CContent;
 import model.enums.CFlag;
+import model.enums.EntityType;
 import model.enums.ItemType;
 import utility.Point;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GameMap /*implements PropertyChangeListener*/ {
 
@@ -42,7 +40,9 @@ public class GameMap /*implements PropertyChangeListener*/ {
     }
 
     public GameMap clone(){
-        return new GameMap(cellArray2D,null);
+         GameMap cloneMap = new GameMap(cellArray2D,null);
+//         cloneMap.entityCellMap = new HashMap<>(this.entityCellMap);
+         return cloneMap;
     }
 
     public int getBoundX(){
@@ -130,23 +130,7 @@ public class GameMap /*implements PropertyChangeListener*/ {
         return output;
     }
 
-    public boolean eCMapContains(String name) {
-        return  entityCellMap.containsKey(name);
-    }
-
-    public void eCMapPut(String name, Point point) {
-        entityCellMap.put(name,point);
-    }
-
-    public void ecMapReplace(String name, Point point) {
-        entityCellMap.replace(name,point);
-    }
-
-    private void ecMapKill(String name) {
-        entityCellMap.remove(name);
-    }
-
-    public Point ecMapGet(String name) {
+    public Point getEntityPosition(String name) {
        return entityCellMap.getOrDefault(name, null);
     }
 
@@ -190,12 +174,6 @@ public class GameMap /*implements PropertyChangeListener*/ {
     }
 
     public void removeCellLinkedId(int x, int y, Integer s) {
-//        List<Integer> oldList = new ArrayList<>();
-//        List<Integer> newList = new ArrayList<>();
-//        for(int i = 0; i < cellArray2D[x][y].getLinkedCellsSize();i++){
-//            oldList.add(cellArray2D[x][y].getLinkedCellId(i));
-//            if(cellArray2D[x][y].getLinkedCellId(i)!= s)newList.add(cellArray2D[x][y].getLinkedCellId(i));
-//        }
         Cell oldCell = cellArray2D[x][y].copy();
         cellArray2D[x][y].removeLinkedCellId(s);
         Cell newCell = cellArray2D[x][y].copy();
@@ -231,13 +209,33 @@ public class GameMap /*implements PropertyChangeListener*/ {
         Cell cell =cellArray2D[x][y];
         if(cell.getEntity()==null){
             cell.setItem(null);
-        return;
+            return;
         }
         System.out.println(cell.getEntity().getEntityType() +" "+ cell.getEntity().getName()+" died!");
-        ecMapKill(cell.getEntity().getName());
-        ItemType item = cell.getEntity().getItem();
-        setEntity(x,y,null);
-        setItem(x,y,item);
+//        ecMapKill(cell.getEntity().getName());
+        cell.setFlagValue(CFlag.DEATH,true);
+        removeEntity(x,y);
+    }
+
+    public void removeEntity(int x, int y) {
+
+        Entity e = cellArray2D[x][y].getEntity();
+        if (e == null) return;
+        ItemType item = e.getItem();
+        Cell oldCell = cellArray2D[x][y].copy();
+        Cell newCell = cellArray2D[x][y].copy();
+        newCell.setEntity(null);
+        cellArray2D[x][y].setEntity(null);
+        if(cellArray2D[x][y].hasFlag(CFlag.DEATH)){
+            setItem(x,y,item);
+            entityCellMap.remove(e.getName());
+        }
+
+        changeSupport.firePropertyChange("entity",new Pair<>(new Point(x, y),oldCell),new Pair<>(new Point(x, y),newCell));
+    }
+
+    public void removeEntity(Point p){
+        removeEntity(p.getX(), p.getY());
     }
 
     public void setEntity(int x, int y, Entity entity) {
@@ -249,7 +247,7 @@ public class GameMap /*implements PropertyChangeListener*/ {
     }
 
     public Point getTargetPoint(String actorName) {
-        Point p = ecMapGet(actorName);
+        Point p = getEntityPosition(actorName);
         Entity entity = cellArray2D[p.getX()][p.getY()].getEntity();
         switch (entity.getDirection()){
             case NORTH:
@@ -291,10 +289,12 @@ public class GameMap /*implements PropertyChangeListener*/ {
     }
 
     public void setEntity(Point targetPos, Entity actorEntity) {
-
+        if(actorEntity == null)throw new IllegalArgumentException("NOT NULL!");
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         cellArray2D[targetPos.getX()][targetPos.getY()].setEntity(actorEntity);
         Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
+        if(entityCellMap.containsKey(actorEntity.getName()))entityCellMap.replace(actorEntity.getName(),targetPos);
+        else entityCellMap.put(actorEntity.getName(), targetPos);
         changeSupport.firePropertyChange("entity",new Pair<>(targetPos,oldCell),new Pair<>(targetPos,newCell));
     }
 
@@ -337,5 +337,36 @@ public class GameMap /*implements PropertyChangeListener*/ {
         setItem(spawnPoint,  null);
         entity.setItem(item);
         setEntity(spawnPoint, entity);
+    }
+
+    public Set<String> getEntityNames() {
+        return new HashSet<String>(entityCellMap.keySet());
+    }
+
+//    public GameMap getSwappedEntityMap(String name, String beaconName) {
+//        //TODO: set Entity -> map
+//        GameMap output = this.clone();
+//        Point p1 = output.entityCellMap.get(name);
+//        Point p2 = output.entityCellMap.get(beaconName);
+//        output.entityCellMap.replace(beaconName, p1);
+//        output.entityCellMap.replace(name, p2);
+//        Entity replacer = output.getEntity(p1);
+//        Entity beacon = output.getEntity(p2);
+//        output.setEntity(p2, replacer);
+//        output.setEntity(p1, beacon);
+//        return output;
+//    }
+
+    public Entity getEntity(String name) {
+        return getEntity(entityCellMap.getOrDefault(name, null));
+    }
+
+    public int getAmountOfKnights() {
+        return (int)entityCellMap.keySet().stream().filter(entity -> getEntity(entity).getEntityType() == EntityType.KNIGHT).count();
+    }
+
+    public void clearFlags(int x, int y) {
+        for(CFlag flag : CFlag.values())
+        cellArray2D[x][y].setFlagValue(flag, false);
     }
 }

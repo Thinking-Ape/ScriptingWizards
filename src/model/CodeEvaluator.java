@@ -38,13 +38,10 @@ public class CodeEvaluator {
             case FOR:
                 ForStatement forStatement = (ForStatement)currentStatement;
                 Condition forCondition = forStatement.getCondition();
-//                System.out.println(forStatement.getCondition().getParentStatement().getText());
-//                currentStatement = forStatement.getCondition(); //TODO: UGLY CODE!!! doesnt work also!!
                 if(!testCondition(forCondition)){
                     forStatement.getParentStatement().skip();
                     forStatement.resetVariables(true);
                 }
-//                currentStatement = forStatement;
                 break;
             case WHILE:
                 //TODO: all the same -> method
@@ -52,7 +49,6 @@ public class CodeEvaluator {
                 Condition whileCondition = whileStatement.getCondition();
                 if(!testCondition(whileCondition)){
                     currentStatement.getParentStatement().skip();
-//                    whileStatement.resetVariables();
                 }
                 break;
             case IF:
@@ -62,7 +58,6 @@ public class CodeEvaluator {
                 if(!testCondition(ifCondition)){
                     ifStatement.activateElse();
                     currentStatement.getParentStatement().skip();
-//                    ifStatement.resetVariables();
                 }
                 break;
             case ELSE:
@@ -73,7 +68,6 @@ public class CodeEvaluator {
                 } else if(!testCondition(elseCondition)){
                     elseStatement.activateElse();
                     currentStatement.getParentStatement().skip();
-//                    elseStatement.resetVariables();
                 }
                 break;
             case METHOD_CALL:
@@ -82,7 +76,6 @@ public class CodeEvaluator {
                 Assignment declaration = (Assignment)currentStatement;
                 Variable variable = declaration.getVariable();
                 if(declaration.getVariable().getVariableType()==VariableType.KNIGHT)lastStatementSummonedKnight = true;
-                //variable.update(evaluateRandom(variable.getValue(),0));
                 currentStatement.getParentStatement().addLocalVariable(new Variable(variable.getVariableType(),variable.getName(),variable.getValue()));
                 break;
             case ASSIGNMENT:
@@ -268,7 +261,7 @@ public class CodeEvaluator {
         if(variable == null)throw new IllegalArgumentException("Variable "+objectName +" does not exist!");
         VariableType vType = variable.getVariableType();
         if(vType == VariableType.KNIGHT||vType == VariableType.SKELETON){
-            Point actorPoint = gameMap.ecMapGet(objectName);
+            Point actorPoint = gameMap.getEntityPosition(objectName);
             if(actorPoint == null) return false;
             Point targetPoint = gameMap.getTargetPoint(objectName);
             CContent targetContent = gameMap.getContentAtXY(targetPoint);
