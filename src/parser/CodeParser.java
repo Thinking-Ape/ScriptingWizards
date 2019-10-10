@@ -241,13 +241,14 @@ public class CodeParser {
         tempStatements = splitAtChar(tempStatements.second(),'(',false);
         String methodName = tempStatements.first();
         String parameters = tempStatements.second().substring(0,tempStatements.second().length()-1);
-        if(!parameters.equals(""))checkExpressionTreeForUnknownVars(new ExpressionLeaf(parameters),depth);
 //            throw new IllegalStateException(parameters+ " contains unknown Variables!");
         if(depthStatementMap.get(depth-1).getVariable(objectName)==null)
             throw new IllegalArgumentException("Variable " +objectName +" not in scope!");
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
-        if(mType == null) throw new IllegalArgumentException("Method " + mType + " is not a valid method!");
+        if(mType == null) throw new IllegalArgumentException("Method " + methodName + " is not a valid method!");
+        if(isPlayerCode && mType == MethodType.ATTACK) throw new IllegalArgumentException("Knights cannot attack!");
         testForCorrectParameters(parameters,mType,depth);
+        if(!parameters.equals(""))checkExpressionTreeForUnknownVars(new ExpressionLeaf(parameters),depth);
         return new MethodCall(MethodType.getMethodTypeFromCall(methodName+"("+parameters+")"),objectName,parameters);
     }
 
@@ -255,6 +256,7 @@ public class CodeParser {
 
         switch (mType){
 
+            case ATTACK:
             case TARGET_IS_DANGER:
             case WAIT:
             case DROP_ITEM:
@@ -316,6 +318,7 @@ public class CodeParser {
             value = tempStatements.second();
         }
 //        if(StatementType.getMatcher(StatementType.METHOD_CALL,value ).matches());
+        if(value.trim()=="")throw new IllegalArgumentException("You cannot assign an empty value!");
         ExpressionTree valueTree = ExpressionTree.expressionTreeFromString(value.trim()); //0
         Condition condition = Condition.getConditionFromString(value.trim());
         //TODO: expand to make it more readable!
@@ -335,6 +338,7 @@ public class CodeParser {
             variableTypeString = variableTypeAndName.first();
             variableName = variableTypeAndName.second();
         }
+        if(!variableName.trim().matches("^[a-zA-Z_][a-zA-Z_0-9]*$"))throw new IllegalArgumentException("A variable must not be named: "+variableName+"!");
 //        System.out.println(variableName);
         //TODO: make cleaner
         boolean isDeclaration = true;
@@ -354,6 +358,8 @@ public class CodeParser {
                 if(variable1 == null)
                     throw new IllegalArgumentException("Variable " + variableName+ " not in scope!");
                 variableType = variable1.getVariableType();
+
+                testForCorrectValueType(variableType,value,depth);
             }
             else {
                 ComplexStatement cS = depthStatementMap.get(depth-1);
@@ -377,17 +383,30 @@ public class CodeParser {
         }
         switch (variableType){
             case INT:
-                if(!value.matches(GameConstants.RAND_INT_REGEX)&&!value.matches("[+-]?\\d+"))throw new IllegalArgumentException(value + " is no number!");
+                ExpressionTree tree = ExpressionTree.expressionTreeFromString(value);
+                if(tree.getRightNode()!=null){
+                    testForCorrectValueType(VariableType.INT,tree.getLeftNode().getText(),depth );
+                    testForCorrectValueType(VariableType.INT,tree.getRightNode().getText(),depth );
+                }
+                else if(!value.matches(GameConstants.RAND_INT_REGEX)&&!value.matches("[+-]?\\d+"))throw new IllegalArgumentException(value + " is no number!");
                 else return;
             case BOOLEAN:
 //                if(!value.matches("true|false"))throw new IllegalArgumentException(value + " is no boolean!");
 //                else return;
                 return;
             case KNIGHT:
-                if(!value.matches("new Knight\\((EAST|WEST|NORTH|SOUTH)?\\)"))throw new IllegalArgumentException(value + " is not a valid Knight constructor!");
+                if(!value.matches("new Knight\\((EAST|WEST|NORTH|SOUTH)?\\)")){
+                    tree = ExpressionTree.expressionTreeFromString(value);
+                    if(tree.getRightNode() != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)return;
+                    throw new IllegalArgumentException(value + " is not a valid Knight constructor!");
+                }
                 break;
             case SKELETON:
-                if(!value.matches("(new Skeleton\\((EAST|WEST|NORTH|SOUTH)?\\)|new Skeleton\\([0-9]+\\)|new Skeleton\\((EAST|WEST|NORTH|SOUTH),[0-9]+\\))"))throw new IllegalArgumentException(value + " is not a valid Skeleton constructor!");
+                if(!value.matches("(new Skeleton\\((EAST|WEST|NORTH|SOUTH)?\\)|new Skeleton\\([0-9]+\\)|new Skeleton\\((EAST|WEST|NORTH|SOUTH),[0-9]+\\))")){
+                    tree = ExpressionTree.expressionTreeFromString(value);
+                    if(tree.getRightNode() != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)return;
+                    throw new IllegalArgumentException(value + " is not a valid Skeleton constructor!");
+                }
                 break;
             case DIRECTION:
                 Direction dir = Direction.getValueFromString(value);
@@ -442,7 +461,7 @@ public class CodeParser {
                     checkExpressionTreeForUnknownVars(conditionLeaf.getLeftTree(), depth);
                     if(conditionLeaf.getRightTree().getLeftNode() == null)throw new IllegalArgumentException(conditionLeaf.getRightTree().getText() + " is not a valid Method!");
                     MethodType mT = MethodType.getMethodTypeFromName(conditionLeaf.getRightTree().getLeftNode().getText());
-                    if(mT==null)throw new IllegalArgumentException("No such Method " + conditionLeaf.getLeftTree().getText()+"!");
+                    if(mT==null)throw new IllegalArgumentException("No such Method " + conditionLeaf.getRightTree().getLeftNode().getText()+"!");
                     if(mT.getOutputType()!=VariableType.BOOLEAN)throw new IllegalArgumentException("Method " + conditionLeaf.getLeftTree().getText()+" has illegal type!");
                     testForCorrectParameters(conditionLeaf.getRightTree().getRightNode().getText(), mT, depth);
                     return;

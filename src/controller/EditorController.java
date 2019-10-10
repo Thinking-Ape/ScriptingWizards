@@ -107,6 +107,8 @@ public class EditorController implements PropertyChangeListener {
         view.getLevelEditorModule().getEditTutorialTextBtn().setOnAction(evt -> {
             int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
             Dialog<ButtonType> editTutorialDialog = new Dialog<>();
+            if(model.getCurrentLevel().getTutorialEntryList().size() > 0)return;
+
             TextArea tutorialTextArea = new TextArea(model.getCurrentLevel().getTutorialEntryList().get(index-1));
             tutorialTextArea.setWrapText(true);
             tutorialTextArea.setAccessibleText("Type your tutorial text here!");
@@ -694,7 +696,6 @@ public class EditorController implements PropertyChangeListener {
                             boolean cellHasLinkedId = map.cellHasLinkedCellId(view.getSelectedColumn(),view.getSelectedRow(),s.get());
                             if (!cellHasLinkedId) {
                                 map.addLinkedCellId(view.getSelectedColumn(),view.getSelectedRow(),s.get());
-                                view.getLinkedCellsListView().getItems().add(s.get());
                                 //TODO: duplicate code in view.getLevelEditorModule().getRemoveLinkedCellBtn().setOnAction(actionEvent -> {
                                 int size = view.getLinkedCellsListView().getItems().size();
                                 view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
@@ -702,7 +703,6 @@ public class EditorController implements PropertyChangeListener {
                         }
                     }
                     else new Alert(Alert.AlertType.NONE, "There are no more Pressure Plates with a unique Cell Id to add", ButtonType.OK).showAndWait();
-//                    setEditorHandlers();
                 });
             }
 
@@ -737,40 +737,36 @@ public class EditorController implements PropertyChangeListener {
             view.setItemButtonInactive(item);
         }
         else view.setItemButtonInactive(null);
-//        if(content == CContent.EXIT){
-//            view.getLevelEditorModule().activateExitOpenCheckbox();
-//            view.getLevelEditorModule().getExitOpenCheckBox().setSelected(map.cellHasFlag(x,y,CFlag.OPEN));
-//        }
         if(content == CContent.TRAP){
             view.getLevelEditorModule().activateTrapChoicebox();
 
             ChoiceBox<String> choiceBox = view.getLevelEditorModule().getTrapChoiceBox();
             choiceBox.getItems().clear();
-            choiceBox.getItems().add(0,CFlag.UNARMED.getDisplayName());
+            choiceBox.getItems().add(0,"Unarmed");
             choiceBox.getItems().add(1,CFlag.PREPARING.getDisplayName());
             choiceBox.getItems().add(2,CFlag.ARMED.getDisplayName());
-            if(map.cellHasFlag(x,y,CFlag.UNARMED)) choiceBox.getSelectionModel().select(0);
-            else if(map.cellHasFlag(x,y,CFlag.PREPARING)) choiceBox.getSelectionModel().select(1);
+//            if(map.cellHasFlag(x,y,CFlag.UNARMED)) choiceBox.getSelectionModel().select(0);
+            if(map.cellHasFlag(x,y,CFlag.PREPARING)) choiceBox.getSelectionModel().select(1);
             else if(map.cellHasFlag(x,y,CFlag.ARMED)) choiceBox.getSelectionModel().select(2);
             else {
                 choiceBox.getSelectionModel().select(0);
-                map.setFlag(x, y, CFlag.UNARMED,true );
             }
             choiceBox.setOnHidden(evt -> {
                 // .setOnHidden fires twice for some reason??! this is a workaround!
                 if(toggleActionEventFiring())return;
-                CFlag flag = choiceBox.getValue() != null ? CFlag.getValueFrom(choiceBox.getValue().toUpperCase()) : CFlag.UNARMED;
-                map.setFlag(x, y, CFlag.UNARMED,false);
+                CFlag flag = CFlag.getValueFrom(choiceBox.getValue().toUpperCase());
+//                map.setFlag(x, y, CFlag.UNARMED,false);
                 map.setFlag(x, y, CFlag.PREPARING,false);
                 map.setFlag(x, y, CFlag.ARMED,false );
-                map.setFlag(x, y, flag,true );
+                if(flag != null)map.setFlag(x, y, flag,true );
                 if(flag == CFlag.ARMED)map.setItem(x, y, null);
-                setHandlersForMapCells();
+//                setHandlersForMapCells();
                 view.highlightInMap(view.getSelectedColumn(),view.getSelectedRow());});
         }
         else if(content == CContent.PRESSURE_PLATE||content == CContent.ENEMY_SPAWN){
             view.getLevelEditorModule().activateCellIDHBox();
         }
+
         else if(content == CContent.GATE){
             view.getLevelEditorModule().activateLinkedCellBtns();
             view.getLevelEditorModule().getIsTurnedCBox().setSelected(map.cellHasFlag(x,y,CFlag.TURNED));
@@ -798,6 +794,13 @@ public class EditorController implements PropertyChangeListener {
                 view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
             }
         }else view.getLevelEditorModule().deactivateCellDetails();
+//        if(content == CContent.ENEMY_SPAWN || content == CContent.SPAWN||content == CContent.EXIT){
+//            view.getLevelEditorModule().addTurnable();
+//            view.getLevelEditorModule().getIsTurnedCBox().setSelected(map.cellHasFlag(x,y,CFlag.TURNED));
+//            view.getLevelEditorModule().getIsTurnedCBox().setOnAction(evt -> {
+//                map.setFlag(x, y, CFlag.TURNED,view.getLevelEditorModule().getIsTurnedCBox().isSelected());
+//            });
+//        }
     }
 
     private boolean toggleActionEventFiring() {
@@ -814,6 +817,7 @@ public class EditorController implements PropertyChangeListener {
             Button btn = (Button) view.getCellTypeSelectionPane().getChildren().get(i*rowC+j);
             final CContent content = CContent.getValueFromName(btn.getText().toUpperCase().replaceAll(" ", "_"));
             btn.setOnAction(mouseEvent -> {
+                gameMap.clearFlags(view.getSelectedColumn(),view.getSelectedRow());
                 //TODO: darf es wirklich nur einen geben?
                 if(content == null) throw new IllegalStateException("Content: " + btn.getText().toUpperCase().replaceAll(" ", "_") + " doesnt exist!");
                 if(content == CContent.SPAWN){

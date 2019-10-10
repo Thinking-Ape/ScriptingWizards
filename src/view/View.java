@@ -180,7 +180,8 @@ public class View implements PropertyChangeListener {
                         //"Knight k = new Knight(EAST);","k.move();","k.move();","k.turn(EAST);","if(k.targetIsUnarmed()){","k.move();","k.turn(WEST);","k.move();","k.move();","}","else {","k.turn(2);","k.move();","k.turn(EAST);","k.move();","k.move();","}");
                         //"int i = 10;","Knight k = new Knight(WEST);","k.move();","for(int j = 0;j < i;j = j + 1;){","k.wait();","}","k.turn(2);","k.move();");
                         //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContainsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
+                        "Knight knight = new Knight(EAST);","int turns = 0;","boolean b = knight.targetContainsEntity(SKELETON);","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (b || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContainsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}");
+//                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
                         //"Knight knight = new Knight(NORTH);", "knight.collect();", "knight.move();", "knight.useItem();", "knight.move();");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -242,6 +243,7 @@ public class View implements PropertyChangeListener {
                 boolean isOpen = false;
                 for (CFlag flag : CFlag.values()) {
                     if (cell.hasFlag(flag)) {
+                        if(flag == CFlag.DEATH||flag == CFlag.ACTION)continue;
                         if(flag == CFlag.TURNED && (isTurned = true))continue;
                         if(flag == CFlag.INVERTED){
                             isInverted = true;
@@ -258,7 +260,6 @@ public class View implements PropertyChangeListener {
                         contentString += "_" + flag.getDisplayName();
                     }
                 }
-                if(cell.hasFlag(CFlag.INVERTED))System.out.println(contentString);
                 if (shape != null && !contentImageMap.containsKey(contentString)) stackPane.getChildren().add(shape);
                 else {
                     ImageView imageView = new ImageView(contentImageMap.get(contentString));
@@ -274,33 +275,58 @@ public class View implements PropertyChangeListener {
 //                    imageView.setFitHeight(cell_size);
                     stackPane.getChildren().add(imageView);
                 }
+
+                gPane.add(stackPane, x, y);
+//                actualMapGPane.getChildren().add(mapShapes[row][column]);
+            }
+        }
+        for (int x = 0; x < map.getBoundX(); x++) {
+            for (int y = 0; y < map.getBoundY(); y++) {
+                final Cell cell = map.getCellAtXYClone(x, y);
+//                drawCell(map[row][column],column,row);
+//                GridPane.setRowIndex(mapShapes[row][column],row);
+//                GridPane.setColumnIndex(mapShapes[row][column],column);
+                StackPane stackPane = new StackPane();
+                stackPane.setMouseTransparent(true);
 //                if(cell.getEntity()!=null)stackPane.getChildren().add(getEntityShape(cell.getEntity()));
                 if (cell.getEntity() != null) {
+                    String entityName = cell.getEntity().getEntityType().getDisplayName();
+                    if(cell.hasFlag(CFlag.DEATH) && contentImageMap.containsKey(entityName+"_Death"))entityName+="_Death";
+                    else if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_1"))entityName+="_Action_1";
+                    else if(cell.getEntity().getItem()!= null && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
 
-                    ImageView imageView = new ImageView();
-                    switch (cell.getEntity().getEntityType()) {
+                    ImageView imageView = new ImageView(contentImageMap.get(entityName));
 
-                        case KNIGHT:
-                            imageView = new ImageView(testKnightImage);
-                            break;
-                        case SKELETON:
-                            imageView = new ImageView(enemyImage);
-                            break;
-                    }
 //                    imageView.setFitHeight(cell_size);
 //                    imageView.setFitWidth(cell_size);
                     stackPane.getChildren().add(imageView);
+                    ImageView iView=null;
+                    if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName))
+                        iView = new ImageView(contentImageMap.get(entityName.replace("1", "2")));
                     switch (cell.getEntity().getDirection()) {
                         case NORTH:
                             imageView.setRotate(90);
+                            if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName)){
+                                iView.setRotate(90);
+                                gPane.add(iView, x, y-1);
+                            }
                             break;
                         case SOUTH:
                             imageView.setRotate(270);
+                            if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName)){
+                                iView.setRotate(270);
+                                gPane.add(iView, x, y+1);
+                            }
                             break;
                         case EAST:
                             imageView.setRotate(180);
+                            if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName)){
+                                iView.setRotate(180);
+                                gPane.add(iView, x+1, y);
+                            }
                             break;
                         case WEST:
+                            if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName))gPane.add(iView, x-1, y);
                             break;
                     }
                 }
@@ -588,28 +614,6 @@ public class View implements PropertyChangeListener {
                 }
                 if (sceneState == SceneState.LEVEL_EDITOR) updateLevelEditorModule();
             case "map":
-//                switch (cell.getContent()){
-//                    default:
-//                        levelEditorModule.deactivateCellDetails();
-//                        break;
-//                    case EXIT:
-//                        levelEditorModule.activateExitOpenCheckbox();
-//                        break;
-//                    case TRAP:
-//                        levelEditorModule.activateTrapChoicebox();
-//                        break;
-//                    case SPAWN:
-//                        break;
-//                    case ENEMY_SPAWN:
-//                        levelEditorModule.activateCellIDHBox();
-//                        break;
-//                    case PRESSURE_PLATE:
-//                        levelEditorModule.activateCellIDHBox();
-//                        break;
-//                    case GATE:
-//                        levelEditorModule.activateLinkedCellBtns();
-//                        break;
-//                }
                 drawMap(model.getCurrentLevel().getOriginalMap());
                 break;
             case "playerBehaviour":
@@ -780,7 +784,7 @@ public class View implements PropertyChangeListener {
         }
         contentHBox.getChildren().addAll(leftVBox, centerVBox, rightVBox);
         contentHBox.setAlignment(Pos.CENTER);
-        contentHBox.setSpacing(100);
+        contentHBox.setSpacing(50);
         contentHBox.setPrefWidth(GameConstants.SCREEN_WIDTH);
         HBox bottomHBox = new HBox(backBtn, btnExecute, speedVBox, btnReset, showSpellBookBtn);
         bottomHBox.setSpacing(100);
@@ -906,12 +910,16 @@ public class View implements PropertyChangeListener {
         return spellBookPane;
     }
 
-    public void setBtnDisableWhenRunning(boolean b) {
+    public void setNodesDisableWhenRunning(boolean b) {
         backBtn.setDisable(b);
         speedSlider.setDisable(b);
         showSpellBookBtn.setDisable(b);
         loadBestCodeBtn.setDisable(b);
         clearCodeBtn.setDisable(b);
+        btnExecute.setDisable(b);
+        btnReset.setDisable(!b);
+        codeArea.setDisable(b);
+        aiCodeArea.setDisable(b);
     }
 
     public TutorialGroup getTutorialGroup() {

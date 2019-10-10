@@ -107,6 +107,7 @@ public class CodeArea extends HBox {
         codeFieldList.add(index,codeField);
     }
     void draw(){
+        this.getChildren().clear();
         rectStackList = getRectanglesFromList(codeFieldList);
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
@@ -129,7 +130,7 @@ public class CodeArea extends HBox {
         firstStackPane.getChildren().addAll(rectVBox,codeVBox);
 //        secondStackPane.getChildren().clear();
 //        secondStackPane.getChildren().addAll(rectVBox2,codeVBox2);
-        this.getChildren().clear();
+//
         this.getChildren().add(firstStackPane);//,secondStackPane);
     }
 

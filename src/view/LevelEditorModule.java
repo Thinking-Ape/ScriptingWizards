@@ -84,7 +84,8 @@ public class LevelEditorModule {
     private HBox prevNextTutHBox = new HBox(prevTutorialTextBtn,nextTutorialTextBtn);
     private VBox tutorialVBox = new VBox(tutorialTopHBox,tutorialTextArea,editTutHBox,prevNextTutHBox);
     private VBox cellDetailVBox = new VBox();
-    private VBox rightVBox = new VBox(cellTypeVBox,new HBox(cellItemVBox,cellDetailVBox),tutorialVBox);
+    private HBox itemDetailHBox = new HBox(cellItemVBox,cellDetailVBox);
+    private VBox rightVBox = new VBox(cellTypeVBox,itemDetailHBox,tutorialVBox);
     private CheckBox isTurnedCBox = new CheckBox("Is Turned");
     private CheckBox isInvertedCBox = new CheckBox("Is Open");
     private Label cellDetailLbl = new Label("Cell Details:");
@@ -97,6 +98,7 @@ public class LevelEditorModule {
         cellTypeVBox.setAlignment(Pos.CENTER);
         cellItemVBox.setAlignment(Pos.CENTER);
         cellItemSelectionGPane.setAlignment(Pos.CENTER);
+        itemDetailHBox.setSpacing(10);
         rightVBox.setAlignment(Pos.CENTER);
         rightVBox.setSpacing(50);
         tutorialTextArea.setEditable(false);
@@ -257,6 +259,9 @@ public class LevelEditorModule {
         deactivateCellDetails();
         cellDetailVBox.getChildren().addAll(cellDetailLbl,addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView,isTurnedCBox, isInvertedCBox);
     }
+//    public void addTurnable(){
+//        if(!cellDetailVBox.getChildren().contains(isTurnedCBox))cellDetailVBox.getChildren().add(isTurnedCBox);
+//    }
 
 //    public void activateExitOpenCheckbox(){
 //        deactivateCellDetails();

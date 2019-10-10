@@ -161,13 +161,7 @@ public class Controller {
                 model.getCurrentLevel().setPlayerBehaviour(behaviour);
                 //TODO: model.getCurrentLevel().addListener(view);
                 model.getCurrentLevel().setAiBehaviour(aiBehaviour);
-                view.getAICodeArea().deselectAll();
-                view.getCodeArea().deselectAll();
-                view.getCodeArea().setEditable(false);
-                view.getAICodeArea().setEditable(false);
-                view.getCodeArea().setDisable(true);
-                view.getAICodeArea().setDisable(true);
-                view.setBtnDisableWhenRunning(true);
+                view.setNodesDisableWhenRunning(true);
                 codeAreaController.setGameRunning(true);
 //                model.getCurrentLevel().setCurrentMapToOriginal();
                 timeline = new Timeline();
@@ -204,8 +198,13 @@ public class Controller {
                             }
                             if(view.getCurrentSceneState() == SceneState.PLAY){
                                 Level l = model.getLevelWithIndex(model.getCurrentLevel().getIndex()+1);
-                                if(l != null)
+                                if(l != null){
                                     model.selectLevel(l.getName());
+                                    view.setNodesDisableWhenRunning(false);
+                                    view.getCodeArea().setEditable(true);
+                                    codeAreaController.setGameRunning(false);
+                                }
+
                             }
                         }
                         if (model.getCurrentLevel().isLost()){
@@ -223,15 +222,13 @@ public class Controller {
 
                 }));
                 timeline.play();
-                view.getBtnReset().setDisable(false);
-                view.getBtnExecute().setDisable(true);
                 if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR)editorController.setAllEditButtonsToDisable(true);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         });
         view.getBtnReset().setOnAction(actionEvent -> {
-            view.setBtnDisableWhenRunning(false);
+            view.setNodesDisableWhenRunning(false);
             if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR){
                 view.getLevelEditorModule().setDisableAllLevelBtns(false);
                 if(model.getCurrentLevel().hasAi())view.getAICodeArea().setEditable(true);
@@ -240,16 +237,9 @@ public class Controller {
             codeAreaController.setGameRunning(false);
             timeline.stop();
             model.getCurrentLevel().reset();
-//            view.notify(Event.MAP_CHANGED);
-//            view.notify(Event.LEVEL_CHANGED);
-            view.getBtnReset().setDisable(true);
-            view.getBtnExecute().setDisable(false);
-//            editorController.setEditorHandlers();
             view.getCodeArea().setEditable(true);
-            view.getCodeArea().setDisable(false);
-            view.getAICodeArea().setDisable(false);
+            view.setNodesDisableWhenRunning(false);
             view.getCodeArea().select(0,true);
-//            codeAreaController.setAllHandlersForCodeArea(false);
         });
         view.getLoadBestCodeBtn().setOnAction(actionEvent -> {
             List<String> bestCode = new ArrayList<>();

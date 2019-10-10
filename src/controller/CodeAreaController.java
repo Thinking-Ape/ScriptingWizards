@@ -10,9 +10,11 @@ import view.CodeArea;
 import view.CodeField;
 import view.View;
 
-public class CodeAreaController {
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-    private CodeArea codeArea;
+public class CodeAreaController implements PropertyChangeListener {
+
     private View view;
     private Model model;
     private int errorLine = 0;
@@ -21,18 +23,20 @@ public class CodeAreaController {
     private String errorMessage;
     private boolean silentError = false;
     private boolean addBefore;
-    private int addedStatementsBalance = 0;
+    private int addedStatementsBalance = 0; //TODO: erase!
     private boolean isError = false;
     private boolean gameRunning = false;
 
     public CodeAreaController(View view, Model model) {
         this.model =model;
         this.view = view;
+        view.addPropertyChangeListener(this);
     }
-    public void setAllHandlersForCodeArea(boolean isAi) {
-        this.codeArea = isAi ? view.getAICodeArea() : view.getCodeArea();
+    private void setAllHandlersForCodeArea(CodeArea codeArea) {
+//        this.isAi = odeArea.isAi();
+//        this.codeArea = odeArea;
         for (CodeField codeField : codeArea.getCodeFieldListClone()) {
-            setHandlerForCodeField(codeField,isAi);
+            setHandlerForCodeField(codeField,codeArea.isAi());
 
             codeField.textProperty().addListener((observable, oldValue, newValue) -> {
                 Platform.runLater(()->codeField.setEmptyFlag(newValue.equals("")));
@@ -41,26 +45,19 @@ public class CodeAreaController {
         }
         codeArea.addListenerToScrollbar((observableValue, number, t1) -> codeArea.scroll(Math.round(t1.floatValue())));
     }
-    private void setHandlerForCodeField(CodeField currentCodeField, boolean isAi) {
+    private void setHandlerForCodeField(CodeField currentCodeField,boolean isAi) {
         currentCodeField.setOnMousePressed(event -> {
             if(gameRunning)return;
             if(view.getCodeArea().getSelectedCodeField()!=currentCodeField)view.getCodeArea().deselectAll();
             if(view.getAICodeArea().getSelectedCodeField()!=currentCodeField)view.getAICodeArea().deselectAll();
             addedStatementsBalance = 0;
-            codeArea = !isAi ? view.getCodeArea() : view.getAICodeArea();
+            CodeArea codeArea = !isAi ? view.getCodeArea() : view.getAICodeArea();
 //            codeArea.select(currentCodeField, true);
             silentError = false;
             selectEnd = true;
             currentIndex = codeArea.indexOfCodeField(currentCodeField);
             if(codeArea.getSelectedCodeField() == currentCodeField) return;
-//            codeArea.deselectAll();
             recreateCodeAreaIfCodeCorrect(codeArea,currentCodeField,isAi);
-//            if(tryToRecompileCodeArea(codeArea,silentError)!=null){
-//                view.setCodeArea(codeArea);
-//                setAllHandlersForCodeArea(codeArea);
-//            }
-//            codeArea.draw();
-//            codeArea.select(currentIndex,true);
         });
         currentCodeField.addListener((observableValue, s, t1) -> {
             Text text = new Text(t1);
@@ -69,7 +66,7 @@ public class CodeAreaController {
         currentCodeField.setOnKeyPressed(event -> {
             if(gameRunning)return;
             addedStatementsBalance = 0;
-            codeArea = !isAi ? view.getCodeArea() : view.getAICodeArea();
+            CodeArea codeArea = !isAi ? view.getCodeArea() : view.getAICodeArea();
             CodeArea codeAreaClone = codeArea.createClone();
 //            view.setCodeArea(codeAreaClone);
 //            codeAreaClone.draw();
@@ -216,7 +213,7 @@ public class CodeAreaController {
                     silentError = true;
             }
             recreateCodeAreaIfCodeCorrect(codeAreaClone,currentCodeField,isAi);
-            setAllHandlersForCodeArea(isAi);
+//            setAllHandlersForCodeArea();
 //            codeArea.getCodeFieldListClone().remove(newCodeField);
 //            codeArea.getCodeFieldListClone().add(currentIndex,removeCodeField1);
         });
@@ -230,10 +227,11 @@ public class CodeAreaController {
 //        });
     }
 
-    private void recreateCodeAreaIfCodeCorrect(CodeArea codeAreaClone, CodeField currentCodeField,boolean isAi) {
+    private void recreateCodeAreaIfCodeCorrect(CodeArea codeAreaClone, CodeField currentCodeField, boolean isAi) {
         Platform.runLater(()->{
             CodeArea newCodeArea = null;
 
+            CodeArea codeArea = isAi ? view.getAICodeArea() : view.getCodeArea();
             newCodeArea = tryToRecompileCodeArea(codeAreaClone,silentError,isAi);
 
             if(newCodeArea != null){
@@ -245,10 +243,8 @@ public class CodeAreaController {
 //                    i++; //TODO: eliminate confusing code!
 //                }
 //                if(codeFieldsToAddList.size() > 0)currentIndex++;
-                if(isAi)view.setAiCodeArea(newCodeArea);
-                else view.setCodeArea(newCodeArea);
-                newCodeArea.draw();
-                setAllHandlersForCodeArea(isAi);
+                view.setCodeArea(newCodeArea,isAi);
+//                setAllHandlersForCodeArea(codeArea);
                 if(!silentError) newCodeArea.select(currentIndex,selectEnd);
             } else{
                 if(!isError){
@@ -266,24 +262,24 @@ public class CodeAreaController {
             });
     }
 
-    private CodeArea tryToRecompileCodeArea(CodeArea codeArea, boolean silentError, boolean isAi) {
-        ComplexStatement complexStatement = recompileCode(codeArea,isAi);
-        CodeArea codeArea1 = isAi ? view.getAICodeArea() : view.getCodeArea();
+    private CodeArea tryToRecompileCodeArea(CodeArea codeArea2, boolean silentError,boolean isAi) {
+        ComplexStatement complexStatement = recompileCode(codeArea2);
+        CodeArea codeArea = isAi ? view.getAICodeArea() : view.getCodeArea();
         if(complexStatement != null){
             if(!isAi){
                 model.getCurrentLevel().setPlayerBehaviour(complexStatement);
             }
             else {
                 model.getCurrentLevel().setAiBehaviour(complexStatement);
-                setAllHandlersForCodeArea(true);
+//                setAllHandlersForCodeArea();
             }
 
-            if(codeArea1.getSize()>errorLine)
-            codeArea1.getCodeFieldListClone().get(errorLine).resetStyle();
+            if(codeArea.getSize()>errorLine)
+            codeArea.getCodeFieldListClone().get(errorLine).resetStyle();
             view.getMsgLabel().setText("");
             if(silentError)return null;
             try {
-                return new CodeArea(complexStatement);
+                return new CodeArea(complexStatement,codeArea.isAi());
             }catch (IllegalArgumentException e){
                 view.getMsgLabel().setText(e.getMessage());
             }
@@ -291,13 +287,13 @@ public class CodeAreaController {
         }
         else {
             view.getBtnExecute().setDisable(true);
-            if(isAi)view.getCodeArea().setDisable(true);
+            if(codeArea.isAi())view.getCodeArea().setDisable(true);
             else view.getAICodeArea().setDisable(true);
-            if(isAi)view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
+            if(codeArea.isAi())view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
             if(silentError)return null;
             view.getMsgLabel().setText(errorMessage );//+" In Line " +errorLine);
 //            if(errorLine > currentIndex)errorLine -= addedStatementsBalance;
-            codeArea1.highlightError(errorLine); //errorline
+            codeArea.highlightError(errorLine); //errorline
             return null;
         }
         return null; //TODO: evaluate this whole mess!
@@ -306,14 +302,14 @@ public class CodeAreaController {
 
 
     //TODO: transfer to CodeParser
-    private ComplexStatement recompileCode(CodeArea codeArea,boolean isAi) {
-        CodeParser codeParser =  new CodeParser(codeArea.getAllText(),!isAi);
+    private ComplexStatement recompileCode(CodeArea codeArea) {
+        CodeParser codeParser =  new CodeParser(codeArea.getAllText(),!codeArea.isAi());
         ComplexStatement complexStatement = null;
         try{
             complexStatement = codeParser.parseProgramCode();
             view.getBtnExecute().setDisable(false);
-            if(isAi)view.getLevelEditorModule().getSaveLevelBtn().setDisable(false);
-            if(isAi)view.getCodeArea().setDisable(false);
+            if(codeArea.isAi())view.getLevelEditorModule().getSaveLevelBtn().setDisable(false);
+            if(codeArea.isAi())view.getCodeArea().setDisable(false);
             else view.getAICodeArea().setDisable(false);
         }catch (Exception e){
 //            errorLine = codeParser.getCurrentLine()-1;
@@ -332,5 +328,16 @@ public class CodeAreaController {
 
     public void setGameRunning(boolean gameRunning) {
         this.gameRunning = gameRunning;
+    }
+
+    public boolean isGameRunning() {
+        return gameRunning;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if(!evt.getPropertyName().equals("codeArea"))return;
+
+        setAllHandlersForCodeArea((CodeArea) evt.getNewValue());
     }
 }
