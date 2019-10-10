@@ -22,7 +22,6 @@ OPTIONAL:
 IMPORTANT:
 -----------------------------------
 -build a prototype -> https://stackoverflow.com/questions/53453212/how-to-deploy-a-javafx-11-desktop-application-with-a-jre
--variable names restrict possible names?? (kinda already done...)
 -add all VariableTypes enumerated in the enum
 -Why is every assignment parsed twice?? (codeparser -> parseassignment sout -> twice in commandline)
 -unlock statementtypes
@@ -43,20 +42,32 @@ IMPORTANT:
 -> figure out how to evaluate values of conditions and assignments!
 -boulder -> barrel that can roll?
 -changelog
--Knight give items
--Knight death "animation"
 -Army army and Method army.executeIf(<Action>,<Condition>)
 -fill spellbook slowly and also add all variables!
--how to display item currently carried?
--remove glowing background from sword etc
 -menu after winning playmode -> back, replay or next level
--skeleton.attack() (no skeleton.move()!)
 -skeleton cannot useItem()!
+-codeexecutor fireevent -> draw these?
+-multicell editing
+-newturns > turns but newlines < lines -> better? (not justifiable to give 2.5!)
+-keythief enemy lives after having been killed!!!
+-schleusen level with and without an inverted gate
+-evil wizard explains level editor
+-change action animation every second frame -> GameConstants.Random + column + row + constant changing every round
 ---------------------------------------------
 
 DONE:
 
 9.10.
+draw entities last? (multi cell images)
+attack animations
+adapt skeleton code to attack
+variable names restrict possible names??
+Knight give items
+Knight death "animation"
+remove glowing background from sword etc
+how to display item currently carried?
+skeleton.attack() (no skeleton.move()!)
+exit open -> shiny exit!
 Exit rework
 Knight remove so much glow
 
