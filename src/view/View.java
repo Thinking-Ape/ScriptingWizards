@@ -1,6 +1,5 @@
 package view;
 
-import controller.EditorController;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -40,6 +39,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +98,9 @@ public class View implements PropertyChangeListener {
     private Button loadBestCodeBtn = new Button("Load Best Code");
     private Button clearCodeBtn = new Button("Clear Code");
     private IntroductionPane introductionPane = IntroductionPane.getInstance();
+
+    //TODO: for visual purposes:
+    List<Entity> entityActionList = new ArrayList<>();
 
 
     public View(Model model, Stage stage, boolean isEditor) {
@@ -180,7 +183,7 @@ public class View implements PropertyChangeListener {
                         //"Knight k = new Knight(EAST);","k.move();","k.move();","k.turn(EAST);","if(k.targetIsUnarmed()){","k.move();","k.turn(WEST);","k.move();","k.move();","}","else {","k.turn(2);","k.move();","k.turn(EAST);","k.move();","k.move();","}");
                         //"int i = 10;","Knight k = new Knight(WEST);","k.move();","for(int j = 0;j < i;j = j + 1;){","k.wait();","}","k.turn(2);","k.move();");
                         //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContainsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-                        "Knight knight = new Knight(EAST);","int turns = 0;","boolean b = knight.targetContainsEntity(SKELETON);","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (b || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContainsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}");
+                        "Knight knight = new Knight(EAST);","int turns = 0;","boolean b = knight.targetContainsEntity(SKELETON);","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (b || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContainsItem(SWORD)) {","knight.collect();","knight.move();","knight.turn(LEFT);","knight.useItem();","knight.useItem();","knight.useItem();","knight.useItem();","knight.useItem();","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}");
 //                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
                         //"Knight knight = new Knight(NORTH);", "knight.collect();", "knight.move();", "knight.useItem();", "knight.move();");
             } catch (IllegalAccessException e) {
@@ -243,7 +246,9 @@ public class View implements PropertyChangeListener {
                 boolean isOpen = false;
                 for (CFlag flag : CFlag.values()) {
                     if (cell.hasFlag(flag)) {
-                        if(flag == CFlag.DEATH||flag == CFlag.ACTION)continue;
+                        if(flag.isTemporary())
+                            continue;
+//                            if(cell.hasFlag(CFlag.KNIGHT_DEATH) && contentImageMap.containsKey(entityName+"_Death"))entityName+="_Death";
                         if(flag == CFlag.TURNED && (isTurned = true))continue;
                         if(flag == CFlag.INVERTED){
                             isInverted = true;
@@ -275,7 +280,9 @@ public class View implements PropertyChangeListener {
 //                    imageView.setFitHeight(cell_size);
                     stackPane.getChildren().add(imageView);
                 }
-
+                if(cell.hasFlag(CFlag.KNIGHT_DEATH))
+                    stackPane.getChildren().add(new ImageView(contentImageMap.get(CFlag.KNIGHT_DEATH.getDisplayName())));
+                else if (cell.hasFlag(CFlag.SKELETON_DEATH))stackPane.getChildren().add(new ImageView(contentImageMap.get(CFlag.SKELETON_DEATH.getDisplayName())));
                 gPane.add(stackPane, x, y);
 //                actualMapGPane.getChildren().add(mapShapes[row][column]);
             }
@@ -286,15 +293,17 @@ public class View implements PropertyChangeListener {
 //                drawCell(map[row][column],column,row);
 //                GridPane.setRowIndex(mapShapes[row][column],row);
 //                GridPane.setColumnIndex(mapShapes[row][column],column);
+                int number = 1;
                 StackPane stackPane = new StackPane();
                 stackPane.setMouseTransparent(true);
 //                if(cell.getEntity()!=null)stackPane.getChildren().add(getEntityShape(cell.getEntity()));
                 if (cell.getEntity() != null) {
+                    if(entityActionList.contains(cell.getEntity())){
+                        number = 3;
+                    }
                     String entityName = cell.getEntity().getEntityType().getDisplayName();
-                    if(cell.hasFlag(CFlag.DEATH) && contentImageMap.containsKey(entityName+"_Death"))entityName+="_Death";
-                    else if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_1"))entityName+="_Action_1";
-                    else if(cell.getEntity().getItem()!= null && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
-
+                    if(cell.getEntity().getItem()!= null && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
+                    if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_"+number))entityName+="_Action_"+number;
                     ImageView imageView = new ImageView(contentImageMap.get(entityName));
 
 //                    imageView.setFitHeight(cell_size);
@@ -302,7 +311,15 @@ public class View implements PropertyChangeListener {
                     stackPane.getChildren().add(imageView);
                     ImageView iView=null;
                     if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName))
-                        iView = new ImageView(contentImageMap.get(entityName.replace("1", "2")));
+                    {
+                        if(entityActionList.contains(cell.getEntity()))
+                            entityActionList.remove(cell.getEntity());
+                        else entityActionList.add(cell.getEntity());
+                        iView = new ImageView(contentImageMap.get(entityName.replace(""+number, ""+(number+1))));
+                    }
+                    else
+                    if(entityActionList.contains(cell.getEntity()))
+                        entityActionList.remove(cell.getEntity());
                     switch (cell.getEntity().getDirection()) {
                         case NORTH:
                             imageView.setRotate(90);

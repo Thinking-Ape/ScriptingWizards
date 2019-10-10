@@ -86,10 +86,12 @@ public class CodeExecutor {
         Point targetPos =  gameMap.getTargetPoint(name);
         Entity actorEntity = gameMap.getEntity(actorPos);
         CContent targetContent = gameMap.getContentAtXY(targetPos);
+        gameMap.setFlag(actorPos, CFlag.ACTION, true );
         if(actorEntity.getItem() == ItemType.KEY&&targetContent == CContent.EXIT){
             actorEntity.setItem(null);
             gameMap.setFlag(targetPos, CFlag.OPEN, true);
             hasWon = true;
+            return;
         }
 //        if(actorEntity.getItem() == ItemType.BEACON){
 //            beaconEntity = actorEntity;
@@ -100,6 +102,7 @@ public class CodeExecutor {
         if(actorEntity.getItem() == ItemType.SWORD&&gameMap.getEntity(targetPos) != null){
             gameMap.kill(targetPos); //TODO: maybe -> targetCell.kill();??
         }
+
     }
 
     private void tryToDropItem(Point actorPos) {
@@ -195,7 +198,7 @@ public class CodeExecutor {
 //        }
 
         boolean isOpen = gameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ gameMap.cellHasFlag(targetPoint, CFlag.INVERTED);
-
+        if(gameMap.isGateWrongDirection(actorPoint, targetPoint))return;
         if((gameMap.getContentAtXY(targetPoint).isTraversable()||isOpen) && gameMap.isCellFree(targetPoint)){
             CContent targetContent =gameMap.getContentAtXY(targetPoint);
 //            if(targetContent==CContent.EXIT){
@@ -221,17 +224,6 @@ public class CodeExecutor {
         }
 //        return output;
     }
-
-
-//    public void kill(Cell actorCell) {
-//        if(actorCell.getEntity() == null)return;
-//        System.out.println(actorCell.getEntity().getEntityType() +" "+ actorCell.getEntity().getName()+" died!");
-//        gameMap.ecMapKill(actorCell.getEntity().getName());
-//        ItemType item = actorCell.getEntity().getItem();
-//        actorCell.setEntity(null);
-//        actorCell.setItem(item);
-//    }
-
 
     private void executeMethodCall(MethodCall methodCall, boolean isPlayer) throws IllegalAccessException {
         String name = methodCall.getExpressionTree().getLeftNode().getText();

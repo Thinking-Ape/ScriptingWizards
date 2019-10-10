@@ -1,17 +1,14 @@
 package model;
 
 import javafx.util.Pair;
-import model.enums.CContent;
-import model.enums.CFlag;
-import model.enums.EntityType;
-import model.enums.ItemType;
+import model.enums.*;
 import utility.Point;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 
-public class GameMap /*implements PropertyChangeListener*/ {
+public class GameMap {
 
     private PropertyChangeSupport changeSupport;
     private int boundX;
@@ -149,14 +146,6 @@ public class GameMap /*implements PropertyChangeListener*/ {
     }
 
     public void addLinkedCellId(int x, int y, int integer) {
-//        List<Integer> oldList = new ArrayList<>();
-//        List<Integer> newList = new ArrayList<>();
-//        for(int i = 0; i < cellArray2D[x][y].getLinkedCellsSize();i++){
-//            oldList.add(cellArray2D[x][y].getLinkedCellId(i));
-//            newList.add(cellArray2D[x][y].getLinkedCellId(i));
-//        }
-//        newList.add(integer);
-//        changeSupport.firePropertyChange("linkedCellId", oldList,newList);
         Cell oldCell = cellArray2D[x][y].copy();
         cellArray2D[x][y].addLinkedCellId(integer);
         Cell newCell = cellArray2D[x][y].copy();
@@ -207,31 +196,35 @@ public class GameMap /*implements PropertyChangeListener*/ {
     }
     public void kill(int x, int y) {
         Cell cell =cellArray2D[x][y];
-        if(cell.getEntity()==null){
+        Entity entity = cell.getEntity();
+        if(entity==null){
             cell.setItem(null);
             return;
         }
-        System.out.println(cell.getEntity().getEntityType() +" "+ cell.getEntity().getName()+" died!");
+        System.out.println(cell.getEntity().getEntityType().getDisplayName() +" "+ cell.getEntity().getName()+" died!");
 //        ecMapKill(cell.getEntity().getName());
-        cell.setFlagValue(CFlag.DEATH,true);
+        if(entity.getEntityType()==EntityType.KNIGHT)
+            cell.setFlagValue(CFlag.KNIGHT_DEATH,true);
+        else if(entity.getEntityType()==EntityType.SKELETON)
+            cell.setFlagValue(CFlag.SKELETON_DEATH,true);
+//        changeSupport.firePropertyChange(cell.getEntity().getEntityType().getDisplayName()+"Death",null,new Point(x,y));
         removeEntity(x,y);
+//        if(cellArray2D[x][y].hasFlag(CFlag.KNIGHT_DEATH)){
+        setItem(x,y,entity.getItem());
+        entityCellMap.remove(entity.getName());
+//        }
     }
 
     public void removeEntity(int x, int y) {
 
         Entity e = cellArray2D[x][y].getEntity();
         if (e == null) return;
-        ItemType item = e.getItem();
-        Cell oldCell = cellArray2D[x][y].copy();
-        Cell newCell = cellArray2D[x][y].copy();
-        newCell.setEntity(null);
+//        ItemType item = e.getItem();
+//        Cell oldCell = cellArray2D[x][y].copy();
+//        Cell newCell = cellArray2D[x][y].copy();
+//        newCell.setEntity(null);
         cellArray2D[x][y].setEntity(null);
-        if(cellArray2D[x][y].hasFlag(CFlag.DEATH)){
-            setItem(x,y,item);
-            entityCellMap.remove(e.getName());
-        }
-
-        changeSupport.firePropertyChange("entity",new Pair<>(new Point(x, y),oldCell),new Pair<>(new Point(x, y),newCell));
+//        changeSupport.firePropertyChange("entity",new Pair<>(new Point(x, y),oldCell),new Pair<>(new Point(x, y),newCell));
     }
 
     public void removeEntity(Point p){
@@ -249,6 +242,7 @@ public class GameMap /*implements PropertyChangeListener*/ {
     public Point getTargetPoint(String actorName) {
         Point p = getEntityPosition(actorName);
         Entity entity = cellArray2D[p.getX()][p.getY()].getEntity();
+        if(entity == null) return new Point(-1, -1);
         switch (entity.getDirection()){
             case NORTH:
                 return new Point(p.getX(), p.getY()-1);
@@ -368,5 +362,18 @@ public class GameMap /*implements PropertyChangeListener*/ {
     public void clearFlags(int x, int y) {
         for(CFlag flag : CFlag.values())
         cellArray2D[x][y].setFlagValue(flag, false);
+    }
+
+    public boolean isGateWrongDirection(Point actorPoint, Point targetPoint) {
+        Entity actorEntity = getEntity(actorPoint);
+        if(getContentAtXY(targetPoint)==CContent.GATE){
+            if((actorEntity.getDirection()== Direction.NORTH||actorEntity.getDirection()==Direction.SOUTH)&&!cellHasFlag(targetPoint, CFlag.TURNED))return true;
+            if((actorEntity.getDirection()==Direction.WEST||actorEntity.getDirection()==Direction.EAST)&&cellHasFlag(targetPoint, CFlag.TURNED))return true;
+        }
+        if(getContentAtXY(actorPoint)==CContent.GATE){
+            if((actorEntity.getDirection()==Direction.NORTH||actorEntity.getDirection()==Direction.SOUTH)&&!cellHasFlag(actorPoint, CFlag.TURNED))return true;
+            if((actorEntity.getDirection()==Direction.WEST||actorEntity.getDirection()==Direction.EAST)&&cellHasFlag(actorPoint, CFlag.TURNED))return true;
+        }
+        return false;
     }
 }

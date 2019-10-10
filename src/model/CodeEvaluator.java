@@ -264,6 +264,7 @@ public class CodeEvaluator {
             Point actorPoint = gameMap.getEntityPosition(objectName);
             if(actorPoint == null) return false;
             Point targetPoint = gameMap.getTargetPoint(objectName);
+            if(targetPoint.getX()==-1)return false;
             CContent targetContent = gameMap.getContentAtXY(targetPoint);
             Entity actorEntity = gameMap.getEntity(actorPoint);
             Entity targetEntity = gameMap.getEntity(targetPoint);
@@ -276,7 +277,8 @@ public class CodeEvaluator {
                 case COLLECT:
                     throw new IllegalAccessException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in CodeParser
                 case CAN_MOVE:
-                    return gameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || gameMap.cellHasFlag(targetPoint,CFlag.OPEN));
+                    if(gameMap.isGateWrongDirection(actorPoint,targetPoint))return false;
+                    return gameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || (gameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ gameMap.cellHasFlag(targetPoint, CFlag.INVERTED)));
                 case HAS_ITEM:
                     return actorEntity.getItem() != null && (actorEntity.getItem() == ItemType.getValueFromName(parameterString) || parameterString.equals(""));
                 case TARGET_CELL_IS:
