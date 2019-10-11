@@ -1,5 +1,6 @@
 package view;
 
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,6 +29,8 @@ import model.statement.ComplexStatement;
 import parser.JSONParser;
 import utility.GameConstants;
 import org.jetbrains.annotations.Contract;
+import utility.Point;
+import utility.Util;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -66,13 +69,10 @@ public class View implements PropertyChangeListener {
     private GridPane actualMapGPane;
     private StackPane rootPane;
     private VBox baseContentVBox;
-    private Polyline highlight;
+    private List<Polyline> highlights = new ArrayList<>();
     private LevelEditorModule levelEditorModule;
-    private int selectedRow = -1;
-    private int selectedColumn = -1;
+    private List<Point> selectedPointList = new ArrayList<>();
     private ChoiceBox<String> choiceBox;
-    private Image testKnightImage;
-    private Image enemyImage;
     private Map<String, Image> contentImageMap = new HashMap<>();
 
     private LevelOverviewPane levelOverviewPane;
@@ -104,6 +104,9 @@ public class View implements PropertyChangeListener {
 
 
     public View(Model model, Stage stage, boolean isEditor) {
+
+        selectedPointList = new ArrayList<>();
+        selectedPointList.add(new Point(0, 0));
         this.stage = stage;
         this.model = model;
         this.startScreen = new StartScreen();
@@ -183,7 +186,7 @@ public class View implements PropertyChangeListener {
                         //"Knight k = new Knight(EAST);","k.move();","k.move();","k.turn(EAST);","if(k.targetIsUnarmed()){","k.move();","k.turn(WEST);","k.move();","k.move();","}","else {","k.turn(2);","k.move();","k.turn(EAST);","k.move();","k.move();","}");
                         //"int i = 10;","Knight k = new Knight(WEST);","k.move();","for(int j = 0;j < i;j = j + 1;){","k.wait();","}","k.turn(2);","k.move();");
                         //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContainsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-                        "Knight knight = new Knight(EAST);","int turns = 0;","boolean b = knight.targetContainsEntity(SKELETON);","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (b || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContainsItem(SWORD)) {","knight.collect();","knight.move();","knight.turn(LEFT);","knight.useItem();","knight.useItem();","knight.useItem();","knight.useItem();","knight.useItem();","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}");
+                        "Knight knight = new Knight(EAST);","boolean b = knight.targetContainsEntity(SKELETON);","boolean step1 = true;","int kills = 0;","for(int i = 0;i < 3;i = i + 1;) {","knight.move();","}","knight.turn(LEFT);","for(int i = 0;i < 4;i = i + 1;) {","knight.move();","}","while(step1) {","if (b) {","knight.turn(AROUND);","knight.wait();","knight.wait();","knight.wait();","knight.move();","knight.turn(AROUND);","knight.move();","kills = kills + 1;","if (kills == 2) {","step1 = false;","}","}","else {","knight.wait();","}","}","TurnDirection dir = LEFT;","while(true) {","if (knight.targetCellIs(PRESSURE_PLATE)) {","knight.move();","knight.move();","knight.move();","knight.turn(RIGHT);","for(int i = 0;i < 4;i = i + 1;) {","knight.move();","}","dir = RIGHT;","}","else if (knight.canMove()) {","knight.move();","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","dir = LEFT;","}","else if (knight.targetCellIs(EXIT)) {","knight.useItem();","}","else {","knight.turn(dir);","}","}");
 //                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
                         //"Knight knight = new Knight(NORTH);", "knight.collect();", "knight.move();", "knight.useItem();", "knight.move();");
             } catch (IllegalAccessException e) {
@@ -216,9 +219,10 @@ public class View implements PropertyChangeListener {
 
     private GridPane getGridPaneFromMap(GameMap map) {
         cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
+
+        if(getCurrentSceneState() == SceneState.PLAY ||getCurrentSceneState() == SceneState.TUTORIAL)
+            cell_size = cell_size*GameConstants.PLAY_CELL_SIZE_FACTOR;
         cell_size = Math.round(cell_size);
-        testKnightImage = new Image("file:resources/images/Knight.png", cell_size, cell_size, true, true);
-        enemyImage = new Image("file:resources/images/Skeleton.png", cell_size, cell_size, true, true);
         File folder = new File(Paths.get(GameConstants.ROOT_PATH + "/images").toString());
         File[] listOfFiles = folder.listFiles();
         assert listOfFiles != null;
@@ -244,13 +248,14 @@ public class View implements PropertyChangeListener {
                 boolean isTurned = false;
                 boolean isInverted = false;
                 boolean isOpen = false;
+//                boolean isTriggered=false;
                 for (CFlag flag : CFlag.values()) {
                     if (cell.hasFlag(flag)) {
                         if(flag.isTemporary())
                             continue;
 //                            if(cell.hasFlag(CFlag.KNIGHT_DEATH) && contentImageMap.containsKey(entityName+"_Death"))entityName+="_Death";
                         if(flag == CFlag.TURNED && (isTurned = true))continue;
-                        if(flag == CFlag.INVERTED){
+                        if(flag == CFlag.INVERTED && cell.getContent()==CContent.GATE){
                             isInverted = true;
                             if(!isOpen)contentString += "_" + CFlag.OPEN.getDisplayName();
                             else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
@@ -262,6 +267,17 @@ public class View implements PropertyChangeListener {
                             else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
                             continue;
                         }
+                        if(flag == CFlag.INVERTED && cell.getContent()==CContent.PRESSURE_PLATE && model.getCurrentLevel().getTurnsTaken()==0){
+                            isInverted = true;
+                            contentString += "_"+CFlag.INVERTED.getDisplayName()+ "_" + CFlag.TRIGGERED.getDisplayName();
+                            continue;
+                        }
+//                        if(flag == CFlag.TRIGGERED ){
+//                            isTriggered = true;
+//                            if(!isInverted)contentString += "_" + CFlag.TRIGGERED.getDisplayName();
+//                            else contentString = contentString.replace("_" + CFlag.TRIGGERED.getDisplayName(),"");
+//                            continue;
+//                        }
                         contentString += "_" + flag.getDisplayName();
                     }
                 }
@@ -481,45 +497,71 @@ public class View implements PropertyChangeListener {
         return aiCodeArea;
     }
 
-//    @Contract("null -> fail")
-//    public void setAiCodeArea(CodeArea newCodeArea) {
-//        if (newCodeArea == null)
-//            throw new IllegalArgumentException("null is no longer allowed as AiCodeArea! Please use an empty CodeArea instead!");
-//        this.aiCodeArea = newCodeArea;
-////        rootPane.setLeft(aiCodeArea);
-////        aiCodeArea.setAlignment(Pos.TOP_LEFT);
-//        //TODO: DOesnt work like this!!
-//        leftVBox.getChildren().clear();
-//        leftVBox.getChildren().addAll(new Rectangle(50, 50, Color.MAGENTA), new Label("Enemy Script"), aiCodeArea);
-//        leftVBox.setAlignment(Pos.TOP_LEFT);
-//    }
-
     public GridPane getActualMapGPane() {
         return actualMapGPane;
     }
 
-    public void highlightInMap(int k, int h) {
-        //TODO: actualMapGPANE sollte gridpane aus StackPanes sein!
-//        for(int i = 0; i < actualMapGPane.getChildren().size();i++){
-        if (highlight != null) actualMapGPane.getChildren().remove(highlight);
-        highlight = new Polyline(0, 0, 0, cell_size, cell_size, cell_size, cell_size, 0, 0, 0);
-        highlight.setStroke(Color.WHITE);
-        highlight.setSmooth(true);
-        highlight.setStrokeWidth(2);
-        highlight.setStrokeType(StrokeType.INSIDE);
-        actualMapGPane.add(highlight, k, h);
-        selectedColumn = k;
-        selectedRow = h;
-    }
-
-    public void setCellTypeButtonActive(CContent content) {
-        for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
-            Button btn = (Button) n;
-            if (btn.getText().equals(content.getDisplayName())) btn.setDisable(true);
-            else btn.setDisable(false);
+    public void highlightInMap(List<Point> points) {
+        this.selectedPointList = new ArrayList<>(points);
+        for (Polyline highlight: highlights) {
+            rootPane.getChildren().remove(highlight);
+        }
+        highlights = new ArrayList<>();
+        Polyline highlight;
+        List<Line> edgeList = new ArrayList<>();
+        for(int x = 0; x < model.getCurrentLevel().getOriginalMap().getBoundX(); x++)
+        for(int y = 0; y < model.getCurrentLevel().getOriginalMap().getBoundY(); y++) {
+            if (!points.contains(new Point(x, y))) continue;
+//            System.out.println("X: " +x + ", Y:" +y);
+            double dx = x * cell_size;
+            double dy = y * cell_size;
+            if (y == 0 || !points.contains(new Point(x, y - 1))) edgeList.add(new Line(dx, dy, dx + cell_size, dy));
+            if (x == 0 || !points.contains(new Point(x - 1, y))) edgeList.add(new Line(dx, dy + cell_size, dx, dy));
+            if (x == model.getCurrentLevel().getOriginalMap().getBoundX() - 1 || !points.contains(new Point(x + 1, y)))
+                edgeList.add(new Line(dx + cell_size, dy, dx + cell_size, dy + cell_size));
+            if (y == model.getCurrentLevel().getOriginalMap().getBoundY() - 1 || !points.contains(new Point(x, y + 1)))
+                edgeList.add(new Line(dx + cell_size, dy + cell_size, dx, dy + cell_size));
         }
 
+        if(edgeList.size()== 0)return;
+        for(Double[] doubles : Util.orderLines(edgeList, new ArrayList<>())){
+            highlight = new Polyline();
+            highlight.getPoints().addAll(doubles);
+            highlight.setStroke(Color.WHITE);
+            highlight.setSmooth(true);
+            highlight.setStrokeWidth(2);
+            highlight.setStrokeType(StrokeType.INSIDE);
+
+            rootPane.getChildren().add(highlight);
+            StackPane.setAlignment(highlight, Pos.TOP_LEFT);
+            actualMapGPane.autosize();
+            highlight.autosize();
+            highlight.setTranslateX(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinX()+highlight.getLayoutBounds().getMinX());
+            highlight.setTranslateY(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinY()+highlight.getLayoutBounds().getMinY());
+            highlights.add(highlight);
+
+//            System.out.println(""+actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinX()+" "+highlight.getLayoutBounds().getMinX());
+        }
     }
+//
+//        Polyline highlight = new Polyline(0, 0, 0, cell_size, cell_size, cell_size, cell_size, 0, 0, 0);
+//        highlight.setStroke(Color.WHITE);
+//        highlight.setSmooth(true);
+//        highlight.setStrokeWidth(2);
+//        highlight.setStrokeType(StrokeType.INSIDE);
+//        actualMapGPane.add(highlight, k, h);
+//        selectedColumn = k;
+//        selectedRow = h;
+
+
+//    public void setCellTypeButtonDisabled(CContent content) {
+//        for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
+//            Button btn = (Button) n;
+//            if (btn.getText().equals(content.getDisplayName())) btn.setDisable(true);
+////            else btn.setDisable(false);
+//        }
+//
+//    }
 
     public void setItemTypeButtonActive(ItemType item) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
@@ -534,13 +576,13 @@ public class View implements PropertyChangeListener {
         return levelEditorModule.getCellTypeSelectionGPane();
     }
 
-    public int getSelectedRow() {
-        return selectedRow >= 0 ? selectedRow : 0;
-    }
-
-    public int getSelectedColumn() {
-        return selectedColumn >= 0 ? selectedColumn : 0;
-    }
+//    public int getSelectedRow() {
+//        return selectedRow >= 0 ? selectedRow : 0;
+//    }
+//
+//    public int getSelectedColumn() {
+//        return selectedColumn >= 0 ? selectedColumn : 0;
+//    }
 
     public VBox getCellVBox() {
         return levelEditorModule.getRightVBox();
@@ -567,10 +609,10 @@ public class View implements PropertyChangeListener {
         return levelEditorModule;
     }
 
-    public void setCContentButtonInactive(CContent content) {
+    public void setCContentButtonInactive(CContent content,boolean b) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
             Button btn = (Button) n;
-            if (btn.getText().equals(content.getDisplayName())) btn.setDisable(true);
+            if (btn.getText().equals(content.getDisplayName())) btn.setDisable(b);
         }
     }
 
@@ -583,16 +625,16 @@ public class View implements PropertyChangeListener {
         }
     }
 
-    public void setNormalButtonsInactive() {
+    public void setNormalButtonsInactive(boolean b) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
             Button btn = (Button) n;
             if (!btn.getText().equals(CContent.EMPTY.getDisplayName()) && !btn.getText().equals(CContent.WALL.getDisplayName()))
-                btn.setDisable(true);
+                btn.setDisable(b);
         }
         for (Node n : levelEditorModule.getCellItemSelectionGPane().getChildren()) {
             Button btn = (Button) n;
             if (!btn.getText().equals(CContent.EMPTY.getDisplayName()) && !btn.getText().equals(CContent.WALL.getDisplayName()))
-                btn.setDisable(true);
+                btn.setDisable(b);
         }
     }
 
@@ -621,8 +663,8 @@ public class View implements PropertyChangeListener {
             default:
 
             case "level":
-                selectedRow = 0;
-                selectedColumn = 0;
+                selectedPointList = new ArrayList<>();
+                selectedPointList.add(new Point(0, 0));
                 if (model.getCurrentLevel().hasAi()) {
                     aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true);
                     setCodeArea(aiCodeArea,true);
@@ -632,6 +674,8 @@ public class View implements PropertyChangeListener {
                 if (sceneState == SceneState.LEVEL_EDITOR) updateLevelEditorModule();
             case "map":
                 drawMap(model.getCurrentLevel().getOriginalMap());
+                if(sceneState == SceneState.LEVEL_EDITOR)
+                Platform.runLater(()->highlightInMap(selectedPointList));
                 break;
             case "playerBehaviour":
 //                codeArea = new CodeArea(model.getCurrentLevel().getPlayerBehaviour());
@@ -643,11 +687,17 @@ public class View implements PropertyChangeListener {
                 break;
             case "width":
                 levelEditorModule.getWidthValueLbl().setText(model.getCurrentLevel().getOriginalMap().getBoundX() + "");
+
+                selectedPointList = pointListOutOfBounds();
                 drawMap(model.getCurrentLevel().getOriginalMap());
+                Platform.runLater(()->highlightInMap(selectedPointList));
                 break;
             case "height":
                 levelEditorModule.getHeightValueLbl().setText(model.getCurrentLevel().getOriginalMap().getBoundY() + "");
+
+                selectedPointList = pointListOutOfBounds();
                 drawMap(model.getCurrentLevel().getOriginalMap());
+                Platform.runLater(()->highlightInMap(selectedPointList));
                 break;
             case "locToStars":
                 Integer[] locToStars = model.getCurrentLevel().getLocToStars();
@@ -698,7 +748,20 @@ public class View implements PropertyChangeListener {
                     levelEditorModule.getTutorialNumberValueLbl().setText("" + (index));
                 }
                 break;
+            case "linkedCellId":
+            case "cellId":
+                changeSupport.firePropertyChange("map", null, null);
+                break;
         }
+    }
+
+    private List<Point> pointListOutOfBounds() {
+        List<Point> output = new ArrayList<>();
+        for(Point p : selectedPointList){
+            if(p.getX() >= model.getCurrentLevel().getOriginalMap().getBoundX()||p.getY() >= model.getCurrentLevel().getOriginalMap().getBoundY())continue;
+            output.add(p);
+        }
+        return output;
     }
 
     public StartScreen getStartScreen() {
@@ -961,6 +1024,16 @@ public class View implements PropertyChangeListener {
 
     public void addPropertyChangeListener(PropertyChangeListener editorController) {
         changeSupport.addPropertyChangeListener(editorController);
+    }
+
+    public List<Point> getSelectedPointList() {
+        return selectedPointList;
+    }
+
+    public void deselect() {
+        for (Polyline highlight: highlights) {
+            rootPane.getChildren().remove(highlight);
+        }
     }
 }
 //KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContainsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"

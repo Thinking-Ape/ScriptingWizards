@@ -73,6 +73,7 @@ public class Controller {
         view.getStartScreen().getLvlEditorBtn().setOnAction(actionEvent -> {
             view.setSceneState(SceneState.LEVEL_EDITOR);
             editorController.setEditorHandlers();
+            Platform.runLater(()->view.highlightInMap(view.getSelectedPointList()));
         });
 
         view.getStartScreen().getExitBtn().setOnAction(actionEvent -> {
@@ -140,8 +141,9 @@ public class Controller {
         view.getStartScreen().getPlayBtn().setOnAction(actionEvent -> {
             view.setSceneState(SceneState.LEVEL_SELECT);
             view.getLevelOverviewPane().getPlayBtn().setOnAction(actionEvent1 -> {
-                model.selectLevel(view.getLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName());
+                String levelName = view.getLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
                 view.setSceneState(SceneState.PLAY);
+                model.selectLevel(levelName);
             });
         });
 
@@ -172,6 +174,7 @@ public class Controller {
                     try {
                         model.getCurrentLevel().executeTurn();
                         view.drawMap(model.getCurrentLevel().getCurrentMap());
+                        view.deselect();
                         if (model.getCurrentLevel().isWon()){
                             int turns = model.getCurrentLevel().getTurnsTaken();
                             int loc = behaviour.getActualSize();

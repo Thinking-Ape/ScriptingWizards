@@ -52,8 +52,8 @@ public class LevelEditorModule {
     private GridPane cellItemSelectionGPane = new GridPane();
     private Label cellIdValueLbl = new Label("");
     private Label cellIdLbl = new Label("Cell Id:");
-    private Button addLinkedCellBtn = new Button("Add Linked Cell");
-    private Button removeLinkedCellBtn = new Button("Remove Linked Cell");
+    private Button addLinkedCellBtn = new Button("+ Linked Cell");
+    private Button removeLinkedCellBtn = new Button("- Linked Cell");
     private Button changeCellIdBtn = new Button("Change Cell ID");
     private ListView<Integer> linkedCellListView = new ListView<>();
     private ChoiceBox<String> trapChoiceBox = new ChoiceBox<>();
@@ -84,11 +84,12 @@ public class LevelEditorModule {
     private HBox prevNextTutHBox = new HBox(prevTutorialTextBtn,nextTutorialTextBtn);
     private VBox tutorialVBox = new VBox(tutorialTopHBox,tutorialTextArea,editTutHBox,prevNextTutHBox);
     private VBox cellDetailVBox = new VBox();
-    private HBox itemDetailHBox = new HBox(cellItemVBox,cellDetailVBox);
-    private VBox rightVBox = new VBox(cellTypeVBox,itemDetailHBox,tutorialVBox);
+    private HBox itemAndDetailHBox = new HBox(cellItemVBox,cellDetailVBox);
+    private VBox rightVBox = new VBox(cellTypeVBox, itemAndDetailHBox,tutorialVBox);
     private CheckBox isTurnedCBox = new CheckBox("Is Turned");
     private CheckBox isInvertedCBox = new CheckBox("Is Open");
     private Label cellDetailLbl = new Label("Cell Details:");
+//    private HBox checkBoxHbox = new HBox(isTurnedCBox,isInvertedCBox);
 
     public LevelEditorModule(Level level){
 //        if(level.getAIBehaviour().getStatementListSize()==0) hasAICheckBox.setSelected(false);
@@ -96,16 +97,18 @@ public class LevelEditorModule {
         Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
         topHBox.setSpacing(20);
         cellTypeVBox.setAlignment(Pos.CENTER);
-        cellItemVBox.setAlignment(Pos.CENTER);
-        cellItemSelectionGPane.setAlignment(Pos.CENTER);
-        itemDetailHBox.setSpacing(10);
+        cellItemVBox.setAlignment(Pos.TOP_CENTER);
+        cellItemSelectionGPane.setAlignment(Pos.TOP_CENTER);
+        itemAndDetailHBox.setSpacing(15);
+        itemAndDetailHBox.setAlignment(Pos.TOP_CENTER);
         rightVBox.setAlignment(Pos.CENTER);
         rightVBox.setSpacing(50);
         tutorialTextArea.setEditable(false);
         tutorialTextArea.setMaxWidth(300);
         tutorialTextArea.setMouseTransparent(true);
         tutorialTextArea.setWrapText(true);
-        linkedCellListView.setMaxWidth(100);
+        linkedCellListView.setMaxWidth(30);
+        linkedCellListView.setMaxHeight(15);
         editTutHBox.setAlignment(Pos.TOP_CENTER);
         prevNextTutHBox.setAlignment(Pos.TOP_CENTER);
         cellDetailVBox.setAlignment(Pos.TOP_CENTER);
@@ -251,13 +254,18 @@ public class LevelEditorModule {
         return hasAiValueLbl;
     }
 
-    public void activateCellIDHBox(){
+    public void activateCellIDHBox(boolean isPressurePlate){
         deactivateCellDetails();
-        cellDetailVBox.getChildren().addAll(cellDetailLbl,cellIdLbl, cellIdValueLbl,changeCellIdBtn);
+        if(isPressurePlate) {
+            isInvertedCBox.setText("Is Inverted");
+            cellDetailVBox.getChildren().addAll(cellDetailLbl, isInvertedCBox, cellIdLbl, cellIdValueLbl, changeCellIdBtn);
+        }
+        else cellDetailVBox.getChildren().addAll(cellDetailLbl,cellIdLbl, cellIdValueLbl,changeCellIdBtn);
     }
     public void activateLinkedCellBtns(){
         deactivateCellDetails();
-        cellDetailVBox.getChildren().addAll(cellDetailLbl,addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView,isTurnedCBox, isInvertedCBox);
+        isInvertedCBox.setText("Is Open");
+        cellDetailVBox.getChildren().addAll(cellDetailLbl,isTurnedCBox,isInvertedCBox,addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView);
     }
 //    public void addTurnable(){
 //        if(!cellDetailVBox.getChildren().contains(isTurnedCBox))cellDetailVBox.getChildren().add(isTurnedCBox);
@@ -273,7 +281,7 @@ public class LevelEditorModule {
     }
     public void deactivateCellDetails(){
         cellDetailVBox.getChildren().removeAll(cellIdLbl, cellIdValueLbl,changeCellIdBtn);
-        cellDetailVBox.getChildren().removeAll(addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView,isTurnedCBox, isInvertedCBox);
+        cellDetailVBox.getChildren().removeAll(addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView,isTurnedCBox,isInvertedCBox);
         cellDetailVBox.getChildren().remove(cellDetailLbl);
         cellDetailVBox.getChildren().remove(trapChoiceBox);
     }

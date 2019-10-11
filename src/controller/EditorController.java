@@ -14,6 +14,7 @@ import model.statement.ComplexStatement;
 import model.statement.SimpleStatement;
 import utility.GameConstants;
 import parser.JSONParser;
+import utility.Point;
 import utility.Util;
 import view.SceneState;
 import view.View;
@@ -23,9 +24,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class EditorController implements PropertyChangeListener {
 
@@ -52,9 +51,9 @@ public class EditorController implements PropertyChangeListener {
         view.getLevelEditorModule().getSaveLevelBtn().setDisable(b);
         view.getLevelEditorModule().getEditLvlBtn().setDisable(b);
         if(b){
-            view.setNormalButtonsInactive();
-            view.setCContentButtonInactive(CContent.EMPTY);
-            view.setCContentButtonInactive(CContent.WALL);
+            view.setNormalButtonsInactive(true);
+            view.setCContentButtonInactive(CContent.EMPTY,true);
+            view.setCContentButtonInactive(CContent.WALL,true);
         }
     }
 
@@ -66,20 +65,19 @@ public class EditorController implements PropertyChangeListener {
         setHandlersForMapCells();
         setHandlersForCellTypeButtons();
         //TODO: make this section prettier -> look to setHandlersForMapCells
-        int k = view.getSelectedColumn();
-        int h = view.getSelectedRow();
-        changeEditorModuleDependingOnCellContent(k,h);
-        CContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(k, h);
-        view.setCellTypeButtonActive(content);
-        if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setCContentButtonInactive(CContent.EMPTY);
-        if(!testIfNormalContentIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setNormalButtonsInactive();
-        //END OF TODO
+        for(Point p : view.getSelectedPointList()){
+            int k = p.getX();
+            int h = p.getY();
+            CContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(k, h);
+//            view.setCContentButtonInactive(content,true);
+            //END OF TODO
 
-        int cellId  = model.getCurrentLevel().getOriginalMap().getCellID(k,h);
-        if(cellId !=-1)view.getLevelEditorModule().getCellIdValueLbl().setText(cellId+"");
-        else view.getLevelEditorModule().getCellIdValueLbl().setText("NONE");
+            int cellId  = model.getCurrentLevel().getOriginalMap().getCellID(k,h);
+            if(cellId !=-1)view.getLevelEditorModule().getCellIdValueLbl().setText(cellId+"");
+            else view.getLevelEditorModule().getCellIdValueLbl().setText("NONE");
+            changeEditorModuleDependingOnCellContent(view.getSelectedPointList());
+        }
 
-        changeEditorModuleDependingOnCellContent(k,h);
         view.getLevelEditorModule().getSaveLevelBtn().setOnAction(event -> {
             Level level =model.getCurrentLevel();
             if(level.getOriginalMap().findSpawn().getX()==-1){
@@ -540,13 +538,8 @@ public class EditorController implements PropertyChangeListener {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
-            //TODO: next line necessary?
-//            setEditorHandlers();
         }
     });
-        if(view.getSelectedColumn()!=-1 && view.getSelectedRow()!=-1)view.highlightInMap(view.getSelectedColumn(),view.getSelectedRow());
 }
 
     private void formatSlider(Slider slider,int min, int max) {
@@ -594,18 +587,34 @@ public class EditorController implements PropertyChangeListener {
                 final int k = x;
                 final int h = y;
                 stackPane.setOnMousePressed(mouseEvent -> {
-                    view.highlightInMap(k,h);
-                    view.setCellTypeButtonActive(content);
-                    if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setCContentButtonInactive(CContent.EMPTY);
-                    if(!testIfNormalContentIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setNormalButtonsInactive();
+                    List<Point> selectedList = new ArrayList<>();
+                    if(mouseEvent.isControlDown()) {
+                        if(!mouseEvent.isShiftDown()) selectedList.addAll(view.getSelectedPointList());
+                        if(mouseEvent.isShiftDown()) {
+                            selectedList.addAll(Util.getPointsInRectangle(view.getSelectedPointList().get(view.getSelectedPointList().size()-1),new Point(k, h)));
+                        }
+                        else if(selectedList.contains(new Point(k,h)))selectedList.remove(new Point(k,h));
+                        else selectedList.add(new Point(k,h));
+                    }
+                    else if(mouseEvent.isShiftDown()) {
+//                        selectedList.addAll();
+                        selectedList.addAll(Util.getPointsInRectangle(view.getSelectedPointList().get(view.getSelectedPointList().size()-1),new Point(k, h)));
+                    }
+                    else selectedList.add(new Point(k,h));
+
+                    view.highlightInMap(selectedList);
+
+                    if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setCContentButtonInactive(CContent.EMPTY,true);
+                    if(!testIfNormalContentIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setNormalButtonsInactive(true);
 
                     int cellId  = model.getCurrentLevel().getOriginalMap().getCellID(k,h);
                     if(cellId !=-1)view.getLevelEditorModule().getCellIdValueLbl().setText(cellId+"");
                     else view.getLevelEditorModule().getCellIdValueLbl().setText("NONE");
 
-                    changeEditorModuleDependingOnCellContent(k,h);
-                });
+                    changeEditorModuleDependingOnCellContent(selectedList);
+                });}}
                 view.getLevelEditorModule().getRemoveLinkedCellBtn().setOnAction(actionEvent -> {
+                    if(view.getSelectedPointList().size() > 1)return;
                     int id;
                     int index = 0;
                     if(view.getLinkedCellsListView().getSelectionModel().getSelectedItem() == null) id = view.getLinkedCellsListView().getItems().get(index);
@@ -616,18 +625,13 @@ public class EditorController implements PropertyChangeListener {
                     view.getLinkedCellsListView().getItems().remove(index);
                     int size = view.getLinkedCellsListView().getItems().size();
                     view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
-                    model.getCurrentLevel().getOriginalMap().removeCellLinkedId(view.getSelectedColumn(),view.getSelectedRow(),id);
+                    model.getCurrentLevel().getOriginalMap().removeCellLinkedId(view.getSelectedPointList().get(0).getX(),view.getSelectedPointList().get(0).getY(),id);
                     if(view.getLinkedCellsListView().getItems().size()==0){
                         view.getLinkedCellsListView().setVisible(false);
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
                     }
 //                    setEditorHandlers();
                 });
-//                view.getLevelEditorModule().getExitOpenCheckBox().setOnAction(event -> {
-//                    boolean t1 = view.getLevelEditorModule().getExitOpenCheckBox().isSelected();
-//                    model.getCurrentLevel().getOriginalMap().setFlag(view.getSelectedColumn(),view.getSelectedRow(),CFlag.OPEN,t1);
-//                    setEditorHandlers();
-//                });
                 view.getLinkedCellsListView().setOnMouseClicked(event -> {
                     if(view.getLinkedCellsListView().getSelectionModel().getSelectedItem()!=null){
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setVisible(true);
@@ -636,6 +640,7 @@ public class EditorController implements PropertyChangeListener {
 //                    setEditorHandlers();
                 });
                 view.getLevelEditorModule().getChangeCellIdBtn().setOnAction(event->{
+                    if(view.getSelectedPointList().size() > 1) return;
                     Dialog<ButtonType> newLevelDialog = new Dialog<>();
                     TextField idTField = new TextField();
                     addChangeListenerForIntTFields(idTField);
@@ -651,33 +656,29 @@ public class EditorController implements PropertyChangeListener {
                             if(!idTField.getText().equals("")) id = Integer.valueOf(idTField.getText());
 //                            int old_id = model.getCurrentLevel().getOriginalMap()[view.getSelectedColumn()][view.getSelectedRow()].getCellId();
                             if(model.getCurrentLevel().getOriginalMap().testIfIdIsUnique(id)){
-                                model.getCurrentLevel().getOriginalMap().setCellId(view.getSelectedColumn(),view.getSelectedRow(),id);
+                                model.getCurrentLevel().getOriginalMap().setCellId(view.getSelectedPointList().get(0).getX(),view.getSelectedPointList().get(0).getY(),id);
                                 view.getLevelEditorModule().getCellIdValueLbl().setText(id!=-1 ? ""+id : "NONE");
                             }
                             else new Alert(Alert.AlertType.NONE,"Id "+id+" already in use",ButtonType.OK).showAndWait();
                         }
                     }
-//                    setEditorHandlers();
                 });
-//                view.getCellIdTField().textProperty().addListener((observableValue, s, t1) -> {
-//                    int c = 0;
-//                    for(Cell[] cellRow : model.getCurrentLevel().getCurrentMap()){
-//                        int d = 0;
-//                        for(Cell cell : cellRow){
-//                            if(!cell.getCellId().equals("")&&cell.getCellId().equals(t1)&&!(c == view.getSelectedColumn()&&d == view.getSelectedRow())){
-//                                view.getCellIdTField().setText(s);
-//                                return;
-//                            }
-//                            d++;
-//                        }
-//                        c++;
-//                        }
-//                    //TODO: bad style!
-//                    model.getCurrentLevel().getOriginalMap()[view.getSelectedColumn()][view.getSelectedRow()].setCellId(t1);
-//                    model.getCurrentLevel().getCurrentMap()[view.getSelectedColumn()][view.getSelectedRow()].setCellId(t1);
-//
-//                });
+                view.getLevelEditorModule().getIsInvertedCBox().setOnAction(evt -> {
+                    GameMap map = model.getCurrentLevel().getOriginalMap();
+                    if(view.getSelectedPointList().size()!=1)return;
+                    int column = view.getSelectedPointList().get(0).getX();
+                    int  row = view.getSelectedPointList().get(0).getY();
+                    map.setFlag(column, row, CFlag.INVERTED,view.getLevelEditorModule().getIsInvertedCBox().isSelected());
+                });
+                view.getLevelEditorModule().getIsTurnedCBox().setOnAction(evt -> {
+                    GameMap map = model.getCurrentLevel().getOriginalMap();
+                    if(view.getSelectedPointList().size()!=1)return;
+                    int column = view.getSelectedPointList().get(0).getX();
+                    int  row = view.getSelectedPointList().get(0).getY();
+                    map.setFlag(column, row, CFlag.TURNED,view.getLevelEditorModule().getIsTurnedCBox().isSelected());
+                });
                 view.getLevelEditorModule().getAddLinkedCellBtn().setOnAction(actionEvent -> {
+                    if( view.getSelectedPointList().size() > 1) return;
                     GameMap map = model.getCurrentLevel().getOriginalMap();
                     ChoiceDialog<Integer> idsDialog = new ChoiceDialog<>();
                     for(int x2 = 0; x2 < map.getBoundX();x2++){
@@ -691,11 +692,13 @@ public class EditorController implements PropertyChangeListener {
                         idsDialog.setSelectedItem(idsDialog.getItems().get(0));
                         Optional<Integer> s = idsDialog.showAndWait();
                         if(s.isPresent()) {
+                            int column = view.getSelectedPointList().get(0).getX();
+                            int row = view.getSelectedPointList().get(0).getY();
                             view.getLinkedCellsListView().setVisible(true);
                             view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(false);
-                            boolean cellHasLinkedId = map.cellHasLinkedCellId(view.getSelectedColumn(),view.getSelectedRow(),s.get());
+                            boolean cellHasLinkedId = map.cellHasLinkedCellId(column,row,s.get());
                             if (!cellHasLinkedId) {
-                                map.addLinkedCellId(view.getSelectedColumn(),view.getSelectedRow(),s.get());
+                                map.addLinkedCellId(column,row,s.get());
                                 //TODO: duplicate code in view.getLevelEditorModule().getRemoveLinkedCellBtn().setOnAction(actionEvent -> {
                                 int size = view.getLinkedCellsListView().getItems().size();
                                 view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
@@ -704,9 +707,6 @@ public class EditorController implements PropertyChangeListener {
                     }
                     else new Alert(Alert.AlertType.NONE, "There are no more Pressure Plates with a unique Cell Id to add", ButtonType.OK).showAndWait();
                 });
-            }
-
-        }
     }
 
     private boolean testIfNormalContentIsAllowed(GameMap currentMap, int k, int h) {
@@ -727,16 +727,47 @@ public class EditorController implements PropertyChangeListener {
         return leftSideWallOrNothing && rightSideWallOrNothing && bottomSideWallOrNothing && topSideWallOrNothing;
     }
 
-    private void changeEditorModuleDependingOnCellContent(int x, int y) {
-        GameMap map = model.getCurrentLevel().getOriginalMap();
-        CContent content = map.getContentAtXY(x, y);
-        if(content.isTraversable()) view.setAllItemTypeButtonActive();
-        else view.setAllItemTypeButtonInActive();
-        ItemType item = map.getItem(x,y);
-        if(item != null){
-            view.setItemButtonInactive(item);
+    private void changeEditorModuleDependingOnCellContent(List<Point> points) {
+        if(view.getSelectedPointList().size() == 0){
+            view.setNormalButtonsInactive(true);
+            view.setCContentButtonInactive(CContent.WALL,true);
+            view.setCContentButtonInactive(CContent.EMPTY,true);
+//            view.setAllItemTypeButtonActive();
+            return;
         }
-        else view.setItemButtonInactive(null);
+        view.setNormalButtonsInactive(false);
+        view.setCContentButtonInactive(CContent.WALL,false);
+        view.setCContentButtonInactive(CContent.EMPTY,false);
+        GameMap map = model.getCurrentLevel().getOriginalMap();
+        boolean traversable = true;
+        boolean noItem = true;
+        CContent content = null;
+        for(Point p : points){
+            int x = p.getX();
+            int y = p.getY();
+            if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),x,y))view.setCContentButtonInactive(CContent.EMPTY,true);
+            if(!testIfNormalContentIsAllowed(model.getCurrentLevel().getOriginalMap(),x,y))view.setNormalButtonsInactive(true);
+            content = map.getContentAtXY(x, y);
+            traversable = traversable && content.isTraversable();
+            ItemType item = map.getItem(x,y);
+            if(item != null){
+                view.setItemButtonInactive(item);
+                noItem  = false;
+            }
+        }
+        if(traversable) view.setAllItemTypeButtonActive();
+        else view.setAllItemTypeButtonInActive();
+
+        if(noItem) view.setItemButtonInactive(null);
+
+        if(view.getSelectedPointList().size() > 1){
+            view.setCContentButtonInactive(CContent.SPAWN,true);
+            view.getLevelEditorModule().deactivateCellDetails();
+            return;
+        }
+        final int x = points.get(0).getX();
+        final int y = points.get(0).getY();
+        view.setCContentButtonInactive(content, true);
         if(content == CContent.TRAP){
             view.getLevelEditorModule().activateTrapChoicebox();
 
@@ -760,24 +791,20 @@ public class EditorController implements PropertyChangeListener {
                 map.setFlag(x, y, CFlag.ARMED,false );
                 if(flag != null)map.setFlag(x, y, flag,true );
                 if(flag == CFlag.ARMED)map.setItem(x, y, null);
-//                setHandlersForMapCells();
-                view.highlightInMap(view.getSelectedColumn(),view.getSelectedRow());});
+            });
         }
         else if(content == CContent.PRESSURE_PLATE||content == CContent.ENEMY_SPAWN){
-            view.getLevelEditorModule().activateCellIDHBox();
+            view.getLevelEditorModule().activateCellIDHBox(content == CContent.PRESSURE_PLATE);
+            view.getLevelEditorModule().getIsInvertedCBox().setSelected(map.cellHasFlag(x,y,CFlag.INVERTED));
         }
 
         else if(content == CContent.GATE){
             view.getLevelEditorModule().activateLinkedCellBtns();
             view.getLevelEditorModule().getIsTurnedCBox().setSelected(map.cellHasFlag(x,y,CFlag.TURNED));
-            view.getLevelEditorModule().getIsTurnedCBox().setOnAction(evt -> {
-                map.setFlag(x, y, CFlag.TURNED,view.getLevelEditorModule().getIsTurnedCBox().isSelected());
-            });
+
 
             view.getLevelEditorModule().getIsInvertedCBox().setSelected(map.cellHasFlag(x,y,CFlag.INVERTED));
-            view.getLevelEditorModule().getIsInvertedCBox().setOnAction(evt -> {
-                map.setFlag(x, y, CFlag.INVERTED,view.getLevelEditorModule().getIsInvertedCBox().isSelected());
-            });
+
             ListView<Integer> listView =  view.getLevelEditorModule().getLinkedCellListView();
             listView.getItems().clear();
             //TODO: only gate has linked cells?
@@ -794,6 +821,8 @@ public class EditorController implements PropertyChangeListener {
                 view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
             }
         }else view.getLevelEditorModule().deactivateCellDetails();
+
+
 //        if(content == CContent.ENEMY_SPAWN || content == CContent.SPAWN||content == CContent.EXIT){
 //            view.getLevelEditorModule().addTurnable();
 //            view.getLevelEditorModule().getIsTurnedCBox().setSelected(map.cellHasFlag(x,y,CFlag.TURNED));
@@ -817,7 +846,10 @@ public class EditorController implements PropertyChangeListener {
             Button btn = (Button) view.getCellTypeSelectionPane().getChildren().get(i*rowC+j);
             final CContent content = CContent.getValueFromName(btn.getText().toUpperCase().replaceAll(" ", "_"));
             btn.setOnAction(mouseEvent -> {
-                gameMap.clearFlags(view.getSelectedColumn(),view.getSelectedRow());
+                for(Point p : view.getSelectedPointList()){
+                int column = p.getX();
+                int row = p.getY();
+                gameMap.clearFlags(column,row);
                 //TODO: darf es wirklich nur einen geben?
                 if(content == null) throw new IllegalStateException("Content: " + btn.getText().toUpperCase().replaceAll(" ", "_") + " doesnt exist!");
                 if(content == CContent.SPAWN){
@@ -829,21 +861,19 @@ public class EditorController implements PropertyChangeListener {
                         }
                     }
                 }
-                gameMap.setContent(view.getSelectedColumn(),view.getSelectedRow(),content);
-                int id = gameMap.getCellID(view.getSelectedColumn(),view.getSelectedRow());
+                int id = gameMap.getCellID(column,row);
                 if(id!=-1){
-                    gameMap.setCellId(view.getSelectedColumn(),view.getSelectedRow(),-1);
+                    gameMap.setCellId(column,row,-1);
                     for(int x = 0; x < gameMap.getBoundX(); x++)for(int y = 0; y < gameMap.getBoundY(); y++)gameMap.removeCellLinkedId(x,y,id);
                 }
-                if(!content.isTraversable())gameMap.setItem(view.getSelectedColumn(),view.getSelectedRow(),null);
-                view.setCellTypeButtonActive(content);
-                if(!testIfEmptyIsAllowed(gameMap,view.getSelectedColumn(),view.getSelectedRow())){
-                    view.setCContentButtonInactive(CContent.EMPTY);
+                view.setCContentButtonInactive(content,true);
+                if(!testIfEmptyIsAllowed(gameMap,column,row)){
+                    view.setCContentButtonInactive(CContent.EMPTY,true);
                 }
-                changeEditorModuleDependingOnCellContent(view.getSelectedColumn(),view.getSelectedRow());
+                changeEditorModuleDependingOnCellContent(view.getSelectedPointList());}
+                gameMap.setContent(view.getSelectedPointList(),content);
                 setHandlersForMapCells();
-                view.highlightInMap(view.getSelectedColumn(),view.getSelectedRow());
-            });
+                });
         }
         columnC = view.getCellItemSelectionPane().getColumnCount();
         rowC = view.getCellItemSelectionPane().getRowCount();
@@ -852,15 +882,18 @@ public class EditorController implements PropertyChangeListener {
             Button btn = (Button) view.getCellItemSelectionPane().getChildren().get(i*rowC+j);
             final ItemType item = ItemType.getValueFromName(btn.getText().toUpperCase());
             btn.setOnMousePressed(mouseEvent -> {
-                CContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(view.getSelectedColumn(),view.getSelectedRow());
+                for(Point p : view.getSelectedPointList()) {
+                    int column = p.getX();
+                    int row = p.getY();
 
-                if(content.isTraversable())
-                    model.getCurrentLevel().getOriginalMap().setItem(view.getSelectedColumn(),view.getSelectedRow(),item);
+                    CContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(column, row);
                     view.setAllItemTypeButtonActive();
                     view.setItemButtonInactive(item);
-                setHandlersForMapCells();
-                view.highlightInMap(view.getSelectedColumn(),view.getSelectedRow());
+                    setHandlersForMapCells();
+                }
+                model.getCurrentLevel().getOriginalMap().setItem(view.getSelectedPointList(), item);
             });
+
         }
     }
 
