@@ -4,9 +4,13 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.text.TextAlignment;
 import model.Cell;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -145,5 +149,54 @@ public abstract class Util {
         }
         output.replace(output.length()-1, output.length(), ")");
         return output.toString();
+    }
+
+    public static List<Double[]> orderLines(List<Line> edgeList,List<Double[]> outputArray) {
+        Line startEdge = edgeList.get(0);
+        List<Line> startList = new ArrayList<>(edgeList);
+        startList.remove(startEdge);
+        List<Double> output = findAntecessor(startEdge,startList, new ArrayList<>());
+        outputArray.add(new Double[output.size()]);
+        int i = 0;
+        for(Double d : output){
+            outputArray.get(outputArray.size()-1)[i]=d;
+//            System.out.print(i%2==0?"X: "+d:", Y: "+d+"\n");
+            i++;
+        }
+        if(startList.size() == 0 ){
+//            List<Double[]> outputArray = new ArrayList<>();
+            return outputArray;
+        }
+        else {
+            return orderLines(startList, outputArray);
+        }
+    }
+
+    private static List<Double> findAntecessor(Line startEdge, List<Line> edgeList,List<Double> output){
+        output.add(startEdge.getStartX());
+        output.add(startEdge.getStartY());
+
+        for(Line line : edgeList){
+            if(line.getStartX() == startEdge.getEndX() && line.getStartY() == startEdge.getEndY()){
+                edgeList.remove(line);
+                return findAntecessor(line,edgeList, output);
+            }
+        }
+        output.add(startEdge.getEndX());
+        output.add(startEdge.getEndY());
+        return output;
+    }
+
+    public static List<Point> getPointsInRectangle(Point point1, Point point2) {
+        List<Point> output = new ArrayList<>();
+        int maxX = point1.getX() > point2.getX() ? point1.getX() : point2.getX();
+        int maxY = point1.getY() > point2.getY() ? point1.getY() : point2.getY();
+        int minX = point1.getX() < point2.getX() ? point1.getX() : point2.getX();
+        int minY = point1.getY() < point2.getY() ? point1.getY() : point2.getY();
+
+        for(int x = minX ; x <= maxX ; x++)for(int y = minY; y <= maxY;y++){
+            output.add(new Point(x, y));
+        }
+        return output;
     }
 }

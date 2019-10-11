@@ -25,4 +25,11 @@ public class MethodCall extends SimpleStatement {
     public String getText(){
         return getExpressionTree().getLeftNode().getText()+"."+methodType.getName()+"("+getExpressionTree().getRightNode().getText()+");";
     }
+
+    public String getObjectName() {
+        return expressionTree.getLeftNode().getText();
+    }
+    public String[] getParameters() {
+        return expressionTree.getRightNode().getText().split(",");
+    }
 }

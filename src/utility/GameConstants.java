@@ -27,6 +27,10 @@ public abstract class GameConstants {
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
     public static final boolean IS_FULLSCREEN = false;
     public static final String VERSION = "1.0.0";
+    public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
+    public static final int MAX_LOOP_SIZE = 500;
+    public static final String VARIABLE_NAME_REGEX = "^[a-zA-Z_][a-zA-Z_0-9]*$";
+    public static final double PLAY_CELL_SIZE_FACTOR = 1.25;
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 
     //abhängig vom canvas...

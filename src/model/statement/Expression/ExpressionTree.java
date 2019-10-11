@@ -118,4 +118,10 @@ public class ExpressionTree {
     public boolean equals(ExpressionTree expressionTree){
         return getText().equals(expressionTree.getText());
     }
+
+    public int getDepth() {
+        int left = 1 + (leftNode == null ? 0 : leftNode.getDepth());
+        int right = 1 + (leftNode == null ? 0 : leftNode.getDepth());
+        return left > right ? left : right;
+    }
 }

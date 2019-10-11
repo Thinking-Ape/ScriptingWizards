@@ -1,7 +1,7 @@
 package utility;
 
 public class Point {
-    int x,y;
+    private int x,y;
     public Point (int x,int y){
         this.x = x;
         this.y = y;
@@ -13,5 +13,14 @@ public class Point {
 
     public int getY() {
         return y;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o instanceof Point) {
+            Point p = (Point)o;
+            return x == p.getX() && y == p.getY();
+        }
+        return  super.equals(o);
     }
 }

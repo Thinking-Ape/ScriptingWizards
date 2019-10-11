@@ -73,4 +73,5 @@ public interface Condition {
         ExpressionTree expressionTree = ExpressionTree.expressionTreeFromString(code);
         return  new ConditionLeaf(expressionTree, BooleanType.SIMPLE,null);
     }
+    boolean isSimple();
 }

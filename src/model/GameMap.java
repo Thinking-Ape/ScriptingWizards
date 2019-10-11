@@ -172,7 +172,7 @@ public class GameMap {
 
     public void setFlag(int x, int y, CFlag flag, boolean t1) {
         setFlag(new Point(x, y), flag, t1);
-//        changeSupport.firePropertyChange("flag", new Pair<>(flag,cellArray2D[x][y].hasFlag(flag)), new Pair<>(flag,t1));
+        changeSupport.firePropertyChange("flag", new Pair<>(flag,cellArray2D[x][y].hasFlag(flag)), new Pair<>(flag,t1));
     }
 
     public boolean cellHasFlag(int x, int y, CFlag flag) {
@@ -236,6 +236,7 @@ public class GameMap {
     }
 
     public Entity getEntity(Point ecMapGet) {//TODO: sloppy Point vs x,y??
+        if(ecMapGet== null)return null;
         return cellArray2D[ecMapGet.getX()][ecMapGet.getY()].getEntity();
     }
 
@@ -260,6 +261,15 @@ public class GameMap {
         return getContentAtXY(targetPos.getX(), targetPos.getY());
     }
 
+    public void setItem(List<Point> targetPosList, ItemType item) {
+        for(Point p : targetPosList){
+            cellArray2D[p.getX()][p.getY()].setItem(item);
+        }
+//        Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
+//
+//        Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
+        changeSupport.firePropertyChange("item",null,null);
+    }
     public void setItem(Point targetPos, ItemType item) {
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         cellArray2D[targetPos.getX()][targetPos.getY()].setItem(item);
@@ -272,6 +282,15 @@ public class GameMap {
         cellArray2D[targetPos.getX()][targetPos.getY()].setContent(path);
         Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         changeSupport.firePropertyChange("content",new Pair<>(targetPos,oldCell),new Pair<>(targetPos,newCell));
+    }
+    public void setContent(List<Point> targetPosList, CContent path) {
+        for(Point p : targetPosList){
+            cellArray2D[p.getX()][p.getY()].setContent(path);
+        }
+//        Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
+//
+//        Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
+        changeSupport.firePropertyChange("content",null,null);
     }
 
     public boolean cellHasFlag(Point targetPoint, CFlag open) {

@@ -71,6 +71,41 @@ public class CodeEvaluator {
                 }
                 break;
             case METHOD_CALL:
+                MethodCall mC = (MethodCall)currentStatement;
+                if(mC.getMethodType()==MethodType.EXECUTE_IF){
+                    Variable v = currentStatement.getParentStatement().getVariable(mC.getObjectName());
+                    if(v != null){
+                        String output = "";
+                        if(v.getVariableType()== VariableType.ARMY){
+                            for(String s : v.getValue().getRightNode().getText().split(",")){
+                                String string = mC.getParameters()[0].replaceAll( v.getName()+"\\.", s+"\\.");
+                                System.out.println("test: "+string);
+
+                                if(v.getValue().getRightNode().getText().equals("")){
+                                    System.out.println(currentStatement.getText());
+                                    return currentStatement;
+                                }
+
+                                boolean b = testCondition(Condition.getConditionFromString(string));
+                                if(gameMap.getEntity(s)!=null)output+=b;
+                                else {
+                                    String ss = v.getValue().getText().replaceFirst("\\("+s+"\\)","\\(\\)" );
+                                    ss = ss.replaceFirst("\\("+s+",","\\(" );
+                                    ss = ss.replaceFirst(","+s+",","," );
+                                    ss = ss.replaceFirst(","+s+"\\)","\\)" );
+                                    v.update(ExpressionTree.expressionTreeFromString(ss));
+//                                    System.out.println(v.getValue().getText()+" " + s);
+//                                    if(v.getValue().getRightNode().getText().equals(""))
+//                                        return new SimpleStatement();
+                                }
+                            }
+                        }
+                        else output = testCondition(Condition.getConditionFromString(mC.getParameters()[0].split(",")[0]))+"";
+                        MethodCall mcc = new MethodCall(mC.getMethodType(), mC.getObjectName(), output+","+mC.getParameters()[1]+ (mC.getParameters().length>2 ? ","+mC.getParameters()[2] : ""));
+                        mcc.setParentStatement(mC.getParentStatement());
+                        return mcc;
+                    }
+                }
                 break;
             case DECLARATION:
                 Assignment declaration = (Assignment)currentStatement;
@@ -106,6 +141,17 @@ public class CodeEvaluator {
         }
         return currentStatement;
     }
+
+    /*private Condition replaceArmyVariables(Condition conditionFromString, String name, String s) {
+        if(conditionFromString.isSimple()){
+            ConditionLeaf conditionLeaf = (ConditionLeaf)conditionFromString;
+            if(conditionLeaf.getSimpleConditionType() != BooleanType.CAL &&conditionLeaf.getSimpleConditionType() != BooleanType.SIMPLE){
+
+
+            }
+        }
+        for(Condition c : )
+    }*/
 
 
     public boolean testCondition(Condition condition) throws IllegalAccessException {

@@ -54,6 +54,12 @@ public class ConditionLeaf implements Condition {
         return output + rightTree.getText();
 
     }
+
+    @Override
+    public boolean isSimple() {
+        return true;
+    }
+
     public BooleanType getSimpleConditionType(){
         return simpleConditionType;
     }

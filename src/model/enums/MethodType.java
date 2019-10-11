@@ -19,7 +19,8 @@ public enum MethodType {
     WAIT("wait\\(\\)",DEFAULT,"This Knight skips a turn."),
     TARGET_IS_DANGER("targetIsDanger\\(\\)",BOOLEAN,"Returns a boolean value corresponding to whether this Knight's target cell will kill it upon moving forward."),
     DROP_ITEM("dropItem\\(\\)",DEFAULT,"Drops any item currently held by this Knight."),
-    ATTACK("attack\\(\\)",DEFAULT,"Only for Skeletons!")
+    ATTACK("attack\\(\\)",DEFAULT,"Only for Skeletons!"),
+    EXECUTE_IF("executeIf\\((.+,.+,.+|.+,.+)\\)",DEFAULT,"If the conditions are met execute the first Command (,Optional: else execute the second)!")
     ;
 
 
@@ -51,6 +52,14 @@ public enum MethodType {
         }
         return null;
         //TODO: is this necessary? ->  throw new IllegalArgumentException("Method: " + methodName + " is unknown or has wrong parameters!");
+    }
+
+    public static String getAllRegex() {
+        String output = "(";
+        for(MethodType mt : values()){
+            output+=mt.regex+"|";
+        }
+        return output.substring(0, output.length()-1)+")";
     }
 
     public String getName(){

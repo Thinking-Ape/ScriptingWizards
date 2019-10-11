@@ -75,9 +75,6 @@ public class CodeAreaController implements PropertyChangeListener {
             currentIndex = codeArea.indexOfCodeField(currentCodeField);
             switch (event.getCode()){
                 case ENTER:
-                    if(codeAreaClone.getCodeFieldListClone().size() >= GameConstants.MAX_CODE_LINES*2){
-                        return;
-                    }
 //                    if(!currentCodeField.isEditable())return;
                     int selectedIndex = currentCodeField.getCaretPosition();
                     if(selectedIndex == 0 && !currentCodeField.isEmpty()){

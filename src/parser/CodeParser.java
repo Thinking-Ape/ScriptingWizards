@@ -242,8 +242,12 @@ public class CodeParser {
         String methodName = tempStatements.first();
         String parameters = tempStatements.second().substring(0,tempStatements.second().length()-1);
 //            throw new IllegalStateException(parameters+ " contains unknown Variables!");
-        if(depthStatementMap.get(depth-1).getVariable(objectName)==null)
-            throw new IllegalArgumentException("Variable " +objectName +" not in scope!");
+        Variable v = depthStatementMap.get(depth-1).getVariable(objectName);
+        if(v==null)
+            throw new IllegalArgumentException("Variable inside MethodCall " +objectName +" not in scope!");
+        else if (!(v.getVariableType() == VariableType.ARMY ||v.getVariableType() == VariableType.KNIGHT ||v.getVariableType() == VariableType.SKELETON)){
+            throw new IllegalArgumentException("Only Knights, Armies or Skeletons may call methods!");
+        }
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
         if(mType == null) throw new IllegalArgumentException("Method " + methodName + " is not a valid method!");
         if(isPlayerCode && mType == MethodType.ATTACK) throw new IllegalArgumentException("Knights cannot attack!");
@@ -291,7 +295,20 @@ public class CodeParser {
                 }
                 break;
             case TURN:
-                if(parameters.equals("AROUND") || parameters.equals("LEFT")|| parameters.equals("RIGHT")||(depthStatementMap.get(depth-1).getVariable(parameters)!=null &&depthStatementMap.get(depth-1).getVariable(parameters).getVariableType()==VariableType.TURN_DIRECTION)){
+                if(parameters.matches(VariableType.TURN_DIRECTION.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameters)!=null &&depthStatementMap.get(depth-1).getVariable(parameters).getVariableType()==VariableType.TURN_DIRECTION)){
+                    return;
+                }
+                break;
+            case EXECUTE_IF:
+                String[] parameterList = parameters.split(",");
+                checkConditionForUnknownVars(Condition.getConditionFromString(parameterList[0]), depth);
+                if(parameterList.length < 2)throw new IllegalArgumentException("Not enough paramters in method Call!");
+                System.out.println(VariableType.COMMAND.getAllowedRegex());
+
+                if(parameterList[1].matches(VariableType.COMMAND.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameterList[1])!=null &&depthStatementMap.get(depth-1).getVariable(parameterList[1]).getVariableType()==VariableType.COMMAND)){
+                    return;
+                }
+                if(parameterList.length == 2 || parameterList[2].matches(VariableType.COMMAND.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameterList[1])!=null &&depthStatementMap.get(depth-1).getVariable(parameterList[1]).getVariableType()==VariableType.COMMAND)){
                     return;
                 }
                 break;
@@ -338,7 +355,7 @@ public class CodeParser {
             variableTypeString = variableTypeAndName.first();
             variableName = variableTypeAndName.second();
         }
-        if(!variableName.trim().matches("^[a-zA-Z_][a-zA-Z_0-9]*$"))throw new IllegalArgumentException("A variable must not be named: "+variableName+"!");
+        if(!variableName.trim().matches(GameConstants.VARIABLE_NAME_REGEX))throw new IllegalArgumentException("A variable must not be named: "+variableName+"!");
 //        System.out.println(variableName);
         //TODO: make cleaner
         boolean isDeclaration = true;
@@ -356,7 +373,7 @@ public class CodeParser {
             if (complexStatement != null && currentForVariable == null){
                 variable1 = complexStatement.getVariable(variableName.trim());
                 if(variable1 == null)
-                    throw new IllegalArgumentException("Variable " + variableName+ " not in scope!");
+                    throw new IllegalArgumentException("Variable inside Assignment " + variableName+ " not in scope!");
                 variableType = variable1.getVariableType();
 
                 testForCorrectValueType(variableType,value,depth);
@@ -388,21 +405,21 @@ public class CodeParser {
                     testForCorrectValueType(VariableType.INT,tree.getLeftNode().getText(),depth );
                     testForCorrectValueType(VariableType.INT,tree.getRightNode().getText(),depth );
                 }
-                else if(!value.matches(GameConstants.RAND_INT_REGEX)&&!value.matches("[+-]?\\d+"))throw new IllegalArgumentException(value + " is no number!");
+                else if(!value.matches(GameConstants.RAND_INT_REGEX)&&!value.matches(variableType.getAllowedRegex()))throw new IllegalArgumentException(value + " is no number!");
                 else return;
             case BOOLEAN:
 //                if(!value.matches("true|false"))throw new IllegalArgumentException(value + " is no boolean!");
 //                else return;
                 return;
             case KNIGHT:
-                if(!value.matches("new Knight\\((EAST|WEST|NORTH|SOUTH)?\\)")){
+                if(!value.matches(variableType.getAllowedRegex())){
                     tree = ExpressionTree.expressionTreeFromString(value);
                     if(tree.getRightNode() != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)return;
                     throw new IllegalArgumentException(value + " is not a valid Knight constructor!");
                 }
                 break;
             case SKELETON:
-                if(!value.matches("(new Skeleton\\((EAST|WEST|NORTH|SOUTH)?\\)|new Skeleton\\([0-9]+\\)|new Skeleton\\((EAST|WEST|NORTH|SOUTH),[0-9]+\\))")){
+                if(!value.matches(variableType.getAllowedRegex())){
                     tree = ExpressionTree.expressionTreeFromString(value);
                     if(tree.getRightNode() != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)return;
                     throw new IllegalArgumentException(value + " is not a valid Skeleton constructor!");
@@ -413,7 +430,7 @@ public class CodeParser {
                 if(dir == null)throw new IllegalArgumentException(value + " is no Direction!");
                 else return;
             case TURN_DIRECTION:
-                if(!value.matches("LEFT|AROUND|RIGHT"))throw new IllegalArgumentException(value + " is no TurnDirection!");
+                if(!value.matches(variableType.getAllowedRegex()))throw new IllegalArgumentException(value + " is no TurnDirection!");
                 else return;
             case CELL_CONTENT:
                 CContent content = CContent.getValueFromName(value);
@@ -427,6 +444,21 @@ public class CodeParser {
                 EntityType entityType = EntityType.getValueFromName(value);
                 if(entityType == null)throw new IllegalArgumentException(value + " is no EntityType!");
                 else return;
+            case ARMY:
+                if(!value.matches(variableType.getAllowedRegex())){
+                    tree = ExpressionTree.expressionTreeFromString(value);
+                    if(tree.getRightNode() == null)throw new IllegalArgumentException("Your Army needs parameters!");
+                    for(String parameter : tree.getRightNode().getText().split(","))                           {
+                    if(depthStatementMap.get(depth-1).getVariable(parameter) == null)
+                        throw new IllegalArgumentException(parameter + " is not a valid variable!");
+                    else {
+                        boolean isKnight = depthStatementMap.get(depth-1).getVariable(parameter).getVariableType() == VariableType.KNIGHT && isPlayerCode;
+                        boolean isSkeleton = depthStatementMap.get(depth-1).getVariable(parameter).getVariableType() == VariableType.SKELETON && !isPlayerCode;
+                        if(isKnight || isSkeleton)continue;
+                    }
+                    throw new IllegalArgumentException(value + " is not a valid Army constructor!");}
+                }
+                break;
             case DEFAULT:
                 break;
         }
@@ -446,7 +478,7 @@ public class CodeParser {
             ConditionLeaf conditionLeaf = (ConditionLeaf)condition;
             switch(conditionLeaf.getSimpleConditionType()){
                 case SIMPLE:
-                    if(depthStatementMap.get(depth-1).getVariable(condition.getText())==null) throw new IllegalArgumentException("Variable "+condition.getText()+" not in scope!");
+                    if(depthStatementMap.get(depth-1).getVariable(condition.getText())==null) throw new IllegalArgumentException("Boolean Variable "+condition.getText()+" not in scope!");
                     return;
                 case GR_EQ:
                 case LE_EQ:
@@ -471,6 +503,11 @@ public class CodeParser {
     }
 
     private void checkExpressionTreeForUnknownVars(ExpressionTree valueTree,int depth) {
+        if(valueTree.getDepth()==1 && valueTree.getText().split(",").length > 1){
+            for(String s : valueTree.getText().split(","))
+                checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(s), depth);
+            return;
+        }
         if(valueTree.getText().matches(" *"))return;
         if(valueTree.getExpressionType() != ExpressionType.SIMPLE){
             checkExpressionTreeForUnknownVars(valueTree.getRightNode(),depth);
@@ -486,8 +523,13 @@ public class CodeParser {
 //            for(ItemType it : ItemType.values()){
 //                if(it.name().toUpperCase().equals(valueTree.getText()))return;
 //            }
-            if(valueTree.getText().matches("(-?\\d+|LEFT|RIGHT|AROUND|EAST|NORTH|SOUTH|WEST|"+GameConstants.RAND_INT_REGEX+")"))return;
+            if(valueTree.getText().matches("(-?\\d+|true|false|LEFT|RIGHT|AROUND|EAST|NORTH|SOUTH|WEST|"+GameConstants.RAND_INT_REGEX+")"))return;
             if(currentForVariable != null && valueTree.getText().equals(currentForVariable.getName())) return;
+            if(valueTree.getText().split("\\.").length > 1){
+                for(String s : valueTree.getText().split("\\."))
+                    checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(s), depth);
+                return;
+            }
             if(depthStatementMap.get(depth-1).getVariable(valueTree.getText())==null)
                 throw new IllegalArgumentException("Variable "+valueTree.getText()+" not in scope!");
         }

@@ -45,4 +45,9 @@ public class ConditionTree implements Condition {
         }
         return "";
     }
+
+    @Override
+    public boolean isSimple() {
+        return false;
+    }
 }

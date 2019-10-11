@@ -8,8 +8,13 @@ import utility.Point;
 import utility.Variable;
 import utility.VariableType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class CodeExecutor {
-    int noStackOverflow; //TODO: evaluate
+    private int noStackOverflow; //TODO: evaluate
     private GameMap gameMap;
     private boolean hasWon=false;
     private boolean hasLost = false;
@@ -18,6 +23,7 @@ public class CodeExecutor {
     boolean executeBehaviour(Statement statement,GameMap gameMap, boolean isPlayer) throws IllegalAccessException {
         this.gameMap  = gameMap;
         boolean method_Called = false;
+        noStackOverflow++;
         if(statement.getStatementType()== StatementType.METHOD_CALL) {
             noStackOverflow = 0;
             MethodCall evaluatedMethodCall = (MethodCall)statement;
@@ -86,7 +92,6 @@ public class CodeExecutor {
         Point targetPos =  gameMap.getTargetPoint(name);
         Entity actorEntity = gameMap.getEntity(actorPos);
         CContent targetContent = gameMap.getContentAtXY(targetPos);
-        gameMap.setFlag(actorPos, CFlag.ACTION, true );
         if(actorEntity.getItem() == ItemType.KEY&&targetContent == CContent.EXIT){
             actorEntity.setItem(null);
             gameMap.setFlag(targetPos, CFlag.OPEN, true);
@@ -96,11 +101,14 @@ public class CodeExecutor {
 //        if(actorEntity.getItem() == ItemType.BEACON){
 //            beaconEntity = actorEntity;
 //        }
+        if(actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD||GameConstants.ACTION_WITHOUT_CONSEQUENCE)gameMap.setFlag(actorPos , CFlag.ACTION,true );
         if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CContent.DIRT){
             gameMap.setContent(targetPos,CContent.PATH);
+            gameMap.setFlag(actorPos, CFlag.ACTION, true );
         }
         if(actorEntity.getItem() == ItemType.SWORD&&gameMap.getEntity(targetPos) != null){
             gameMap.kill(targetPos); //TODO: maybe -> targetCell.kill();??
+            gameMap.setFlag(actorPos, CFlag.ACTION, true );
         }
 
     }
@@ -226,16 +234,26 @@ public class CodeExecutor {
     }
 
     private void executeMethodCall(MethodCall methodCall, boolean isPlayer) throws IllegalAccessException {
-        String name = methodCall.getExpressionTree().getLeftNode().getText();
+        List<String> nameList = new ArrayList<>();
+        nameList.add(methodCall.getExpressionTree().getLeftNode().getText());
+        if(methodCall.getParentStatement().getVariable(nameList.get(0)).getVariableType()==VariableType.ARMY){
+            Variable v  = methodCall.getParentStatement().getVariable(nameList.get(0));
+            nameList = new ArrayList<>(Arrays.asList(v.getValue().getRightNode().getText().split(",")));
+        }
+        String booleanString = methodCall.getParameters()[0];
+        for(String name : nameList){
         Point position = gameMap.getEntityPosition(name);
         if(position == null ){
             if(isPlayer&& gameMap.getAmountOfKnights() == 0)hasLost=true;
-            return;
+            continue;
         }
+        if(!isPlayer) System.out.println(methodCall.getText());
         switch (methodCall.getMethodType()){
             case ATTACK:
                 // Can't attack with an item in hand
                 if(gameMap.getEntity(name).getItem()!=null)return;
+                if(GameConstants.ACTION_WITHOUT_CONSEQUENCE)gameMap.setFlag(position , CFlag.ACTION,true );
+                if(gameMap.getEntity(gameMap.getTargetPoint(name)) == null)return;
                 if(isPlayer)throw new IllegalAccessException("You cannot attack as Player!");
                 gameMap.setFlag(position , CFlag.ACTION,true );
                 gameMap.kill(gameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
@@ -258,7 +276,21 @@ public class CodeExecutor {
                 if(gameMap.getEntity(position).getItem()==null)break;
                 tryToDropItem(position);
                 break;
-        }
+            case EXECUTE_IF:
+                if(booleanString.matches("^true.*")){
+                    MethodCall mc1 = new MethodCall(MethodType.getMethodTypeFromCall(methodCall.getParameters()[1]), name,ExpressionTree.expressionTreeFromString(methodCall.getParameters()[1]).getRightNode().getText() );
+                            mc1.setParentStatement(methodCall.getParentStatement());
+                    executeMethodCall(mc1, isPlayer);
+                    booleanString =booleanString.replaceFirst("true", "");
+                }
+                else if (methodCall.getParameters().length > 2){
+                    MethodCall mc2 = new MethodCall(MethodType.getMethodTypeFromCall(methodCall.getParameters()[2]), name,ExpressionTree.expressionTreeFromString(methodCall.getParameters()[2]).getRightNode().getText() );
+                    mc2.setParentStatement(methodCall.getParentStatement());
+                    executeMethodCall(mc2, isPlayer);
+                    booleanString =booleanString.replaceFirst("false", "");
+                }
+                break;
+        }}
     }
 
     boolean hasWon() {
@@ -270,5 +302,11 @@ public class CodeExecutor {
 
     void reset(){
         hasWon = false;
-        hasLost = false;}
+        hasLost = false;
+        noStackOverflow = 0;
+    }
+
+    public int getNoStackOverflow() {
+        return noStackOverflow;
+    }
 }

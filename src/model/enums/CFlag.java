@@ -4,12 +4,12 @@ import utility.Util;
 
 public enum CFlag {
     OPEN(false),
+    INVERTED(false),
     TRIGGERED(false),
     ARMED(false),
     PREPARING(false),
     TURNED(false), //only used for GATE and merely fulfills a visual purpose
     DEACTIVATED(false),
-    INVERTED(false),
     KNIGHT_DEATH(true),
     SKELETON_DEATH(true),
     ACTION(true); //only used for SPAWN when there are no more knights to spawn!

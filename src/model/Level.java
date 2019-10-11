@@ -75,7 +75,7 @@ public class Level implements PropertyChangeListener {
                 break;
             }
             noStackOverflow++;
-            if(noStackOverflow > 500){
+            if(noStackOverflow > GameConstants.MAX_LOOP_SIZE ){
                 this.isStackOverflow = true;
                 isLost = true;
                 break;
@@ -89,6 +89,12 @@ public class Level implements PropertyChangeListener {
             Statement statement = evaluator.evaluateNext(aiBehaviour,currentMap);
             if (statement == null) {
                 aiFinished = true;
+                break;
+            }
+            noStackOverflow++;
+            if(noStackOverflow > GameConstants.MAX_LOOP_SIZE ){//|| executor.getNoStackOverflow() > GameConstants.MAX_LOOP_SIZE){
+                this.isStackOverflow = true;
+                isLost = true;
                 break;
             }
             method_Called_2 = executor.executeBehaviour(statement,currentMap,false);
@@ -108,14 +114,20 @@ public class Level implements PropertyChangeListener {
 
 
     private void applyGameLogicToCells() {
+        for(int x = 0; x < currentMap.getBoundX(); x++)for(int y = 0; y < currentMap.getBoundY(); y++) {
+            final Cell cell = currentMap.getCellAtXYClone(x,y);
+            CContent content = currentMap.getContentAtXY(x,y);
+            if (content == CContent.PRESSURE_PLATE) {
+                boolean invertedAndNotFree = (cell.getEntity() == null && cell.getItem() != ItemType.BOULDER) && cell.hasFlag(CFlag.INVERTED);
+                boolean notInvertedAndFree = (cell.getEntity() != null || cell.getItem() == ItemType.BOULDER) && !cell.hasFlag(CFlag.INVERTED);
+                if (invertedAndNotFree || notInvertedAndFree) currentMap.setFlag(x, y, CFlag.TRIGGERED, true);
+                else currentMap.setFlag(x, y, CFlag.TRIGGERED, false);
+            }
+        }
         for(int x = 0; x < currentMap.getBoundX(); x++)for(int y = 0; y < currentMap.getBoundY(); y++){
             final Cell cell = currentMap.getCellAtXYClone(x,y);
             CContent content = currentMap.getContentAtXY(x,y);
             boolean notAllTriggered = false;
-            if(content == CContent.PRESSURE_PLATE){
-                if(cell.getEntity()!=null||cell.getItem()==ItemType.BOULDER)currentMap.setFlag(x,y,CFlag.TRIGGERED,true);
-                else currentMap.setFlag(x,y,CFlag.TRIGGERED,false);
-            }
             if(content == CContent.GATE){
                 for (int i = 0; i < cell.getLinkedCellsSize();i++){
                     if(!currentMap.findCellWithId(currentMap.getLinkedCellId(x,y,i)).hasFlag(CFlag.TRIGGERED)){
@@ -159,6 +171,7 @@ public class Level implements PropertyChangeListener {
     public void reset()  {
 //        playerBehaviour.resetCounter();
         usedKnights = 0;
+        if(playerBehaviour != null)
         playerBehaviour.resetVariables(true);
         if(aiBehaviour != null) aiBehaviour.resetVariables(true);
 //        noStackOverflow = 0;
@@ -323,9 +336,11 @@ public class Level implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        Pair<Point,Cell> pair = (Pair<Point, Cell>) evt.getNewValue();
-        changeSupport.firePropertyChange("map", evt.getOldValue(), evt.getNewValue());
-        currentMap.setCell(pair.getKey().getX(),pair.getKey().getY(), pair.getValue());
+//        Pair<Point,Cell> pair = (Pair<Point, Cell>) evt.getNewValue();
+        if(!(evt.getPropertyName().equals("cellId")||evt.getPropertyName().equals("linkedCellId")))changeSupport.firePropertyChange("map", evt.getOldValue(), evt.getNewValue());
+        else changeSupport.firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+        currentMap = originalMap.clone();
+//        .setCell(pair.getKey().getX(),pair.getKey().getY(), pair.getValue());
     }
 
     public void removeAllListener() {

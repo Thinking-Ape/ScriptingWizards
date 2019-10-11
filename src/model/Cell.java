@@ -90,10 +90,11 @@ public class Cell {
 
     public void setItem(ItemType item) {
         if(entity != null)throw new IllegalStateException("There is already an entity in this cell!");
-        else this.item = item;
+        else if(content.isTraversable()) this.item = item;
     }
 
     public void setContent(CContent content) {
+        if(!content.isTraversable())this.item =null;
         this.content = content;
     }
 

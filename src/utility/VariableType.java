@@ -3,9 +3,10 @@ package utility;
 import model.enums.CContent;
 import model.enums.EntityType;
 import model.enums.ItemType;
+import model.enums.MethodType;
 
 public enum VariableType {
-    INT("int","-?\\d+"),
+    INT("int","[-+]?\\d+"),
     BOOLEAN("boolean","(true|false)"),
     KNIGHT("Knight","new Knight\\((EAST|WEST|NORTH|SOUTH)?\\)"),       // oder auch alles zu Entity zusammenfassen?? und dann aber EntityType abprüfen?
     SKELETON("Skeleton","(new Skeleton\\((EAST|WEST|NORTH|SOUTH)?\\)|new Skeleton\\((EAST|WEST|NORTH|SOUTH),-?\\d+\\))"), // eventuell zu ENEMY zusammenfassen
@@ -16,6 +17,8 @@ public enum VariableType {
     CELL_CONTENT("CellContent", Util.getRegEx(CContent.values())),
     ITEM_TYPE("ItemType", Util.getRegEx(ItemType.values())),
     ENTITY_TYPE("EntityType", Util.getRegEx(EntityType.values())),
+    ARMY("Army","new Army\\(( *"+GameConstants.VARIABLE_NAME_REGEX+" *, *)*"+GameConstants.VARIABLE_NAME_REGEX+" *\\)"),
+    COMMAND("Command",MethodType.getAllRegex()),
     DEFAULT(".*",""); // not working yet
 
     final private String name;
@@ -27,7 +30,7 @@ public enum VariableType {
         return DEFAULT;
     }
 
-    public String getAllowedValues() {
+    public String getAllowedRegex() {
         return allowedValues;
     }
 
