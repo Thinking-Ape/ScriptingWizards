@@ -1,5 +1,8 @@
 package utility;
 
+import model.Entity;
+import model.enums.EntityType;
+
 import java.awt.*;
 import java.nio.file.Paths;
 import java.util.Random;
@@ -31,6 +34,8 @@ public abstract class GameConstants {
     public static final int MAX_LOOP_SIZE = 500;
     public static final String VARIABLE_NAME_REGEX = "^[a-zA-Z_][a-zA-Z_0-9]*$";
     public static final double PLAY_CELL_SIZE_FACTOR = 1.25;
+    public static final Entity NO_ENTITY = new Entity("", null, EntityType.NONE);
+    public static final boolean EXECUTE_IF_IS_COMMAND = true;
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 
     //abhängig vom canvas...

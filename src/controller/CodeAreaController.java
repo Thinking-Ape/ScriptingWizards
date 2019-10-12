@@ -1,6 +1,8 @@
 package controller;
 
 import javafx.application.Platform;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import utility.GameConstants;
 import model.Model;
@@ -52,7 +54,7 @@ public class CodeAreaController implements PropertyChangeListener {
             if(view.getAICodeArea().getSelectedCodeField()!=currentCodeField)view.getAICodeArea().deselectAll();
             addedStatementsBalance = 0;
             CodeArea codeArea = !isAi ? view.getCodeArea() : view.getAICodeArea();
-//            codeArea.select(currentCodeField, true);
+            codeArea.select(currentCodeField, Selection.NONE);
             silentError = false;
             selectEnd = true;
             currentIndex = codeArea.indexOfCodeField(currentCodeField);
@@ -184,35 +186,44 @@ public class CodeAreaController implements PropertyChangeListener {
                     else silentError = true;
                     break;
                 case UP:
-                    if (currentIndex == 0)return;
+                    if (currentIndex <= 0){
+                        currentIndex = 0;
+                        return;
+                    }
                     //TODO: pass selection to method
-                    codeArea.deselectAll();
+//                    codeArea.deselectAll();
                     currentIndex--;
                     selectEnd = true;
                     break;
                 case DOWN:
-                    if (currentIndex == codeArea.getSize()-1)return;
+                    if (currentIndex >= codeArea.getSize()-1){
+                        currentIndex = codeArea.getSize() -1;
+                        return;
+                    }
                     //TODO: pass selection to method
-                    codeArea.deselectAll();
+//                    codeArea.deselectAll();
                     currentIndex++;
                     selectEnd = true;
                     break;
                 case LEFT:
                 case RIGHT:
                     return;
+                    //LINES BELOW ARE A WORKAROUND FOR ANOTHER JAVAFX BUG
+                case CONTROL:
+                    silentError = true;
+                    break;
                 default:
                     if(!currentCodeField.isEditable())return;
+                    Platform.runLater(()->currentCodeField.fireEvent(new KeyEvent(event.getEventType(), event.getCharacter(), event.getText(), KeyCode.CONTROL, false,false,false,false )));
+                    return;
+//
 //                    codeArea.deselectAll();
 
 //                    if(recompileCode() == null)view.getBtnExecute().setDisable(true);
 //                    else view.getBtnExecute().setDisable(false);
 //                    codeArea.select(currentIndex+1,true);
-                    silentError = true;
             }
             recreateCodeAreaIfCodeCorrect(codeAreaClone,currentCodeField,isAi);
-//            setAllHandlersForCodeArea();
-//            codeArea.getCodeFieldListClone().remove(newCodeField);
-//            codeArea.getCodeFieldListClone().add(currentIndex,removeCodeField1);
         });
 //        currentCodeField.setOnKeyTyped(event -> {
 //            if(event.getCharacter().equals(";")||event.getCharacter().equals("{")){
@@ -223,40 +234,29 @@ public class CodeAreaController implements PropertyChangeListener {
 //            }
 //        });
     }
-
+    //TODO: fix this mess!
     private void recreateCodeAreaIfCodeCorrect(CodeArea codeAreaClone, CodeField currentCodeField, boolean isAi) {
-        Platform.runLater(()->{
+//        Platform.runLater(()->{
             CodeArea newCodeArea = null;
 
-            CodeArea codeArea = isAi ? view.getAICodeArea() : view.getCodeArea();
             newCodeArea = tryToRecompileCodeArea(codeAreaClone,silentError,isAi);
 
             if(newCodeArea != null){
                 isError = false;
-//                int i = 1;
-//                for(CodeField codeField : codeFieldsToAddList){
-//                    codeArea.addNewCodeFieldAtIndex(currentIndex+i,codeField);
-//                    System.out.println("ok");
-//                    i++; //TODO: eliminate confusing code!
-//                }
-//                if(codeFieldsToAddList.size() > 0)currentIndex++;
                 view.setCodeArea(newCodeArea,isAi);
-//                setAllHandlersForCodeArea(codeArea);
-                if(!silentError) newCodeArea.select(currentIndex,selectEnd);
+                if(!silentError) newCodeArea.select(currentIndex,Selection.END);
             } else{
                 if(!isError){
+                    CodeArea codeArea = isAi ? view.getAICodeArea() : view.getCodeArea();
                     errorLine = currentIndex;
                     boolean isEditable = currentCodeField.isEditable();
                     codeArea.setEditable(false);
-//                  codeArea.
                     if(isEditable)currentCodeField.setEditable(true);
-//                   codeArea.select(currentIndex,selectEnd);
                     isError = true;
                 }
-//                else codeArea.setEditable(true);
             }
             if(silentError)currentCodeField.setStyle(null);
-            });
+//            });
     }
 
     private CodeArea tryToRecompileCodeArea(CodeArea codeArea2, boolean silentError,boolean isAi) {
@@ -294,6 +294,7 @@ public class CodeAreaController implements PropertyChangeListener {
             return null;
         }
         return null; //TODO: evaluate this whole mess!
+
     }
 
 
@@ -314,10 +315,6 @@ public class CodeAreaController implements PropertyChangeListener {
             if(errorMessage==null){
                 e.printStackTrace();
             }
-//            System.out.println(Arrays.toString(e.getStackTrace()));
-//            view.getBtnExecute().setDisable(true);
-//            view.getMsgLabel().setText(e.getMessage() +" In Line " +errorLine);
-//            e.printStackTrace();
         }
         return complexStatement;
     }
@@ -325,6 +322,8 @@ public class CodeAreaController implements PropertyChangeListener {
 
     public void setGameRunning(boolean gameRunning) {
         this.gameRunning = gameRunning;
+        if(gameRunning)view.getCodeArea().deselectAll();
+        if(gameRunning&&model.getCurrentLevel().hasAi())view.getAICodeArea().deselectAll();
     }
 
     public boolean isGameRunning() {

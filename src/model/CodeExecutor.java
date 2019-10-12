@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static utility.GameConstants.NO_ENTITY;
+
 public class CodeExecutor {
     private int noStackOverflow; //TODO: evaluate
     private GameMap gameMap;
@@ -93,7 +95,7 @@ public class CodeExecutor {
         Entity actorEntity = gameMap.getEntity(actorPos);
         CContent targetContent = gameMap.getContentAtXY(targetPos);
         if(actorEntity.getItem() == ItemType.KEY&&targetContent == CContent.EXIT){
-            actorEntity.setItem(null);
+            actorEntity.setItem(ItemType.NONE);
             gameMap.setFlag(targetPos, CFlag.OPEN, true);
             hasWon = true;
             return;
@@ -106,7 +108,8 @@ public class CodeExecutor {
             gameMap.setContent(targetPos,CContent.PATH);
             gameMap.setFlag(actorPos, CFlag.ACTION, true );
         }
-        if(actorEntity.getItem() == ItemType.SWORD&&gameMap.getEntity(targetPos) != null){
+        if(actorEntity.getItem() == ItemType.SWORD){//&&gameMap.getEntity(targetPos) != NO_ENTITY){
+            if(gameMap.getItem(targetPos) == ItemType.BOULDER)return;
             gameMap.kill(targetPos); //TODO: maybe -> targetCell.kill();??
             gameMap.setFlag(actorPos, CFlag.ACTION, true );
         }
@@ -121,7 +124,7 @@ public class CodeExecutor {
 
         if(targetContent.isTraversable()&&gameMap.isCellFree(targetPos)){
                 gameMap.setItem(targetPos,actorEntity.getItem());
-                actorEntity.setItem(null);
+                actorEntity.setItem(ItemType.NONE);
         }
     }
 
@@ -133,9 +136,9 @@ public class CodeExecutor {
     private boolean tryToCollect(Point actorPoint) {
         Cell actorCell = gameMap.getCellAtXYClone(actorPoint.getX(),actorPoint.getY());
         Point targetPoint =  gameMap.getTargetPoint(actorCell.getEntity().getName());
-        if(gameMap.getItem(targetPoint) != null){
-            ItemType item = null;
-            if(actorCell.getEntity().getItem()!=null) item = actorCell.getEntity().getItem();
+        if(gameMap.getItem(targetPoint) != ItemType.NONE){
+            ItemType item = ItemType.NONE;
+            if(actorCell.getEntity().getItem()!=ItemType.NONE) item = actorCell.getEntity().getItem();
             gameMap.getEntity(actorPoint).setItem(gameMap.getItem(targetPoint));
             gameMap.setItem(targetPoint,item);
 //            targetCell.setFlagValue(CFlag.TRAVERSABLE,true);
@@ -235,26 +238,28 @@ public class CodeExecutor {
 
     private void executeMethodCall(MethodCall methodCall, boolean isPlayer) throws IllegalAccessException {
         List<String> nameList = new ArrayList<>();
-        nameList.add(methodCall.getExpressionTree().getLeftNode().getText());
+        nameList.add(methodCall.getObjectName());
         if(methodCall.getParentStatement().getVariable(nameList.get(0)).getVariableType()==VariableType.ARMY){
             Variable v  = methodCall.getParentStatement().getVariable(nameList.get(0));
             nameList = new ArrayList<>(Arrays.asList(v.getValue().getRightNode().getText().split(",")));
         }
-        String booleanString = methodCall.getParameters()[0];
         for(String name : nameList){
+//            if(!isPlayer) System.out.println(methodCall.getText()+" "+name);
         Point position = gameMap.getEntityPosition(name);
         if(position == null ){
             if(isPlayer&& gameMap.getAmountOfKnights() == 0)hasLost=true;
             continue;
         }
-        if(!isPlayer) System.out.println(methodCall.getText());
         switch (methodCall.getMethodType()){
             case ATTACK:
-                // Can't attack with an item in hand
-                if(gameMap.getEntity(name).getItem()!=null)return;
-                if(GameConstants.ACTION_WITHOUT_CONSEQUENCE)gameMap.setFlag(position , CFlag.ACTION,true );
-                if(gameMap.getEntity(gameMap.getTargetPoint(name)) == null)return;
                 if(isPlayer)throw new IllegalAccessException("You cannot attack as Player!");
+
+                // Can't attack with an item in hand
+                if(gameMap.getEntity(name).getItem()!=ItemType.NONE)break;
+                if(GameConstants.ACTION_WITHOUT_CONSEQUENCE)gameMap.setFlag(position , CFlag.ACTION,true );
+//                if(gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY ||gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY)break;
+
+                if(gameMap.getItem(gameMap.getTargetPoint(name)) == ItemType.BOULDER)break;
                 gameMap.setFlag(position , CFlag.ACTION,true );
                 gameMap.kill(gameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
                 break;
@@ -266,31 +271,42 @@ public class CodeExecutor {
                 tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightNode().getText()));
                 break;
             case USE_ITEM:
-                if(gameMap.getEntity(position).getItem()==null)break;
+                if(gameMap.getEntity(position).getItem()==ItemType.NONE)break;
                 tryToUseItem(position);
                 break;
             case COLLECT:
                 tryToCollect(position);
                 break;
             case DROP_ITEM:
-                if(gameMap.getEntity(position).getItem()==null)break;
+                if(gameMap.getEntity(position).getItem()==ItemType.NONE)break;
                 tryToDropItem(position);
                 break;
             case EXECUTE_IF:
-                if(booleanString.matches("^true.*")){
-                    MethodCall mc1 = new MethodCall(MethodType.getMethodTypeFromCall(methodCall.getParameters()[1]), name,ExpressionTree.expressionTreeFromString(methodCall.getParameters()[1]).getRightNode().getText() );
-                            mc1.setParentStatement(methodCall.getParentStatement());
+                String booleanString = methodCall.getParameters()[0];
+                if(booleanString.matches("(.+ )*"+name+":"+"true (.+ )*")){
+                    ExpressionTree expressionTree = evaluateCommand(methodCall.getParameters()[1],methodCall);
+                    MethodCall mc1 = new MethodCall(MethodType.getMethodTypeFromCall(expressionTree.getText()), name,expressionTree.getRightNode().getText() );
+                    mc1.setParentStatement(methodCall.getParentStatement());
                     executeMethodCall(mc1, isPlayer);
-                    booleanString =booleanString.replaceFirst("true", "");
+//                    booleanString =booleanString.replaceFirst("true", "");
                 }
-                else if (methodCall.getParameters().length > 2){
-                    MethodCall mc2 = new MethodCall(MethodType.getMethodTypeFromCall(methodCall.getParameters()[2]), name,ExpressionTree.expressionTreeFromString(methodCall.getParameters()[2]).getRightNode().getText() );
+                else if(booleanString.matches("(.+ )*"+name+":"+"false (.+ )*")){
+                    ExpressionTree expressionTree = evaluateCommand(methodCall.getParameters()[2],methodCall);
+                    MethodCall mc2 = new MethodCall(MethodType.getMethodTypeFromCall(expressionTree.getText()), name,expressionTree.getRightNode().getText() );
                     mc2.setParentStatement(methodCall.getParentStatement());
                     executeMethodCall(mc2, isPlayer);
-                    booleanString =booleanString.replaceFirst("false", "");
+//                    booleanString =booleanString.replaceFirst("false", "");
                 }
+                else throw new IllegalArgumentException("Something went wrong");
                 break;
         }}
+    }
+
+    private ExpressionTree evaluateCommand(String parameter, MethodCall methodCall) {
+        if(methodCall.getParentStatement().getVariable(parameter)!=null){
+            return evaluateCommand(methodCall.getParentStatement().getVariable(parameter).getValue().getText(), methodCall);
+        }
+        else return ExpressionTree.expressionTreeFromString(parameter);
     }
 
     boolean hasWon() {

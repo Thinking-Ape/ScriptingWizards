@@ -59,7 +59,6 @@ public class ExpressionTree {
         return "";
     }
     public static ExpressionTree expressionTreeFromString(String code){//}, int level) {
-
         code = code.trim();
         code = Util.removeUnnecessaryBrackets(code);
 
@@ -77,11 +76,12 @@ public class ExpressionTree {
         if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
             return expressionTreeWithType(code, expressionTypeAtPos);
         }
-        Pattern pattern = Pattern.compile("(.+)\\((.*)\\)");
+        Pattern pattern = Pattern.compile("^([a-z A-Z]+)\\((.*)\\)$");
         Matcher matcher = pattern.matcher(code);
         if(matcher.matches()){
             return new ExpressionTree(new ExpressionLeaf(matcher.group(1)),ExpressionType.SIMPLE,expressionTreeFromString(matcher.group(2)));
         }
+//        else System.out.println(code);
         return new ExpressionLeaf(code);
     }
 

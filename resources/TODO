@@ -40,24 +40,33 @@ IMPORTANT:
 -merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
 -> figure out how to evaluate values of conditions and assignments!
 -changelog
--knight.getItemType() + knight.getDirection() + etc.
 -fill spellbook slowly and also add all variables!
 -menu after winning playmode -> back, replay or next level
 -newturns > turns but newlines < lines -> better? (not justifiable to give 2.5!)
 -schleusen level with and without an inverted gate
 -evil wizard explains level editor
--maybe datatype Command? executeIf(<boolean>,<Command>,<Command>) or executeIf(<boolean>,<Command>,<Command>) and executeIf is also a Command?
 -leveleditor open with a dialog whether to open a level or create a new one
 -decide whether you should see animations if they dont do anything
 -only have one levelEdited in model representing what was done to the level in the current editor -> changes will be lost upon opening another level! -> JSONParser.save(Changes)
 -readme with info (e.g. shift clicking in editor etc.)
 -can add same skeleton twice to army!
--scrolling is bad atm
--adapt conditions to army? what is army allowed and what is it not?
+-index bugged out -> might have to do with creating a new level and not saving it (maybe it was because I named it like the other level and it is case insensitive!!!!)
+-buggy codearea when holding down vs having to click twice to be able to execute -> Platform.runLater in CodeArea is issue and solution
+-add getters?
 ---------------------------------------------
 
 
 DONE:
+
+12.10.
+knight.getItemType() + knight.getDirection() + etc.
+maybe datatype Command? executeIf(<boolean>,<Command>,<Command>) or executeIf(<boolean>,<Command>,<Command>) and executeIf is also a Command?
+scrolling is bad atm
+adapt conditions to army? what is army allowed and what is it not?
+items are still shown as clickable even if they shouldnt <- badly implemented!
+attacking can destroy items? (but only if they are not boulders!
+adding Scrollbar fucks up the layout
+create a scrollbar class that has exactly 2 instances and stores 2 integers
 
 11.10.
 Army army and Method army.executeIf(<Action>,<Condition>)

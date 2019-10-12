@@ -242,7 +242,7 @@ public class Controller {
             model.getCurrentLevel().reset();
             view.getCodeArea().setEditable(true);
             view.setNodesDisableWhenRunning(false);
-            view.getCodeArea().select(0,true);
+            view.getCodeArea().select(0,Selection.END);
         });
         view.getLoadBestCodeBtn().setOnAction(actionEvent -> {
             List<String> bestCode = new ArrayList<>();
@@ -250,7 +250,7 @@ public class Controller {
                 bestCode = JSONParser.getBestCode(model.getCurrentLevel().getName());
 //                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
                 if(bestCode.size() !=0){
-                    CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode),false);
+                    CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode),true,false);
                     view.setCodeArea(codeArea,false);
 //                    codeArea.draw();
 //                    codeAreaController.setAllHandlersForCodeArea(false);
@@ -265,7 +265,7 @@ public class Controller {
         view.getClearCodeBtn().setOnAction(actionEvent -> {
             ComplexStatement complexStatement = new ComplexStatement();
             complexStatement.addSubStatement(new SimpleStatement());
-            CodeArea codeArea = new CodeArea(complexStatement,false);
+            CodeArea codeArea = new CodeArea(complexStatement,true,false);
             view.setCodeArea(codeArea,false);
 //            codeArea.draw();
 //            codeAreaController.setAllHandlersForCodeArea(false);

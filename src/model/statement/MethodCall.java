@@ -4,6 +4,7 @@ import model.enums.MethodType;
 import model.statement.Expression.ExpressionTree;
 import model.statement.Expression.ExpressionLeaf;
 import model.statement.Expression.ExpressionType;
+import utility.Util;
 
 public class MethodCall extends SimpleStatement {
     private MethodType methodType;
@@ -30,6 +31,7 @@ public class MethodCall extends SimpleStatement {
         return expressionTree.getLeftNode().getText();
     }
     public String[] getParameters() {
-        return expressionTree.getRightNode().getText().split(",");
+        if(!expressionTree.getRightNode().getText().contains(","))return new String[] {expressionTree.getRightNode().getText()};
+        return Util.getParametersFromString(expressionTree.getRightNode().getText());
     }
 }

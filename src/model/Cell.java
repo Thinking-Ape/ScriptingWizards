@@ -3,17 +3,21 @@ package model;
 import model.enums.CContent;
 import model.enums.CFlag;
 import model.enums.ItemType;
+import utility.GameConstants;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static model.enums.ItemType.NONE;
+import static utility.GameConstants.NO_ENTITY;
 
 public class Cell {
     private int cellId = -1;
     private CContent content = CContent.EMPTY;
     private List<CFlag> flagList = new ArrayList<>();
     private List<Integer> linkedCellIdList = new ArrayList<>();
-    private Entity entity = null;
-    private ItemType item = null;
+    private Entity entity = NO_ENTITY;
+    private ItemType item = NONE;
 
 //    public Cell(CContent content, CFlag... flags){
 //        this.content = content;
@@ -43,7 +47,7 @@ public class Cell {
     }
 
     public Cell(CContent content, ItemType item,Entity entity, List<CFlag> flagList, List<Integer> linkedCellIdList, int cellId) {
-        if(item != null && entity != null)throw new IllegalStateException("Cannot hava an item and an entity");
+        if(item != NONE && entity != NO_ENTITY)throw new IllegalStateException("Cannot hava an item and an entity");
         this.item=item;
         this.entity = entity;
         this.content = content;
@@ -84,17 +88,17 @@ public class Cell {
     }
 
     public void setEntity(Entity entity) {
-        if(item != null)throw new IllegalStateException("There is already an item in this cell!");
+        if(item != NONE)throw new IllegalStateException("There is already an item in this cell!");
         else this.entity = entity;
     }
 
     public void setItem(ItemType item) {
-        if(entity != null)throw new IllegalStateException("There is already an entity in this cell!");
+        if(entity != NO_ENTITY)throw new IllegalStateException("There is already an entity in this cell!");
         else if(content.isTraversable()) this.item = item;
     }
 
     public void setContent(CContent content) {
-        if(!content.isTraversable())this.item =null;
+        if(!content.isTraversable())this.item = NONE;
         this.content = content;
     }
 
@@ -122,6 +126,6 @@ public class Cell {
     }
 
     public boolean isFree() {
-        return item == null && entity == null;
+        return item == NONE && entity == NO_ENTITY;
     }
 }

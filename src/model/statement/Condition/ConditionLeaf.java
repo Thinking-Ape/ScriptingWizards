@@ -11,7 +11,7 @@ public class ConditionLeaf implements Condition {
 
     public ConditionLeaf(ExpressionTree leftTree, BooleanType simpleConditionType, ExpressionTree rightTree) {
         conditionType = ConditionType.SINGLE;
-        if(rightTree != null&&rightTree.getText().charAt(0)=='(') System.out.println(rightTree.getText());
+//        if(rightTree != null&&rightTree.getText().charAt(0)=='(') System.out.println(rightTree.getText());
         this.leftTree = leftTree;
         this.rightTree = rightTree;
         this.simpleConditionType = simpleConditionType;

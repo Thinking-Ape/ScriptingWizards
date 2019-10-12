@@ -1,5 +1,6 @@
 package view;
 
+import controller.Selection;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
@@ -46,6 +47,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static utility.GameConstants.NO_ENTITY;
 
 public class View implements PropertyChangeListener {
 
@@ -185,8 +188,8 @@ public class View implements PropertyChangeListener {
                         //"Knight k = new Knight(WEST);","k.collect();","k.move();","k.useItem();","k.move();");
                         //"Knight k = new Knight(EAST);","k.move();","k.move();","k.turn(EAST);","if(k.targetIsUnarmed()){","k.move();","k.turn(WEST);","k.move();","k.move();","}","else {","k.turn(2);","k.move();","k.turn(EAST);","k.move();","k.move();","}");
                         //"int i = 10;","Knight k = new Knight(WEST);","k.move();","for(int j = 0;j < i;j = j + 1;){","k.wait();","}","k.turn(2);","k.move();");
-                        //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContainsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-                        "Knight knight = new Knight(EAST);","boolean b = knight.targetContainsEntity(SKELETON);","boolean step1 = true;","int kills = 0;","for(int i = 0;i < 3;i = i + 1;) {","knight.move();","}","knight.turn(LEFT);","for(int i = 0;i < 4;i = i + 1;) {","knight.move();","}","while(step1) {","if (b) {","knight.turn(AROUND);","knight.wait();","knight.wait();","knight.wait();","knight.move();","knight.turn(AROUND);","knight.move();","kills = kills + 1;","if (kills == 2) {","step1 = false;","}","}","else {","knight.wait();","}","}","TurnDirection dir = LEFT;","while(true) {","if (knight.targetCellIs(PRESSURE_PLATE)) {","knight.move();","knight.move();","knight.move();","knight.turn(RIGHT);","for(int i = 0;i < 4;i = i + 1;) {","knight.move();","}","dir = RIGHT;","}","else if (knight.canMove()) {","knight.move();","}","else if (knight.targetContainsItem(KEY)) {","knight.collect();","dir = LEFT;","}","else if (knight.targetCellIs(EXIT)) {","knight.useItem();","}","else {","knight.turn(dir);","}","}");
+                        //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
+                        "Knight k1 = new Knight();","k1.move();","Knight k2 = new Knight(EAST);","k2.move();","Knight k3 = new Knight(WEST);","Army army = new Army(k1,k2,k3);","boolean b = army.looksTowards(EAST);","TurnDirection dir = RIGHT;","Command cc = executeIf(b,turn(LEFT),turn(dir));","boolean bb = true;","while(bb) {","army.executeIf(army.canMove(),move(),cc);","if (army.targetCellIs(PRESSURE_PLATE)) {","bb = false;","}","}");
 //                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
                         //"Knight knight = new Knight(NORTH);", "knight.collect();", "knight.move();", "knight.useItem();", "knight.move();");
             } catch (IllegalAccessException e) {
@@ -199,7 +202,7 @@ public class View implements PropertyChangeListener {
 
 
         aiCodeArea.draw();
-        codeArea.select(0, false);
+        codeArea.select(0, Selection.START);
 
         Level l = model.getCurrentLevel();
 
@@ -287,8 +290,8 @@ public class View implements PropertyChangeListener {
                     if(isTurned)imageView.setRotate(270);
                     stackPane.getChildren().add(imageView);
                 }
-                String itemString = cell.getItem() != null ? cell.getItem().getDisplayName() : "";
-                if (cell.getItem() != null && !contentImageMap.containsKey(itemString))
+                String itemString = cell.getItem() != ItemType.NONE ? cell.getItem().getDisplayName() : "";
+                if (cell.getItem() != ItemType.NONE && !contentImageMap.containsKey(itemString))
                     stackPane.getChildren().add(getItemShape(cell.getItem()));
                 else {
                     ImageView imageView = new ImageView(contentImageMap.get(itemString));
@@ -313,12 +316,12 @@ public class View implements PropertyChangeListener {
                 StackPane stackPane = new StackPane();
                 stackPane.setMouseTransparent(true);
 //                if(cell.getEntity()!=null)stackPane.getChildren().add(getEntityShape(cell.getEntity()));
-                if (cell.getEntity() != null) {
+                if (cell.getEntity() != NO_ENTITY) {
                     if(entityActionList.contains(cell.getEntity())){
                         number = 3;
                     }
                     String entityName = cell.getEntity().getEntityType().getDisplayName();
-                    if(cell.getEntity().getItem()!= null && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
+                    if(cell.getEntity().getItem()!= ItemType.NONE && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
                     if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_"+number))entityName+="_Action_"+number;
                     ImageView imageView = new ImageView(contentImageMap.get(entityName));
 
@@ -543,63 +546,10 @@ public class View implements PropertyChangeListener {
 //            System.out.println(""+actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinX()+" "+highlight.getLayoutBounds().getMinX());
         }
     }
-//
-//        Polyline highlight = new Polyline(0, 0, 0, cell_size, cell_size, cell_size, cell_size, 0, 0, 0);
-//        highlight.setStroke(Color.WHITE);
-//        highlight.setSmooth(true);
-//        highlight.setStrokeWidth(2);
-//        highlight.setStrokeType(StrokeType.INSIDE);
-//        actualMapGPane.add(highlight, k, h);
-//        selectedColumn = k;
-//        selectedRow = h;
-
-
-//    public void setCellTypeButtonDisabled(CContent content) {
-//        for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
-//            Button btn = (Button) n;
-//            if (btn.getText().equals(content.getDisplayName())) btn.setDisable(true);
-////            else btn.setDisable(false);
-//        }
-//
-//    }
-
-    public void setItemTypeButtonActive(ItemType item) {
-        for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
-            Button btn = (Button) n;
-            if (btn.getText().equals(item.getDisplayName())) btn.setDisable(true);
-            else btn.setDisable(false);
-        }
-
-    }
 
     public GridPane getCellTypeSelectionPane() {
         return levelEditorModule.getCellTypeSelectionGPane();
     }
-
-//    public int getSelectedRow() {
-//        return selectedRow >= 0 ? selectedRow : 0;
-//    }
-//
-//    public int getSelectedColumn() {
-//        return selectedColumn >= 0 ? selectedColumn : 0;
-//    }
-
-    public VBox getCellVBox() {
-        return levelEditorModule.getRightVBox();
-    }
-
-    public void addChoiceBox(ChoiceBox<String> choiceBox) {
-        levelEditorModule.getRightVBox().getChildren().add(choiceBox);
-        this.choiceBox = choiceBox;
-    }
-
-    public void removeChoiceBox() {
-        if (choiceBox != null) {
-            levelEditorModule.getRightVBox().getChildren().remove(choiceBox);
-            this.choiceBox = null;
-        }
-    }
-
 
     public ListView<Integer> getLinkedCellsListView() {
         return levelEditorModule.getLinkedCellListView();
@@ -609,32 +559,35 @@ public class View implements PropertyChangeListener {
         return levelEditorModule;
     }
 
-    public void setCContentButtonInactive(CContent content,boolean b) {
+    public void setCContentButtonDisabled(CContent content, boolean b) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
             Button btn = (Button) n;
             if (btn.getText().equals(content.getDisplayName())) btn.setDisable(b);
         }
     }
 
-    public void setItemButtonInactive(ItemType item) {
+    public void setItemButtonDisabled(ItemType item, boolean b) {
         for (Node n : levelEditorModule.getCellItemSelectionGPane().getChildren()) {
             Button btn = (Button) n;
-            if (item == null) {
-                if (btn.getText().equals("None")) btn.setDisable(true);
-            } else if (btn.getText().equals(item.getDisplayName())) btn.setDisable(true);
+            if (btn.getText().equals(item.getDisplayName())) btn.setDisable(b);
         }
     }
 
-    public void setNormalButtonsInactive(boolean b) {
+    public void setAllItemBtnsDisable(boolean b) {
+        for (Node btn : getCellItemSelectionPane().getChildren()) {
+            btn.setDisable(b);
+        }
+    }
+
+    public void setAllCellButtonsDisabled(boolean b) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
             Button btn = (Button) n;
-            if (!btn.getText().equals(CContent.EMPTY.getDisplayName()) && !btn.getText().equals(CContent.WALL.getDisplayName()))
-                btn.setDisable(b);
+//            if (!btn.getText().equals(CContent.EMPTY.getDisplayName()) && !btn.getText().equals(CContent.WALL.getDisplayName()))
+            btn.setDisable(b);
         }
         for (Node n : levelEditorModule.getCellItemSelectionGPane().getChildren()) {
             Button btn = (Button) n;
-            if (!btn.getText().equals(CContent.EMPTY.getDisplayName()) && !btn.getText().equals(CContent.WALL.getDisplayName()))
-                btn.setDisable(b);
+            btn.setDisable(b);
         }
     }
 
@@ -780,7 +733,7 @@ public class View implements PropertyChangeListener {
                 aiCodeArea.setEditable(true);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
-                codeArea.select(0, true);
+                codeArea.select(0, Selection.END);
                 stage.getScene().setRoot(rootPane);
                 break;
             case LEVEL_SELECT:
@@ -792,7 +745,7 @@ public class View implements PropertyChangeListener {
                 aiCodeArea.setEditable(false);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
-                codeArea.select(0, true);
+                codeArea.select(0, Selection.END);
                 levelOverviewPane.updateUnlockedLevels(model, this);
                 stage.getScene().setRoot(rootPane);
                 break;
@@ -801,7 +754,7 @@ public class View implements PropertyChangeListener {
                 aiCodeArea.setEditable(false);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
-                codeArea.select(0, true);
+                codeArea.select(0, Selection.END);
 //                levelOverviewPane.updateUnlockedLevels(model, this);
                 try {
                     if(JSONParser.getTutorialProgressIndex()==-1){
@@ -879,18 +832,6 @@ public class View implements PropertyChangeListener {
             StackPane.setMargin(tutorialGroup, new Insets(5));
         }
         spellBookPane.setVisible(false);
-    }
-
-    public void setAllItemTypeButtonActive() {
-        for (Node btn : getCellItemSelectionPane().getChildren()) {
-            btn.setDisable(false);
-        }
-    }
-
-    public void setAllItemTypeButtonInActive() {
-        for (Node btn : getCellItemSelectionPane().getChildren()) {
-            btn.setDisable(true);
-        }
     }
 
     public Image getImageFromMap(GameMap originalMap) {
@@ -1036,5 +977,5 @@ public class View implements PropertyChangeListener {
         }
     }
 }
-//KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetContainsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"
+//KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"
 //COLLECTANDDROP: "Knight knight = new Knight(NORTH);","knight.move();","knight.turn(RIGHT);","knight.move();","knight.collect();","knight.turn(AROUND);","knight.move();","knight.turn(RIGHT);","knight.collect();","knight.turn(AROUND);","knight.dropItem();","knight.turn(AROUND);","knight.collect();","knight.move();","knight.move();","knight.dropItem();","knight.turn(AROUND);","knight.move();","knight.move();","knight.collect();","knight.turn(AROUND);","knight.move();","knight.move();","knight.turn(AROUND);","knight.dropItem();","knight.turn(AROUND);","knight.collect();","knight.move();","knight.turn(RIGHT);","knight.move();","knight.useItem();"

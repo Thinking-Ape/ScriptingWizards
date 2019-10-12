@@ -4,6 +4,7 @@ package view;
 //import javafx.scene.control.TextArea;
 
 import controller.CodeAreaController;
+import controller.Selection;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -13,6 +14,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Translate;
+import model.statement.SimpleStatement;
 import utility.GameConstants;
 import model.statement.ComplexStatement;
 import model.statement.Statement;
@@ -33,7 +35,7 @@ public class CodeArea extends HBox {
     private boolean isEditable;
     private CodeField selectedCodeField = null;
     private StackPane firstStackPane = new StackPane();
-    private ScrollBar scrollBar = new ScrollBar();
+    private CodeScrollBar scrollBar;
     private boolean isScrollable = false;
     private boolean hasListener = false;
 //    private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
@@ -41,26 +43,17 @@ public class CodeArea extends HBox {
 //    private StackPane secondStackPane = new StackPane();
 
     public CodeArea (boolean isAi){
-        this.isAi = isAi;
-        isEditable = true;
-        rectVBox.setAlignment(Pos.TOP_LEFT);
-        codeVBox.setAlignment(Pos.TOP_LEFT);
-//        rectVBox2.setAlignment(Pos.TOP_LEFT);
-//        codeVBox2.setAlignment(Pos.TOP_LEFT);
-//        rectStackList.add(new Rectangle(GameConstants.TEXTFIELD_WIDTH,GameConstants.TEXTFIELD_HEIGHT, GameConstants.getColorFromDepth(0)));
-//        codeFieldList.add(new CodeField("",1,isEditable)); //TODO: depth = 1 oder 0?
-//        draw();
+        this(new ComplexStatement(),true,isAi);
     }
 
     public CodeArea (ComplexStatement behaviour,boolean isEditable, boolean isAi) {
         this.isEditable = isEditable;
         this.isAi = isAi;
+        scrollBar = CodeScrollBar.getInstance(isAi);
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
-//        rectVBox2.setAlignment(Pos.TOP_LEFT);
-//        codeVBox2.setAlignment(Pos.TOP_LEFT);
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
-//        draw();
+//        scrollBar.setPrefHeight(rectVBox.getPrefHeight());
     }
     public CodeArea (ComplexStatement behaviour, boolean isAi) {
         this(behaviour,true,isAi);
@@ -112,15 +105,11 @@ public class CodeArea extends HBox {
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
         int bound = (int) Math.round(scrollBar.getValue());
-        for(int i = bound; i < codeFieldList.size()+bound; i++){
-            if(i < GameConstants.MAX_CODE_LINES+bound){
-                codeVBox.getChildren().add(codeFieldList.get(i));
-                rectVBox.getChildren().add(rectStackList.get(i));
-            }
-//            else {
-//                codeVBox2.getChildren().add(codeFieldList.get(i));
-//                rectVBox2.getChildren().add(rectStackList.get(i));
-//            }
+        for(int i = bound; i < GameConstants.MAX_CODE_LINES+bound; i++){
+            if(i >= codeFieldList.size())break;
+            codeVBox.getChildren().add(codeFieldList.get(i));
+            rectVBox.getChildren().add(rectStackList.get(i));
+
         }
         if(codeFieldList.size()>GameConstants.MAX_CODE_LINES){
             makeScrollable();
@@ -128,22 +117,22 @@ public class CodeArea extends HBox {
         else isScrollable = false;
         firstStackPane.getChildren().clear();
         firstStackPane.getChildren().addAll(rectVBox,codeVBox);
-//        secondStackPane.getChildren().clear();
-//        secondStackPane.getChildren().addAll(rectVBox2,codeVBox2);
-//
-        this.getChildren().add(firstStackPane);//,secondStackPane);
-    }
-
-    private void makeScrollable() {
+        this.getChildren().add(firstStackPane);
+        this.getChildren().add(scrollBar);
         scrollBar.setOrientation(Orientation.VERTICAL);
         scrollBar.setMin(0);
         scrollBar.setMax(codeFieldList.size()-GameConstants.MAX_CODE_LINES);
-        scrollBar.setValue(0);
         scrollBar.setBlockIncrement(1);
         scrollBar.setVisibleAmount(0.5);
         rectVBox.autosize();
-        scrollBar.setPrefHeight(rectVBox.getPrefHeight());
-        this.getChildren().add(scrollBar);
+        scrollBar.setPrefHeight(rectVBox.getLayoutBounds().getHeight());
+        scrollBar.setDisable(GameConstants.MAX_CODE_LINES >= codeFieldList.size());
+        if(codeFieldList.size() == 1)scrollBar.setVisible(false);
+        else scrollBar.setVisible(true);
+    }
+
+    private void makeScrollable() {
+        scrollBar.setDisable(false);
         this.isScrollable = true;
     }
 
@@ -165,24 +154,46 @@ public class CodeArea extends HBox {
 
     public void removeCodeField(CodeField codeField) {
         codeFieldList.remove(codeField);
+        if(scrollBar.getScrollAmount()+GameConstants.MAX_CODE_LINES > codeFieldList.size() && codeFieldList.size() >= GameConstants.MAX_CODE_LINES)
+            scrollBar.setScrollAmount(scrollBar.getScrollAmount()-1);
     }
 
     public int getSize() {
         return codeFieldList.size();
     }
 
-    public void select(int index, boolean selectEnd) {
+    public void select(int index, Selection selection) {
 //        for(int i = 0; i< codeFieldList.size(); i++){
+        if(index >= codeFieldList.size()){
+            select(codeFieldList.size()-1, selection);
+            return;
+        }
+        else if(index < 0){
+            select(0, selection);
+            return;
+        }
             CodeField codeField = codeFieldList.get(index);
-            if(index >= GameConstants.MAX_CODE_LINES&&isScrollable){
-                scrollBar.setValue(index-GameConstants.MAX_CODE_LINES+1);
-            }
+            if(index >= GameConstants.MAX_CODE_LINES+scrollBar.getScrollAmount()&&isScrollable){
+                scrollBar.setScrollAmount(index-GameConstants.MAX_CODE_LINES+1);
+            }else if (index < scrollBar.getScrollAmount()&&isScrollable){
+
+                scrollBar.setScrollAmount(index);
+//            scroll(index);
+        }
 //            if(index == i){
             if(codeField.isEditable())codeField.setStyle(null);
             else codeField.setStyle("-fx-background-color: rgba(200,200,255,0.5);");
             codeField.requestFocus();
-            if(selectEnd)codeField.selectRange(codeField.getText().length(),codeField.getText().length());
-            else codeField.selectRange(0,0);
+            switch (selection){
+                case NONE:
+                    break;
+                case START: codeField.selectRange(0,0);
+                    break;
+                case END:codeField.selectRange(codeField.getText().length(),codeField.getText().length());
+                    break;
+            }
+
+
             selectedCodeField = codeField;
 //            }else {
 //                codeField.resetStyle();
@@ -194,10 +205,10 @@ public class CodeArea extends HBox {
             codeField.resetStyle();
         }
     }
-    public void select(CodeField codeField, boolean selectEnd) {
+    public void select(CodeField codeField, Selection selection) {
 
         for(int i = 0; i< codeFieldList.size(); i++){
-            if(codeField == codeFieldList.get(i))select(i,selectEnd);
+            if(codeField == codeFieldList.get(i))select(i,selection);
         }
     }
 
@@ -248,7 +259,9 @@ public class CodeArea extends HBox {
     public void scroll(int t1) {
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
+//        if(t1+GameConstants.MAX_CODE_LINES > codeFieldList.size())t1 = 0;
         for(int i = t1; i < t1+GameConstants.MAX_CODE_LINES; i++){
+            if(i >= codeFieldList.size())break;
             codeVBox.getChildren().add(codeFieldList.get(i));
             rectVBox.getChildren().add(rectStackList.get(i));
         }
@@ -264,4 +277,10 @@ public class CodeArea extends HBox {
     public boolean isAi() {
         return isAi;
     }
+
+//    public void setBehaviuour(ComplexStatement complexStatement) {
+//        this.codeFieldList = new ArrayList<>();
+//        codeFieldList.addAll(getCodeFieldsFromStatement(complexStatement));
+//        rectStackList = getRectanglesFromList(codeFieldList);
+//    }
 }

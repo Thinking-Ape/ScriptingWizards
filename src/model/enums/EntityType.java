@@ -4,13 +4,14 @@ import utility.Util;
 
 public enum EntityType {
     KNIGHT,
-    SKELETON;
+    SKELETON,
+    NONE;
 
     public static EntityType getValueFromName(String s) {
         for(EntityType c : values()){
             if(c.name().toUpperCase().equals(s))return c;
         }
-        return null;
+        return NONE;
     }
 
     public String getDisplayName() {

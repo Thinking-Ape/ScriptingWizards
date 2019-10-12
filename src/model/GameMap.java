@@ -8,6 +8,8 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 
+import static utility.GameConstants.NO_ENTITY;
+
 public class GameMap {
 
     private PropertyChangeSupport changeSupport;
@@ -79,7 +81,7 @@ public class GameMap {
     public void print() {
         for (Cell[] cellRow : cellArray2D) {
             for (Cell cell : cellRow) {
-                if(cell.getEntity()==null)System.out.print(cell.getContent().name() + ", ");
+                if(cell.getEntity()==NO_ENTITY)System.out.print(cell.getContent().name() + ", ");
                 else System.out.print(cell.getEntity().getName()+", ");
             }
             System.out.println();
@@ -197,8 +199,8 @@ public class GameMap {
     public void kill(int x, int y) {
         Cell cell =cellArray2D[x][y];
         Entity entity = cell.getEntity();
-        if(entity==null){
-            cell.setItem(null);
+        if(entity==NO_ENTITY){
+            cell.setItem(ItemType.NONE);
             return;
         }
         System.out.println(cell.getEntity().getEntityType().getDisplayName() +" "+ cell.getEntity().getName()+" died!");
@@ -218,12 +220,12 @@ public class GameMap {
     public void removeEntity(int x, int y) {
 
         Entity e = cellArray2D[x][y].getEntity();
-        if (e == null) return;
+        if (e == NO_ENTITY) return;
 //        ItemType item = e.getItem();
 //        Cell oldCell = cellArray2D[x][y].copy();
 //        Cell newCell = cellArray2D[x][y].copy();
 //        newCell.setEntity(null);
-        cellArray2D[x][y].setEntity(null);
+        cellArray2D[x][y].setEntity(NO_ENTITY);
 //        changeSupport.firePropertyChange("entity",new Pair<>(new Point(x, y),oldCell),new Pair<>(new Point(x, y),newCell));
     }
 
@@ -236,14 +238,14 @@ public class GameMap {
     }
 
     public Entity getEntity(Point ecMapGet) {//TODO: sloppy Point vs x,y??
-        if(ecMapGet== null)return null;
+        if(ecMapGet== null)return NO_ENTITY;
         return cellArray2D[ecMapGet.getX()][ecMapGet.getY()].getEntity();
     }
 
     public Point getTargetPoint(String actorName) {
         Point p = getEntityPosition(actorName);
         Entity entity = cellArray2D[p.getX()][p.getY()].getEntity();
-        if(entity == null) return new Point(-1, -1);
+        if(entity == NO_ENTITY) return new Point(-1, -1);
         switch (entity.getDirection()){
             case NORTH:
                 return new Point(p.getX(), p.getY()-1);
@@ -271,6 +273,7 @@ public class GameMap {
         changeSupport.firePropertyChange("item",null,null);
     }
     public void setItem(Point targetPos, ItemType item) {
+        if(item == null)throw new IllegalArgumentException("Item cannot be null!");
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         cellArray2D[targetPos.getX()][targetPos.getY()].setItem(item);
         Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
@@ -302,7 +305,7 @@ public class GameMap {
     }
 
     public void setEntity(Point targetPos, Entity actorEntity) {
-        if(actorEntity == null)throw new IllegalArgumentException("NOT NULL!");
+        if(actorEntity == null)throw new IllegalArgumentException("Entity shall not be null!");
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         cellArray2D[targetPos.getX()][targetPos.getY()].setEntity(actorEntity);
         Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
@@ -347,7 +350,7 @@ public class GameMap {
 
     public void spawn(Point spawnPoint, Entity entity) {
         ItemType item = getItem(spawnPoint);
-        setItem(spawnPoint,  null);
+        setItem(spawnPoint,  ItemType.NONE);
         entity.setItem(item);
         setEntity(spawnPoint, entity);
     }

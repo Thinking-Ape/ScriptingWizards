@@ -11,8 +11,13 @@ import utility.Point;
 import utility.Variable;
 import utility.VariableType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static model.enums.MethodType.EXECUTE_IF;
+import static utility.GameConstants.NO_ENTITY;
 
 public class CodeEvaluator {
 
@@ -72,38 +77,10 @@ public class CodeEvaluator {
                 break;
             case METHOD_CALL:
                 MethodCall mC = (MethodCall)currentStatement;
-                if(mC.getMethodType()==MethodType.EXECUTE_IF){
+                if(mC.getMethodType()== EXECUTE_IF){
                     Variable v = currentStatement.getParentStatement().getVariable(mC.getObjectName());
                     if(v != null){
-                        String output = "";
-                        if(v.getVariableType()== VariableType.ARMY){
-                            for(String s : v.getValue().getRightNode().getText().split(",")){
-                                String string = mC.getParameters()[0].replaceAll( v.getName()+"\\.", s+"\\.");
-                                System.out.println("test: "+string);
-
-                                if(v.getValue().getRightNode().getText().equals("")){
-                                    System.out.println(currentStatement.getText());
-                                    return currentStatement;
-                                }
-
-                                boolean b = testCondition(Condition.getConditionFromString(string));
-                                if(gameMap.getEntity(s)!=null)output+=b;
-                                else {
-                                    String ss = v.getValue().getText().replaceFirst("\\("+s+"\\)","\\(\\)" );
-                                    ss = ss.replaceFirst("\\("+s+",","\\(" );
-                                    ss = ss.replaceFirst(","+s+",","," );
-                                    ss = ss.replaceFirst(","+s+"\\)","\\)" );
-                                    v.update(ExpressionTree.expressionTreeFromString(ss));
-//                                    System.out.println(v.getValue().getText()+" " + s);
-//                                    if(v.getValue().getRightNode().getText().equals(""))
-//                                        return new SimpleStatement();
-                                }
-                            }
-                        }
-                        else output = testCondition(Condition.getConditionFromString(mC.getParameters()[0].split(",")[0]))+"";
-                        MethodCall mcc = new MethodCall(mC.getMethodType(), mC.getObjectName(), output+","+mC.getParameters()[1]+ (mC.getParameters().length>2 ? ","+mC.getParameters()[2] : ""));
-                        mcc.setParentStatement(mC.getParentStatement());
-                        return mcc;
+                        return evaluateExecuteIf(mC,v);
                     }
                 }
                 break;
@@ -131,7 +108,7 @@ public class CodeEvaluator {
                         variable2 = new Variable(assignment.getVariable().getVariableType(),assignment.getVariable().getName(),ExpressionTree.expressionTreeFromString(assignment.getVariable().getValue().getText()));
 //                        throw new IllegalAccessException("Not implemented yet!");
                         break;
-                    case DEFAULT:
+                    case ACTION:
 
                         break;
                 }
@@ -140,6 +117,75 @@ public class CodeEvaluator {
                 break;
         }
         return currentStatement;
+    }
+
+    private Statement evaluateExecuteIf(MethodCall mC, Variable v) throws IllegalAccessException {
+
+        String output = "";
+        String command1 = mC.getParameters()[1];
+        String command2 = mC.getParameters()[2];
+        if(!command1.matches(VariableType.COMMAND.getAllowedRegex())){
+//            System.out.println("Var: " +command1);
+            command1 = evaluateVariable(currentStatement.getParentStatement().getVariable(command1)).getText();
+        }
+        if(!command2.matches(VariableType.COMMAND.getAllowedRegex())){
+            command2 = evaluateVariable(currentStatement.getParentStatement().getVariable(command2)).getText();
+        }
+        if(MethodType.getMethodTypeFromCall(command1) == EXECUTE_IF){
+//            System.out.println("Command:"+command1);
+            Matcher matcher = Pattern.compile(EXECUTE_IF.getRegex()).matcher(command1);
+            matcher.matches();
+            command1 =  evaluateExecuteIf(new MethodCall(EXECUTE_IF, mC.getObjectName(), matcher.group(1)),v).getText();
+            command1 = command1.replaceFirst(v.getName()+"\\.", "");
+            command1 = command1.replaceAll(";", "");
+        }
+        if(MethodType.getMethodTypeFromCall(command2) == EXECUTE_IF){
+//            System.out.println("Command:"+command2);
+            Matcher matcher = Pattern.compile(EXECUTE_IF.getRegex()).matcher(command2);
+            matcher.matches();
+            command2 =  evaluateExecuteIf(new MethodCall(EXECUTE_IF, mC.getObjectName(), matcher.group(1)),v).getText();
+            command2 = command2.replaceFirst(v.getName()+"\\.", "");
+            command2 = command2.replaceAll(";", "");
+//            System.out.println("Command:"+command2);
+        }
+        if(v.getVariableType()== VariableType.ARMY){
+            for(String s : v.getValue().getRightNode().getText().split(",")){
+                String string = mC.getParameters()[0];
+                Matcher variableMatcher = Pattern.compile("("+GameConstants.VARIABLE_NAME_REGEX+")").matcher(string);
+                if(variableMatcher.matches())for(int i = 0; i < variableMatcher.groupCount();i++){
+                    String tempS = variableMatcher.group(i);
+                    Variable var = currentStatement.getParentStatement().getVariable(tempS);
+                    if(var!=null)
+                        string = string.replaceAll(tempS, evaluateVariable(var).getText());
+                }
+                string = string.replaceAll( v.getName()+"\\.", s+"\\.");
+                if(v.getValue().getRightNode().getText().equals("")){
+                    return currentStatement;
+                }
+                Condition c= Condition.getConditionFromString(string);
+                boolean b = testCondition(c);
+                if(gameMap.getEntity(s)!=NO_ENTITY)output+=s+":"+b+" ";
+                else {
+                    String ss = v.getValue().getText().replaceFirst("\\("+s+"\\)","\\(\\)" );
+                    ss = ss.replaceFirst("\\("+s+",","\\(" );
+                    ss = ss.replaceFirst(","+s+",","," );
+                    ss = ss.replaceFirst(","+s+"\\)","\\)" );
+                    v.update(ExpressionTree.expressionTreeFromString(ss));
+//                                    System.out.println(v.getValue().getText()+" " + s);
+//                                    if(v.getValue().getRightNode().getText().equals(""))
+//                                        return new SimpleStatement();
+                }
+            }
+        }
+        else output = testCondition(Condition.getConditionFromString(mC.getParameters()[0].split(",")[0]))+"";
+        MethodCall mcc = new MethodCall(mC.getMethodType(), mC.getObjectName(), output+","+command1+ ","+command2);
+        mcc.setParentStatement(mC.getParentStatement());
+        return mcc;
+    }
+
+    private ExpressionTree evaluateVariable(Variable variable) {
+        if(currentStatement.getParentStatement().getVariable(variable.getValue().getText())!=null)return evaluateVariable(variable);
+        else return variable.getValue();
     }
 
     /*private Condition replaceArmyVariables(Condition conditionFromString, String name, String s) {
@@ -274,8 +320,8 @@ public class CodeEvaluator {
                 boolean var2Found = var2!=null && var2.getVariableType() != VariableType.INT;
 
                 if(var1Found || var2Found)return evaluateBooleanExpression(new ConditionLeaf(var1Found ? var1.getValue() : leftTree, conditionLeaf.getSimpleConditionType(),var2Found ? var2.getValue() : rightTree));
-                boolean vt1Found = vt1 !=VariableType.DEFAULT && vt1 != VariableType.INT;
-                boolean vt2Found = vt2 !=VariableType.DEFAULT && vt2 != VariableType.INT;
+                boolean vt1Found = vt1 !=VariableType.ACTION && vt1 != VariableType.INT;
+                boolean vt2Found = vt2 !=VariableType.ACTION && vt2 != VariableType.INT;
                 if(vt1Found && vt2Found) return !leftTree.getText().equals(rightTree.getText());
 
                 leftEvaluated =  evaluateNumericalExpression(leftTree);
@@ -290,8 +336,8 @@ public class CodeEvaluator {
                 var2Found = var2!=null && var2.getVariableType() != VariableType.INT;
 
                 if(var1Found || var2Found)return evaluateBooleanExpression(new ConditionLeaf(var1Found ? var1.getValue() : leftTree, conditionLeaf.getSimpleConditionType(),var2Found ? var2.getValue() : rightTree));
-                vt1Found = vt1 !=VariableType.DEFAULT && vt1 != VariableType.INT;
-                vt2Found = vt2 !=VariableType.DEFAULT && vt2 != VariableType.INT;
+                vt1Found = vt1 !=VariableType.ACTION && vt1 != VariableType.INT;
+                vt2Found = vt2 !=VariableType.ACTION && vt2 != VariableType.INT;
                 if(vt1Found && vt2Found) return leftTree.getText().equals(rightTree.getText());
 
                 leftEvaluated =  evaluateNumericalExpression(leftTree);
@@ -306,7 +352,12 @@ public class CodeEvaluator {
         Variable variable = currentStatement.getParentStatement().getVariable(objectName);
         if(variable == null)throw new IllegalArgumentException("Variable "+objectName +" does not exist!");
         VariableType vType = variable.getVariableType();
-        if(vType == VariableType.KNIGHT||vType == VariableType.SKELETON){
+        if(vType == VariableType.KNIGHT||vType == VariableType.SKELETON || vType == VariableType.ARMY){
+            String[] nameList = new String[]{objectName};
+            if(vType == VariableType.ARMY)nameList = variable.getValue().getRightNode().getText().split(",");
+                    boolean output = true;
+            for(int i = 0; i < nameList.length; i++){
+                objectName = nameList[i];
             Point actorPoint = gameMap.getEntityPosition(objectName);
             if(actorPoint == null) return false;
             Point targetPoint = gameMap.getTargetPoint(objectName);
@@ -323,23 +374,31 @@ public class CodeEvaluator {
                 case COLLECT:
                     throw new IllegalAccessException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in CodeParser
                 case CAN_MOVE:
-                    if(gameMap.isGateWrongDirection(actorPoint,targetPoint))return false;
-                    return gameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || (gameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ gameMap.cellHasFlag(targetPoint, CFlag.INVERTED)));
+                    if(gameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;
+                    output = output && (gameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || (gameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ gameMap.cellHasFlag(targetPoint, CFlag.INVERTED))));
+                    continue;
                 case HAS_ITEM:
-                    return actorEntity.getItem() != null && (actorEntity.getItem() == ItemType.getValueFromName(parameterString) || parameterString.equals(""));
+                    output = output && ((actorEntity.getItem() != ItemType.NONE &&actorEntity.getItem() == ItemType.getValueFromName(parameterString)) || (actorEntity.getItem() != ItemType.NONE &&  parameterString.equals("")));
+                    continue;
                 case TARGET_CELL_IS:
-                    return targetContent == CContent.getValueFromName(parameterString);
+                    output = output && (targetContent == CContent.getValueFromName(parameterString));
+                    continue;
                 case TARGET_IS_DANGER:
-                    return gameMap.cellHasFlag(targetPoint,CFlag.PREPARING)||gameMap.cellHasFlag(targetPoint,CFlag.ARMED)||!(targetEntity==null || targetEntity.getEntityType()!= EntityType.SKELETON);
-                case TARGET_CONTAINS_ENTITY:
-                    return (targetEntity!=null && (targetEntity.getEntityType()==EntityType.getValueFromName(parameterString)||parameterString.equals("")));
-                case TARGET_CONTAINS_ITEM:
-                    return (gameMap.getItem(targetPoint)!=null&&(gameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString)||parameterString.equals("")));
-
+                    output = output && (gameMap.cellHasFlag(targetPoint,CFlag.PREPARING)||gameMap.cellHasFlag(targetPoint,CFlag.ARMED)||!(targetEntity.getEntityType()!= EntityType.SKELETON));
+                    continue;
+                case TARGETS_ENTITY:
+                    output = output && ((gameMap.getEntity(targetPoint)!=NO_ENTITY &&targetEntity.getEntityType()==EntityType.getValueFromName(parameterString))||(gameMap.getEntity(targetPoint)!=NO_ENTITY &&parameterString.equals("")));
+                    continue;
+                case TARGETS_ITEM:
+                    output = output && ((gameMap.getItem(targetPoint) != ItemType.NONE &&gameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString))||(gameMap.getItem(targetPoint) != ItemType.NONE && parameterString.equals("")));
+                    continue;
+                case LOOKS_TOWARDS:
+                    output = output && ((actorEntity.getDirection() == Direction.getValueFromString(parameterString)));
+                    continue;
             }
 
             throw new IllegalStateException("Method \"" + methodName+"("+parameterString+")\" could not be evaluated");
-        }
+        }return output;}
         throw new IllegalStateException(objectName + " has wrong variable type!");
     }
 

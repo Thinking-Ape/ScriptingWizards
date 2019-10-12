@@ -21,6 +21,8 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import utility.Util;
 
+import static utility.GameConstants.NO_ENTITY;
+
 public abstract class JSONParser {
 
     public static void saveLevel(Level level) throws IllegalAccessException {
@@ -40,7 +42,7 @@ public abstract class JSONParser {
                 }
                 if(flagArray.length()>0){cellJSONObject.put("flags",flagArray);}
                 if(cell.getCellId() !=-1){cellJSONObject.put("id",cell.getCellId());}
-                if(cell.getItem()!=null)cellJSONObject.put("item", cell.getItem().name().toLowerCase());
+                if(cell.getItem()!=ItemType.NONE)cellJSONObject.put("item", cell.getItem().name().toLowerCase());
                 if(cell.getLinkedCellsSize()>0){
                     JSONArray linkedIdsJSONArray = new JSONArray();
                     for(int i = 0; i < cell.getLinkedCellsSize();i++){
@@ -214,7 +216,7 @@ public abstract class JSONParser {
             }
         }
         ItemType item = ItemType.getValueFromName(itemString.toUpperCase());
-        return new Cell(content,item,null,flags,idList,id);
+        return new Cell(content,item,NO_ENTITY,flags,idList,id);
     }
 
     public static List<Level> parseAllResourceLevels() throws IOException, IllegalAccessException {

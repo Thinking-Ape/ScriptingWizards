@@ -81,7 +81,7 @@ public class CodeParser {
 ////                continue;
 ////            }
             Statement statement = parseString(code,depth);
-            if(statement==null )throw new IllegalArgumentException("Unknown command: \""+code+"\"!");
+            if(statement==null )throw new IllegalArgumentException("Unknown statement: \""+code+"\"!");
             if (statement.isComplex()){
                 if(statement.getStatementType() == StatementType.ELSE){
                     if(testIfElseCanStandHere(depth)) throw new IllegalArgumentException("Else cannot stand here");
@@ -272,7 +272,7 @@ public class CodeParser {
                 return;
             case HAS_ITEM:
                 ItemType item = ItemType.getValueFromName(parameters);
-                if(item != null ||parameters.equals("")){
+                if(item != ItemType.NONE ||parameters.equals("")){
                     return;
                 }
                 break;
@@ -282,15 +282,15 @@ public class CodeParser {
                     return;
                 }
                 break;
-            case TARGET_CONTAINS_ENTITY:
+            case TARGETS_ENTITY:
                 EntityType entityType = EntityType.getValueFromName(parameters);
-                if(entityType != null|| parameters.equals("")){
+                if(entityType != EntityType.NONE|| parameters.equals("")){
                     return;
                 }
                 break;
-            case TARGET_CONTAINS_ITEM:
+            case TARGETS_ITEM:
                 item = ItemType.getValueFromName(parameters);
-                if(item != null || parameters.equals("")){
+                if(item != ItemType.NONE || parameters.equals("")){
                     return;
                 }
                 break;
@@ -302,13 +302,15 @@ public class CodeParser {
             case EXECUTE_IF:
                 String[] parameterList = parameters.split(",");
                 checkConditionForUnknownVars(Condition.getConditionFromString(parameterList[0]), depth);
-                if(parameterList.length < 2)throw new IllegalArgumentException("Not enough paramters in method Call!");
-                System.out.println(VariableType.COMMAND.getAllowedRegex());
-
-                if(parameterList[1].matches(VariableType.COMMAND.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameterList[1])!=null &&depthStatementMap.get(depth-1).getVariable(parameterList[1]).getVariableType()==VariableType.COMMAND)){
-                    return;
-                }
-                if(parameterList.length == 2 || parameterList[2].matches(VariableType.COMMAND.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameterList[1])!=null &&depthStatementMap.get(depth-1).getVariable(parameterList[1]).getVariableType()==VariableType.COMMAND)){
+                if(parameterList.length < 3)throw new IllegalArgumentException("Not enough paramters in method Call!");
+                boolean parameter1Okay = parameterList[1].matches(VariableType.COMMAND.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameterList[1])!=null &&depthStatementMap.get(depth-1).getVariable(parameterList[1]).getVariableType()==VariableType.COMMAND);
+                boolean parameter2Okay = parameterList[2].matches(VariableType.COMMAND.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameterList[2])!=null &&depthStatementMap.get(depth-1).getVariable(parameterList[2]).getVariableType()==VariableType.COMMAND);
+                if(!parameter1Okay)throw new IllegalArgumentException(parameterList[1] + " is not a valid Command!");
+                else if(!parameter2Okay)throw new IllegalArgumentException(parameterList[2] + " is not a valid Command!");
+                else return;
+            case LOOKS_TOWARDS:
+                Direction dir = Direction.getValueFromString(parameters);
+                if(dir != null){
                     return;
                 }
                 break;
@@ -341,7 +343,7 @@ public class CodeParser {
         //TODO: expand to make it more readable!
         if(valueTree.getLeftNode() != null){
             String vTypeString = valueTree.getLeftNode().getText().replaceAll("new ","");
-         if( EntityType.getValueFromName(vTypeString)!=null && !valueTree.getRightNode().getText().equals("")&&Direction.getValueFromString(valueTree.getRightNode().getText())==null)
+         if( EntityType.getValueFromName(vTypeString)!=EntityType.NONE && !valueTree.getRightNode().getText().equals("")&&Direction.getValueFromString(valueTree.getRightNode().getText())==null)
              throw new IllegalArgumentException(valueTree.getRightNode().getText()+ " is not a Direction!");
         }
 //            throw new IllegalStateException(valueTree.getText()+ " contains unknown Variables!");
@@ -438,11 +440,11 @@ public class CodeParser {
                 else return;
             case ITEM_TYPE:
                 ItemType itemType = ItemType.getValueFromName(value);
-                if(itemType == null)throw new IllegalArgumentException(value + " is no ItemType!");
+                if(itemType == ItemType.NONE)throw new IllegalArgumentException(value + " is no ItemType!");
                 else return;
             case ENTITY_TYPE:
                 EntityType entityType = EntityType.getValueFromName(value);
-                if(entityType == null)throw new IllegalArgumentException(value + " is no EntityType!");
+                if(entityType == EntityType.NONE)throw new IllegalArgumentException(value + " is no EntityType!");
                 else return;
             case ARMY:
                 if(!value.matches(variableType.getAllowedRegex())){
@@ -459,8 +461,16 @@ public class CodeParser {
                     throw new IllegalArgumentException(value + " is not a valid Army constructor!");}
                 }
                 break;
-            case DEFAULT:
+            case ACTION:
                 break;
+            case COMMAND:
+                if(!value.matches(variableType.getAllowedRegex())){
+                    if(value.matches(MethodType.EXECUTE_IF.getRegex()))
+                        throw new IllegalArgumentException("ExecuteIf is not allowed as a command!");
+                    throw new IllegalArgumentException(value + " is not a valid Command!");
+                }
+                else return;
+
         }
     }
 

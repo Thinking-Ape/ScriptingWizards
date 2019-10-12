@@ -6,6 +6,8 @@ import model.enums.EntityType;
 import model.enums.ItemType;
 import model.statement.Expression.ExpressionTree;
 
+import static model.enums.EntityType.NONE;
+
 public class Variable {
     private String name;
     private ExpressionTree value;
@@ -13,7 +15,7 @@ public class Variable {
 
     public Variable( VariableType variableType,String variableName, ExpressionTree value) {
         this.name = variableName.trim();
-        if(Direction.getValueFromString(name)!=null || ItemType.getValueFromName(name) != null || CContent.getValueFromName(name) != null || EntityType.getValueFromName(name) != null || name.equals("AROUND")|| name.equals("LEFT")|| name.equals("RIGHT")|| name.equals("EAST")|| name.equals("NORTH")|| name.equals("SOUTH")|| name.equals("WEST"))
+        if(Direction.getValueFromString(name)!=null || ItemType.getValueFromName(name) != ItemType.NONE || CContent.getValueFromName(name) != null || EntityType.getValueFromName(name) != NONE || name.equals("AROUND")|| name.equals("LEFT")|| name.equals("RIGHT"))
             throw new IllegalArgumentException("A variable must not be named: " + name + "!" );
         this.value = value;
         this.variableType = variableType;

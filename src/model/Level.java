@@ -10,6 +10,8 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 
+import static utility.GameConstants.NO_ENTITY;
+
 public class Level implements PropertyChangeListener {
 
     private PropertyChangeSupport changeSupport;
@@ -118,8 +120,8 @@ public class Level implements PropertyChangeListener {
             final Cell cell = currentMap.getCellAtXYClone(x,y);
             CContent content = currentMap.getContentAtXY(x,y);
             if (content == CContent.PRESSURE_PLATE) {
-                boolean invertedAndNotFree = (cell.getEntity() == null && cell.getItem() != ItemType.BOULDER) && cell.hasFlag(CFlag.INVERTED);
-                boolean notInvertedAndFree = (cell.getEntity() != null || cell.getItem() == ItemType.BOULDER) && !cell.hasFlag(CFlag.INVERTED);
+                boolean invertedAndNotFree = (cell.getEntity() == NO_ENTITY && cell.getItem() != ItemType.BOULDER) && cell.hasFlag(CFlag.INVERTED);
+                boolean notInvertedAndFree = (cell.getEntity() != NO_ENTITY || cell.getItem() == ItemType.BOULDER) && !cell.hasFlag(CFlag.INVERTED);
                 if (invertedAndNotFree || notInvertedAndFree) currentMap.setFlag(x, y, CFlag.TRIGGERED, true);
                 else currentMap.setFlag(x, y, CFlag.TRIGGERED, false);
             }

@@ -116,7 +116,7 @@ public class Model implements PropertyChangeListener {
 
     public Level getLevelWithName(String s) {
         for(Level l : levelSet){
-            if(l.getName().equals(s))return l;
+            if(l.getName().toLowerCase().equals(s.toLowerCase()))return l;
         }
         return null;
     }

@@ -199,4 +199,22 @@ public abstract class Util {
         }
         return output;
     }
+
+    public static String[] getParametersFromString(String text) {
+        if(text.length() == 0)throw new IllegalArgumentException("You shall not pass an empty String!");
+        int depth = 0;
+        int i = 0;
+        String[] output = new String[text.length()];
+        output[0]="";
+        for(char c : text.toCharArray()){
+            if(c == ')')depth--;
+            if(c == '(')depth++;
+            if(depth == 0 && c == ','){
+                i++;
+                output[i]="";
+            }else
+                output[i] = output[i]+c;
+        }
+        return output;
+    }
 }

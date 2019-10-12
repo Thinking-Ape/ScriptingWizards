@@ -8,13 +8,14 @@ public enum ItemType {
 //    TREASURE,
     KEY,
     SWORD,
-    SHOVEL;
+    SHOVEL,
+    NONE;
 
     public static ItemType getValueFromName(String s) {
         for(ItemType item : values()){
             if(item.name().toUpperCase().equals(s))return item;
         }
-        return null;
+        return NONE;
     }
 
     public String getDisplayName() {

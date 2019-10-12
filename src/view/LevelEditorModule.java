@@ -161,9 +161,9 @@ public class LevelEditorModule {
             cellItemSelectionGPane.add(button,j,i);
             i++;
         }
-        Button button = new Button("None");
-        button.setMinWidth(125);
-        cellItemSelectionGPane.add(button,j,i);
+//        Button button = new Button("None");
+//        button.setMinWidth(125);
+//        cellItemSelectionGPane.add(button,j,i);
         bottomHBox.setAlignment(Pos.TOP_CENTER);
         topHBox.setAlignment(Pos.BASELINE_CENTER);
     }

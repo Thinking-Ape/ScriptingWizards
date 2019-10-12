@@ -18,8 +18,8 @@ public enum VariableType {
     ITEM_TYPE("ItemType", Util.getRegEx(ItemType.values())),
     ENTITY_TYPE("EntityType", Util.getRegEx(EntityType.values())),
     ARMY("Army","new Army\\(( *"+GameConstants.VARIABLE_NAME_REGEX+" *, *)*"+GameConstants.VARIABLE_NAME_REGEX+" *\\)"),
-    COMMAND("Command",MethodType.getAllRegex()),
-    DEFAULT(".*",""); // not working yet
+    COMMAND("Command",MethodType.getAllActionRegex()),
+    ACTION(".*",""); // not working yet
 
     final private String name;
 
@@ -27,7 +27,7 @@ public enum VariableType {
         for(VariableType vt : values()){
             if(text.matches(vt.allowedValues))return vt;
         }
-        return DEFAULT;
+        return ACTION;
     }
 
     public String getAllowedRegex() {
@@ -46,7 +46,7 @@ public enum VariableType {
         for(VariableType variableType : values()){
             if(variableTypeString.equals(variableType.name))return variableType;
         }
-        if (variableTypeString.equals(""))return DEFAULT;
+        if (variableTypeString.equals(""))return ACTION;
         throw new IllegalArgumentException("VariableType "+ variableTypeString +" doesnt exist!");
     }
     public String getName(){

@@ -1,12 +1,9 @@
 package view;
 
-import javafx.application.Platform;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -18,8 +15,6 @@ import model.enums.CContent;
 import model.enums.EntityType;
 import model.enums.ItemType;
 import model.enums.MethodType;
-
-import java.util.List;
 
 public class SpellBookPane extends StackPane {
 
@@ -169,7 +164,7 @@ public class SpellBookPane extends StackPane {
                     }
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<CellContent>", tooltipString.toString()));
                     break;
-                case TARGET_CONTAINS_ENTITY:
+                case TARGETS_ENTITY:
                     tooltipString = new StringBuilder("One of the following: ");
                     i = 0;
                     for(EntityType entity : EntityType.values()){
@@ -180,7 +175,7 @@ public class SpellBookPane extends StackPane {
                     tooltipString.append(". If left blank any ItemType will return true!");
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<EntityType>", tooltipString.toString()));
                     break;
-                case TARGET_CONTAINS_ITEM:
+                case TARGETS_ITEM:
                     tooltipString = new StringBuilder("One of the following: ");
                     i = 0;
                     for(ItemType iT : ItemType.values()){
