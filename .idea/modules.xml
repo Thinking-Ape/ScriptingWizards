@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Programmierprojekt.iml" filepath="$PROJECT_DIR$/Programmierprojekt.iml" />
+      <module fileurl="file://C:/Program Files/Java/javafx-jmods-11.0.2/javafx-jmods-11.0.2.iml" filepath="C:/Program Files/Java/javafx-jmods-11.0.2/javafx-jmods-11.0.2.iml" />
     </modules>
   </component>
 </project>

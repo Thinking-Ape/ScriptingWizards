@@ -1,1 +1,0 @@
-{"maxKnights":1,"requiredLevels":["LearnToWalk"],"isTutorial":true,"turnsToStars":[8,6],"ai":[],"index":1,"tutorialEntries":[],"map":[["wall","wall","wall","wall","wall"],["wall","spawn","path",{"item":"key","content":"path"},"wall"],["wall","wall","wall","path","wall"],["empty","empty","wall","exit","wall"],["empty","empty","wall","wall","wall"]],"locToStars":[8,6]}
