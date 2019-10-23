@@ -11,7 +11,6 @@ public class ConditionLeaf implements Condition {
 
     public ConditionLeaf(ExpressionTree leftTree, BooleanType simpleConditionType, ExpressionTree rightTree) {
         conditionType = ConditionType.SINGLE;
-//        if(rightTree != null&&rightTree.getText().charAt(0)=='(') System.out.println(rightTree.getText());
         this.leftTree = leftTree;
         this.rightTree = rightTree;
         this.simpleConditionType = simpleConditionType;
@@ -68,11 +67,11 @@ public class ConditionLeaf implements Condition {
     public ConditionType getConditionType() {
         return conditionType;
     }
-//    public ConditionTree getLeftNode() throws IllegalAccessException {
+//    public ConditionTree getLeftCondition() throws IllegalAccessException {
 //        throw new IllegalAccessException("You cannot use this Method on a ConditionLeaf");
 //    }
 //
-//    public ConditionTree getRightNode() throws IllegalAccessException {
+//    public ConditionTree getRightCondition() throws IllegalAccessException {
 //
 //        throw new IllegalAccessException("You cannot use this Method on a ConditionLeaf");
 //    }

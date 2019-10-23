@@ -11,7 +11,6 @@ public interface Condition {
     ConditionType getConditionType();
     String getText();
 
-
     static Condition getConditionFromString(String code) throws IllegalArgumentException {
         int depth = 0;
         code = code.trim();

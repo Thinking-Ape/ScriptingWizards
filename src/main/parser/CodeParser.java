@@ -603,8 +603,8 @@ public class CodeParser {
         testForCorrectValueType(VariableType.BOOLEAN,condition.getText(),depth);
         if(condition.getText().matches(" *"))return;
         if(condition.getConditionType() != SINGLE){
-            checkConditionForUnknownVars(((ConditionTree)condition).getRightNode(),depth);
-            if(condition.getConditionType()!=NEGATION)checkConditionForUnknownVars(((ConditionTree)condition).getLeftNode(),depth);
+            checkConditionForUnknownVars(((ConditionTree)condition).getRightCondition(),depth);
+            if(condition.getConditionType()!=NEGATION)checkConditionForUnknownVars(((ConditionTree)condition).getLeftCondition(),depth);
             return;
         }
         else{

@@ -170,7 +170,7 @@ public class CodeEvaluator {
                     ss = ss.replaceFirst(","+s+"\\)","\\)" );
                     v.update(ExpressionTree.expressionTreeFromString(ss));
 //                                    System.out.println(v.getValue().getText()+" " + s);
-//                                    if(v.getValue().getRightNode().getText().equals(""))
+//                                    if(v.getValue().getRightCondition().getText().equals(""))
 //                                        return new SimpleStatement();
                 }
             }
@@ -201,8 +201,8 @@ public class CodeEvaluator {
             return evaluateBooleanExpression((ConditionLeaf)condition);
         }
         boolean evaluateLeft = false;
-        if(condition.getConditionType() != ConditionType.NEGATION) evaluateLeft = testCondition(((ConditionTree)condition).getLeftNode());
-        boolean evaluateRight = testCondition(((ConditionTree)condition).getRightNode());
+        if(condition.getConditionType() != ConditionType.NEGATION) evaluateLeft = testCondition(((ConditionTree)condition).getLeftCondition());
+        boolean evaluateRight = testCondition(((ConditionTree)condition).getRightCondition());
         switch (condition.getConditionType()){
             case AND:
                 return evaluateLeft && evaluateRight;

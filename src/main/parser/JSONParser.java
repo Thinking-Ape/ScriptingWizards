@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import main.model.Cell;
 import main.model.enums.ItemType;
@@ -133,8 +132,6 @@ public abstract class JSONParser {
                 } else {
                     cell = parseCell(cellDetailsObject);
                 }
-//                if(cell.getContent()==CContent.SPAWN)spawn = new Point(column,row);
-//                if(cell.getContent()==CContent.ENEMY_SPAWN)enemySpawnList.add(new Point(column,row));
                 originalState[column][row] = cell;
 
             }
@@ -163,7 +160,7 @@ public abstract class JSONParser {
             JSONArray tutorialJSONArray = jsonObject.getJSONArray("tutorialEntries",null);
             if(tutorialJSONArray!=null)
             for(int i = 0; i < tutorialJSONArray.length(); i++){
-                tutorialEntryList.add((""+tutorialJSONArray.getString(i))); //.replaceAll("(\\\\)n","\n").replaceAll("(\\\\)\"","\"")
+                tutorialEntryList.add((""+tutorialJSONArray.getString(i)));
             }
         }
         String[] requiredLevels;
@@ -379,8 +376,8 @@ public abstract class JSONParser {
     public static String[] getAllLevelNames() {
         File folder = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString());
         File[] listOfFiles = folder.listFiles();
-        String[] outputList = new String[listOfFiles.length];
         assert listOfFiles != null;
+        String[] outputList = new String[listOfFiles.length];
         int i = 0;
         for(File file : listOfFiles){
             outputList[i]=(file.getName().replace(".json", ""));
@@ -389,7 +386,7 @@ public abstract class JSONParser {
         return outputList;
     }
 
-    public static boolean resetScoreForLevel(String name) throws IOException, IllegalAccessException {
+    public static boolean resetScoreForLevel(String name) throws IOException {
         Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
         String jsonString = String.join("", Files.readAllLines(filePath));
 
@@ -550,16 +547,15 @@ public abstract class JSONParser {
         }
     }
 
-    public static List<String> splitValues(String substring) {
+    public static List<String> splitValues(String text) {
         List<String> output = new ArrayList<>();
         int depth =0;
         int index = 0;
         boolean inQuote = false;
-        char cc = ' ';
         int i =0;
         int lastIndex = 0;
         int bSCount = 0;
-        for(char c : substring.toCharArray()){
+        for(char c : text.toCharArray()){
             i++;
             if(c=='\\'){
                 bSCount++;
@@ -572,16 +568,15 @@ public abstract class JSONParser {
             if(c != '\\')bSCount = 0;
             if(c == '{'||c == '['||c=='(')if(!inQuote)depth++;
             if(c == '}'||c == ']'||c==')')if(!inQuote)depth--;
-            if(depth == -1)throw new IllegalArgumentException("String " +substring.substring(0,i)+" got out of bounds!");
+            if(depth == -1)throw new IllegalArgumentException("String " +text.substring(0,i)+" has unbalanced brackets!");
             if(c==',' && depth==0)if(!inQuote){
                 if(output.size() <= index)output.add("");
-                output.set(index, substring.substring(lastIndex, i-1));
+                output.set(index, text.substring(lastIndex, i-1));
                 lastIndex = i;
                 index++;
-                continue;
             }
         }
-        output.add(substring.substring(lastIndex ));
+        output.add(text.substring(lastIndex ));
         return output;
     }
 }

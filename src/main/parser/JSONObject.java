@@ -35,7 +35,7 @@ public class JSONObject {
             }
             else if(value.matches("^\".*\"$")){
                 value = value.replaceAll("^\"(.*)\"$","$1");
-                value = Util.unescape(value);
+                value = Util.unescapeEverything(value);
                 keyValueMap.put(key, value);
             }
             else if(value.matches("^[+-]?\\d+$")){
@@ -89,39 +89,7 @@ public class JSONObject {
         return defaultInt;
     }
 
-    public void putJSONObject(String key, JSONObject defaultObject){
-        if(keyValueMap.containsKey(key)){
-                keyValueMap.replace(key,defaultObject);
-        }
-        else
-        keyValueMap.put(key,defaultObject);
-    }
-    public void putJSONArray(String key, JSONArray defaultObject){
-        if(keyValueMap.containsKey(key)){
-            keyValueMap.replace(key,defaultObject);
-        }else
-        keyValueMap.put(key,defaultObject);
-    }
-
-//    public void putString(String key, String defaultObject){
-//        if(keyValueMap.containsKey(key)){
-//            keyValueMap.replace(key,defaultObject.trim());
-//        }else
-//        keyValueMap.put(key,defaultObject.trim());
-//    }
-    public void putInt(String key, int defaultInt){
-        if(keyValueMap.containsKey(key)){
-            keyValueMap.replace(key,defaultInt);
-        }else
-        keyValueMap.put(key,defaultInt);
-    }
-
     public void put(String key, Object value){
-        if(value instanceof String){
-            value = value.toString();
-//            value = Util.unescape(value.toString());
-        }
-
         if(keyValueMap.containsKey(key)){
             keyValueMap.replace(key,value);
         }else
@@ -163,12 +131,5 @@ public class JSONObject {
             output.append(",");
         }
         return output.length() > 1 ? output.substring(0, output.length()-1)+"}" :output+"}";
-    }
-
-    public void putBoolean(String key, boolean tutorial) {
-        if(keyValueMap.containsKey(key)){
-            keyValueMap.replace(key,tutorial);
-        }else
-            keyValueMap.put(key,tutorial);
     }
 }

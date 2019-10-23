@@ -17,11 +17,11 @@ public class ConditionTree implements Condition {
         return conditionType;
     }
 
-    public Condition getLeftNode() {
+    public Condition getLeftCondition() {
         return leftNode;
     }
 
-    public Condition getRightNode() {
+    public Condition getRightCondition() {
         return rightNode;
     }
 

@@ -108,6 +108,7 @@ public class LevelEditorModule {
         rightVBox.setSpacing(BUTTON_SIZE/2);
         tutorialTextArea.setEditable(false);
         tutorialTextArea.setMaxWidth(GameConstants.TEXTFIELD_WIDTH*0.8);
+        tutorialTextArea.setMinWidth(GameConstants.TEXTFIELD_WIDTH*0.8);
         tutorialTextArea.setMouseTransparent(true);
         tutorialTextArea.setWrapText(true);
         linkedCellListView.setMaxWidth(TEXTFIELD_HEIGHT*2);

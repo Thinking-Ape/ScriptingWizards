@@ -2,7 +2,6 @@ package main.model;
 
 import main.model.enums.*;
 import main.model.statement.*;
-import main.model.statement.Condition.Condition;
 import main.model.statement.Expression.ExpressionTree;
 import main.utility.GameConstants;
 import main.utility.Point;
@@ -14,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import main.model.statement.Condition.*;
 
 public class CodeExecutor {
     private int noStackOverflow; //TODO: evaluate
@@ -326,7 +326,7 @@ public class CodeExecutor {
                 tryToMoveCell(name,isPlayer); //TODO: stattdessen mit getTargetPoint()?
                 break;
             case TURN:
-                tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightNode().getText()));
+                tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightCondition().getText()));
                 break;
             case USE_ITEM:
                 if(gameMap.getEntity(position).getItem()==ItemType.NONE)break;

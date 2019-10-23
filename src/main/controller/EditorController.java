@@ -281,8 +281,6 @@ public class EditorController implements PropertyChangeListener {
                         infoAlert.showAndWait();
                 } catch (IOException e) {
                     e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
                 }
             }
         });

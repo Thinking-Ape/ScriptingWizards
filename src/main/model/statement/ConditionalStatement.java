@@ -7,7 +7,7 @@ public class ConditionalStatement extends ComplexStatement {
     private ConditionalStatement elseStatement = null;
     private boolean isActive;
 
-    public ConditionalStatement(Condition condition,boolean isElse){
+    public ConditionalStatement(Condition condition, boolean isElse){
         super();
         this.condition = condition;
         isActive = !isElse;

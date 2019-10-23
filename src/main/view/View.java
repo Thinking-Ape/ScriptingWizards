@@ -137,6 +137,7 @@ public class View implements PropertyChangeListener {
         stage.setWidth(GameConstants.SCREEN_WIDTH);
         stage.setHeight(GameConstants.SCREEN_HEIGHT);
         stage.setMaximized(true);
+        stage.setResizable(false);
         if (GameConstants.IS_FULLSCREEN) {
             stage.setFullScreen(true);
         }
@@ -863,10 +864,10 @@ public class View implements PropertyChangeListener {
                 levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
                 HBox editorCenterHBox = new HBox(knightsLeftVBox, new VBox(actualMapGPane), new VBox(levelEditorModule.getRightVBox()));
                 editorCenterHBox.autosize();
-                editorCenterHBox.setSpacing(25);
+                editorCenterHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
                 editorCenterHBox.setAlignment(Pos.TOP_CENTER);
                 centerVBox.getChildren().addAll(levelEditorModule.getBottomHBox(), editorCenterHBox);
-                centerVBox.setSpacing(10);
+                centerVBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/2);
 //                editorScene = new Scene(rootPane);
                 baseContentVBox.getChildren().add(levelEditorModule.getTopHBox());
                 levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
@@ -889,13 +890,32 @@ public class View implements PropertyChangeListener {
         }
         contentHBox.getChildren().addAll(leftVBox, centerVBox, rightVBox);
         contentHBox.setAlignment(Pos.CENTER);
-        contentHBox.setSpacing(50);
+        contentHBox.setSpacing(BUTTON_SIZE/3);
         contentHBox.setPrefWidth(GameConstants.SCREEN_WIDTH);
         HBox bottomHBox = new HBox(backBtn, btnExecute, speedVBox, btnReset, showSpellBookBtn);
-        bottomHBox.setSpacing(100);
+        bottomHBox.setSpacing(BUTTON_SIZE);
+        bottomHBox.setPickOnBounds(false);
+//        bottomHBox.setManaged(true);
+        bottomHBox.setMaxHeight(BUTTON_SIZE);
         bottomHBox.setAlignment(Pos.BOTTOM_CENTER);
-        baseContentVBox.getChildren().addAll(contentHBox, bottomHBox);
+//        StackPane.setAlignment(bottomHBox, Pos.BOTTOM_CENTER);
+//        centerVBox.setSpacing(BUTTON_SIZE/2);
+//        centerVBox.getChildren().add(bottomHBox );
+        levelEditorModule.getTopHBox().autosize();
+
+        rootPane.autosize();
+        baseContentVBox.autosize();
+        contentHBox.autosize();
+        centerVBox.autosize();
+        bottomHBox.autosize();
+
+        centerVBox.setPrefHeight(GameConstants.SCREEN_HEIGHT-levelEditorModule.getTopHBox().getLayoutBounds().getHeight());
+        centerVBox.setAlignment(Pos.TOP_CENTER);
+        StackPane.setAlignment(bottomHBox, Pos.BOTTOM_CENTER);
+        bottomHBox.setTranslateY(-GameConstants.SCREEN_HEIGHT/50);
+        baseContentVBox.getChildren().addAll(contentHBox);
         rootPane.getChildren().add(baseContentVBox);
+        rootPane.getChildren().add(bottomHBox );
         rootPane.getChildren().add(spellBookPane);
         if (getCurrentSceneState() == SceneState.TUTORIAL) {
 //            rootPane.setAlignment(Pos.BOTTOM_RIGHT);
@@ -904,6 +924,7 @@ public class View implements PropertyChangeListener {
             StackPane.setMargin(tutorialGroup, new Insets(5));
         }
         spellBookPane.setVisible(false);
+
     }
 
     public Image getImageFromMap(GameMap originalMap) {

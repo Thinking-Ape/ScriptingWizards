@@ -53,15 +53,18 @@ public class Controller {
         view.getBackBtn().setOnAction(actionEvent -> {
             switch (view.getCurrentSceneState()){
                 case LEVEL_EDITOR:
+                    if(codeAreaController.isGameRunning())view.getBtnReset().fire();
                     view.getShowSpellBookBtn().setText("Show Spellbook");
                     view.setSceneState(SceneState.START_SCREEN);
                     break;
                 case LEVEL_SELECT:
                     throw new IllegalStateException("This should not have been possible!");
                 case PLAY:
+                    if(codeAreaController.isGameRunning())view.getBtnReset().fire();
                     view.setSceneState(SceneState.LEVEL_SELECT);
                     break;
                 case TUTORIAL:
+                    if(codeAreaController.isGameRunning())view.getBtnReset().fire();
                     view.setSceneState(SceneState.START_SCREEN);
                     break;
                 case START_SCREEN:
@@ -72,8 +75,9 @@ public class Controller {
 
         view.getStartScreen().getLvlEditorBtn().setOnAction(actionEvent -> {
             view.setSceneState(SceneState.LEVEL_EDITOR);
+            view.drawMap(model.getCurrentLevel().getOriginalMap());
             editorController.setEditorHandlers();
-            Platform.runLater(()->view.highlightInMap(view.getSelectedPointList()));
+            Platform.runLater(()-> view.highlightInMap(view.getSelectedPointList()));
         });
 
         view.getStartScreen().getExitBtn().setOnAction(actionEvent -> {
@@ -92,6 +96,7 @@ public class Controller {
                 if(l.isTutorial() && l.getIndex() < selectedLevel.getIndex() && l.getIndex() > minIndex)selectedLevel = l;
             }
             model.selectLevel(selectedLevel.getName());
+            view.drawMap(model.getCurrentLevel().getOriginalMap());
             view.setSceneState(SceneState.TUTORIAL);
             view.getIntroductionPane().getStartTutorialBtn().setOnAction(evt -> {
                 view.getStage().getScene().setRoot(view.getRootPane());
@@ -144,6 +149,7 @@ public class Controller {
                 String levelName = view.getLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
                 view.setSceneState(SceneState.PLAY);
                 model.selectLevel(levelName);
+                view.drawMap(model.getCurrentLevel().getOriginalMap());
             });
         });
 
@@ -209,9 +215,25 @@ public class Controller {
                         }
                         if (model.getCurrentLevel().isLost()){
                             timeline.stop();
-                            if(model.getCurrentLevel().isStackOverflow())
-                                Platform.runLater(()->new Alert(Alert.AlertType.NONE,"You might have accidentally caused an endless loop! You are not allowed to use big loops without method calls!", ButtonType.OK).showAndWait());
-                            else Platform.runLater(()->new Alert(Alert.AlertType.NONE,"You have lost!", ButtonType.OK).showAndWait());
+                            Alert alert;
+                            if(model.getCurrentLevel().isStackOverflow()){
+                                alert = new Alert(Alert.AlertType.NONE,"You might have accidentally caused an endless loop! You are not allowed to use big loops without method calls!", ButtonType.OK);
+                                Platform.runLater(() -> {
+                                    Optional<ButtonType> result = alert.showAndWait();
+                                    if(result.isPresent()){
+                                        view.getBtnReset().fire();
+                                    }
+                                });
+                            }
+                            else{
+                                alert = new Alert(Alert.AlertType.NONE,"You have lost!", ButtonType.OK);
+                                Platform.runLater(() -> {
+                                    Optional<ButtonType> result = alert.showAndWait();
+                                    if(result.isPresent()){
+                                        view.getBtnReset().fire();
+                                    }
+                                });
+                            }
                         }
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
@@ -294,6 +316,7 @@ public class Controller {
                     view.getBtnReset().fire();
                     break;
                 case BACK_PREVIOUS:
+                    view.getBtnReset().fire();
                     view.setSceneState(SceneState.START_SCREEN);
                     break;
             }

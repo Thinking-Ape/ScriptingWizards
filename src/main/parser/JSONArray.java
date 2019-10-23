@@ -28,7 +28,7 @@ public class JSONArray {
                 keyList.add(new JSONArray(value));
             } else if (value.matches("^\".*\"$")) {
                 value = value.replaceAll("^\"(.*)\"$","$1");
-                value = Util.unescape(value);
+                value = Util.unescapeEverything(value);
                 keyList.add(value);
             } else if (value.matches("^\\d+$")) {
                 keyList.add(Integer.parseInt(value));
@@ -58,7 +58,7 @@ public class JSONArray {
     public String getString(int index, String defaultObject){
         if(keyList.size() > index){
             if(keyList.get(index) instanceof String){
-                return /*Util.escapeEverything(*/(String) keyList.get(index);
+                return ""+ keyList.get(index);
             }
         }
         return defaultObject;
@@ -72,54 +72,13 @@ public class JSONArray {
         return defaultInt;
     }
 
-    public void putJSONObject(int index, JSONObject defaultObject){
-        if(keyList.size() > index){
-            keyList.add(index,defaultObject);
-        }
-        else keyList.add(defaultObject);
-    }
-    public void putJSONArray(int index, JSONArray defaultObject){
-        if(keyList.size() > index){
-            keyList.add(index,defaultObject);
-        }
-        else keyList.add(defaultObject);
-    }
-
-    public void putString(int index, String defaultObject){
-        if(keyList.size() > index){
-            keyList.add(index,defaultObject.trim());
-        }
-        else keyList.add(defaultObject.trim());
-    }
-    public void putInt(int index, int defaultInt){
-        if(keyList.size() > index){
-            keyList.add(index,defaultInt);
-        }
-        else keyList.add(defaultInt);
-    }
-    public void putJSONObject(JSONObject defaultObject){
-        keyList.add(defaultObject);
-    }
-    public void putJSONArray(JSONArray defaultObject){
-        keyList.add(defaultObject);
-    }
-
-    public void putString(String defaultObject){
-        keyList.add(defaultObject.trim());
-    }
-    public void putInt(int defaultInt){
-        keyList.add(defaultInt);
-    }
-
     public void put(Object o){
-//        if(o instanceof String)o = Util.unescape(o.toString());
         keyList.add(o);
     }
-//
+
     public void put(int index, Object o){
-//        if(o instanceof String)o = Util.unescape(o.toString());
         if(index < keyList.size())
-        keyList.add(index,o);
+            keyList.set(index,o);
         else keyList.add(o);
     }
 
@@ -136,11 +95,6 @@ public class JSONArray {
         if(i < keyList.size())keyList.remove(i);
     }
 
-//    public Object get(int i) {
-//        if(i >= keyList.size())throw new IllegalArgumentException("Int " + i + " is out of range!");
-//        return keyList.get(i);
-//    }
-
     public JSONArray getJSONArray(int i) {
         if(keyList.get(i) instanceof JSONArray)return (JSONArray) keyList.get(i);
         else throw new IllegalArgumentException(keyList.get(i)+ " is no JSONArray!");
@@ -148,7 +102,7 @@ public class JSONArray {
 
     public String getString(int i) {
 
-        if(keyList.get(i) instanceof String)return /*Util.escapeEverything(*/(String) keyList.get(i);
+        if(keyList.get(i) instanceof String)return ""+ keyList.get(i);
         else throw new IllegalArgumentException(keyList.get(i)+ " is no String!");
     }
 
@@ -157,7 +111,7 @@ public class JSONArray {
         StringBuilder output = new StringBuilder("[");
 
         for(Object value : keyList){
-            if(value instanceof String) value =  "\"" + Util.escapeEverything(((String) value)).trim()+"\"";
+            if(value instanceof String) value =  "\"" + Util.escapeEverything((""+ value)).trim()+"\"";
             output.append(value.toString());
             output.append(",");
         }

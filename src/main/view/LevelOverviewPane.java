@@ -26,6 +26,7 @@ public class LevelOverviewPane extends VBox {
         HBox hBox = new HBox(backBtn,playBtn);
         hBox.setAlignment(Pos.CENTER);
         hBox.setSpacing(BUTTON_SIZE);
+        levelListView.setPrefHeight(GameConstants.SCREEN_HEIGHT*0.7);
         this.getChildren().addAll(levelListView,hBox);
         this.setAlignment(Pos.CENTER);
     }
