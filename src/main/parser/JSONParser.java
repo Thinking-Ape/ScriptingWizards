@@ -106,7 +106,7 @@ public abstract class JSONParser {
     public static Level parseLevelJSON(String filePathString) throws IOException, IllegalAccessException {
 
         Path filePath = Path.of(GameConstants.LEVEL_ROOT_PATH,filePathString);
-        System.out.println(filePathString);
+        if(GameConstants.DEBUG)System.out.println(filePathString);
         String jsonString = String.join("", Files.readAllLines(filePath));
         JSONObject jsonObject = new JSONObject(jsonString);
         int index = jsonObject.getInt("index");

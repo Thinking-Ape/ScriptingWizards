@@ -12,7 +12,7 @@ import java.util.Random;
 public abstract class GameConstants {
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     public static final char ANY_CHAR = '?';
     public static final double TICK_SPEED = 0.75;
     public static final boolean SHOW_BOOLEAN_METHODS = false;

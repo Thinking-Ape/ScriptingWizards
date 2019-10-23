@@ -164,8 +164,8 @@ public class Controller {
                 if(model.getCurrentLevel().hasAi())aiBehaviour = aiCodeParser.parseProgramCode();
                 if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR) view.getLevelEditorModule().setDisableAllLevelBtns(true);
                 //TODO: delete
-                System.out.println(behaviour.print());
-                System.out.println(aiBehaviour.print());
+                if(GameConstants.DEBUG)System.out.println(behaviour.print());
+                if(GameConstants.DEBUG)System.out.println(aiBehaviour.print());
                 model.getCurrentLevel().setPlayerBehaviour(behaviour);
                 //TODO: model.getCurrentLevel().addListener(view);
                 model.getCurrentLevel().setAiBehaviour(aiBehaviour);

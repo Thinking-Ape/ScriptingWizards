@@ -2,6 +2,7 @@ package main.model;
 
 import javafx.util.Pair;
 import main.model.enums.*;
+import main.utility.GameConstants;
 import main.utility.Point;
 
 import java.beans.PropertyChangeListener;
@@ -208,7 +209,7 @@ public class GameMap {
             cell.setItem(ItemType.NONE);
             return;
         }
-        System.out.println(cell.getEntity().getEntityType().getDisplayName() +" "+ cell.getEntity().getName()+" died!");
+        if(GameConstants.DEBUG)System.out.println(cell.getEntity().getEntityType().getDisplayName() +" "+ cell.getEntity().getName()+" died!");
 //        ecMapKill(cell.getEntity().getName());
         if(entity.getEntityType()== EntityType.KNIGHT)
             cell.setFlagValue(CFlag.KNIGHT_DEATH,true);
