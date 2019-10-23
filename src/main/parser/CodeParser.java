@@ -251,6 +251,7 @@ public class CodeParser {
         }
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
         if(mType == null) throw new IllegalArgumentException("Method " + methodName + " is not a valid method!");
+        if(mType.getOutputType() != VariableType.ACTION) throw new IllegalArgumentException("Method " + methodName + " cannot stand here!");
         if(isPlayerCode && mType == MethodType.ATTACK) throw new IllegalArgumentException("Knights cannot attack!");
         testForCorrectParameters(parameters,mType,depth);
         if(!parameters.equals("")){

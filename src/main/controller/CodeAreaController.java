@@ -167,10 +167,10 @@ public class CodeAreaController implements PropertyChangeListener {
                 }
 
                     int lastIndex = currentCodeField.getText().length();
-//                    if(currentIndex == codeArea.getSize()-1) {
-//                        silentError = true;
-//                        break;
-//                    }
+                    if(currentIndex == codeArea.getSize()-1) {
+                        silentError = true;
+                        break;
+                    }
                     if(currentCodeField.isEmpty()||currentCodeField.getText().matches(" *")){
                         codeAreaClone.removeCodeField( currentCodeField);
                         addedStatementsBalance--;
@@ -182,7 +182,7 @@ public class CodeAreaController implements PropertyChangeListener {
                     }
 
                     //TODO: delete "nextCodeField.getText().matches(" *")"
-                    else if(currentCodeField.isEmpty()||currentCodeField.getText().matches(" *") ){
+                    else if(currentCodeField.isEmpty()||currentCodeField.getText().matches(" *")||currentCodeField.getCaretPosition() == currentCodeField.getText().length() ){
                         CodeField nextCodeField = codeArea.getCodeFieldListClone().get(currentIndex+1);
                         if ((nextCodeField.isEmpty()||nextCodeField.getText().matches(""))){
                         //TODO: String oldText = nextCodeField.getText();

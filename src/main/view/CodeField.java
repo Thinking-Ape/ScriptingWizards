@@ -42,7 +42,7 @@ public class CodeField extends TextField {
 //            }
 //        });
         Text text = new Text(code);
-        if(text.getLayoutBounds().getWidth() > getMaxWidth()-15)throw new IllegalArgumentException("This code line is too long!");
+        if(text.getLayoutBounds().getWidth() > getMaxWidth()-15) System.out.println("This code line is too long: " + text + "!");
     }
 
     public void addListener(ChangeListener<String> changeListener){
