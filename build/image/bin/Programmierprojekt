@@ -1,5 +1,4 @@
 #!/bin/sh
-JLINK_VM_OPTIONS="-Djava.library.path=C:\Users\Sebastian\IdeaProjects\Programmierprojekt\build\image\bin"
+JLINK_VM_OPTIONS=
 DIR=`dirname $0`
-set PATH_TO_FX_JMOD="C:\Program Files\Java\javafx-jmods-11.0.2"
 $DIR/java $JLINK_VM_OPTIONS -m main/main.main.EntryPoint $@

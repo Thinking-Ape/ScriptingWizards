@@ -61,7 +61,6 @@ IMPORTANT:
 - enemy parts in tutorial?
  controller btns -> codeareacontroller
  - Strg-S etc as abbreviations for opening, closing etc.
- - images for destroyed items etc.!
  - rethink required levels
  - add difficulty attribute
  - show difficulty and best result yet in selection mode
@@ -80,7 +79,12 @@ IMPORTANT:
 
 DONE:
 
+22.10.
+
+fixed json parser to be able to handle escape symbols
+
 16.10.
+images for destroyed items etc.!
 could also recolor the spawn and give knights differen colors... (too much work!!) -> maybe filter in java itself?
 disabling execute btn when isError wasnt updated
 !b -> a variable must not be named... fix this, also fix the code of the last stand level!
