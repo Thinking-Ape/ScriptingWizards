@@ -5,6 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import main.model.Cell;
 
@@ -131,6 +132,7 @@ public abstract class Util {
     public static void applyValueFormat(Label... valueLabels) {
         for(Label l : valueLabels){
             l.setStyle("-fx-background-color: rgba(0,0,0,0.1);");
+            l.setFont(new Font(l.getFont().getName(),GameConstants.FONT_SIZE));
         }
     }
 

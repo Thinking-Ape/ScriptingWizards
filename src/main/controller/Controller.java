@@ -51,6 +51,8 @@ public class Controller {
 
         });
         view.getBackBtn().setOnAction(actionEvent -> {
+            boolean isVisible = view.getSpellBookPane().isVisible();
+            if(isVisible)view.getShowSpellBookBtn().fire();
             switch (view.getCurrentSceneState()){
                 case LEVEL_EDITOR:
                     if(codeAreaController.isGameRunning())view.getBtnReset().fire();
@@ -95,9 +97,9 @@ public class Controller {
             for(Level l :model.getLevelListCopy()){
                 if(l.isTutorial() && l.getIndex() < selectedLevel.getIndex() && l.getIndex() > minIndex)selectedLevel = l;
             }
+            view.setSceneState(SceneState.TUTORIAL);
             model.selectLevel(selectedLevel.getName());
             view.drawMap(model.getCurrentLevel().getOriginalMap());
-            view.setSceneState(SceneState.TUTORIAL);
             view.getIntroductionPane().getStartTutorialBtn().setOnAction(evt -> {
                 view.getStage().getScene().setRoot(view.getRootPane());
             });

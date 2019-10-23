@@ -7,6 +7,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import main.utility.GameConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setMouseTransparent(true);
         // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
         currentTutorialMessage.setCache(false);
+        currentTutorialMessage.setFont(new Font(currentTutorialMessage.getFont().getName(), GameConstants.FONT_SIZE));
 //        String tabString = "\t";
         Rectangle wizard = new Rectangle(50,50,Color.BLUE);
         VBox vb = new VBox(currentTutorialMessage,navigationHBox);

@@ -3,7 +3,9 @@ package main.view;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.text.Font;
 import javafx.util.Duration;
+import main.utility.GameConstants;
 
 public class SpellBookLabel extends Label {
 
@@ -12,6 +14,7 @@ public class SpellBookLabel extends Label {
     public SpellBookLabel(SpellBookLabelType sBLType, String entryText, String tooltipString){
         this.setAlignment(Pos.CENTER);
         this.setText(entryText);
+        this.setFont(new Font(this.getFont().getName(), GameConstants.FONT_SIZE));
         this.sBLType = sBLType;
         Tooltip tooltip = new Tooltip(tooltipString);
         tooltip.setShowDelay(Duration.millis(50));

@@ -47,7 +47,7 @@ public abstract class GameConstants {
     public static final Effect LAST_ADJUST = new ColorAdjust(0.5, 0.1, 0.15, 0.1);
     public static final double LEVEL_ENTRY_SIZE = SCREEN_HEIGHT/10;
     public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.3;
-    public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/4;
+    public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.8;
     public static final double BUTTON_SIZE = SCREEN_HEIGHT/10;
     public static final double FONT_SIZE = 12.0*SCREEN_WIDTH/1920.0;
 

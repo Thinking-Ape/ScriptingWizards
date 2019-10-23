@@ -901,7 +901,6 @@ public class View implements PropertyChangeListener {
 //        StackPane.setAlignment(bottomHBox, Pos.BOTTOM_CENTER);
 //        centerVBox.setSpacing(BUTTON_SIZE/2);
 //        centerVBox.getChildren().add(bottomHBox );
-        levelEditorModule.getTopHBox().autosize();
 
         rootPane.autosize();
         baseContentVBox.autosize();
@@ -909,7 +908,7 @@ public class View implements PropertyChangeListener {
         centerVBox.autosize();
         bottomHBox.autosize();
 
-        centerVBox.setPrefHeight(GameConstants.SCREEN_HEIGHT-levelEditorModule.getTopHBox().getLayoutBounds().getHeight());
+        if(getCurrentSceneState() == SceneState.LEVEL_EDITOR)centerVBox.setPrefHeight(GameConstants.SCREEN_HEIGHT-levelEditorModule.getTopHBox().getLayoutBounds().getHeight());
         centerVBox.setAlignment(Pos.TOP_CENTER);
         StackPane.setAlignment(bottomHBox, Pos.BOTTOM_CENTER);
         bottomHBox.setTranslateY(-GameConstants.SCREEN_HEIGHT/50);

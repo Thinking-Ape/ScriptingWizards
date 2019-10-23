@@ -3,10 +3,12 @@ package main.controller;
 import javafx.application.Platform;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import main.model.Model;
 import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
+import main.utility.GameConstants;
 import main.view.CodeArea;
 import main.view.CodeField;
 import main.view.View;
@@ -20,11 +22,9 @@ public class CodeAreaController implements PropertyChangeListener {
     private Model model;
     private int errorLine = 0;
     private int currentIndex = 0;
-    private boolean selectEnd = false;
     private String errorMessage;
     private boolean silentError = false;
     private boolean addBefore;
-    private int addedStatementsBalance = 0; //TODO: erase!
     private boolean isError = false;
     private boolean gameRunning = false;
 
@@ -55,19 +55,20 @@ public class CodeAreaController implements PropertyChangeListener {
             if(view.getCodeArea().getSelectedCodeField()!=currentCodeField)view.getCodeArea().deselectAll();
             if(view.getAICodeArea().getSelectedCodeField()!=currentCodeField)view.getAICodeArea().deselectAll();
                 codeArea.select(currentCodeField, Selection.NONE);}
-            addedStatementsBalance = 0;
             silentError = false;
-            selectEnd = true;
             currentIndex = codeArea.indexOfCodeField(currentCodeField);
             recreateCodeAreaIfCodeCorrect(codeArea,currentCodeField,isAi);
         });
         currentCodeField.addListener((observableValue, s, t1) -> {
+            currentCodeField.autosize();
             Text text = new Text(t1);
-            if(text.getLayoutBounds().getWidth() > currentCodeField.getLayoutBounds().getWidth()-15)currentCodeField.setText(s);
+            text.setFont(new Font(currentCodeField.getFont().getName(), GameConstants.FONT_SIZE));
+            if(text.getLayoutBounds().getWidth() > currentCodeField.getMaxWidth()-GameConstants.SCREEN_WIDTH/130)currentCodeField.setText(s);
+            // without this ctrl-backspace will delete "}" (dont know why though)
+            if(s.equals("}")&&!t1.equals("}"))currentCodeField.setText("}");
         });
         currentCodeField.setOnKeyPressed(event -> {
             if(gameRunning)return;
-            addedStatementsBalance = 0;
             CodeArea codeArea = !isAi ? view.getCodeArea() : view.getAICodeArea();
             CodeArea codeAreaClone = codeArea.createClone();
 //            view.setCodeArea(codeAreaClone);
@@ -98,23 +99,19 @@ public class CodeAreaController implements PropertyChangeListener {
 
                     if(!addBefore)currentIndex++;
                     codeAreaClone.addNewCodeFieldAtIndex(currentIndex,newCodeField);
-                    addedStatementsBalance++;
                     if(bracketCodeField != null){
                         codeAreaClone.addNewCodeFieldAtIndex(currentIndex+1,bracketCodeField);
-                        addedStatementsBalance++;
                     }
 //                    if(recompileCode(codeAreaClone)==null){
 //                        codeAreaClone.removeCodeField(newCodeField);
 //                        codeAreaClone.removeCodeField(bracketCodeField);
 //                    }currentIndex++;
-                    selectEnd = false;
                     break;
 
                 case BACK_SPACE:
                     if(!currentCodeField.isEditable()){
                         codeArea.deselectAll();
-                        currentIndex--;
-                        selectEnd = true;
+                        if(currentIndex>0)currentIndex--;
                         break;
                     }
                     //TODO: if Codefield isnt empty!
@@ -135,49 +132,49 @@ public class CodeAreaController implements PropertyChangeListener {
                                 bracketCodeField = codeArea.findNextBracket(currentIndex+1,currentCodeField.getDepth());
                                 if (bracketCodeField != null){
                                     codeAreaClone.removeCodeField(bracketCodeField); //remove at position? not codefield?
-                                    addedStatementsBalance--;
+
                                 }
                             }
                         }
                         if(codeAreaClone.getCodeFieldListClone().size()>1){
                             codeAreaClone.removeCodeField(currentCodeField);
-                            addedStatementsBalance--;
+
                         }
                         currentIndex = (currentIndex > 0) ? currentIndex-1 : currentIndex;
-                        selectEnd=true;
+
                         break;
                     }
-                    if(currentIndex == 0)break; //TODO:
+                    if(currentIndex == 0)break;
                     CodeField prevCodeField = codeArea.getCodeFieldListClone().get(currentIndex-1);
                     if(!currentCodeField.getText().equals("") && prevCodeField.getText().matches(" *")){ //TODO: vereinheitlicht " *" anstelle von ""?
                         codeAreaClone.removeCodeField(prevCodeField);
-                        addedStatementsBalance--;
+
 //                        removeCodeField1 = prevCodeField;
                         currentIndex--;
-                        selectEnd = false;
+
                     }else
                         silentError = true;
                     break;
 
                 case DELETE:
-                if(!currentCodeField.isEditable()){
-                    codeArea.deselectAll();
-                    silentError = true;
-                    break;
-                }
+                    if(!currentCodeField.isEditable()){
+                        codeArea.deselectAll();
+                        if(currentIndex<codeArea.getSize()-1)currentIndex++;
 
-                    int lastIndex = currentCodeField.getText().length();
+                        break;
+                    }
+
                     if(currentIndex == codeArea.getSize()-1) {
                         silentError = true;
                         break;
                     }
                     if(currentCodeField.isEmpty()||currentCodeField.getText().matches(" *")){
                         codeAreaClone.removeCodeField( currentCodeField);
-                        addedStatementsBalance--;
+
                         if(currentIndex==codeArea.getSize())currentIndex--;
                         //                        codeFieldsToRemoveList.add(currentCodeField);
                         //                        removeCodeField1 = currentCodeField;
-                        selectEnd = true;
+
 //                        silentError = true;
                     }
 
@@ -187,11 +184,11 @@ public class CodeAreaController implements PropertyChangeListener {
                         if ((nextCodeField.isEmpty()||nextCodeField.getText().matches(""))){
                         //TODO: String oldText = nextCodeField.getText();
                         codeAreaClone.removeCodeField( nextCodeField);
-                        addedStatementsBalance--;
+
     //                        codeFieldsToRemoveList.add(nextCodeField);
     //                        removeCodeField1 = nextCodeField;
                         //TODO: currentCodeField.appendText(oldText);
-                        selectEnd = true;
+
                     }}
     //                    else if(currentCodeField.getCaretPosition() == lastIndex) return;
                     else {
@@ -212,7 +209,7 @@ public class CodeAreaController implements PropertyChangeListener {
                     currentIndex--;
 //                    codeArea.select(currentIndex,Selection.END);
                     silentError = false;
-                    selectEnd = true;
+
                     break;
                 case DOWN:
                     if (currentIndex >= codeArea.getSize()-1){
@@ -227,7 +224,7 @@ public class CodeAreaController implements PropertyChangeListener {
 //                    codeArea.deselectAll();
                     currentIndex++;
                     silentError = false;
-                    selectEnd = true;
+
                     break;
                 case LEFT:
                 case RIGHT:

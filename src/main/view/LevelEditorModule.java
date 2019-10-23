@@ -2,8 +2,10 @@ package main.view;
 
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.scene.transform.Translate;
 import main.model.Level;
 import main.model.enums.CContent;
@@ -98,6 +100,10 @@ public class LevelEditorModule {
 //        if(level.getAIBehaviour().getStatementListSize()==0) hasAICheckBox.setSelected(false);
 //        else hasAICheckBox.setSelected(true);
         Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
+        for(Node n : topHBox.getChildren()){
+            if(n instanceof Button)((Button) n).setFont(new Font(((Button) n).getFont().getName(),GameConstants.FONT_SIZE));
+            if(n instanceof Label)((Label) n).setFont(new Font(((Label) n).getFont().getName(),GameConstants.FONT_SIZE));
+        }
         topHBox.setSpacing(TEXTFIELD_HEIGHT+5);
         cellTypeVBox.setAlignment(Pos.CENTER);
         cellItemVBox.setAlignment(Pos.TOP_CENTER);
@@ -109,6 +115,10 @@ public class LevelEditorModule {
         tutorialTextArea.setEditable(false);
         tutorialTextArea.setMaxWidth(GameConstants.TEXTFIELD_WIDTH*0.8);
         tutorialTextArea.setMinWidth(GameConstants.TEXTFIELD_WIDTH*0.8);
+        tutorialTextArea.setMaxHeight(TEXTFIELD_HEIGHT*6);
+        tutorialTextArea.setMinHeight(TEXTFIELD_HEIGHT*6);
+        tutorialTextArea.setFont(new Font(tutorialTextArea.getFont().getName(), FONT_SIZE));
+
         tutorialTextArea.setMouseTransparent(true);
         tutorialTextArea.setWrapText(true);
         linkedCellListView.setMaxWidth(TEXTFIELD_HEIGHT*2);
@@ -133,8 +143,9 @@ public class LevelEditorModule {
         maxTurns2StarsVLbl.setText(""+level.getTurnsToStars()[0]);
         requiredLevelsLView.setMaxHeight(TEXTFIELD_HEIGHT*1.2);
         requiredLevelsLView.setMinHeight(TEXTFIELD_HEIGHT*1.2);
-        requiredLevelsLView.setMaxWidth(TEXTFIELD_WIDTH*0.75);
-        requiredLevelsLView.setMinWidth(TEXTFIELD_WIDTH*0.75);
+        requiredLevelsLView.setMaxWidth(TEXTFIELD_WIDTH*0.5);
+        requiredLevelsLView.setMinWidth(TEXTFIELD_WIDTH*0.5);
+        requiredLevelsLabel.setFont(new Font(requiredLevelsLabel.getFont().getName(),GameConstants.FONT_SIZE));
         indexValueLbl.setText(""+(level.getIndex()+1));
         isTutorialValueLbl.setText(""+level.isTutorial());
         maxKnightsValueLbl.setText(level.getMaxKnights()+"");
