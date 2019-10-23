@@ -49,7 +49,7 @@ public abstract class GameConstants {
     public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.3;
     public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/4;
     public static final double BUTTON_SIZE = SCREEN_HEIGHT/10;
-    public static final double FONT_SIZE = Math.floor(12.0*SCREEN_WIDTH/1920.0);
+    public static final double FONT_SIZE = 12.0*SCREEN_WIDTH/1920.0;
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 
