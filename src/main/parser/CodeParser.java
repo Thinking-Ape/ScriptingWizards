@@ -354,7 +354,6 @@ public class CodeParser {
         }
         value = value.trim();
         ExpressionTree valueTree = ExpressionTree.expressionTreeFromString(value.trim()); //0
-
         Condition condition = Condition.getConditionFromString(value.trim());
         //TODO: expand to make it more readable!
         if(valueTree.getLeftNode() != null){

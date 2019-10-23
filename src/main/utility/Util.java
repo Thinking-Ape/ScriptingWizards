@@ -221,6 +221,47 @@ public abstract class Util {
     }
 
     public static String removeFirstAndLast(String key) {
-        return key.substring(1, key.length()-1);
+        if(key.length()<2)return key;
+        return key.trim().substring(1, key.length()-1);
+    }
+
+    public static String escapeEverything(String text) {
+//        if(text.contains("Now here")){System.out.println(text);
+//        System.out.println(text.replaceAll("\\\\", "\\\\\\\\").replaceAll("\n", "\\\\n").replaceAll("\"", "\\\\\""));}
+        return text.replaceAll("\\\\", "\\\\\\\\").replaceAll("\n", "\\\\n").replaceAll("\"", "\\\\\"");
+//        StringBuilder output = new StringBuilder();
+//        char cc = ' ';
+//        boolean isQuote = true;
+       //// boolean notBounds;
+//        int i = 0;
+//        text = text.trim();
+//        for(char c : text.toCharArray()){
+//            i++;
+//            if(c == '\"'&&cc!='\\'){
+//                if(isQuote)output.append("\\");
+//                isQuote = !isQuote;
+//                output.append(c);
+//                cc = c;
+//                continue;
+//            }
+//            if(c=='\n'){
+//                output.append("\\n");
+//                cc = c;
+//                continue;
+//            }
+//
+//            if(c == '\"'){
+//                isQuote = true;
+//            }
+//
+//            output.append(c);
+//            cc = c;
+//        }
+//        return output.toString();//output.toString();
+    }
+
+    public static String unescape(String pairs) {
+        // this regex removes the escape sequences and adds linebreaks, quotes etc. for more information check regex101.com
+        return pairs.replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+n|(^(\\\\\\\\)?+)\\\\+n)", "$2\n").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+\"|(^(\\\\\\\\)?+)\\\\+\")", "$2\"").replaceAll("\\\\\\\\", "\\\\");
     }
 }

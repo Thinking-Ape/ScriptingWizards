@@ -17,14 +17,18 @@ public class JSONArray {
     public JSONArray(String pairs) {
         keyList = new ArrayList<>();
         if (!pairs.matches(JSON_ARRAY_REGEX)) throw new IllegalArgumentException(pairs + " is no JSONArray!");
-        String[] valueList = JSONParser.splitValues(Util.removeFirstAndLast(pairs));
+        pairs = Util.removeFirstAndLast(pairs);
+        List<String> valueList = JSONParser.splitValues(pairs);
         for (String value : valueList) {
             value = value.trim();
+            if(value.equals(""))continue;
             if (value.matches(JSON_OBJECT_REGEX)) {
                 keyList.add(new JSONObject(value));
             } else if (value.matches(JSON_ARRAY_REGEX)) {
                 keyList.add(new JSONArray(value));
             } else if (value.matches("^\".*\"$")) {
+                value = value.replaceAll("^\"(.*)\"$","$1");
+                value = Util.unescape(value);
                 keyList.add(value);
             } else if (value.matches("^\\d+$")) {
                 keyList.add(Integer.parseInt(value));
@@ -54,15 +58,15 @@ public class JSONArray {
     public String getString(int index, String defaultObject){
         if(keyList.size() > index){
             if(keyList.get(index) instanceof String){
-                return (String) keyList.get(index);
+                return /*Util.escapeEverything(*/(String) keyList.get(index);
             }
         }
         return defaultObject;
     }
     public int getInt(int index, int defaultInt){
         if(keyList.size() > index){
-            if(keyList.get(index) instanceof Integer){
-                return (int) keyList.get(index);
+            if(keyList.get(index).toString().matches("^[+-]?\\d+$")){
+                return (Integer.parseInt(keyList.get(index).toString()));
             }
         }
         return defaultInt;
@@ -83,9 +87,9 @@ public class JSONArray {
 
     public void putString(int index, String defaultObject){
         if(keyList.size() > index){
-            keyList.add(index,defaultObject);
+            keyList.add(index,defaultObject.trim());
         }
-        else keyList.add(defaultObject);
+        else keyList.add(defaultObject.trim());
     }
     public void putInt(int index, int defaultInt){
         if(keyList.size() > index){
@@ -101,17 +105,19 @@ public class JSONArray {
     }
 
     public void putString(String defaultObject){
-        keyList.add(defaultObject);
+        keyList.add(defaultObject.trim());
     }
     public void putInt(int defaultInt){
         keyList.add(defaultInt);
     }
 
     public void put(Object o){
+//        if(o instanceof String)o = Util.unescape(o.toString());
         keyList.add(o);
     }
-
+//
     public void put(int index, Object o){
+//        if(o instanceof String)o = Util.unescape(o.toString());
         if(index < keyList.size())
         keyList.add(index,o);
         else keyList.add(o);
@@ -130,10 +136,10 @@ public class JSONArray {
         if(i < keyList.size())keyList.remove(i);
     }
 
-    public Object get(int i) {
-        if(i >= keyList.size())throw new IllegalArgumentException("Int " + i + " is out of range!");
-        return keyList.get(i);
-    }
+//    public Object get(int i) {
+//        if(i >= keyList.size())throw new IllegalArgumentException("Int " + i + " is out of range!");
+//        return keyList.get(i);
+//    }
 
     public JSONArray getJSONArray(int i) {
         if(keyList.get(i) instanceof JSONArray)return (JSONArray) keyList.get(i);
@@ -142,7 +148,7 @@ public class JSONArray {
 
     public String getString(int i) {
 
-        if(keyList.get(i) instanceof String)return (String) keyList.get(i);
+        if(keyList.get(i) instanceof String)return /*Util.escapeEverything(*/(String) keyList.get(i);
         else throw new IllegalArgumentException(keyList.get(i)+ " is no String!");
     }
 
@@ -151,9 +157,11 @@ public class JSONArray {
         StringBuilder output = new StringBuilder("[");
 
         for(Object value : keyList){
+            if(value instanceof String) value =  "\"" + Util.escapeEverything(((String) value)).trim()+"\"";
             output.append(value.toString());
             output.append(",");
         }
-        return output.substring(0, output.length()-1)+"]";
+        return output.length() > 1 ? output.substring(0, output.length()-1)+"]":output+"]";
     }
+
 }

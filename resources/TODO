@@ -80,6 +80,10 @@ IMPORTANT:
 
 DONE:
 
+22.10.
+
+fixed json parser to be able to handle escape symbols
+
 16.10.
 could also recolor the spawn and give knights differen colors... (too much work!!) -> maybe filter in java itself?
 disabling execute btn when isError wasnt updated

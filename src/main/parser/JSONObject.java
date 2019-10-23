@@ -1,9 +1,9 @@
 package main.parser;
 
-import javafx.scene.layout.Background;
 import main.utility.Util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static main.parser.JSONParser.JSON_ARRAY_REGEX;
@@ -15,29 +15,39 @@ public class JSONObject {
     public JSONObject (String pairs){
         keyValueMap = new HashMap<>();
         if(!pairs.matches(JSON_OBJECT_REGEX))throw new IllegalArgumentException(pairs + " is no JSONObject!");
-        String[] keyValueList = splitValues( Util.removeFirstAndLast(pairs));
+        pairs = Util.removeFirstAndLast(pairs);
+        List<String> keyValueList = JSONParser.splitValues( pairs);
         for(String keyValue : keyValueList){
-            String key = keyValue.replaceAll("^(.*):.*$", "$1");
-            String value = keyValue.replaceAll("^.*:(.*)$", "$1");
+            String key = keyValue.replaceAll("^(\".*?\"):.*$", "$1");
+            String value = keyValue.replaceAll("^\".*?\":(.*)$", "$1");
             value = value.trim();
             key = key.trim();
-            if(!key.matches("^\".*\"$"))throw new IllegalArgumentException(pairs + " is no legal key value!");
+            if(key.equals(""))continue;
+            if(!key.matches("^\".*\"$"))throw new IllegalArgumentException(key + " is no legal key value!");
+            key = key.replaceAll("^\"(.*)\"$","$1");
+
             if(value.matches(JSON_OBJECT_REGEX)){
-                keyValueMap.put(key, new JSONObject(value));
+                if(keyValueMap.containsKey(key))
+                    keyValueMap.put(key, new JSONObject(value));
             }
             else if(value.matches(JSON_ARRAY_REGEX)){
                 keyValueMap.put(key, new JSONArray(value));
             }
             else if(value.matches("^\".*\"$")){
+                value = value.replaceAll("^\"(.*)\"$","$1");
+                value = Util.unescape(value);
                 keyValueMap.put(key, value);
             }
-            else if(value.matches("^\\d+$")){
-                keyValueMap.put(key, Integer.parseInt(value));
+            else if(value.matches("^[+-]?\\d+$")){
+                Integer i = Integer.parseInt(value);
+                keyValueMap.put(key, i);
             }
             else if(value.matches("^(true|false)$")){
-                keyValueMap.put(key, Boolean.parseBoolean(value));
+                keyValueMap.put(key, (Boolean.parseBoolean(value)));
             }
-            else throw new IllegalArgumentException("Value "+ value +" is no valid JSON value!");
+            else {
+                throw new IllegalArgumentException("Value "+ value +" is no valid JSON value!");
+            }
         }
     }
 
@@ -65,7 +75,7 @@ public class JSONObject {
     public String getString(String key, String defaultObject){
         if(keyValueMap.containsKey(key)){
             if(keyValueMap.get(key) instanceof String){
-                return (String) keyValueMap.get(key);
+                return /*Util.escapeEverything(*/(String) keyValueMap.get(key);
             }
         }
         return defaultObject;
@@ -93,12 +103,12 @@ public class JSONObject {
         keyValueMap.put(key,defaultObject);
     }
 
-    public void putString(String key, String defaultObject){
-        if(keyValueMap.containsKey(key)){
-            keyValueMap.replace(key,defaultObject);
-        }else
-        keyValueMap.put(key,defaultObject);
-    }
+//    public void putString(String key, String defaultObject){
+//        if(keyValueMap.containsKey(key)){
+//            keyValueMap.replace(key,defaultObject.trim());
+//        }else
+//        keyValueMap.put(key,defaultObject.trim());
+//    }
     public void putInt(String key, int defaultInt){
         if(keyValueMap.containsKey(key)){
             keyValueMap.replace(key,defaultInt);
@@ -107,33 +117,22 @@ public class JSONObject {
     }
 
     public void put(String key, Object value){
+        if(value instanceof String){
+            value = value.toString();
+//            value = Util.unescape(value.toString());
+        }
+
         if(keyValueMap.containsKey(key)){
             keyValueMap.replace(key,value);
         }else
-            keyValueMap.put(key,value);
-    }
-
-
-    private String[] splitValues(String substring) {
-        String[] output = new String[substring.length()/2+1];
-        int depth =0;
-        int index = 0;
-        for(char c : substring.toCharArray()){
-            if(c == '{'||c == '[')depth++;
-            if(c == '}'||c == ']')depth--;
-            if(c==',' && depth==0){
-                index++;
-                continue;
-            }
-            if(output[index] == null)output[index]="";
-            output[index] +=c;
+        {
+            keyValueMap.put(key, value);
         }
-        return output;
     }
 
     public String getString(String name) {
-        if(keyValueMap.get(name) instanceof String)return keyValueMap.get(name) + "";
-        else throw  new IllegalArgumentException("Value to name: "+ name + " is no String!");
+        if(keyValueMap.get(name) instanceof String)return /*Util.escapeEverything(*/keyValueMap.get(name) + "";
+        else throw  new IllegalArgumentException("Value to name: "+ name + " is no String!" + "("+keyValueMap.get(name)+")");
     }
 
     public boolean has(String code) {
@@ -142,7 +141,7 @@ public class JSONObject {
 
     public int getInt(String name) {
         if(keyValueMap.get(name) instanceof Integer)return (int)keyValueMap.get(name);
-        else throw  new IllegalArgumentException("Value to name: "+ name + " is no integer!");
+        else throw  new IllegalArgumentException("Value to name: "+ name + " is no integer! ("+keyValueMap.get(name)+")");
     }
 
     public boolean isEmpty() {
@@ -157,9 +156,19 @@ public class JSONObject {
         StringBuilder output = new StringBuilder("{");
         for(String key : keyValueMap.keySet()){
             Object value = keyValueMap.get(key);
-            output.append(key).append(":").append(value.toString());
+            if(value instanceof String){
+                value =  "\"" + Util.escapeEverything((String) value).trim() + "\"";
+            }
+            output.append("\"").append(key).append("\"").append(":").append(value.toString());
             output.append(",");
         }
-        return output.substring(0, output.length()-1)+"}";
+        return output.length() > 1 ? output.substring(0, output.length()-1)+"}" :output+"}";
+    }
+
+    public void putBoolean(String key, boolean tutorial) {
+        if(keyValueMap.containsKey(key)){
+            keyValueMap.replace(key,tutorial);
+        }else
+            keyValueMap.put(key,tutorial);
     }
 }

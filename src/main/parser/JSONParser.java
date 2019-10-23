@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import main.model.Cell;
 import main.model.enums.ItemType;
@@ -125,7 +126,7 @@ public abstract class JSONParser {
 
                 Cell cell;
 
-                JSONObject cellDetailsObject = mapLine.getJSONObject(column);
+                JSONObject cellDetailsObject = mapLine.getJSONObject(column,null);
 
                 if(cellDetailsObject == null) {
                     cell = parseCell(mapLine.getString(column,""));
@@ -162,7 +163,7 @@ public abstract class JSONParser {
             JSONArray tutorialJSONArray = jsonObject.getJSONArray("tutorialEntries",null);
             if(tutorialJSONArray!=null)
             for(int i = 0; i < tutorialJSONArray.length(); i++){
-                tutorialEntryList.add(""+tutorialJSONArray.get(i));
+                tutorialEntryList.add((""+tutorialJSONArray.getString(i))); //.replaceAll("(\\\\)n","\n").replaceAll("(\\\\)\"","\"")
             }
         }
         String[] requiredLevels;
@@ -190,13 +191,12 @@ public abstract class JSONParser {
         return new Cell(content);
     }
     private static Cell parseCell(JSONObject jsonObject) {
-
         JSONArray flagsArray = jsonObject.getJSONArray("flags",null);
-        String contentString = jsonObject.getString("content");
-        String idString = jsonObject.getString("id","");
+        String contentString = jsonObject.getString("content","");
+        int id = jsonObject.getInt("id",-1);
         String itemString = jsonObject.getString("item","");
         JSONArray linkedCellsArray = jsonObject.getJSONArray("linkedIds",null);
-        if(flagsArray == null && idString.equals("") && linkedCellsArray == null && contentString == null) throw new IllegalArgumentException("Cant create a Cell from JSONArray without flags and content");
+        if(flagsArray == null && id == -1 && linkedCellsArray == null && contentString == null) throw new IllegalArgumentException("Cant create a Cell from JSONArray without flags and content");
         List<CFlag> flags = new ArrayList<>();
         if(flagsArray != null)for(int i = 0; i < flagsArray.length(); i++) {
             CFlag flag = CFlag.valueOf(flagsArray.getString(i,"").toUpperCase());
@@ -205,15 +205,12 @@ public abstract class JSONParser {
         CContent content = CContent.EMPTY;
         if(Util.stringInEnum(CContent.class,contentString))content= CContent.valueOf(contentString.toUpperCase());
 
-        int id = -1;
-        if(!idString.equals("")){
-            id = Integer.valueOf(idString);
-        }
+
         List<Integer> idList = new ArrayList<>();
         if(linkedCellsArray != null) for(int i = 0; i < linkedCellsArray.length(); i++) {
-            String linkedCellId = linkedCellsArray.getString(i,"");
-            if(!linkedCellId.equals("")){
-                idList.add(Integer.valueOf(linkedCellId));
+            int linkedCellId = linkedCellsArray.getInt(i,-1);
+            if(linkedCellId!=-1){
+                idList.add(linkedCellId);
             }
         }
         ItemType item = ItemType.getValueFromName(itemString.toUpperCase());
@@ -553,20 +550,38 @@ public abstract class JSONParser {
         }
     }
 
-    public static String[] splitValues(String substring) {
-        String[] output = new String[substring.length()/2+1];
+    public static List<String> splitValues(String substring) {
+        List<String> output = new ArrayList<>();
         int depth =0;
         int index = 0;
+        boolean inQuote = false;
+        char cc = ' ';
+        int i =0;
+        int lastIndex = 0;
+        int bSCount = 0;
         for(char c : substring.toCharArray()){
-            if(c == '{'||c == '[')depth++;
-            if(c == '}'||c == ']')depth--;
-            if(c==',' && depth==0){
+            i++;
+            if(c=='\\'){
+                bSCount++;
+            }
+            if(c=='"'){
+                if(bSCount%2==1)
+                    inQuote = true;
+                else inQuote = !inQuote;
+            }
+            if(c != '\\')bSCount = 0;
+            if(c == '{'||c == '['||c=='(')if(!inQuote)depth++;
+            if(c == '}'||c == ']'||c==')')if(!inQuote)depth--;
+            if(depth == -1)throw new IllegalArgumentException("String " +substring.substring(0,i)+" got out of bounds!");
+            if(c==',' && depth==0)if(!inQuote){
+                if(output.size() <= index)output.add("");
+                output.set(index, substring.substring(lastIndex, i-1));
+                lastIndex = i;
                 index++;
                 continue;
             }
-            if(output[index] == null)output[index]="";
-            output[index] +=c;
         }
+        output.add(substring.substring(lastIndex ));
         return output;
     }
 }

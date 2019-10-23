@@ -15,7 +15,7 @@ public interface Condition {
     static Condition getConditionFromString(String code) throws IllegalArgumentException {
         int depth = 0;
         code = code.trim();
-        if(code.matches(" *"))throw new IllegalArgumentException("You cannot have an empty condition!");
+        if(code.matches(" *"))throw new IllegalArgumentException("You cannot have an empty condition");
         for(int i =0; i < code.length();i++){
             char c = code.charAt(i);
             char cc = ' ';
