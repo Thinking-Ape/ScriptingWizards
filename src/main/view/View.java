@@ -56,6 +56,8 @@ import static main.utility.GameConstants.NO_ENTITY;
 
 public class View implements PropertyChangeListener {
 
+    private final BackgroundImage backgroundImage = new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
+    private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
     private Model model;
     private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
@@ -88,13 +90,13 @@ public class View implements PropertyChangeListener {
     private Scene startScene;
     //    private Scene editorScene;
 //    private Scene tutorialScene;
-    private Button backBtn = new Button("Back");
+    private Button backBtn = new Button();
     private SceneState sceneState = SceneState.START_SCREEN;
     private VBox knightsLeftVBox;
     private SpellBookPane spellBookPane = new SpellBookPane();
     private Label levelNameLabel = new Label();
     private TextArea tutorialTextArea = new TextArea();
-    private Button showSpellBookBtn = new Button("Show Spellbook");
+    private Button showSpellBookBtn = new Button();
 
     private VBox leftVBox = new VBox();
     private VBox centerVBox = new VBox();
@@ -120,8 +122,11 @@ public class View implements PropertyChangeListener {
         this.startScreen = new StartScreen();
         tutorialGroup = new TutorialGroup();
         backBtn.setPrefSize(GameConstants.BUTTON_SIZE, GameConstants.BUTTON_SIZE/2);
+        backBtn.setGraphic(new ImageView(GameConstants.BACK_BTN_IMAGE_PATH));
         showSpellBookBtn.setPrefHeight(GameConstants.BUTTON_SIZE*0.75);
+        showSpellBookBtn.setGraphic(new ImageView(GameConstants.SHOW_SPELLS_BTN_IMAGE_PATH));
         startScene = new Scene(startScreen);
+        startScreen.setBackground(brickBackground);
         cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
         cell_size = Math.round(cell_size);
         tutorialTextArea.setEditable(false);
@@ -145,6 +150,7 @@ public class View implements PropertyChangeListener {
         codeArea.addNewCodeFieldAtIndex(0, new CodeField("", 1, true));
         model.addChangeListener(this);
         actualMapGPane = new GridPane();
+        actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),true,BorderRepeat.REPEAT,null)));
 //        actualMapGPane.setHgap(1);
 //        actualMapGPane.setVgap(1);
         rootPane = new StackPane();
@@ -153,20 +159,27 @@ public class View implements PropertyChangeListener {
         stage.setScene(startScene);
         vBox = new VBox();
         HBox hBox = new HBox();
-        btnExecute = new Button("Execute");
+        btnExecute = new Button();
+        btnExecute.setGraphic(new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH));
         btnExecute.setPrefSize(BUTTON_SIZE, BUTTON_SIZE);
-        btnReset = new Button("Reset");
+        btnReset = new Button();
+        btnReset.setGraphic(new ImageView(GameConstants.RESET_BTN_IMAGE_PATH));
         btnReset.setPrefSize(BUTTON_SIZE, BUTTON_SIZE);
         btnReset.setDisable(true);
         speedVBox = new VBox();
         Label speedLbl = new Label("Speed:");
         speedSlider = new Slider(1, 5, 3);
+
+
+        speedSlider.setPrefSize(BUTTON_SIZE*1.3, BUTTON_SIZE/2*1.3);
         speedSlider.setBlockIncrement(1);
         speedSlider.setMajorTickUnit(1);
         speedSlider.setMinorTickCount(0);
         speedSlider.setValue(3);
         speedSlider.setSnapToTicks(true);
         speedSlider.setShowTickLabels(true);
+        speedSlider.setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/Speed_Slider.png" ), BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER,BackgroundSize.DEFAULT )));
+        speedSlider.setStyle("-fx-base: rgba(0,0,0,0)");
         speedVBox.getChildren().addAll(speedLbl, speedSlider);
         //TODO: delete
         Button debugBtn = new Button("Clipboard");
@@ -192,8 +205,8 @@ public class View implements PropertyChangeListener {
             try {
                 codeArea = Tester.evaluateCodeBox(
                         //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-          //              "Knight k1 = new Knight();","k1.move();","Knight k2 = new Knight(EAST);","k2.move();","Knight k3 = new Knight(WEST);","Army army = new Army(k1,k2,k3);","boolean b = army.looksTowards(EAST);","TurnDirection dir = RIGHT;","Command cc = executeIf(b,turn(LEFT),turn(dir));","boolean bb = true;","while(bb) {","army.executeIf(army.canMove(),move(),cc);","if (army.targetCellIs(PRESSURE_PLATE)) {","bb = false;","}","}");
-                        "Knight k = new Knight(NORTH);","k.move();","Knight k2 = new Knight(EAST);","Army a = new Army(k,k2);","while(true) {","if (k.targetCellIs(PRESSURE_PLATE)) {","a.move();","a.executeIf(a.looksTowards(EAST),move(),wait());","}","else if (a.canMove()) {","a.move();","}","else if (a.targetsItem()) {","a.collect();","}","else if (k2.targetCellIs(DIRT)) {","a.executeIf(a.looksTowards(EAST),turn(RIGHT),useItem());","a.move();","}","else {","a.executeIf(a.looksTowards(EAST),turn(LEFT),turn(RIGHT));","}","}");
+          //              "Knight k1 = new Knight();","k1.move();","Knight k2 = new Knight(EAST);","k2.move();","Knight k3 = new Knight(WEST);","Army army = new Army(k1,k2,k3);","boolean b = army.isLooking(EAST);","TurnDirection dir = RIGHT;","Command cc = executeIf(b,turn(LEFT),turn(dir));","boolean bb = true;","while(bb) {","army.executeIf(army.canMove(),move(),cc);","if (army.targetCellIs(PRESSURE_PLATE)) {","bb = false;","}","}");
+                        "Knight k = new Knight(NORTH);","k.move();","Knight k2 = new Knight(EAST);","Army a = new Army(k,k2);","while(true) {","if (k.targetCellIs(PRESSURE_PLATE)) {","a.move();","a.executeIf(a.isLooking(EAST),move(),wait());","}","else if (a.canMove()) {","a.move();","}","else if (a.targetsItem()) {","a.collect();","}","else if (k2.targetCellIs(DIRT)) {","a.executeIf(a.isLooking(EAST),turn(RIGHT),useItem());","a.move();","}","else {","a.executeIf(a.isLooking(EAST),turn(LEFT),turn(RIGHT));","}","}");
 //                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -216,6 +229,8 @@ public class View implements PropertyChangeListener {
     public void drawMap(GameMap map) {
         actualMapGPane.getChildren().clear();
         actualMapGPane.getChildren().addAll(getGridPaneFromMap(map).getChildren());
+        //TODO!
+//        actualMapGPane.setBackground(brickBackground);
         knightsLeftVBox.getChildren().clear();
         for (int i = 0; i < model.getCurrentLevel().getMaxKnights() - model.getCurrentLevel().getUsedKnights(); i++) {
             knightsLeftVBox.getChildren().add(new Rectangle(cell_size / 2, cell_size, Color.LIGHTGREY));
@@ -608,8 +623,9 @@ public class View implements PropertyChangeListener {
             StackPane.setAlignment(highlight, Pos.TOP_LEFT);
             actualMapGPane.autosize();
             highlight.autosize();
-            highlight.setTranslateX(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinX()+highlight.getLayoutBounds().getMinX());
-            highlight.setTranslateY(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinY()+highlight.getLayoutBounds().getMinY());
+            //TODO: +10 wegen Border
+            highlight.setTranslateX(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinX()+highlight.getLayoutBounds().getMinX()+10);
+            highlight.setTranslateY(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinY()+highlight.getLayoutBounds().getMinY()+10);
             highlights.add(highlight);
 
 //            System.out.println(""+actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinX()+" "+highlight.getLayoutBounds().getMinX());
@@ -806,19 +822,20 @@ public class View implements PropertyChangeListener {
                 aiCodeArea.setEditable(true);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
-                codeArea.select(0, Selection.END);
+                Platform.runLater(()->codeArea.select(0, Selection.END));
                 stage.getScene().setRoot(rootPane);
                 break;
             case LEVEL_SELECT:
                 stage.getScene().setRoot(levelOverviewPane);
                 levelOverviewPane.getLevelListView().getSelectionModel().select(0);
+                levelOverviewPane.setBackground(brickBackground);
                 break;
             case PLAY:
                 prepareRootPane();
                 aiCodeArea.setEditable(false);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
-                codeArea.select(0, Selection.END);
+                Platform.runLater(()->codeArea.select(0, Selection.END));
                 levelOverviewPane.updateUnlockedLevels(model, this);
                 stage.getScene().setRoot(rootPane);
                 break;
@@ -827,7 +844,7 @@ public class View implements PropertyChangeListener {
                 aiCodeArea.setEditable(false);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
-                codeArea.select(0, Selection.END);
+                Platform.runLater(()->codeArea.select(0, Selection.END));
 //                levelOverviewPane.updateUnlockedLevels(model, this);
                 try {
                     if(JSONParser.getTutorialProgressIndex()==-1){
@@ -923,10 +940,10 @@ public class View implements PropertyChangeListener {
             StackPane.setMargin(tutorialGroup, new Insets(5));
         }
         spellBookPane.setVisible(false);
-
+        rootPane.setBackground(brickBackground);
     }
 
-    public Image getImageFromMap(GameMap originalMap) {
+    Image getImageFromMap(GameMap originalMap) {
         GridPane gridPane = getGridPaneFromMap(originalMap);
         gridPane.autosize();
         int dimension = gridPane.getHeight() > gridPane.getWidth() ? (int) Math.round(gridPane.getHeight()) : (int) Math.round(gridPane.getWidth());
@@ -1008,13 +1025,13 @@ public class View implements PropertyChangeListener {
 
     public void toggleShowSpellBook() {
         if (spellBookPane.isVisible()) {
-            showSpellBookBtn.setText("Show Spellbook");
+//            showSpellBookBtn.setText("Show Spellbook");
             spellBookPane.setVisible(false);
             for(Polyline high :highlights){
                 high.setVisible(true);
             }
         } else {
-            showSpellBookBtn.setText("Hide Spellbook");
+//            showSpellBookBtn.setText("Hide Spellbook");
             spellBookPane.setVisible(true);
             for(Polyline high :highlights){
                 high.setVisible(false);

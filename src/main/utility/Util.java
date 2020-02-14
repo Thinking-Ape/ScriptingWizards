@@ -1,8 +1,11 @@
 package main.utility;
 
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
@@ -106,12 +109,12 @@ public abstract class Util {
 
     public static Color getColorFromDepth(int depth) {
         switch (depth){
-            case 1: return Color.LIGHTGREEN;
-            case 2: return Color.LIGHTYELLOW;
-            case 3: return Color.PALEGOLDENROD;
-            case 4: return Color.GOLDENROD;
+            case 1: return new Color(255/255.0, 255/255.0, 255/255.0, 1);
+            case 4: return new Color(135/255.0, 135/255.0, 135/255.0, 1);
+            case 3: return new Color(175/255.0, 175/255.0, 175/255.0, 1);
+            case 2: return new Color(215/255.0, 215/255.0, 215/255.0, 1);
         }
-        return Color.DARKRED;
+        return new Color(95/255.0, 95/255.0, 95/255.0, 1);
     }
 
     public static Cell[][] mirror(Cell[][] map) {
@@ -142,6 +145,7 @@ public abstract class Util {
             b.setPrefWidth(GameConstants.BUTTON_SIZE*3);
             b.setAlignment(Pos.CENTER);
             b.setTextAlignment(TextAlignment.CENTER);
+            b.setStyle("-fx-font-size: 20;");
         }
 
     }
@@ -228,11 +232,19 @@ public abstract class Util {
     }
 
     public static String escapeEverything(String text) {
-        return text.replaceAll("\\\\", "\\\\\\\\").replaceAll("\n", "\\\\n").replaceAll("\"", "\\\\\"");
+        return text.replaceAll("\\\\", "\\\\\\\\").replaceAll("\n", "\\\\n").replaceAll("\t", "\\\\t").replaceAll("\"", "\\\\\"");
     }
 
     public static String unescapeEverything(String pairs) {
         // this regex removes the escape sequences and adds linebreaks, quotes etc. for more information check regex101.com
-        return pairs.replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+n|(^(\\\\\\\\)?+)\\\\+n)", "$2\n").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+\"|(^(\\\\\\\\)?+)\\\\+\")", "$2\"").replaceAll("\\\\\\\\", "\\\\");
+        return pairs.replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+n|(^(\\\\\\\\)?+)\\\\+n)", "$2\n").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+t|(^(\\\\\\\\)?+)\\\\+t)", "$2\t").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+\"|(^(\\\\\\\\)?+)\\\\+\")", "$2\"").replaceAll("\\\\\\\\", "\\\\");
+    }
+
+    public static void applyFontFormatRecursively(Pane topHBox) {
+        for(Node n : topHBox.getChildren()){
+            if(n instanceof Button)((Button) n).setFont(new Font(((Button) n).getFont().getName(),GameConstants.SMALL_FONT_SIZE));
+            if(n instanceof Label)((Label) n).setFont(new Font(((Label) n).getFont().getName(),GameConstants.SMALL_FONT_SIZE));
+            if(Pane.class.isAssignableFrom(n.getClass()))applyFontFormatRecursively((Pane)n);
+        }
     }
 }

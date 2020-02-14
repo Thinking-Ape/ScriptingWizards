@@ -326,7 +326,7 @@ public class CodeParser {
                     testForCorrectParameters(exp1.getRightNode().getText(),MethodType.getMethodTypeFromName(exp1.getLeftNode().getText()),depth);
                     testForCorrectParameters(exp2.getRightNode().getText(),MethodType.getMethodTypeFromName(exp2.getLeftNode().getText()),depth);
                 return;}
-            case LOOKS_TOWARDS:
+            case IS_LOOKING:
                 if(parameters.matches(VariableType.DIRECTION.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameters)!=null &&depthStatementMap.get(depth-1).getVariable(parameters).getVariableType()==VariableType.DIRECTION&&!depthStatementMap.get(depth-1).getVariable(parameters).getValue().getText().equals(""))){
                     return;
                 }

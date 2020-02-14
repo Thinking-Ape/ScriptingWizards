@@ -35,7 +35,6 @@ IMPORTANT:
 - merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
 -> figure out how to evaluate values of conditions and assignments!
 - changelog
-- menu after winning playmode -> back, replay or next level
 - newturns > turns but newlines < lines -> better? (not justifiable to give 2.5!)
 - schleusen level with and without an inverted gate
 - evil wizard explains level editor
@@ -57,33 +56,48 @@ IMPORTANT:
 - Is CodeParser okay to be abstract? (why errors in parser and in evaluator??)
 - control the amount of objects! (no need to create new codeAreas the whole time!!
 - linked cell list is not lost upon changing content but cellid is!
-- adapt visuals to be relative instead of absolute!
 - enemy parts in tutorial?
  controller btns -> codeareacontroller
  - Strg-S etc as abbreviations for opening, closing etc.
  - rethink required levels
  - add difficulty attribute
- - show difficulty and best result yet in selection mode
+ - show difficulty and best result yet in selection mode!!!!!!!!
  - Save as option
  - cannot put empty or content when there wasnt a wall before...
  - check arguments of skeleton constructor whether they are viable...
  - replace the number argument with a color and give the spawns different colors?? (CFlag.RED,CFlag.VIOLET)
  - ! skells.canMove() doesnt work!!
- - skell.canMove() shouldnt be an allowed statement!
  - put tutorial section next to show spell book?!
- - make all visible things relative
- - create zip!!
- ----
+ - hide tutorial section if you want to!
+ - make it run faster! (maybe dont draw every cell again every time? only when a cell has changed??) also only draw the map once!
+ - one step button einbauen
+ - level editor mit passwort vor schülern schützen
+ - alle escape sequenzen implementieren
+ - be able to reset various aspects of data?
+ - when starting game 7 or more levels are loaded! (is it maybe because of leveloverview pane?)
+ - draw map differently entirely (cells same level -> next to each other)
+ - tutorialtextarea cant have so much text!
+ - cheap graphics option? (disable smoothing)
 ---------------------------------------------
 
 
 DONE:
+14.02.
+drew Tutorial Wizard and various Buttons
+added Brick-Background
+added Border to ActualMapGPane
+
+23.10.
+adapt visuals to be relative instead of absolute!
+skell.canMove() shouldnt be an allowed statement!
+create zip!!
+make all visible things relative
 
 22.10.
-
 fixed json parser to be able to handle escape symbols
 
 16.10.
+menu after winning playmode -> back, replay or next level
 images for destroyed items etc.!
 could also recolor the spawn and give knights differen colors... (too much work!!) -> maybe filter in java itself?
 disabling execute btn when isError wasnt updated

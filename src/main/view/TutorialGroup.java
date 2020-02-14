@@ -3,6 +3,7 @@ package main.view;
 import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -10,6 +11,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import main.utility.GameConstants;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +35,8 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setCache(false);
         currentTutorialMessage.setFont(new Font(currentTutorialMessage.getFont().getName(), GameConstants.FONT_SIZE));
 //        String tabString = "\t";
-        Rectangle wizard = new Rectangle(50,50,Color.BLUE);
+//        Rectangle wizard = new Rectangle(50,50,Color.BLUE);
+        ImageView wizard = new ImageView(new javafx.scene.image.Image(GameConstants.WIZARD_IMAGE_PATH));
         VBox vb = new VBox(currentTutorialMessage,navigationHBox);
         vb.setSpacing(10);
         HBox hb = new HBox(vb,wizard);

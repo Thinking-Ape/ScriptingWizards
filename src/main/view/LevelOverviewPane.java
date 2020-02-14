@@ -3,6 +3,7 @@ package main.view;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import main.model.Level;
@@ -16,13 +17,15 @@ import static main.utility.GameConstants.BUTTON_SIZE;
 public class LevelOverviewPane extends VBox {
     //TODO!!!
     ListView<LevelEntry> levelListView = new ListView<>();
-    Button playBtn = new Button("Play");
-    Button backBtn = new Button("Back");
+    Button playBtn = new Button();
+    Button backBtn = new Button();
 
     public LevelOverviewPane(Model model, View view){
         updateUnlockedLevels(model, view);
         backBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE*0.75);
         playBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE);
+        playBtn.setGraphic(new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH));
+        backBtn.setGraphic(new ImageView(GameConstants.BACK_BTN_IMAGE_PATH));
         HBox hBox = new HBox(backBtn,playBtn);
         hBox.setAlignment(Pos.CENTER);
         hBox.setSpacing(BUTTON_SIZE);

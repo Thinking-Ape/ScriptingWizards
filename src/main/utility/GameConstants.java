@@ -1,5 +1,6 @@
 package main.utility;
 
+import javafx.scene.Node;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Effect;
 import main.model.Entity;
@@ -23,6 +24,7 @@ public abstract class GameConstants {
     public static final String RAND_INT_REGEX = "randInt\\((.*),(.*)\\)";
     public static final Random RANDOM = new Random();
     public static final String LEVEL_ROOT_PATH = Paths.get("resources/levels/").toString();
+    public static final String IMAGES_PATH = "resources/images/";
     public static final String ROOT_PATH = Paths.get("resources/").toString();
     public static final int MAX_CODE_LINES = 30;
     public static final int MAX_LEVEL_SIZE = 15;
@@ -49,7 +51,13 @@ public abstract class GameConstants {
     public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.3;
     public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.8;
     public static final double BUTTON_SIZE = SCREEN_HEIGHT/10;
-    public static final double FONT_SIZE = 12.0*SCREEN_WIDTH/1920.0;
+    public static final double FONT_SIZE = 14.0*SCREEN_WIDTH/1920.0;
+    public static final double SMALL_FONT_SIZE = 12.0*SCREEN_WIDTH/1920.0;
+    public static final String BACK_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Back_Btn.png";
+    public static final String EXECUTE_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Execute_Btn.png";
+    public static final String RESET_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Reset_Btn.png";
+    public static final String SHOW_SPELLS_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Show_Spells_Btn.png";
+    public static final String WIZARD_IMAGE_PATH = "file:"+IMAGES_PATH+"TutorialWizard.png";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

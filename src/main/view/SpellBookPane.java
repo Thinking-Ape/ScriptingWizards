@@ -2,7 +2,6 @@ package main.view;
 
 import javafx.event.Event;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -236,7 +235,7 @@ public class SpellBookPane extends StackPane {
                     tooltipString.append(". If left blank any ItemType will return true!");
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<ItemType>", tooltipString.toString()));
                     break;
-                case LOOKS_TOWARDS:
+                case IS_LOOKING:
                     tooltipString = new StringBuilder("One of the following: ");
                     i = 0;
                     for(Direction d : Direction.values()){

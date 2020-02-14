@@ -390,7 +390,7 @@ public class CodeEvaluator {
                     if(parameterString.equals(""))output = output && (gameMap.getItem(targetPoint)!=ItemType.NONE);
                     else output = output && (gameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString));
                     continue;
-                case LOOKS_TOWARDS:
+                case IS_LOOKING:
                     output = output && ((actorEntity.getDirection() == Direction.getValueFromString(parameterString)));
                     continue;
             }

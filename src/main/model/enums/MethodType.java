@@ -23,7 +23,7 @@ public enum MethodType {
     DROP_ITEM("dropItem\\(\\)", ACTION,"Drops any item currently held by this Knight."),
     ATTACK("attack\\(\\)", ACTION,"Only for Skeletons!"),
     EXECUTE_IF("executeIf\\((.+,.+,.+)\\)", ACTION,"If the conditions are met, execute the first Command, else execute the second!\nCan be applied to Armies in order to have every Knight within it\nexecute a different Command depending on whether they meet the condition individually!"),
-    LOOKS_TOWARDS("looksTowards\\((.+)\\)", BOOLEAN,"Returns a boolean value corresponding to whether this Entity is looking in the given Direction!");
+    IS_LOOKING("isLooking\\((.+)\\)", BOOLEAN,"Returns a boolean value corresponding to whether this Entity is looking in the given Direction!");
 
 // WARNING: NEVER HAVE A VARIABLE TYPE COMMAND! BECAUSE OF CIRCULAR REFERENCES!
 

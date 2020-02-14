@@ -56,7 +56,7 @@ public class Controller {
             switch (view.getCurrentSceneState()){
                 case LEVEL_EDITOR:
                     if(codeAreaController.isGameRunning())view.getBtnReset().fire();
-                    view.getShowSpellBookBtn().setText("Show Spellbook");
+//                    view.getShowSpellBookBtn().setText("Show Spellbook");
                     view.setSceneState(SceneState.START_SCREEN);
                     break;
                 case LEVEL_SELECT:

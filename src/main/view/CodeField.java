@@ -45,7 +45,7 @@ public class CodeField extends TextField {
         this.autosize();
         Text text = new Text(code);
         text.setFont(new Font(getFont().getName(), GameConstants.FONT_SIZE));
-        if(text.getLayoutBounds().getWidth() > getMaxWidth()-GameConstants.SCREEN_WIDTH/130)throw new IllegalStateException("This code line is too long: " + text + "!");
+        if(text.getLayoutBounds().getWidth() > getMaxWidth()-GameConstants.SCREEN_WIDTH/130)throw new IllegalStateException("This code line is too long: " + text.getText() + "!");
     }
 
     public void addListener(ChangeListener<String> changeListener){

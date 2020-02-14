@@ -1,10 +1,14 @@
 package main.view;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Translate;
 import main.model.Level;
@@ -100,11 +104,9 @@ public class LevelEditorModule {
 //        if(level.getAIBehaviour().getStatementListSize()==0) hasAICheckBox.setSelected(false);
 //        else hasAICheckBox.setSelected(true);
         Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
-        for(Node n : topHBox.getChildren()){
-            if(n instanceof Button)((Button) n).setFont(new Font(((Button) n).getFont().getName(),GameConstants.FONT_SIZE));
-            if(n instanceof Label)((Label) n).setFont(new Font(((Label) n).getFont().getName(),GameConstants.FONT_SIZE));
-        }
+        Util.applyFontFormatRecursively(topHBox);
         topHBox.setSpacing(TEXTFIELD_HEIGHT+5);
+        topHBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREY,null,Insets.EMPTY)));
         cellTypeVBox.setAlignment(Pos.CENTER);
         cellItemVBox.setAlignment(Pos.TOP_CENTER);
         cellItemSelectionGPane.setAlignment(Pos.TOP_CENTER);
