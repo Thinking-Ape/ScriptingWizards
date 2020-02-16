@@ -14,6 +14,7 @@ import main.utility.GameConstants;
 import main.parser.CodeParser;
 import main.parser.JSONParser;
 import main.view.CodeArea;
+import main.view.CodeField;
 import main.view.SceneState;
 import main.view.View;
 
@@ -36,6 +37,14 @@ public class Controller {
         CodeAreaController codeAreaController = new CodeAreaController(view,model);
         EditorController editorController = new EditorController(view,model,codeAreaController);
 //        codeAreaController.setAllHandlersForCodeArea();
+        view.getStage().getScene().setOnKeyPressed(event -> {
+            if(!(view.getStage().getScene().getFocusOwner() instanceof CodeField)){
+                if(view.getCodeArea().getSelectedCodeField() == null)
+                    view.getCodeArea().select(0, Selection.END);
+                view.getCodeArea().getSelectedCodeField().requestFocus();
+
+            }
+        });
         view.getShowSpellBookBtn().setOnAction(evt -> {
             view.toggleShowSpellBook();
             boolean isVisible = view.getSpellBookPane().isVisible();
@@ -76,8 +85,10 @@ public class Controller {
         });
 
         view.getStartScreen().getLvlEditorBtn().setOnAction(actionEvent -> {
+
             view.setSceneState(SceneState.LEVEL_EDITOR);
-            view.drawMap(model.getCurrentLevel().getOriginalMap());
+
+
             editorController.setEditorHandlers();
             Platform.runLater(()-> view.highlightInMap(view.getSelectedPointList()));
         });
@@ -97,9 +108,8 @@ public class Controller {
             for(Level l :model.getLevelListCopy()){
                 if(l.isTutorial() && l.getIndex() < selectedLevel.getIndex() && l.getIndex() > minIndex)selectedLevel = l;
             }
-            view.setSceneState(SceneState.TUTORIAL);
             model.selectLevel(selectedLevel.getName());
-            view.drawMap(model.getCurrentLevel().getOriginalMap());
+            view.setSceneState(SceneState.TUTORIAL);
             view.getIntroductionPane().getStartTutorialBtn().setOnAction(evt -> {
                 view.getStage().getScene().setRoot(view.getRootPane());
             });
@@ -109,10 +119,17 @@ public class Controller {
             view.getTutorialGroup().getNextBtn().setOnAction(evt -> {view.getTutorialGroup().next();
                 //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
                 ScrollPane sp = (ScrollPane)view.getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
+                if(view.getTutorialGroup().isLastMsg()&&view.isIntroduction())view.getTutorialGroup().getEndIntroductionBtn().setVisible(true);
+                view.getTutorialGroup().getEndIntroductionBtn().setOnAction(event-> {
+                    view.leaveInstructions();
+                });
                 sp.setCache(false);
                 for (Node n : sp.getChildrenUnmodifiable()) {
                     n.setCache(false);
                 }});
+            view.getTutorialGroup().getHideBtn().setOnAction(evt -> {
+                view.getTutorialGroup().toggleStackpaneVisibility();
+            });
             view.getTutorialGroup().getPrevBtn().setOnAction(evt -> {view.getTutorialGroup().prev();
                 //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
                 ScrollPane sp = (ScrollPane)view.getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
@@ -120,38 +137,39 @@ public class Controller {
                 for (Node n : sp.getChildrenUnmodifiable()) {
                     n.setCache(false);
                 }});
-            view.getIntroductionPane().getTutorialGroup().getNextBtn().setOnAction(evt -> {
-                view.getIntroductionPane().getTutorialGroup().next();
-                if(view.getIntroductionPane().getTutorialGroup().isLastMsg())view.getIntroductionPane().getStartTutorialBtn().setDisable(false);
-                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
-                ScrollPane sp = (ScrollPane)view.getIntroductionPane().getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
-                sp.setCache(false);
-                for (Node n : sp.getChildrenUnmodifiable()) {
-                    n.setCache(false);
-                }
-            });
-            view.getIntroductionPane().getTutorialGroup().getPrevBtn().setOnAction(evt -> {
-                view.getIntroductionPane().getTutorialGroup().prev();
-                view.getIntroductionPane().getStartTutorialBtn().setDisable(true);
-                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
-                ScrollPane sp = (ScrollPane)view.getIntroductionPane().getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
-                sp.setCache(false);
-                for (Node n : sp.getChildrenUnmodifiable()) {
-                    n.setCache(false);
-                }
-            });
+//            view.getIntroductionPane().getTutorialGroup().getNextBtn().setOnAction(evt -> {
+//                view.getIntroductionPane().getTutorialGroup().next();
+//                if(view.getIntroductionPane().getTutorialGroup().isLastMsg())view.getIntroductionPane().getStartTutorialBtn().setDisable(false);
+//                if(view.)
+//                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
+//                ScrollPane sp = (ScrollPane)view.getIntroductionPane().getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
+//                sp.setCache(false);
+//                for (Node n : sp.getChildrenUnmodifiable()) {
+//                    n.setCache(false);
+//                }
+//            });
+//            view.getIntroductionPane().getTutorialGroup().getPrevBtn().setOnAction(evt -> {
+//                view.getIntroductionPane().getTutorialGroup().prev();
+//                view.getIntroductionPane().getStartTutorialBtn().setDisable(true);
+//                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
+//                ScrollPane sp = (ScrollPane)view.getIntroductionPane().getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
+//                sp.setCache(false);
+//                for (Node n : sp.getChildrenUnmodifiable()) {
+//                    n.setCache(false);
+//                }
+//            });
         });
 
-        view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent ->
-            view.setSceneState(SceneState.START_SCREEN)
-        );
+
         view.getStartScreen().getPlayBtn().setOnAction(actionEvent -> {
             view.setSceneState(SceneState.LEVEL_SELECT);
+            view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent2 ->
+                    view.setSceneState(SceneState.START_SCREEN)
+            );
             view.getLevelOverviewPane().getPlayBtn().setOnAction(actionEvent1 -> {
                 String levelName = view.getLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
-                view.setSceneState(SceneState.PLAY);
                 model.selectLevel(levelName);
-                view.drawMap(model.getCurrentLevel().getOriginalMap());
+                view.setSceneState(SceneState.PLAY);
             });
         });
 
@@ -195,6 +213,7 @@ public class Controller {
                             double nStars = (turnStars + locStars)/2.0;
                             //TODO: really not in editor??!
 //                            if(view.getCurrentSceneState()==SceneState.PLAY){
+
                                 JSONParser.storeProgressIfBetter(model.getCurrentLevel().getName(),turns,loc,model.getCurrentLevel().getPlayerBehaviour());
                                 model.updateFinishedList();
 //                            }
@@ -213,7 +232,6 @@ public class Controller {
 //                            if(view.getCurrentSceneState() != SceneState.LEVEL_EDITOR)
                                 JSONParser.saveStatementProgress(model.getCurrentLevel().getUnlockedStatementList());
                             view.getSpellBookPane().updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
-
                         }
                         if (model.getCurrentLevel().isLost()){
                             timeline.stop();
@@ -272,6 +290,7 @@ public class Controller {
                 if(bestCode.size() !=0){
                     CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode),true,false);
                     view.setCodeArea(codeArea,false);
+                    view.getBtnExecute().setDisable(false);
 //                    codeArea.draw();
 //                    codeAreaController.setAllHandlersForCodeArea(false);
                 }
@@ -313,6 +332,7 @@ public class Controller {
         if(bnt.isPresent()){
             switch (bnt.get().getButtonData()){
                 case NEXT_FORWARD:
+                    view.getBtnReset().fire();
                     model.selectLevel(nextLvl.getName());
                 case CANCEL_CLOSE:
                     view.getBtnReset().fire();

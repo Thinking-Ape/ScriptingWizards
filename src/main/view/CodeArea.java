@@ -312,6 +312,10 @@ public class CodeArea extends HBox {
         removeCodeField(codeFieldList.get(currentIndex));
     }
 
+    public boolean isEditable() {
+        return isEditable;
+    }
+
 //    public void setBehaviuour(ComplexStatement complexStatement) {
 //        this.codeFieldList = new ArrayList<>();
 //        codeFieldList.addAll(getCodeFieldsFromStatement(complexStatement));

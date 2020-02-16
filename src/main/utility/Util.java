@@ -4,7 +4,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -145,7 +144,7 @@ public abstract class Util {
             b.setPrefWidth(GameConstants.BUTTON_SIZE*3);
             b.setAlignment(Pos.CENTER);
             b.setTextAlignment(TextAlignment.CENTER);
-            b.setStyle("-fx-font-size: 20;");
+            b.setFont(GameConstants.BIGGEST_FONT);
         }
 
     }
@@ -246,5 +245,12 @@ public abstract class Util {
             if(n instanceof Label)((Label) n).setFont(new Font(((Label) n).getFont().getName(),GameConstants.SMALL_FONT_SIZE));
             if(Pane.class.isAssignableFrom(n.getClass()))applyFontFormatRecursively((Pane)n);
         }
+    }
+
+    public static List<String> StringListFromArray(String... tutorialLines) {
+        List<String> output = new ArrayList<>();
+        for(String tutorialLine : tutorialLines) output.add(tutorialLine);
+        return output;
+
     }
 }

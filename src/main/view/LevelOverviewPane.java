@@ -2,6 +2,7 @@ package main.view;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -26,11 +27,16 @@ public class LevelOverviewPane extends VBox {
         playBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE);
         playBtn.setGraphic(new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH));
         backBtn.setGraphic(new ImageView(GameConstants.BACK_BTN_IMAGE_PATH));
+        backBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
+        playBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
         HBox hBox = new HBox(backBtn,playBtn);
         hBox.setAlignment(Pos.CENTER);
         hBox.setSpacing(BUTTON_SIZE);
         levelListView.setPrefHeight(GameConstants.SCREEN_HEIGHT*0.7);
-        this.getChildren().addAll(levelListView,hBox);
+        Label challengesLbl = new Label("Challenges");
+        challengesLbl.setFont(GameConstants.CHALLENGER_FONT);
+        challengesLbl.setStyle("-fx-background-color: lightgrey");
+        this.getChildren().addAll(challengesLbl,levelListView,hBox);
         this.setAlignment(Pos.CENTER);
     }
 

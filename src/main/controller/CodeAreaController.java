@@ -11,6 +11,7 @@ import main.parser.CodeParser;
 import main.utility.GameConstants;
 import main.view.CodeArea;
 import main.view.CodeField;
+import main.view.SceneState;
 import main.view.View;
 
 import java.beans.PropertyChangeEvent;
@@ -44,11 +45,14 @@ public class CodeAreaController implements PropertyChangeListener {
 
             });
         }
+        if(codeArea.isAi() && view.getCurrentSceneState() != SceneState.LEVEL_EDITOR)codeArea.setEditable(false);
         codeArea.addListenerToScrollbar((observableValue, number, t1) -> codeArea.scroll(Math.round(t1.floatValue())));
     }
     private void setHandlerForCodeField(CodeField currentCodeField,boolean isAi) {
         currentCodeField.setOnMousePressed(event -> {
+
             if(gameRunning)return;
+
             CodeArea codeArea = !isAi ? view.getCodeArea() : view.getAICodeArea();
             if(codeArea.getSelectedCodeField() == currentCodeField) return;
             if(!isError){
@@ -303,6 +307,7 @@ public class CodeAreaController implements PropertyChangeListener {
                 return new CodeArea(complexStatement,codeArea.isAi());
             }catch (IllegalArgumentException e){
                 view.getMsgLabel().setText(e.getMessage());
+                if(GameConstants.DEBUG)e.printStackTrace();
             }
 //            return true;
         }
@@ -361,8 +366,9 @@ public class CodeAreaController implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if(!evt.getPropertyName().equals("codeArea"))return;
-
-        setAllHandlersForCodeArea((CodeArea) evt.getNewValue());
+        CodeArea codeArea = (CodeArea) evt.getNewValue();
+        if(codeArea.isEditable())
+        setAllHandlersForCodeArea(codeArea);
     }
 
     public boolean isError() {

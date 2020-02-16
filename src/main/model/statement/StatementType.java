@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public enum StatementType {
 
-    FOR("for *\\(( *int +.* += *.*;.*;.* *)\\) *\\{",false),
+    FOR("for *\\(( *int +.* *= *.+;.+;.+ *)\\) *\\{",false),
     WHILE("while *\\( *(.*) *\\) *\\{",false),
     IF("if *\\( *(.*) *\\) *\\{",false),
     ELSE("else( +if *\\( *(.*) *\\) *)? *\\{",false),

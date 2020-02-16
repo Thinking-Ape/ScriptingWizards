@@ -20,6 +20,7 @@ public class StartScreen extends BorderPane {
     private Button switchLanguage  = new Button("Switch Language: EN -> DE"); //TODO!!!
 
     public StartScreen(){
+        switchLanguage.setDisable(true);
         Util.applyStartButtonFormat(tutorialBtn,playBtn,exitBtn,lvlEditor);
         Separator sep = new Separator(Orientation.HORIZONTAL);
         sep.setHalignment(HPos.CENTER);

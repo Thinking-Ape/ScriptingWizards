@@ -78,10 +78,15 @@ IMPORTANT:
  - draw map differently entirely (cells same level -> next to each other)
  - tutorialtextarea cant have so much text!
  - cheap graphics option? (disable smoothing)
+- multiple tabs arent working -> see tutorial text for Spiral In
 ---------------------------------------------
 
 
 DONE:
+15.02.
+can edit enemy code during play/tutorial
+int i; says -> empty condition!!!
+rearranged tutorial Wizard graphic
 14.02.
 drew Tutorial Wizard and various Buttons
 added Brick-Background

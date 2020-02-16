@@ -1,17 +1,21 @@
 package main.view;
 
+import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
 import main.utility.GameConstants;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,26 +24,68 @@ public class TutorialGroup extends Group {
     //    private List<SpellBookLabel> spellBookEntryList;
     private TextArea currentTutorialMessage = new TextArea();
     private Button prevBtn = new Button("<");
+    private Button hideBtn = new Button("v");
     private Button nextBtn = new Button(">");
-    private HBox navigationHBox = new HBox(prevBtn,nextBtn);
-
+    private Button endIntroductionBtn = new Button();
+    private HBox navigationHBox = new HBox(prevBtn,nextBtn, endIntroductionBtn,hideBtn);
+    private HBox hb;
+    private StackPane sp;
     private int index = 0;
     private List<String> tutorialEntries = new ArrayList<>();
 
     //TODO: ALIGNMENT NOT WORKING PROP
     public TutorialGroup(){
+        ImageView imageView = new ImageView(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
+        imageView.setScaleX(GameConstants.WIDTH_RATIO);
+        imageView.setScaleY(GameConstants.HEIGHT_RATIO);
+        imageView.setFitHeight(GameConstants.BUTTON_SIZE/5.0);
+        imageView.setFitWidth(GameConstants.BUTTON_SIZE/5.0);
+        prevBtn.setFont(GameConstants.SMALL_FONT);
+        nextBtn.setFont(GameConstants.SMALL_FONT);
+        endIntroductionBtn.setGraphic(imageView);
         currentTutorialMessage.setEditable(false);
         currentTutorialMessage.setWrapText(true);
         currentTutorialMessage.setMouseTransparent(true);
+        currentTutorialMessage.setStyle("-fx-background-color: transparent;" +
+                "-fx-base: transparent;");
+//        currentTutorialMessage.setTranslateX(30);
+//        currentTutorialMessage.setTranslateY(90);
+        currentTutorialMessage.setMaxSize(GameConstants.TEXTFIELD_WIDTH, GameConstants.TEXTFIELD_WIDTH/2.0);
+        currentTutorialMessage.setTranslateX(-GameConstants.SCREEN_WIDTH/100.0);
+        currentTutorialMessage.setTranslateY(-GameConstants.SCREEN_HEIGHT/50.0);
+        ImageView bubble_IView = new ImageView(new Image("file:resources/images/Speech_Bubble.png"));
+//        currentTutorialMessage.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/Speech_Bubble.png"),
+//                BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER,BackgroundSize.DEFAULT)));
+//        endIntroductionBtn.setMaxHeight(GameConstants.BUTTON_SIZE/4);
+//        endIntroductionBtn.setMaxWidth(GameConstants.BUTTON_SIZE/4);
         // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
+        currentTutorialMessage.setFont(GameConstants.BIG_FONT);
         currentTutorialMessage.setCache(false);
-        currentTutorialMessage.setFont(new Font(currentTutorialMessage.getFont().getName(), GameConstants.FONT_SIZE));
 //        String tabString = "\t";
 //        Rectangle wizard = new Rectangle(50,50,Color.BLUE);
         ImageView wizard = new ImageView(new javafx.scene.image.Image(GameConstants.WIZARD_IMAGE_PATH));
-        VBox vb = new VBox(currentTutorialMessage,navigationHBox);
-        vb.setSpacing(10);
-        HBox hb = new HBox(vb,wizard);
+        wizard.setScaleX(GameConstants.WIDTH_RATIO);
+        wizard.setScaleY(GameConstants.HEIGHT_RATIO);
+        wizard.setMouseTransparent(true);
+        bubble_IView.setMouseTransparent(true);
+        currentTutorialMessage.setMouseTransparent(true);
+        sp = new StackPane(bubble_IView, currentTutorialMessage);
+        sp.setMouseTransparent(true);
+        sp.setAlignment(Pos.CENTER);
+        sp.layout();
+        sp.autosize();
+        sp.setCache(false);
+        VBox vb = new VBox(sp,navigationHBox);
+//        vb.setMouseTransparent(true);
+        vb.setPickOnBounds(true);
+        StackPane.setAlignment(currentTutorialMessage, Pos.BOTTOM_CENTER);
+        navigationHBox.setAlignment(Pos.TOP_RIGHT);
+//        prevBtn.setAlignment(Pos.TOP_RIGHT);
+        vb.setSpacing(GameConstants.TEXTFIELD_HEIGHT);
+        hb = new HBox(vb,wizard);
+//        hb.setMouseTransparent(true);
+        hb.setPickOnBounds(true);
+
 //        hb.setAlignment(Pos.BOTTOM_RIGHT);
         this.getChildren().addAll(hb);
 //        this.setMinSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
@@ -50,6 +96,9 @@ public class TutorialGroup extends Group {
         hb.setPickOnBounds(false);
         prevBtn.setDisable(true);
         nextBtn.setDisable(true);
+        endIntroductionBtn.setVisible(false);
+
+
     }
 
     public TextArea getCurrentTutorialMessage() {
@@ -62,6 +111,9 @@ public class TutorialGroup extends Group {
 
     public Button getNextBtn() {
         return nextBtn;
+    }
+    public Button getHideBtn() {
+        return hideBtn;
     }
 
     public void next(){
@@ -79,14 +131,44 @@ public class TutorialGroup extends Group {
 
     public void setEntries(List<String> tutorialEntryList) {
         index = 0;
+        tutorialEntries.clear();
         tutorialEntries.addAll(tutorialEntryList);
+        prevBtn.setDisable(true);
         if(tutorialEntryList.size() >0 ){
             currentTutorialMessage.setText(tutorialEntries.get(0));
+            if(tutorialEntryList.size()>1)
             nextBtn.setDisable(false);
+            Platform.runLater(()->{
+                if(currentTutorialMessage.getChildrenUnmodifiable().size() == 0)return;
+                ScrollPane sp = (ScrollPane)currentTutorialMessage.getChildrenUnmodifiable().get(0);
+            sp.setCache(false);
+            for (Node n : sp.getChildrenUnmodifiable()) {
+                n.setCache(false);
+            }});
         }
     }
+    public void leaveIntroduction(){
+        hb.setBorder(null);
+        hb.setBackground(null);
+        endIntroductionBtn.setVisible(false);
+    }
 
+    public void activateIntroduction(){
+        hb.setBorder(new Border(new BorderStroke(Color.BLACK,new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.ROUND, StrokeLineCap.ROUND,1,2,null),null,new BorderWidths(5))));
+        hb.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/background_Test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.CENTER,BackgroundSize.DEFAULT)));
+        endIntroductionBtn.setVisible(false);
+    }
     public boolean isLastMsg() {
         return index == tutorialEntries.size()-1;
+    }
+
+    public Button getEndIntroductionBtn() {
+        return endIntroductionBtn;
+    }
+    public void toggleStackpaneVisibility(){
+        nextBtn.setVisible(!nextBtn.isVisible());
+        prevBtn.setVisible(!prevBtn.isVisible());
+        sp.setVisible(!sp.isVisible());
+        hideBtn.setText(nextBtn.isVisible()? "v":"^");
     }
 }

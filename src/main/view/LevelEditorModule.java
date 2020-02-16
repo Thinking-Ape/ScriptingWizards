@@ -105,6 +105,8 @@ public class LevelEditorModule {
 //        else hasAICheckBox.setSelected(true);
         Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
         Util.applyFontFormatRecursively(topHBox);
+        isTurnedCBox.setStyle("-fx-background-color: white");
+        isInvertedCBox.setStyle("-fx-background-color: white");
         topHBox.setSpacing(TEXTFIELD_HEIGHT+5);
         topHBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREY,null,Insets.EMPTY)));
         cellTypeVBox.setAlignment(Pos.CENTER);

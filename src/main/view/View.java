@@ -111,9 +111,12 @@ public class View implements PropertyChangeListener {
     //TODO: for visual purposes:
     List<Entity> entityActionList = new ArrayList<>();
     Map<String, Effect> entityColorMap = new HashMap<>();
+    private boolean isIntroduction;
 
 
     public View(Model model, Stage stage, boolean isEditor) {
+        msgLabel.setStyle("-fx-text-fill: red;-fx-background-color: white");
+        msgLabel.setFont(GameConstants.BIG_FONT);
         spellBookPane.updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
         selectedPointList = new ArrayList<>();
         selectedPointList.add(new Point(0, 0));
@@ -132,9 +135,10 @@ public class View implements PropertyChangeListener {
         tutorialTextArea.setEditable(false);
         knightsLeftVBox = new VBox();
         knightsLeftVBox.setSpacing(cell_size / 4);
-        for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
-            knightsLeftVBox.getChildren().add(new Rectangle(cell_size / 2, cell_size, Color.LIGHTGREY));
-        }
+        knightsLeftVBox.setMinWidth(cell_size/2);
+//        for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
+//            knightsLeftVBox.getChildren().add(new Rectangle(cell_size / 2, cell_size, Color.LIGHTGREY));
+//        }
         levelOverviewPane = new LevelOverviewPane(model, this);
 //        levelSelectScene = new Scene(levelOverviewPane);
         //TODO: model.getCurrentLevel().addListener(this);
@@ -166,8 +170,15 @@ public class View implements PropertyChangeListener {
         btnReset.setGraphic(new ImageView(GameConstants.RESET_BTN_IMAGE_PATH));
         btnReset.setPrefSize(BUTTON_SIZE, BUTTON_SIZE);
         btnReset.setDisable(true);
+        btnReset.setStyle("-fx-background-color: rgba(0,0,0,0)");
+        btnExecute.setStyle("-fx-background-color: rgba(0,0,0,0)");
+        backBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
+        showSpellBookBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
         speedVBox = new VBox();
-        Label speedLbl = new Label("Speed:");
+        Label speedLbl = new Label("Speed");
+        speedLbl.setAlignment(Pos.CENTER);
+        speedLbl.setFont(GameConstants.MEDIUM_FONT);
+        speedLbl.setStyle("-fx-background-color: lightgray");
         speedSlider = new Slider(1, 5, 3);
 
 
@@ -177,9 +188,14 @@ public class View implements PropertyChangeListener {
         speedSlider.setMinorTickCount(0);
         speedSlider.setValue(3);
         speedSlider.setSnapToTicks(true);
-        speedSlider.setShowTickLabels(true);
+        speedSlider.setShowTickLabels(false);
         speedSlider.setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/Speed_Slider.png" ), BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER,BackgroundSize.DEFAULT )));
+        File f = new File(GameConstants.ROOT_PATH+"/slider_style.css");
+        speedSlider.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
+//        speedSlider.getStylesheets().add(getClass().getResource("slider_style.css").toExternalForm());
+
         speedSlider.setStyle("-fx-base: rgba(0,0,0,0)");
+        speedVBox.setAlignment(Pos.BOTTOM_CENTER);
         speedVBox.getChildren().addAll(speedLbl, speedSlider);
         //TODO: delete
         Button debugBtn = new Button("Clipboard");
@@ -232,18 +248,20 @@ public class View implements PropertyChangeListener {
         //TODO!
 //        actualMapGPane.setBackground(brickBackground);
         knightsLeftVBox.getChildren().clear();
+        knightsLeftVBox.setSpacing(cell_size/4);
+        knightsLeftVBox.setMinWidth(cell_size/2);
         for (int i = 0; i < model.getCurrentLevel().getMaxKnights() - model.getCurrentLevel().getUsedKnights(); i++) {
-            knightsLeftVBox.getChildren().add(new Rectangle(cell_size / 2, cell_size, Color.LIGHTGREY));
+            ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
+            tokenIView.setFitHeight(cell_size);
+            tokenIView.setFitWidth(cell_size);
+            knightsLeftVBox.getChildren().add(tokenIView);
+//            System.out.println(model.getCurrentLevel().getName()+", " +getCurrentSceneState().name()+": " +cell_size);
         }
         changeSupport.firePropertyChange("map", null, null);
     }
 
     private GridPane getGridPaneFromMap(GameMap map) {
-        cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
-
-        if(getCurrentSceneState() == SceneState.PLAY ||getCurrentSceneState() == SceneState.TUTORIAL)
-            cell_size = cell_size*GameConstants.PLAY_CELL_SIZE_FACTOR;
-        cell_size = Math.round(cell_size);
+        calculateCellSize();
         File folder = new File(Paths.get(GameConstants.ROOT_PATH + "/images").toString());
         File[] listOfFiles = folder.listFiles();
         assert listOfFiles != null;
@@ -457,6 +475,14 @@ public class View implements PropertyChangeListener {
         return gPane;
     }
 
+    private void calculateCellSize() {
+        cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
+
+        if(getCurrentSceneState() == SceneState.PLAY ||getCurrentSceneState() == SceneState.TUTORIAL)
+            cell_size = cell_size*GameConstants.PLAY_CELL_SIZE_FACTOR;
+        cell_size = Math.round(cell_size);
+    }
+
     private Shape getItemShape(ItemType content) {
         Color color = Color.BLACK;
         switch (content) {
@@ -571,8 +597,14 @@ public class View implements PropertyChangeListener {
                 throw new IllegalArgumentException("null is no longer allowed as AiCodeArea! Please use an empty CodeArea instead!");
             this.aiCodeArea = codeArea;
             leftVBox.getChildren().clear();
-            leftVBox.getChildren().addAll(new Rectangle(50, 50, Color.MAGENTA), new Label("Enemy Script"), aiCodeArea);
-            leftVBox.setAlignment(Pos.TOP_LEFT);
+            if(codeArea.getSize()>0)
+            {
+                ImageView redIconIView = new ImageView(new Image(GameConstants.RED_SCRIPT_ICON_PATH));
+                redIconIView.setFitWidth(BUTTON_SIZE/2.5);
+                redIconIView.setFitHeight(BUTTON_SIZE/2.5);
+                leftVBox.getChildren().addAll(redIconIView, aiCodeArea);
+            }
+            leftVBox.setAlignment(Pos.TOP_CENTER);
         }
         else {this.codeArea = codeArea;
         vBox.getChildren().set(0, codeArea);}
@@ -712,6 +744,9 @@ public class View implements PropertyChangeListener {
                 }
                 if (sceneState == SceneState.LEVEL_EDITOR) updateLevelEditorModule();
                 spellBookPane.updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
+                if(!levelNameLabel.getText().equals(model.getCurrentLevel().getName())){
+                tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
+                levelNameLabel.setText(model.getCurrentLevel().getName());}
             case "map":
                 drawMap(model.getCurrentLevel().getOriginalMap());
                 if(sceneState == SceneState.LEVEL_EDITOR)
@@ -751,7 +786,10 @@ public class View implements PropertyChangeListener {
                 levelEditorModule.getMaxKnightsValueLbl().setText("" + model.getCurrentLevel().getMaxKnights());
                 knightsLeftVBox.getChildren().clear();
                 for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
-                    knightsLeftVBox.getChildren().add(new Rectangle(cell_size / 2, cell_size, Color.LIGHTGREY));
+                    ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
+                    tokenIView.setFitHeight(cell_size);
+                    tokenIView.setFitWidth(cell_size);
+                    knightsLeftVBox.getChildren().add(tokenIView);
                 }
                 break;
             case "aiBehaviour":
@@ -819,6 +857,7 @@ public class View implements PropertyChangeListener {
                 break;
             case LEVEL_EDITOR:
                 prepareRootPane();
+                drawMap(model.getCurrentLevel().getOriginalMap());
                 aiCodeArea.setEditable(true);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
@@ -831,8 +870,8 @@ public class View implements PropertyChangeListener {
                 levelOverviewPane.setBackground(brickBackground);
                 break;
             case PLAY:
+                drawMap(model.getCurrentLevel().getOriginalMap());
                 prepareRootPane();
-                aiCodeArea.setEditable(false);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
@@ -840,23 +879,14 @@ public class View implements PropertyChangeListener {
                 stage.getScene().setRoot(rootPane);
                 break;
             case TUTORIAL:
+                drawMap(model.getCurrentLevel().getOriginalMap());
                 prepareRootPane();
-                aiCodeArea.setEditable(false);
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
 //                levelOverviewPane.updateUnlockedLevels(model, this);
-                try {
-                    if(JSONParser.getTutorialProgressIndex()==-1){
-                        stage.getScene().setRoot(introductionPane);
-                        introductionPane.getTutorialGroup().getNextBtn().requestFocus();
-                    }
-                    else {
-                        stage.getScene().setRoot(rootPane);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
+                stage.getScene().setRoot(rootPane);
                 break;
 
         }
@@ -866,16 +896,27 @@ public class View implements PropertyChangeListener {
         rootPane = new StackPane();
         rootPane.setPrefSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
         levelNameLabel.setText(model.getCurrentLevel().getName());
+        levelNameLabel.setFont(GameConstants.BIGGEST_FONT);
+        levelNameLabel.setStyle("-fx-background-color: lightgray");
         HBox contentHBox = new HBox();
         setCodeArea(aiCodeArea,true);
         setCodeArea(codeArea,false);
-        rightVBox.getChildren().clear();
-        centerVBox.getChildren().clear();
+        rightVBox = new VBox();
+        centerVBox = new VBox();
         rightVBox.setAlignment(Pos.TOP_RIGHT);
         knightsLeftVBox.setAlignment(Pos.TOP_RIGHT);
-        rightVBox.getChildren().addAll(new Rectangle(50, 50, Color.AZURE), new Label("Script"), vBox);
+        //TODO
+
+        ImageView blueIconIView = new ImageView(new Image(GameConstants.BLUE_SCRIPT_ICON_PATH));
+        blueIconIView.setFitWidth(BUTTON_SIZE/2.5);
+        blueIconIView.setFitHeight(BUTTON_SIZE/2.5);
+        rightVBox.setAlignment(Pos.TOP_CENTER);
+        rightVBox.getChildren().addAll(blueIconIView, vBox);
         baseContentVBox.getChildren().clear();
         HBox topCenterHBox;
+
+        HBox bottomHBox = new HBox(backBtn, btnExecute, speedVBox, btnReset, showSpellBookBtn);
+        bottomHBox.setAlignment(Pos.BOTTOM_CENTER);
         switch (sceneState) {
             case LEVEL_EDITOR:
                 levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
@@ -893,31 +934,50 @@ public class View implements PropertyChangeListener {
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case PLAY:
 //                topCenterHBox = new HBox(levelNameLabel, );
-                centerVBox.getChildren().addAll(levelNameLabel, new HBox(knightsLeftVBox, actualMapGPane));
+
+                HBox centerHBox = new HBox(knightsLeftVBox, actualMapGPane);
+                centerHBox.autosize();
+                centerHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
+                centerHBox.setAlignment(Pos.TOP_CENTER);
+                centerVBox.getChildren().addAll(levelNameLabel, centerHBox);
+//                centerVBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/2);
 //                playScene = new Scene(rootPane);
                 break;
             case START_SCREEN:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case TUTORIAL:
-//                topCenterHBox = new HBox(levelNameLabel, knightsLeftVBox);
-                centerVBox.getChildren().addAll(levelNameLabel, new HBox(knightsLeftVBox, actualMapGPane));
+                centerHBox = new HBox(knightsLeftVBox, actualMapGPane);
+                centerHBox.autosize();
+                centerHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
+                centerHBox.setAlignment(Pos.TOP_CENTER);
+                centerVBox.getChildren().addAll(levelNameLabel,centerHBox);
 //                tutorialScene = new Scene(rootPane);
-                tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
+                try {
+                    if(JSONParser.getTutorialProgressIndex()==-1){
+                        isIntroduction = true;
+                        tutorialGroup.activateIntroduction();
+//                        stage.getScene().setRoot(introductionPane);
+//                        introductionPane.getTutorialGroup().getNextBtn().requestFocus();
+                    }
+//                    else {
+//                        stage.getScene().setRoot(rootPane);
+//                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if(isIntroduction){
+                    tutorialGroup.setEntries(Util.StringListFromArray(GameConstants.TUTORIAL_LINE_1,GameConstants.TUTORIAL_LINE_2,GameConstants.TUTORIAL_LINE_3,GameConstants.TUTORIAL_LINE_4,GameConstants.TUTORIAL_LINE_5));
+                }
+                else tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
                 break;
         }
         contentHBox.getChildren().addAll(leftVBox, centerVBox, rightVBox);
         contentHBox.setAlignment(Pos.CENTER);
         contentHBox.setSpacing(BUTTON_SIZE/3);
         contentHBox.setPrefWidth(GameConstants.SCREEN_WIDTH);
-        HBox bottomHBox = new HBox(backBtn, btnExecute, speedVBox, btnReset, showSpellBookBtn);
         bottomHBox.setSpacing(BUTTON_SIZE);
         bottomHBox.setPickOnBounds(false);
-//        bottomHBox.setManaged(true);
         bottomHBox.setMaxHeight(BUTTON_SIZE);
-        bottomHBox.setAlignment(Pos.BOTTOM_CENTER);
-//        StackPane.setAlignment(bottomHBox, Pos.BOTTOM_CENTER);
-//        centerVBox.setSpacing(BUTTON_SIZE/2);
-//        centerVBox.getChildren().add(bottomHBox );
 
         rootPane.autosize();
         baseContentVBox.autosize();
@@ -925,20 +985,25 @@ public class View implements PropertyChangeListener {
         centerVBox.autosize();
         bottomHBox.autosize();
 
-        if(getCurrentSceneState() == SceneState.LEVEL_EDITOR)centerVBox.setPrefHeight(GameConstants.SCREEN_HEIGHT-levelEditorModule.getTopHBox().getLayoutBounds().getHeight());
+        if(getCurrentSceneState() == SceneState.LEVEL_EDITOR)
+            centerVBox.setPrefHeight(GameConstants.SCREEN_HEIGHT-levelEditorModule.getTopHBox().getLayoutBounds().getHeight());
         centerVBox.setAlignment(Pos.TOP_CENTER);
         StackPane.setAlignment(bottomHBox, Pos.BOTTOM_CENTER);
         bottomHBox.setTranslateY(-GameConstants.SCREEN_HEIGHT/50);
+
         baseContentVBox.getChildren().addAll(contentHBox);
         rootPane.getChildren().add(baseContentVBox);
-        rootPane.getChildren().add(bottomHBox );
-        rootPane.getChildren().add(spellBookPane);
         if (getCurrentSceneState() == SceneState.TUTORIAL) {
-//            rootPane.setAlignment(Pos.BOTTOM_RIGHT);
+
             rootPane.getChildren().add(tutorialGroup);
+
             StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
+            if(isIntroduction){
+                StackPane.setAlignment(tutorialGroup, Pos.CENTER);}
             StackPane.setMargin(tutorialGroup, new Insets(5));
         }
+        rootPane.getChildren().add(bottomHBox );
+        rootPane.getChildren().add(spellBookPane);
         spellBookPane.setVisible(false);
         rootPane.setBackground(brickBackground);
     }
@@ -1091,6 +1156,17 @@ public class View implements PropertyChangeListener {
         for (Polyline highlight: highlights) {
             rootPane.getChildren().remove(highlight);
         }
+    }
+
+    public boolean isIntroduction() {
+        return isIntroduction;
+    }
+
+    public void leaveInstructions() {
+        tutorialGroup.leaveIntroduction();
+        tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
+        StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
+        isIntroduction = false;
     }
 }
 //KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"
