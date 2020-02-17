@@ -57,6 +57,7 @@ import static main.utility.GameConstants.NO_ENTITY;
 public class View implements PropertyChangeListener {
 
     private final BackgroundImage backgroundImage = new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
+    private final LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
     private Model model;
@@ -134,12 +135,11 @@ public class View implements PropertyChangeListener {
         cell_size = Math.round(cell_size);
         tutorialTextArea.setEditable(false);
         knightsLeftVBox = new VBox();
+//        knightsLeftVBox.setStyle("-fx-background-color: lightgrey");
         knightsLeftVBox.setSpacing(cell_size / 4);
-        knightsLeftVBox.setMinWidth(cell_size/2);
-//        for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
-//            knightsLeftVBox.getChildren().add(new Rectangle(cell_size / 2, cell_size, Color.LIGHTGREY));
-//        }
-        levelOverviewPane = new LevelOverviewPane(model, this);
+        knightsLeftVBox.setMinWidth(cell_size/1.5);
+        levelOverviewPane = new LevelOverviewPane(model, this,false);
+        tutorialLevelOverviewPane = new LevelOverviewPane(model, this,true);
 //        levelSelectScene = new Scene(levelOverviewPane);
         //TODO: model.getCurrentLevel().addListener(this);
         //Testing
@@ -239,6 +239,12 @@ public class View implements PropertyChangeListener {
         Level l = model.getCurrentLevel();
 
         if (l != null) drawMap(l.getCurrentMap());
+
+        btnExecute.setTooltip(new Tooltip("Will start the game"));
+        btnReset.setTooltip(new Tooltip("Will reset the game"));
+        backBtn.setTooltip(new Tooltip("Return to Menu"));
+        speedSlider.setTooltip(new Tooltip("Control the speed of the game"));
+        showSpellBookBtn.setTooltip(new Tooltip("Show/Hide the Spellbook"));
     }
 
 
@@ -249,11 +255,11 @@ public class View implements PropertyChangeListener {
 //        actualMapGPane.setBackground(brickBackground);
         knightsLeftVBox.getChildren().clear();
         knightsLeftVBox.setSpacing(cell_size/4);
-        knightsLeftVBox.setMinWidth(cell_size/2);
+        knightsLeftVBox.setMinWidth(cell_size/1.5);
         for (int i = 0; i < model.getCurrentLevel().getMaxKnights() - model.getCurrentLevel().getUsedKnights(); i++) {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
-            tokenIView.setFitHeight(cell_size);
-            tokenIView.setFitWidth(cell_size);
+            tokenIView.setFitHeight(cell_size/1.5);
+            tokenIView.setFitWidth(cell_size/1.5);
             knightsLeftVBox.getChildren().add(tokenIView);
 //            System.out.println(model.getCurrentLevel().getName()+", " +getCurrentSceneState().name()+": " +cell_size);
         }
@@ -656,6 +662,7 @@ public class View implements PropertyChangeListener {
             actualMapGPane.autosize();
             highlight.autosize();
             //TODO: +10 wegen Border
+            actualMapGPane.layout();
             highlight.setTranslateX(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinX()+highlight.getLayoutBounds().getMinX()+10);
             highlight.setTranslateY(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinY()+highlight.getLayoutBounds().getMinY()+10);
             highlights.add(highlight);
@@ -799,10 +806,21 @@ public class View implements PropertyChangeListener {
                 else levelEditorModule.getHasAiValueLbl().setText("" + false);
                 if (model.getCurrentLevel().hasAi() && ((ComplexStatement) evt.getOldValue()).getStatementListSize() == 0) {
                     aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true);
+                    //THIS IS THE ONLY WORKING SOLUTION I FOUND FOR FINDING OUT POSITIONS OF NODES IN SCENE!!
+                    double d = getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX();
                     setCodeArea(aiCodeArea,true);
-//                    aiCodeArea.draw();
+                    Platform.runLater(() -> {
+                        for(Polyline p: highlights){
+                            p.setTranslateX(p.getTranslateX()-d+getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX());
+                        }});
                 } else if (!model.getCurrentLevel().hasAi()) {
+                    //THIS IS THE ONLY WORKING SOLUTION I FOUND FOR FINDING OUT POSITIONS OF NODES IN SCENE!!
+                    double d = getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX();
                     setCodeArea(new CodeArea(new ComplexStatement(), false),true);
+                    Platform.runLater(() -> {
+                    for(Polyline p: highlights){
+                        p.setTranslateX(p.getTranslateX()-d+getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX());
+                    }});
                 }
                 break;
             case "isTutorial":
@@ -869,6 +887,12 @@ public class View implements PropertyChangeListener {
                 levelOverviewPane.getLevelListView().getSelectionModel().select(0);
                 levelOverviewPane.setBackground(brickBackground);
                 break;
+
+            case TUTORIAL_LEVEL_SELECT:
+                stage.getScene().setRoot(tutorialLevelOverviewPane);
+                tutorialLevelOverviewPane.getLevelListView().getSelectionModel().select(0);
+                tutorialLevelOverviewPane.setBackground(brickBackground);
+                break;
             case PLAY:
                 drawMap(model.getCurrentLevel().getOriginalMap());
                 prepareRootPane();
@@ -932,6 +956,8 @@ public class View implements PropertyChangeListener {
                 break;
             case LEVEL_SELECT:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
+            case TUTORIAL_LEVEL_SELECT:
+                throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case PLAY:
 //                topCenterHBox = new HBox(levelNameLabel, );
 
@@ -973,7 +999,7 @@ public class View implements PropertyChangeListener {
         }
         contentHBox.getChildren().addAll(leftVBox, centerVBox, rightVBox);
         contentHBox.setAlignment(Pos.CENTER);
-        contentHBox.setSpacing(BUTTON_SIZE/3);
+        contentHBox.setSpacing(BUTTON_SIZE/5);
         contentHBox.setPrefWidth(GameConstants.SCREEN_WIDTH);
         bottomHBox.setSpacing(BUTTON_SIZE);
         bottomHBox.setPickOnBounds(false);
@@ -1167,6 +1193,10 @@ public class View implements PropertyChangeListener {
         tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
         StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
         isIntroduction = false;
+    }
+
+    public LevelOverviewPane getTutorialLevelOverviewPane() {
+        return tutorialLevelOverviewPane;
     }
 }
 //KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"

@@ -236,7 +236,20 @@ public abstract class Util {
 
     public static String unescapeEverything(String pairs) {
         // this regex removes the escape sequences and adds linebreaks, quotes etc. for more information check regex101.com
-        return pairs.replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+n|(^(\\\\\\\\)?+)\\\\+n)", "$2\n").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+t|(^(\\\\\\\\)?+)\\\\+t)", "$2\t").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+\"|(^(\\\\\\\\)?+)\\\\+\")", "$2\"").replaceAll("\\\\\\\\", "\\\\");
+        String newPairs = pairs;
+        String newPairs2;
+        do {
+            newPairs2 = newPairs;
+            newPairs = newPairs2.replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+n|(^(\\\\\\\\)?+)\\\\+n)", "$2\n").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+t|(^(\\\\\\\\)?+)\\\\+t)", "$2\t").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+\"|(^(\\\\\\\\)?+)\\\\+\")", "$2\"");
+//            System.out.println("."+pairs+"."+newPairs+".");
+        }while (!newPairs.equals(newPairs2));
+
+        do {
+            newPairs2 = newPairs;
+            newPairs = newPairs2.replaceAll("\\\\\\\\", "\\\\");
+//            System.out.println("."+pairs+"."+newPairs+".");
+        }while (!newPairs.equals(newPairs2));
+        return newPairs;
     }
 
     public static void applyFontFormatRecursively(Pane topHBox) {
@@ -252,5 +265,16 @@ public abstract class Util {
         for(String tutorialLine : tutorialLines) output.add(tutorialLine);
         return output;
 
+    }
+
+    public static double calculateStars(int turns, int loc, Integer[] bestTurns, Integer[] bestLocs) {
+        int turnStars = 1;
+        if(turns <= bestTurns[0]) turnStars = 2;
+        if(turns <= bestTurns[1]) turnStars = 3;
+        int locStars = 1;
+        if(loc <= bestLocs[0]) locStars = 2;
+        if(loc <= bestLocs[1]) locStars = 3;
+        double nStars = (turnStars + locStars)/2.0;
+        return nStars;
     }
 }

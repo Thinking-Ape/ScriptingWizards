@@ -10,10 +10,11 @@ import main.utility.GameConstants;
 public class LevelEntry extends HBox {
 
     Label textField;
+    Label bestScoresLbl;
     ImageView imageView;
     Label levelName;
 
-    public LevelEntry(Image image, String name, String tooltipString) {
+    public LevelEntry(Image image, String name, String tooltipString,String bestScores) {
 
         imageView = new ImageView(image);
         imageView.autosize();
@@ -23,7 +24,8 @@ public class LevelEntry extends HBox {
         textField = new Label(tooltipString);
 //        textField.setEditable(false);
         textField.setWrapText(true);
-        this.getChildren().addAll(imageView,levelName,textField);
+        bestScoresLbl = new Label(bestScores);
+        this.getChildren().addAll(imageView,levelName,textField,bestScoresLbl);
         this.setSpacing(GameConstants.LEVEL_ENTRY_SIZE/2);
         this.autosize();
 //        Tooltip.install(this, tooltip);

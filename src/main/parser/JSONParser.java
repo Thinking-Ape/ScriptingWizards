@@ -579,4 +579,25 @@ public abstract class JSONParser {
         output.add(text.substring(lastIndex ));
         return output;
     }
+
+    public static int[] getBestResults(String levelName) throws IOException {
+        int[] output = new int[2];
+        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
+        String jsonString = String.join("", Files.readAllLines(filePath));
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks",null);
+        if(unlocksArray == null)return output;
+        String s;
+        for(int i = 0; i<unlocksArray.length();i++){
+            s=unlocksArray.getJSONObject(i).getString("name","");
+            if(s.equals(levelName)){
+                int loc  = unlocksArray.getJSONObject(i).getInt("loc");
+                int turns = unlocksArray.getJSONObject(i).getInt("turns");
+                output[0]=loc;
+                output[1]=turns;
+                return output;
+            }
+        }
+        return output;
+    }
 }

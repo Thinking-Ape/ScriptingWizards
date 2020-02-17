@@ -32,6 +32,7 @@ public class TutorialGroup extends Group {
     private StackPane sp;
     private int index = 0;
     private List<String> tutorialEntries = new ArrayList<>();
+    private ImageView wizard;
 
     //TODO: ALIGNMENT NOT WORKING PROP
     public TutorialGroup(){
@@ -63,7 +64,7 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setCache(false);
 //        String tabString = "\t";
 //        Rectangle wizard = new Rectangle(50,50,Color.BLUE);
-        ImageView wizard = new ImageView(new javafx.scene.image.Image(GameConstants.WIZARD_IMAGE_PATH));
+        wizard = new ImageView(new javafx.scene.image.Image(GameConstants.WIZARD_IMAGE_PATH));
         wizard.setScaleX(GameConstants.WIDTH_RATIO);
         wizard.setScaleY(GameConstants.HEIGHT_RATIO);
         wizard.setMouseTransparent(true);
@@ -169,6 +170,7 @@ public class TutorialGroup extends Group {
         nextBtn.setVisible(!nextBtn.isVisible());
         prevBtn.setVisible(!prevBtn.isVisible());
         sp.setVisible(!sp.isVisible());
+        wizard.setVisible(!wizard.isVisible());
         hideBtn.setText(nextBtn.isVisible()? "v":"^");
     }
 }

@@ -6,6 +6,7 @@ import javafx.stage.Stage;
 import main.model.Level;
 import main.model.Model;
 import main.parser.JSONParser;
+import main.utility.Util;
 import main.view.View;
 
 import java.util.List;
@@ -14,8 +15,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-
-//        testLvl.print();
         Model model = new Model();
         String[] levelNameList = JSONParser.getUnlockedLevelNames();
         List<Level> levelList = JSONParser.parseAllResourceLevels();

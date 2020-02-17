@@ -3,6 +3,7 @@ package main.main;
 import main.model.Model;
 import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
+import main.utility.Util;
 import main.view.CodeArea;
 
 import java.util.Arrays;

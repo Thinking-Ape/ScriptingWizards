@@ -110,7 +110,14 @@ public class LevelEditorModule {
         topHBox.setSpacing(TEXTFIELD_HEIGHT+5);
         topHBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREY,null,Insets.EMPTY)));
         cellTypeVBox.setAlignment(Pos.CENTER);
+        cellTypeVBox.setStyle("-fx-background-color: lightgray");
+        tutorialVBox.setStyle("-fx-background-color: lightgray");
+        tutorialVBox.setAlignment(Pos.TOP_CENTER);
+        cellDetailVBox.setStyle("-fx-background-color: lightgray");
+        cellTypeVBox.autosize();
+        cellTypeVBox.setMaxWidth(BUTTON_SIZE*2);
         cellItemVBox.setAlignment(Pos.TOP_CENTER);
+        cellItemVBox.setStyle("-fx-background-color: lightgray");
         cellItemSelectionGPane.setAlignment(Pos.TOP_CENTER);
         itemAndDetailHBox.setSpacing(TEXTFIELD_HEIGHT);
         itemAndDetailHBox.setAlignment(Pos.TOP_CENTER);

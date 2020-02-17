@@ -67,8 +67,6 @@ IMPORTANT:
  - check arguments of skeleton constructor whether they are viable...
  - replace the number argument with a color and give the spawns different colors?? (CFlag.RED,CFlag.VIOLET)
  - ! skells.canMove() doesnt work!!
- - put tutorial section next to show spell book?!
- - hide tutorial section if you want to!
  - make it run faster! (maybe dont draw every cell again every time? only when a cell has changed??) also only draw the map once!
  - one step button einbauen
  - level editor mit passwort vor schülern schützen
@@ -78,11 +76,18 @@ IMPORTANT:
  - draw map differently entirely (cells same level -> next to each other)
  - tutorialtextarea cant have so much text!
  - cheap graphics option? (disable smoothing)
-- multiple tabs arent working -> see tutorial text for Spiral In
 ---------------------------------------------
 
 
 DONE:
+17.02.
+hopefully fixed double escaping not working (\t\t -> "  \t")
+also fixed highlights not in the right place
+16.02.
+
+ put tutorial section next to show spell book?!
+ hide tutorial section if you want to!
+actually a lot of progress but too lazy... -> look at commit-message
 15.02.
 can edit enemy code during play/tutorial
 int i; says -> empty condition!!!

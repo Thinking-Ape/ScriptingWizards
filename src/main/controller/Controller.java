@@ -13,6 +13,7 @@ import main.model.statement.SimpleStatement;
 import main.utility.GameConstants;
 import main.parser.CodeParser;
 import main.parser.JSONParser;
+import main.utility.Util;
 import main.view.CodeArea;
 import main.view.CodeField;
 import main.view.SceneState;
@@ -105,17 +106,30 @@ public class Controller {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            int amountOfTuts = 0;
             for(Level l :model.getLevelListCopy()){
                 if(l.isTutorial() && l.getIndex() < selectedLevel.getIndex() && l.getIndex() > minIndex)selectedLevel = l;
+                if(l.isTutorial())amountOfTuts++;
             }
             model.selectLevel(selectedLevel.getName());
-            view.setSceneState(SceneState.TUTORIAL);
-            view.getIntroductionPane().getStartTutorialBtn().setOnAction(evt -> {
-                view.getStage().getScene().setRoot(view.getRootPane());
-            });
-            view.getIntroductionPane().getBackBtn().setOnAction(evt -> {
-                view.setSceneState(SceneState.START_SCREEN);
-            });
+            if(minIndex == amountOfTuts-1){
+                view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
+                view.getTutorialLevelOverviewPane().getBackBtn().setOnAction(actionEvent2 ->
+                    view.setSceneState(SceneState.START_SCREEN)
+                );
+                view.getTutorialLevelOverviewPane().getPlayBtn().setOnAction(actionEvent1 -> {
+                    String levelName = view.getTutorialLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
+                    model.selectLevel(levelName);
+                    view.setSceneState(SceneState.PLAY);
+                });
+            }
+            else view.setSceneState(SceneState.TUTORIAL);
+//            view.getIntroductionPane().getStartTutorialBtn().setOnAction(evt -> {
+//                view.getStage().getScene().setRoot(view.getRootPane());
+//            });
+//            view.getIntroductionPane().getBackBtn().setOnAction(evt -> {
+//                view.setSceneState(SceneState.START_SCREEN);
+//            });
             view.getTutorialGroup().getNextBtn().setOnAction(evt -> {view.getTutorialGroup().next();
                 //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
                 ScrollPane sp = (ScrollPane)view.getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
@@ -204,13 +218,8 @@ public class Controller {
                         if (model.getCurrentLevel().isWon()){
                             int turns = model.getCurrentLevel().getTurnsTaken();
                             int loc = behaviour.getActualSize();
-                            int turnStars = 1;
-                            if(turns <= model.getCurrentLevel().getTurnsToStars()[0]) turnStars = 2;
-                            if(turns <= model.getCurrentLevel().getTurnsToStars()[1]) turnStars = 3;
-                            int locStars = 1;
-                            if(loc <= model.getCurrentLevel().getLocToStars()[0]) locStars = 2;
-                            if(loc <= model.getCurrentLevel().getLocToStars()[1]) locStars = 3;
-                            double nStars = (turnStars + locStars)/2.0;
+
+                            double nStars = Util.calculateStars(turns,loc,model.getCurrentLevel().getTurnsToStars(),model.getCurrentLevel().getLocToStars());
                             //TODO: really not in editor??!
 //                            if(view.getCurrentSceneState()==SceneState.PLAY){
 
