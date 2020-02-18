@@ -76,10 +76,19 @@ IMPORTANT:
  - draw map differently entirely (cells same level -> next to each other)
  - tutorialtextarea cant have so much text!
  - cheap graphics option? (disable smoothing)
+ - README!!
 ---------------------------------------------
 
 
 DONE:
+18.02.
+reworked SpeedSlider and Knob
+made Spellbook movable
+made Dialogs prettier
+added Star Rating images
+Empty Lines no longer count as loc
+Made a few things prettier
+Buttons now have effects
 17.02.
 hopefully fixed double escaping not working (\t\t -> "  \t")
 also fixed highlights not in the right place

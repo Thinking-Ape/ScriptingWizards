@@ -15,6 +15,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import main.utility.GameConstants;
+import main.utility.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class TutorialGroup extends Group {
     private Button hideBtn = new Button("v");
     private Button nextBtn = new Button(">");
     private Button endIntroductionBtn = new Button();
-    private HBox navigationHBox = new HBox(prevBtn,nextBtn, endIntroductionBtn,hideBtn);
+    private HBox navigationHBox = new HBox(prevBtn,nextBtn, hideBtn);
     private HBox hb;
     private StackPane sp;
     private int index = 0;
@@ -39,11 +40,13 @@ public class TutorialGroup extends Group {
         ImageView imageView = new ImageView(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
         imageView.setScaleX(GameConstants.WIDTH_RATIO);
         imageView.setScaleY(GameConstants.HEIGHT_RATIO);
-        imageView.setFitHeight(GameConstants.BUTTON_SIZE/5.0);
-        imageView.setFitWidth(GameConstants.BUTTON_SIZE/5.0);
+        imageView.setFitHeight(GameConstants.BUTTON_SIZE);
+        imageView.setFitWidth(GameConstants.BUTTON_SIZE);
         prevBtn.setFont(GameConstants.SMALL_FONT);
         nextBtn.setFont(GameConstants.SMALL_FONT);
         endIntroductionBtn.setGraphic(imageView);
+        endIntroductionBtn.setStyle("-fx-background-color: white;" +
+                "-fx-base: transparent;");
         currentTutorialMessage.setEditable(false);
         currentTutorialMessage.setWrapText(true);
         currentTutorialMessage.setMouseTransparent(true);
@@ -55,10 +58,6 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setTranslateX(-GameConstants.SCREEN_WIDTH/100.0);
         currentTutorialMessage.setTranslateY(-GameConstants.SCREEN_HEIGHT/50.0);
         ImageView bubble_IView = new ImageView(new Image("file:resources/images/Speech_Bubble.png"));
-//        currentTutorialMessage.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/Speech_Bubble.png"),
-//                BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER,BackgroundSize.DEFAULT)));
-//        endIntroductionBtn.setMaxHeight(GameConstants.BUTTON_SIZE/4);
-//        endIntroductionBtn.setMaxWidth(GameConstants.BUTTON_SIZE/4);
         // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
         currentTutorialMessage.setFont(GameConstants.BIG_FONT);
         currentTutorialMessage.setCache(false);
@@ -76,7 +75,8 @@ public class TutorialGroup extends Group {
         sp.layout();
         sp.autosize();
         sp.setCache(false);
-        VBox vb = new VBox(sp,navigationHBox);
+        VBox vb = new VBox(sp,navigationHBox,endIntroductionBtn);
+        vb.setAlignment(Pos.TOP_CENTER);
 //        vb.setMouseTransparent(true);
         vb.setPickOnBounds(true);
         StackPane.setAlignment(currentTutorialMessage, Pos.BOTTOM_CENTER);
@@ -152,12 +152,14 @@ public class TutorialGroup extends Group {
         hb.setBorder(null);
         hb.setBackground(null);
         endIntroductionBtn.setVisible(false);
+        hideBtn.setVisible(true);
     }
 
     public void activateIntroduction(){
         hb.setBorder(new Border(new BorderStroke(Color.BLACK,new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.ROUND, StrokeLineCap.ROUND,1,2,null),null,new BorderWidths(5))));
-        hb.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/background_Test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.CENTER,BackgroundSize.DEFAULT)));
+        hb.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/background_Test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
         endIntroductionBtn.setVisible(false);
+        hideBtn.setVisible(false);
     }
     public boolean isLastMsg() {
         return index == tutorialEntries.size()-1;

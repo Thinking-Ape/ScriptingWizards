@@ -125,10 +125,7 @@ public class View implements PropertyChangeListener {
         this.model = model;
         this.startScreen = new StartScreen();
         tutorialGroup = new TutorialGroup();
-        backBtn.setPrefSize(GameConstants.BUTTON_SIZE, GameConstants.BUTTON_SIZE/2);
-        backBtn.setGraphic(new ImageView(GameConstants.BACK_BTN_IMAGE_PATH));
-        showSpellBookBtn.setPrefHeight(GameConstants.BUTTON_SIZE*0.75);
-        showSpellBookBtn.setGraphic(new ImageView(GameConstants.SHOW_SPELLS_BTN_IMAGE_PATH));
+
         startScene = new Scene(startScreen);
         startScreen.setBackground(brickBackground);
         cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
@@ -154,7 +151,8 @@ public class View implements PropertyChangeListener {
         codeArea.addNewCodeFieldAtIndex(0, new CodeField("", 1, true));
         model.addChangeListener(this);
         actualMapGPane = new GridPane();
-        actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),true,BorderRepeat.REPEAT,null)));
+        actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
+        actualMapGPane.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/background_Test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
 //        actualMapGPane.setHgap(1);
 //        actualMapGPane.setVgap(1);
         rootPane = new StackPane();
@@ -164,10 +162,30 @@ public class View implements PropertyChangeListener {
         vBox = new VBox();
         HBox hBox = new HBox();
         btnExecute = new Button();
-        btnExecute.setGraphic(new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH));
+
+        ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
+        backBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+        backBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        ImageView executeBtnIV = new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH);
+        executeBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+        executeBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        ImageView resetBtnIV = new ImageView(GameConstants.RESET_BTN_IMAGE_PATH);
+        resetBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+        resetBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+
+        ImageView spellBtnIV = new ImageView(GameConstants.SHOW_SPELLS_BTN_IMAGE_PATH);
+        spellBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+        spellBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+
+        showSpellBookBtn.setPrefHeight(GameConstants.BUTTON_SIZE*0.75);
+        showSpellBookBtn.setGraphic(spellBtnIV);
+        backBtn.setPrefSize(GameConstants.BUTTON_SIZE, GameConstants.BUTTON_SIZE/2);
+        backBtn.setGraphic(backBtnIV);
+        btnExecute.setGraphic(executeBtnIV);
+
         btnExecute.setPrefSize(BUTTON_SIZE, BUTTON_SIZE);
         btnReset = new Button();
-        btnReset.setGraphic(new ImageView(GameConstants.RESET_BTN_IMAGE_PATH));
+        btnReset.setGraphic(resetBtnIV);
         btnReset.setPrefSize(BUTTON_SIZE, BUTTON_SIZE);
         btnReset.setDisable(true);
         btnReset.setStyle("-fx-background-color: rgba(0,0,0,0)");
@@ -982,6 +1000,10 @@ public class View implements PropertyChangeListener {
                     if(JSONParser.getTutorialProgressIndex()==-1){
                         isIntroduction = true;
                         tutorialGroup.activateIntroduction();
+                        btnExecute.setMouseTransparent(true);
+                        codeArea.setDisable(true);
+                        speedSlider.setMouseTransparent(true);
+                        showSpellBookBtn.setMouseTransparent(true);
 //                        stage.getScene().setRoot(introductionPane);
 //                        introductionPane.getTutorialGroup().getNextBtn().requestFocus();
                     }
@@ -1115,6 +1137,8 @@ public class View implements PropertyChangeListener {
     }
 
     public void toggleShowSpellBook() {
+        spellBookPane.setTranslateX(0);
+        spellBookPane.setTranslateY(0);
         if (spellBookPane.isVisible()) {
 //            showSpellBookBtn.setText("Show Spellbook");
             spellBookPane.setVisible(false);
@@ -1132,6 +1156,17 @@ public class View implements PropertyChangeListener {
             codeArea.getSelectedCodeField().requestFocus();
         //TODO: find better solution
 //        spellBookPane.setTranslateX(200);
+
+        boolean isVisible = getSpellBookPane().isVisible();
+        getActualMapGPane().setMouseTransparent(isVisible);
+        if(getCurrentSceneState() == SceneState.LEVEL_EDITOR){
+            getCellItemSelectionPane().setMouseTransparent(isVisible);
+            getCellTypeSelectionPane().setMouseTransparent(isVisible);
+            getLevelEditorModule().getBottomHBox().setMouseTransparent(isVisible);
+        }
+        getBtnExecute().setMouseTransparent(isVisible);
+        getBtnReset().setMouseTransparent(isVisible);
+        getSpeedSlider().setMouseTransparent(isVisible);
     }
 
     public SpellBookPane getSpellBookPane() {
@@ -1193,6 +1228,11 @@ public class View implements PropertyChangeListener {
         tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
         StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
         isIntroduction = false;
+
+        btnExecute.setMouseTransparent(false);
+        codeArea.setDisable(false);
+        speedSlider.setMouseTransparent(false);
+        showSpellBookBtn.setMouseTransparent(false);
     }
 
     public LevelOverviewPane getTutorialLevelOverviewPane() {

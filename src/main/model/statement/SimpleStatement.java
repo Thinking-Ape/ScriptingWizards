@@ -41,7 +41,7 @@ public class SimpleStatement implements Statement {
 //    public abstract void print();
 
     public int getActualSize() {
-        return 1;
+        return getText().equals("") ? 0 : 1;
     }
 
     public StatementType getStatementType() {

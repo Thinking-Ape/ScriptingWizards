@@ -1,13 +1,13 @@
 package main.view;
 
 import javafx.event.Event;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import main.model.statement.StatementType;
@@ -19,12 +19,18 @@ import java.util.List;
 
 import static main.utility.GameConstants.*;
 
-public class SpellBookPane extends StackPane {
+public class SpellBookPane extends VBox {
 
     //    private List<SpellBookLabel> spellBookEntryList;
     private ListView<Pane> spellListView = new ListView<>();
 
+
+    private Button closeBtn = new Button("x");
+    private Button moveBtn = new Button("<+>");
+
+
     public SpellBookPane(){
+        this.setMaxSize(SPELLBOOK_WIDTH, GameConstants.SPELLBOOK_HEIGHT);
         spellListView.setPrefSize(SPELLBOOK_WIDTH, GameConstants.SPELLBOOK_HEIGHT);
         spellListView.setMaxSize(SPELLBOOK_WIDTH, GameConstants.SPELLBOOK_HEIGHT);
         // does actually belong here, as it is only concerned with visual effect and not with any functionality
@@ -32,15 +38,21 @@ public class SpellBookPane extends StackPane {
         spellListView.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume);
 
         spellListView.autosize();
-        Rectangle rect = new Rectangle(spellListView.getPrefWidth()+10,spellListView.getPrefHeight()+25,Color.BLACK);//spellListView.getItems().size()*20,Color.WHITE);
+//        Rectangle rect = new Rectangle(spellListView.getPrefWidth()+10,spellListView.getPrefHeight()+25,Color.BLACK);//spellListView.getItems().size()*20,Color.WHITE);
 //        this.setMouseTransparent(true);
+//        closeBtn.setAlignment(Pos.TOP_RIGHT);
+        HBox hBox = new HBox(new SpellBookLabel(SpellBookLabelType.HEADING,"Spell Book","Contains all spells you've unlocked!"),moveBtn,closeBtn);
+
+        hBox.setSpacing(SPELLBOOK_WIDTH/3);
+        hBox.setAlignment(Pos.TOP_RIGHT);
+        this.getChildren().addAll(hBox,spellListView);
         this.setAlignment(Pos.CENTER);
-        VBox vBox = new VBox(new SpellBookLabel(SpellBookLabelType.HEADING,"Spell Book","Contains all spells you've unlocked!"),spellListView);
-        vBox.setAlignment(Pos.CENTER);
         //makes the layer below this one also receive clicks!
-        vBox.setPickOnBounds(false);
         this.setPickOnBounds(false);
-        this.getChildren().addAll(rect,vBox);//rect,vBox);
+        this.setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/Background_test.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT )));
+        this.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
+//        this.setPickOnBounds(false);
+//        this.getChildren().addAll();//rect,vBox);
     }
 
     public void updateSpellbookEntries(List<String> unlockedSpells){
@@ -273,4 +285,12 @@ public class SpellBookPane extends StackPane {
         spellListView.getItems().add(methodVBox);
 
     }
+
+    public Button getCloseBtn() {
+        return closeBtn;
+    }
+    public Button getMoveBtn() {
+        return moveBtn;
+    }
+
 }

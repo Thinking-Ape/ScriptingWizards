@@ -30,8 +30,14 @@ public class LevelOverviewPane extends VBox {
         updateUnlockedLevels(model, view);
         backBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE*0.75);
         playBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE);
-        playBtn.setGraphic(new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH));
-        backBtn.setGraphic(new ImageView(GameConstants.BACK_BTN_IMAGE_PATH));
+        ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
+        backBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+        backBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        ImageView executeBtnIV = new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH);
+        executeBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+        executeBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        playBtn.setGraphic(executeBtnIV);
+        backBtn.setGraphic(backBtnIV);
         backBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
         playBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
         HBox hBox = new HBox(backBtn,playBtn);

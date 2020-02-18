@@ -3,8 +3,15 @@ package main.controller;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.effect.Bloom;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import main.model.Level;
 import main.model.Model;
@@ -25,6 +32,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class Controller {
+    private double mouse_PositionX;
+    private double mouse_PositionY;
     private Model model;
     private View view;
     private Timeline timeline;
@@ -48,18 +57,24 @@ public class Controller {
         });
         view.getShowSpellBookBtn().setOnAction(evt -> {
             view.toggleShowSpellBook();
-            boolean isVisible = view.getSpellBookPane().isVisible();
-            view.getActualMapGPane().setMouseTransparent(isVisible);
-            if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR){
-                view.getCellItemSelectionPane().setMouseTransparent(isVisible);
-                view.getCellTypeSelectionPane().setMouseTransparent(isVisible);
-                view.getLevelEditorModule().getBottomHBox().setMouseTransparent(isVisible);
-            }
-            view.getBtnExecute().setMouseTransparent(isVisible);
-            view.getBtnReset().setMouseTransparent(isVisible);
-            view.getSpeedSlider().setMouseTransparent(isVisible);
 
         });
+        view.getSpellBookPane().getCloseBtn().setOnAction(evt ->{
+            view.toggleShowSpellBook();
+        });
+        view.getSpellBookPane().getMoveBtn().setOnMouseDragged(evt ->{
+            Button moveBtn =  view.getSpellBookPane().getMoveBtn();
+            view.getSpellBookPane().setTranslateX(view.getSpellBookPane().getTranslateX()+evt.getX()-mouse_PositionX-moveBtn.getWidth()/2);
+            view.getSpellBookPane().setTranslateY(view.getSpellBookPane().getTranslateY()+evt.getY()-mouse_PositionY-moveBtn.getHeight()/2);
+        });
+
+        view.getSpellBookPane().getMoveBtn().setOnMouseClicked(evt ->{
+            mouse_PositionX = evt.getX();
+            mouse_PositionY = evt.getY();
+        });
+        addHighlightingEffect(view.getShowSpellBookBtn(),view.getBackBtn(),view.getBtnExecute(), view.getBtnReset(), view.getTutorialGroup().getEndIntroductionBtn(),
+                view.getLevelOverviewPane().getBackBtn(),view.getLevelOverviewPane().getPlayBtn(),view.getTutorialLevelOverviewPane().getBackBtn(),view.getTutorialLevelOverviewPane().getPlayBtn());
+
         view.getBackBtn().setOnAction(actionEvent -> {
             boolean isVisible = view.getSpellBookPane().isVisible();
             if(isVisible)view.getShowSpellBookBtn().fire();
@@ -78,6 +93,10 @@ public class Controller {
                 case TUTORIAL:
                     if(codeAreaController.isGameRunning())view.getBtnReset().fire();
                     view.setSceneState(SceneState.START_SCREEN);
+                    view.getBtnExecute().setMouseTransparent(false);
+                    view.getSpeedSlider().setMouseTransparent(false);
+                    view.getShowSpellBookBtn().setMouseTransparent(false);
+                    view.getCodeArea().setDisable(false);
                     break;
                 case START_SCREEN:
                     System.exit(0);
@@ -232,7 +251,7 @@ public class Controller {
 
                             Platform.runLater(() -> {
                                 try {
-                                    showWinDialog(winString,view.getCurrentSceneState());
+                                    showWinDialog(winString,view.getCurrentSceneState(),nStars);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -255,7 +274,14 @@ public class Controller {
                                 });
                             }
                             else{
-                                alert = new Alert(Alert.AlertType.NONE,"You have lost!", ButtonType.OK);
+                                alert = new Alert(Alert.AlertType.NONE,"", ButtonType.OK);
+                                alert.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));
+                                Label lostLabel = new Label("You have lost!");
+                                lostLabel.setAlignment(Pos.CENTER);
+                                lostLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
+                                lostLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
+                                alert.getDialogPane().setContent(lostLabel);
+                                lostLabel.setFont(GameConstants.BIGGEST_FONT);
                                 Platform.runLater(() -> {
                                     Optional<ButtonType> result = alert.showAndWait();
                                     if(result.isPresent()){
@@ -322,13 +348,63 @@ public class Controller {
 
     }
 
-    private void showWinDialog(String winString, SceneState sceneState) throws IOException {
+    private void addHighlightingEffect(Button... buttons) {
+
+        for(Button b : buttons){
+            b.setOnMouseExited(evt -> b.setEffect(null));
+            b.setOnMouseEntered(evt -> b.setEffect(GameConstants.HIGHLIGHT_BTN_EFFECT));
+        }
+
+    }
+
+    private void showWinDialog(String winString, SceneState sceneState,double stars) throws IOException {
         Dialog<ButtonType> winDialog = new Dialog<>();
+        winDialog.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));
+        ImageView starsIV = new ImageView();
+        if(stars==1){
+            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"1StarRating.png"));
+        }
+        else if(stars==1.5){
+            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"1_5StarRating.png"));
+        }
+        else if(stars==2){
+            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"2StarRating.png"));
+        }
+        else if(stars==2.5){
+            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"2_5StarRating.png"));
+        }
+        else{
+            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"3StarRating.png"));
+        }
+        Label winLabel = new Label(winString);
+        winLabel.setAlignment(Pos.CENTER);
+        winLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
+        winLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
+        winLabel.setTextAlignment(TextAlignment.CENTER);
+        winLabel.setFont(GameConstants.BIGGEST_FONT);
+        VBox contentVBox = new VBox(starsIV,winLabel);
+        contentVBox.setAlignment(Pos.CENTER);
+        winDialog.getDialogPane().setContent(contentVBox);
         ButtonType replayBtn = new ButtonType("Replay", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextBtn = new ButtonType("Next", ButtonBar.ButtonData.NEXT_FORWARD);
         ButtonType backBtn = new ButtonType("Back To Menu",ButtonBar.ButtonData.BACK_PREVIOUS);
 
-        winDialog.setContentText(winString);
+//        ImageView resetBtnIV = new ImageView(GameConstants.RESET_BTN_IMAGE_PATH);
+//        resetBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+//        resetBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+//        ((Button)winDialog.getDialogPane().lookup("replayBtn")).setGraphic(resetBtnIV);
+
+//        ImageView nextBtnIV = new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH);
+//        nextBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+//        nextBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+//        ((Button)winDialog.getDialogPane().lookupButton(ButtonType.NEXT)).setGraphic(nextBtnIV);
+//
+//        ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
+//        backBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
+//        backBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+//        ((Button)winDialog.getDialogPane().lookupButton(ButtonType.PREVIOUS)).setGraphic(backBtnIV);
+
+//        winDialog.setContentText(winString);
         winDialog.getDialogPane().getButtonTypes().addAll(backBtn,replayBtn);
         Level nextLvl = model.getLevelWithIndex(model.getCurrentLevel().getIndex()+1);
         if(nextLvl != null &&(sceneState != SceneState.TUTORIAL || nextLvl.isTutorial()) && sceneState != SceneState.LEVEL_EDITOR) {

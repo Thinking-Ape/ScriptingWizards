@@ -1,7 +1,9 @@
 package main.utility;
 
+import javafx.scene.effect.Bloom;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Effect;
+import javafx.scene.effect.Glow;
 import javafx.scene.image.ImageView;
 import javafx.scene.text.Font;
 import main.model.Entity;
@@ -35,7 +37,7 @@ public abstract class GameConstants {
     public static final int MAX_DEPTH = 4;
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
     public static final boolean IS_FULLSCREEN = false;
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.1";
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
     public static final int MAX_LOOP_SIZE = 500;
     public static final String VARIABLE_NAME_REGEX = "^[a-zA-Z_][a-zA-Z_0-9]*$";
@@ -50,8 +52,8 @@ public abstract class GameConstants {
     public static final Effect VIOLET_ADJUST = new ColorAdjust(0.3, 0, 0.1, 0);
     public static final Effect LAST_ADJUST = new ColorAdjust(0.5, 0.1, 0.15, 0.1);
     public static final double LEVEL_ENTRY_SIZE = SCREEN_HEIGHT/10;
-    public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.3;
-    public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.5;
+    public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.12;
+    public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.4;
     public static final double BUTTON_SIZE = SCREEN_HEIGHT/10;
     public static final double FONT_SIZE = 14.0*SCREEN_WIDTH/1920.0;
     public static final double SMALL_FONT_SIZE = 12.0*SCREEN_WIDTH/1920.0;
@@ -81,6 +83,7 @@ public abstract class GameConstants {
     public static final String RED_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Red_Script_Icon.png";
     public static final String BLUE_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Blue_Script_Icon_2.png";
     public static final String KNIGHT_TOKEN_PATH = "file:"+IMAGES_PATH+"Knight_Token.png";
+    public static final Effect HIGHLIGHT_BTN_EFFECT = new Glow();
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 
