@@ -280,4 +280,13 @@ public abstract class Util {
         return nStars;
     }
 
+    public static int countChars(String t1, char c) {
+
+        int output = 1;
+        char[] chars = t1.toCharArray();
+        for(int i = 0; i < t1.length(); i++){
+            if(chars[i]==c)output++;
+        }
+        return output;
+    }
 }

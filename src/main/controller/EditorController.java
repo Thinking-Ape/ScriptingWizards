@@ -6,6 +6,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import main.model.Cell;
 import main.model.GameMap;
 import main.model.Level;
@@ -117,11 +118,50 @@ public class EditorController implements PropertyChangeListener {
             editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
             editTutorialDialog.getDialogPane().setContent(tutorialTextArea);
             Platform.runLater(tutorialTextArea::requestFocus);
+            tutorialTextArea.textProperty().addListener((observableValue, s, t1) ->{tutorialTextArea.autosize();
+                String[] words = t1.split(" ");
+                double width =  0;
+                int lines = Util.countChars(t1,'\n');
+                double maxWidth = view.getLevelEditorModule().getTutorialTextArea().getMaxWidth()-GameConstants.SCREEN_WIDTH/130;
+                int spaces = 1;
+                int i = 1;
+
+                Text text3 = new Text(" ");
+                text3.setFont(GameConstants.MEDIUM_FONT);
+                for (String word : words){
+                    Text text2 = new Text(word);
+                    text2.setFont(GameConstants.MEDIUM_FONT);
+                    width += text2.getLayoutBounds().getWidth();
+                    if(i < words.length && spaces > 1&& maxWidth > text2.getLayoutBounds().getWidth()){
+                        if(width +text3.getLayoutBounds().getWidth() < maxWidth*lines)
+                        width += text3.getLayoutBounds().getWidth();
+                    }
+                    spaces++;
+                    if(width > maxWidth*lines){
+                        lines++;
+                        width = maxWidth*(lines-1)+text2.getLayoutBounds().getWidth();
+                        spaces = 1;
+                        while(lines*maxWidth < text2.getLayoutBounds().getWidth()){
+                            lines++;
+                        }
+                    }
+                    i++;
+                }
+                Text text1 = new Text(t1);
+                while(width < text1.getLayoutBounds().getWidth()-lines*text3.getLayoutBounds().getWidth()){
+                    lines++;
+                }
+//                Text text2 = new Text(t1);
+//                text2.setFont(GameConstants.MEDIUM_FONT);
+                if(lines > 6)tutorialTextArea.setText(s);}
+
+            );
+
             Optional<ButtonType> o  = editTutorialDialog.showAndWait();
             tutorialTextArea.requestFocus();
             if(o.isPresent()&& o.get() == ButtonType.OK){
                 String tutorialText = tutorialTextArea.getText();
-                model.getCurrentLevel().setTutorialLine(index-1,tutorialText);
+                model.getCurrentLevel().setTutorialLine(index-1,tutorialText.trim());
                 //TODO: evaluate necessity
 //                setEditorHandlers();
             }

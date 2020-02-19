@@ -29,7 +29,6 @@ IMPORTANT:
 -message upon saving: the following levels will be saved too, due to changes they are connected to
 -changes as a class? to make saving better -> store in model also keep a change list
 
-- wizard speech bubbles as tutorial gui?
 - optimize levels on automation
 - requiredlevels arent ordered in levelviewlist as in opening screen
 - merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
@@ -74,13 +73,15 @@ IMPORTANT:
  - be able to reset various aspects of data?
  - when starting game 7 or more levels are loaded! (is it maybe because of leveloverview pane?)
  - draw map differently entirely (cells same level -> next to each other)
- - tutorialtextarea cant have so much text!
  - cheap graphics option? (disable smoothing)
- - README!!
 ---------------------------------------------
 
 
 DONE:
+19.02.
+tutorial text area in editor module now can only have as much text as can be displayed
+created a README
+removed image from repository as there is now a download link
 18.02.
 reworked SpeedSlider and Knob
 made Spellbook movable

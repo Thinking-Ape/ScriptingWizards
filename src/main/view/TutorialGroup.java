@@ -48,6 +48,7 @@ public class TutorialGroup extends Group {
         endIntroductionBtn.setStyle("-fx-background-color: white;" +
                 "-fx-base: transparent;");
         currentTutorialMessage.setEditable(false);
+
         currentTutorialMessage.setWrapText(true);
         currentTutorialMessage.setMouseTransparent(true);
         currentTutorialMessage.setStyle("-fx-background-color: transparent;" +
@@ -136,7 +137,7 @@ public class TutorialGroup extends Group {
         tutorialEntries.addAll(tutorialEntryList);
         prevBtn.setDisable(true);
         if(tutorialEntryList.size() >0 ){
-            currentTutorialMessage.setText(tutorialEntries.get(0));
+            currentTutorialMessage.setText(tutorialEntries.get(0).trim());
             if(tutorialEntryList.size()>1)
             nextBtn.setDisable(false);
             Platform.runLater(()->{

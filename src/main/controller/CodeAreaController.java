@@ -66,7 +66,7 @@ public class CodeAreaController implements PropertyChangeListener {
         currentCodeField.addListener((observableValue, s, t1) -> {
             currentCodeField.autosize();
             Text text = new Text(t1);
-            text.setFont(new Font(currentCodeField.getFont().getName(), GameConstants.FONT_SIZE));
+            text.setFont(GameConstants.MEDIUM_FONT);
             if(text.getLayoutBounds().getWidth() > currentCodeField.getMaxWidth()-GameConstants.SCREEN_WIDTH/130)currentCodeField.setText(s);
             // without this ctrl-backspace will delete "}" (dont know why though)
             if(s.equals("}")&&!t1.equals("}"))currentCodeField.setText("}");
