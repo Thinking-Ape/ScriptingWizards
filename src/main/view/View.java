@@ -258,7 +258,7 @@ public class View implements PropertyChangeListener {
 
         if (l != null) drawMap(l.getCurrentMap());
 
-        btnExecute.setTooltip(new Tooltip("Will start the game"));
+        btnExecute.setTooltip(new Tooltip("Will start or pause the game"));
         btnReset.setTooltip(new Tooltip("Will reset the game"));
         backBtn.setTooltip(new Tooltip("Return to Menu"));
         speedSlider.setTooltip(new Tooltip("Control the speed of the game"));

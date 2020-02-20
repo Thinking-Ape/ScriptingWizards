@@ -3,6 +3,7 @@ package main.model.statement;
 import main.model.statement.Condition.Condition;
 import main.utility.Variable;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -157,4 +158,21 @@ public class ComplexStatement implements Statement {
         return true;
     }
     public Condition getCondition(){return condition;}
+
+    public int findIndexOf(Statement executedStatement, int i) {
+
+        for(Statement statement : statementList){
+            if(statement.isComplex()){
+                int f = ((ComplexStatement)statement).findIndexOf(executedStatement, 0);
+                if(f != -1)return i+1+f;
+                else i+=statement.getActualSize()-1;
+            }
+            else if(statement == executedStatement){
+                return i;
+            }
+
+            i++;
+        }
+        return -1;
+    }
 }

@@ -6,10 +6,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.Bloom;
 import javafx.scene.effect.Effect;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import main.model.Cell;
 
@@ -288,5 +291,28 @@ public abstract class Util {
             if(chars[i]==c)output++;
         }
         return output;
+    }
+
+    public static Image getStarImageFromDouble(double stars) {
+        if(stars==1){
+            return new Image("file:"+GameConstants.IMAGES_PATH+"1StarRating.png");
+        }
+        else if(stars==1.5){
+            return new Image("file:"+GameConstants.IMAGES_PATH+"1_5StarRating.png");
+        }
+        else if(stars==2){
+            return new Image("file:"+GameConstants.IMAGES_PATH+"2StarRating.png");
+        }
+        else if(stars==2.5){
+            return new Image("file:"+GameConstants.IMAGES_PATH+"2_5StarRating.png");
+        }
+        else{
+            return new Image("file:"+GameConstants.IMAGES_PATH+"3StarRating.png");
+        }
+    }
+
+    public static double getLabelWidth(Label label) {
+        Text text = new Text(label.getText());
+        return text.getLayoutBounds().getWidth();
     }
 }

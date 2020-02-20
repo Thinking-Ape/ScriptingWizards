@@ -15,15 +15,15 @@ import main.utility.Util;
 
 import java.io.IOException;
 
-import static main.utility.GameConstants.BUTTON_SIZE;
+import static main.utility.GameConstants.*;
 
 
 public class LevelOverviewPane extends VBox {
     //TODO!!!
-    ListView<LevelEntry> levelListView = new ListView<>();
-    Button playBtn = new Button();
-    Button backBtn = new Button();
-    boolean isTutorial = false;
+    private ListView<LevelEntry> levelListView = new ListView<>();
+    private Button playBtn = new Button();
+    private Button backBtn = new Button();
+    private boolean isTutorial = false;
 
     public LevelOverviewPane(Model model, View view,boolean isTutorial){
         this.isTutorial = isTutorial;
@@ -43,12 +43,14 @@ public class LevelOverviewPane extends VBox {
         HBox hBox = new HBox(backBtn,playBtn);
         hBox.setAlignment(Pos.CENTER);
         hBox.setSpacing(BUTTON_SIZE);
-        levelListView.setPrefHeight(GameConstants.SCREEN_HEIGHT*0.7);
+        levelListView.setPrefHeight(GameConstants.SCREEN_HEIGHT*0.76);
+
         Label challengesLbl = new Label(isTutorial ? "Tutorials" :"Challenges");
         challengesLbl.setFont(GameConstants.CHALLENGER_FONT);
         challengesLbl.setStyle("-fx-background-color: lightgrey");
         this.getChildren().addAll(challengesLbl,levelListView,hBox);
         this.setAlignment(Pos.CENTER);
+        this.setSpacing(TEXTFIELD_HEIGHT);
     }
 
     public ListView<LevelEntry> getLevelListView(){
@@ -64,6 +66,8 @@ public class LevelOverviewPane extends VBox {
     }
     public void updateUnlockedLevels(Model model, View view) {
         levelListView.getItems().clear();
+        double width=0;
+
         for(String s : JSONParser.getUnlockedLevelNames()){
             Level l = model.getLevelWithName(s);
             int[] bestResults = new int[0];
@@ -72,18 +76,20 @@ public class LevelOverviewPane extends VBox {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            double nStars = Util.calculateStars(bestResults[1],bestResults[0],l.getTurnsToStars(),l.getLocToStars());
+            LevelEntry le = new LevelEntry(view.getImageFromMap(l.getOriginalMap()),s,"Has AI: "+l.hasAi()+", Max Knights: " + l.getMaxKnights()+"\nMax Turns for ***: "+l.getTurnsToStars()[1]+", Max Turns for **: "+l.getTurnsToStars()[0]+"\nMax LOC for ***: "+l.getLocToStars()[1]+", Max LOC for **: "+l.getLocToStars()[0],"Best Turns: "+bestResults[1]+"\nBest LOC: "+bestResults[0]+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : ""),nStars);
+
             if(isTutorial && l.isTutorial()){
-                double nStars = Util.calculateStars(bestResults[1],bestResults[0],l.getTurnsToStars(),l.getLocToStars());
-                LevelEntry le = new LevelEntry(view.getImageFromMap(l.getOriginalMap()),s,"Has AI: "+l.hasAi()+", Max Knights: " + l.getMaxKnights()+"\nMax Turns for ***: "+l.getTurnsToStars()[1]+", Max Turns for **: "+l.getTurnsToStars()[0]+"\nMax LOC for ***: "+l.getLocToStars()[1]+", Max LOC for **: "+l.getLocToStars()[0],"Best Turns: "+bestResults[1]+"\nBest LOC: "+bestResults[0]+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "") );
                 levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
                 levelListView.getItems().add(le);
+                width = le.getMaxWidth() > width ? le.getWidth() : width;
             }
             else if(GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!l.isTutorial()){
-                double nStars = Util.calculateStars(bestResults[1],bestResults[0],l.getTurnsToStars(),l.getLocToStars());
-                LevelEntry le = new LevelEntry(view.getImageFromMap(l.getOriginalMap()),s,"Has AI: "+l.hasAi()+", Max Knights: " + l.getMaxKnights()+"\nMax Turns for ***: "+l.getTurnsToStars()[1]+", Max Turns for **: "+l.getTurnsToStars()[0]+"\nMax LOC for ***: "+l.getLocToStars()[1]+", Max LOC for **: "+l.getLocToStars()[0],"Best Turns: "+bestResults[1]+"\nBest LOC: "+bestResults[0]+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "") );
                 levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
                 levelListView.getItems().add(le);
+                width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
             }
         }
+        levelListView.setMaxWidth(width+GameConstants.TEXTFIELD_HEIGHT*2);
     }
 }

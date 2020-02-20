@@ -63,13 +63,14 @@ public class Level implements PropertyChangeListener {
     }
 
 
-    public void executeTurn() throws IllegalAccessException {
+    public Statement executeTurn() throws IllegalAccessException {
         turnsTaken++;
         int noStackOverflow = 0;
         removeTemporaryFlags();
         boolean method_Called_1 = false, method_Called_2 = false;
+        Statement statement=playerBehaviour;
         while(!method_Called_1 && !isWon()&&!isLost()) {
-            Statement statement = evaluator.evaluateNext(playerBehaviour,currentMap);
+            statement = evaluator.evaluateNext(playerBehaviour,currentMap);
             if(evaluator.lastStatementSummonedKnight()){
                 usedKnights++;
             }
@@ -88,9 +89,10 @@ public class Level implements PropertyChangeListener {
 
             if(usedKnights == maxKnights && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
         }
+
         while(!method_Called_2&& !isLost() && !isWon() &&!aiFinished&& GameConstants.IS_AI_ACTIVE&&aiBehaviour!=null) {
-            Statement statement = evaluator.evaluateNext(aiBehaviour,currentMap);
-            if (statement == null) {
+            Statement statement2 = evaluator.evaluateNext(aiBehaviour,currentMap);
+            if (statement2 == null) {
                 aiFinished = true;
                 break;
             }
@@ -100,9 +102,10 @@ public class Level implements PropertyChangeListener {
                 isLost = true;
                 break;
             }
-            method_Called_2 = executor.executeBehaviour(statement,currentMap,false);
+            method_Called_2 = executor.executeBehaviour(statement2,currentMap,false);
         }
         applyGameLogicToCells();
+        return statement;
     }
 
     private void removeTemporaryFlags() {
@@ -406,5 +409,8 @@ public class Level implements PropertyChangeListener {
 
     public List<String> getUnlockedStatementList() {
         return executor.getUnlockedStatementList();
+    }
+    public Statement getExecuteIfStatementWorkaround(){
+        return evaluator.getExecuteIfWorkaround();
     }
 }

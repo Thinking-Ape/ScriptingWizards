@@ -74,10 +74,21 @@ IMPORTANT:
  - when starting game 7 or more levels are loaded! (is it maybe because of leveloverview pane?)
  - draw map differently entirely (cells same level -> next to each other)
  - cheap graphics option? (disable smoothing)
+ - after introduction -> always level-select?
+ - execute one line at a time??
+ - replace executeIf with .foreach(knight -> {}) in new branch
 ---------------------------------------------
 
 
 DONE:
+-> moving to changelog.txt
+20.02.
+mark line of executed Code!
+CodeAreas are now scrollable per Mousewheel
+Improved scrolling in general
+Made Game pauseable!
+Made Game speed changeable dynamically!
+For more see changelog.txt
 19.02.
 tutorial text area in editor module now can only have as much text as can be displayed
 created a README

@@ -4,7 +4,7 @@ import javafx.scene.control.ScrollBar;
 
 public class CodeScrollBar extends ScrollBar {
 
-    int scrollAmount = 0;
+    private int scrollAmount = 0;
     static CodeScrollBar codeScrollBar1;
     static CodeScrollBar codeScrollBar2;
 
@@ -34,4 +34,7 @@ public class CodeScrollBar extends ScrollBar {
         }
         return codeScrollBar2;}
     }
+
+
+
 }

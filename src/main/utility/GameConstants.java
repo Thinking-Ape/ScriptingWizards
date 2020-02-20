@@ -19,7 +19,7 @@ public abstract class GameConstants {
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
     public static final boolean DEBUG = false;
     public static final char ANY_CHAR = '?';
-    public static final double TICK_SPEED = 0.75;
+    public static final double TICK_SPEED = 0.65;
     public static final boolean SHOW_BOOLEAN_METHODS = false;
     public static final double TEXTFIELD_HEIGHT = SCREEN_HEIGHT/43;
     public static final double TEXTFIELD_WIDTH = SCREEN_WIDTH/5;
@@ -37,7 +37,7 @@ public abstract class GameConstants {
     public static final int MAX_DEPTH = 4;
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
     public static final boolean IS_FULLSCREEN = false;
-    public static final String VERSION = "1.1";
+    public static final String VERSION = "1.2a";
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
     public static final int MAX_LOOP_SIZE = 500;
     public static final String VARIABLE_NAME_REGEX = "^[a-zA-Z_][a-zA-Z_0-9]*$";
@@ -62,6 +62,7 @@ public abstract class GameConstants {
     public static final double CHALLENGER_FONT_SIZE = 40.0*SCREEN_WIDTH/1920.0;
     public static final String BACK_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Back_Btn.png";
     public static final String EXECUTE_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Execute_Btn.png";
+    public static final String PAUSE_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Pause_Btn.png";
     public static final String RESET_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Reset_Btn.png";
     public static final String SHOW_SPELLS_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Show_Spells_Btn.png";
     public static final String WIZARD_IMAGE_PATH = "file:"+IMAGES_PATH+"TutorialWizard.png";

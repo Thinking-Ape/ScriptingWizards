@@ -37,10 +37,11 @@ Mauszeiger über den Knöpfen am unteren Bildschirmrand verweilen lassen kann, u
 erhalten. Von links nach rechts, gibt es einen Knopf, der dich zurück ins Hauptmenü bringt, einen der den momentanen
 Code ausführt, einen Slider, der kontrolliert, wie schnell der Code ausgeführt wird, einen Knopf der das Level
 zurücksetzt und einen, der ein "Zauberbuch" öffnet, das alle bisher freigeschalteten Zaubersprüche (Methoden,
-Kontrollstrukturen, etc.) enthält. Rechts oben befindet sich das Skript, in dem man selber programmieren kann, indem man
-zuerst die Anweisungen im Tutorial befolgt. In späteren Levels wird sich zudem Links ein Skript welches Gegner steuert
-befinden. Nachdem das gesamte Tutorial durchgespielt wurde, kann man danach beliebige Tutorial-Levels auswählen, um
-diese erneut auszuprobieren. Weitere Levels, um sein Können zu testen befinden sich zudem unter "Challenges".
+Kontrollstrukturen, etc.) enthält. Dieses kann zudem über einen Knopf im oberen Rand des Buches verschoben werden.
+Rechts oben befindet sich das Skript, in dem man selber programmieren kann, indem man zuerst die Anweisungen im Tutorial
+befolgt. In späteren Levels wird sich zudem Links ein Skript welches Gegner steuert befinden. Nachdem das gesamte
+Tutorial durchgespielt wurde, kann man danach beliebige Tutorial-Levels auswählen, um diese erneut auszuprobieren.
+Weitere Levels, um sein Können zu testen befinden sich zudem unter "Challenges".
 ----------------
 Der Leveleditor:
 ----------------

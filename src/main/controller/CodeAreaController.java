@@ -47,6 +47,14 @@ public class CodeAreaController implements PropertyChangeListener {
         }
         if(codeArea.isAi() && view.getCurrentSceneState() != SceneState.LEVEL_EDITOR)codeArea.setEditable(false);
         codeArea.addListenerToScrollbar((observableValue, number, t1) -> codeArea.scroll(Math.round(t1.floatValue())));
+        codeArea.setOnScroll(evt -> {
+            double y = evt.getDeltaY();
+            int dy = codeArea.getScrollBar().getScrollAmount();
+            if(y < 0 && codeArea.getScrollBar().getScrollAmount()+1<=codeArea.getSize()-GameConstants.MAX_CODE_LINES)dy =codeArea.getScrollBar().getScrollAmount()+1;
+            if(y > 0 && codeArea.getScrollBar().getScrollAmount()-1 >= 0)dy =codeArea.getScrollBar().getScrollAmount()-1;
+            codeArea.scroll(dy);
+
+        });
     }
     private void setHandlerForCodeField(CodeField currentCodeField,boolean isAi) {
         currentCodeField.setOnMousePressed(event -> {
@@ -101,11 +109,14 @@ public class CodeAreaController implements PropertyChangeListener {
 
                     CodeField newCodeField = new CodeField(/*textAfterCursor*/"",depth,true);
 
+                    int scrollAmount = codeArea.getScrollBar().getScrollAmount()+1 < codeArea.getSize() ? codeArea.getScrollBar().getScrollAmount()+1 : codeArea.getSize()-1-GameConstants.MAX_CODE_LINES;
+                    if(currentIndex+1>=GameConstants.MAX_CODE_LINES+ codeArea.getScrollBar().getScrollAmount())codeArea.getScrollBar().setScrollAmount(scrollAmount);
                     if(!addBefore)currentIndex++;
                     codeAreaClone.addNewCodeFieldAtIndex(currentIndex,newCodeField);
                     if(bracketCodeField != null){
                         codeAreaClone.addNewCodeFieldAtIndex(currentIndex+1,bracketCodeField);
                     }
+
 //                    if(recompileCode(codeAreaClone)==null){
 //                        codeAreaClone.removeCodeField(newCodeField);
 //                        codeAreaClone.removeCodeField(bracketCodeField);
@@ -153,6 +164,9 @@ public class CodeAreaController implements PropertyChangeListener {
                     if(!currentCodeField.getText().equals("") && prevCodeField.getText().matches(" *")){ //TODO: vereinheitlicht " *" anstelle von ""?
                         codeAreaClone.removeCodeField(prevCodeField);
 
+                        scrollAmount = codeArea.getScrollBar().getScrollAmount()-1 > 0 ? codeArea.getScrollBar().getScrollAmount()-1 : 0;
+                        if(currentIndex<= codeArea.getScrollBar().getScrollAmount())
+                            codeArea.getScrollBar().setScrollAmount(scrollAmount);
 //                        removeCodeField1 = prevCodeField;
                         currentIndex--;
 
@@ -175,7 +189,13 @@ public class CodeAreaController implements PropertyChangeListener {
                     if(currentCodeField.isEmpty()||currentCodeField.getText().matches(" *")){
                         codeAreaClone.removeCodeField( currentCodeField);
 
-                        if(currentIndex==codeArea.getSize())currentIndex--;
+                        if(currentIndex==codeArea.getSize()){
+
+                            scrollAmount = codeArea.getScrollBar().getScrollAmount()-1 > 0 ? codeArea.getScrollBar().getScrollAmount()-1 : 0;
+                            if(currentIndex<= codeArea.getScrollBar().getScrollAmount())
+                                codeArea.getScrollBar().setScrollAmount(scrollAmount);
+                            currentIndex--;
+                        }
                         //                        codeFieldsToRemoveList.add(currentCodeField);
                         //                        removeCodeField1 = currentCodeField;
 
@@ -205,6 +225,9 @@ public class CodeAreaController implements PropertyChangeListener {
 //                        codeArea.select(currentIndex,Selection.END);
                         return;
                     }
+                    scrollAmount = codeArea.getScrollBar().getScrollAmount()-1 > 0 ? codeArea.getScrollBar().getScrollAmount()-1 : 0;
+                    if(currentIndex<= codeArea.getScrollBar().getScrollAmount())
+                        codeArea.getScrollBar().setScrollAmount(scrollAmount);
                     if(event.isControlDown()){
                         codeAreaClone.moveCodeField(currentIndex,true);
                     }
@@ -218,9 +241,11 @@ public class CodeAreaController implements PropertyChangeListener {
                 case DOWN:
                     if (currentIndex >= codeArea.getSize()-1){
                         currentIndex = codeArea.getSize() -1;
-//                        codeArea.select(currentIndex,Selection.END);
+                        codeArea.select(currentIndex,Selection.END);
                         return;
                     }
+                    scrollAmount = codeArea.getScrollBar().getScrollAmount()+1 < codeArea.getSize() ? codeArea.getScrollBar().getScrollAmount()+1 : codeArea.getSize()-1-GameConstants.MAX_CODE_LINES;
+                    if(currentIndex+1>=GameConstants.MAX_CODE_LINES+ codeArea.getScrollBar().getScrollAmount())codeArea.getScrollBar().setScrollAmount(scrollAmount);
                     if(event.isControlDown()){
                         codeAreaClone.moveCodeField(currentIndex,false);
                     }

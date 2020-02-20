@@ -1,0 +1,7 @@
+Version 1.2a:
+- Currently executed line of code will be highlighted
+- Game can now be paused and resumed
+- Game execution-speed can now be altered in-game
+- Added a pause game button
+- Scrolling of Codearea has been improved (Mouse wheel is now working and arrow keys work more intuitively)
+- Level Select Scene has been improved visually

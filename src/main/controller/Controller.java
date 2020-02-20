@@ -17,6 +17,7 @@ import main.model.Level;
 import main.model.Model;
 import main.model.statement.ComplexStatement;
 import main.model.statement.SimpleStatement;
+import main.model.statement.Statement;
 import main.utility.GameConstants;
 import main.parser.CodeParser;
 import main.parser.JSONParser;
@@ -37,6 +38,8 @@ public class Controller {
     private Model model;
     private View view;
     private Timeline timeline;
+    private CodeAreaController codeAreaController;
+    private EditorController editorController;
 
     public Controller(View view, Model model){
         this.model = model;
@@ -44,8 +47,8 @@ public class Controller {
 //        view.notify(Event.LEVEL_CHANGED); //TODO: better solution?
 
 //        setActionHandlerForTextFields(view.getCodeBoxCompound().getVBox());
-        CodeAreaController codeAreaController = new CodeAreaController(view,model);
-        EditorController editorController = new EditorController(view,model,codeAreaController);
+        codeAreaController = new CodeAreaController(view,model);
+        editorController = new EditorController(view,model,codeAreaController);
 //        codeAreaController.setAllHandlersForCodeArea();
         view.getStage().getScene().setOnKeyPressed(event -> {
             if(!(view.getStage().getScene().getFocusOwner() instanceof CodeField)){
@@ -74,6 +77,13 @@ public class Controller {
         });
         addHighlightingEffect(view.getShowSpellBookBtn(),view.getBackBtn(),view.getBtnExecute(), view.getBtnReset(), view.getTutorialGroup().getEndIntroductionBtn(),
                 view.getLevelOverviewPane().getBackBtn(),view.getLevelOverviewPane().getPlayBtn(),view.getTutorialLevelOverviewPane().getBackBtn(),view.getTutorialLevelOverviewPane().getPlayBtn());
+
+//        System.out.println("ONCE!");
+        view.getSpeedSlider().valueProperty().addListener((observableValue,s,t1) ->{
+//            timeline.set
+            if(timeline!=null)
+            timeline.setRate(GameConstants.TICK_SPEED*t1.doubleValue());
+        });
 
         view.getBackBtn().setOnAction(actionEvent -> {
             boolean isVisible = view.getSpellBookPane().isVisible();
@@ -207,104 +217,12 @@ public class Controller {
         });
 
 
-        view.getBtnExecute().setOnAction(actionEvent -> {
+            setExecuteHandler();
 
-            CodeParser codeParser = new CodeParser(view.getCodeArea().getAllText(),true);
-            CodeParser aiCodeParser = new CodeParser(view.getAICodeArea().getAllText(),false);
-            try {
-                ComplexStatement behaviour = codeParser.parseProgramCode();
-                ComplexStatement aiBehaviour = new ComplexStatement();
-                if(model.getCurrentLevel().hasAi())aiBehaviour = aiCodeParser.parseProgramCode();
-                if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR) view.getLevelEditorModule().setDisableAllLevelBtns(true);
-                //TODO: delete
-                if(GameConstants.DEBUG)System.out.println(behaviour.print());
-                if(GameConstants.DEBUG)System.out.println(aiBehaviour.print());
-                model.getCurrentLevel().setPlayerBehaviour(behaviour);
-                //TODO: model.getCurrentLevel().addListener(view);
-                model.getCurrentLevel().setAiBehaviour(aiBehaviour);
-                view.setNodesDisableWhenRunning(true);
-                codeAreaController.setGameRunning(true);
-//                model.getCurrentLevel().setCurrentMapToOriginal();
-                timeline = new Timeline();
-
-                timeline.setCycleCount(Timeline.INDEFINITE);
-                timeline.getKeyFrames().addAll(new KeyFrame(Duration.seconds(GameConstants.TICK_SPEED*1/view.getSpeedSlider().getValue()), event ->
-                {
-                    try {
-                        model.getCurrentLevel().executeTurn();
-                        view.drawMap(model.getCurrentLevel().getCurrentMap());
-                        view.deselect();
-                        if (model.getCurrentLevel().isWon()){
-                            int turns = model.getCurrentLevel().getTurnsTaken();
-                            int loc = behaviour.getActualSize();
-
-                            double nStars = Util.calculateStars(turns,loc,model.getCurrentLevel().getTurnsToStars(),model.getCurrentLevel().getLocToStars());
-                            //TODO: really not in editor??!
-//                            if(view.getCurrentSceneState()==SceneState.PLAY){
-
-                                JSONParser.storeProgressIfBetter(model.getCurrentLevel().getName(),turns,loc,model.getCurrentLevel().getPlayerBehaviour());
-                                model.updateFinishedList();
-//                            }
-                            timeline.stop();
-                            String winString = "You have won!"+"\nYou earned "  + (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (")+turns + " Turns, " + loc + " Lines of Code)";
-//                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,winString, ButtonType.OK).showAndWait());
-
-                            Platform.runLater(() -> {
-                                try {
-                                    showWinDialog(winString,view.getCurrentSceneState(),nStars);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            });
-                            codeAreaController.setGameRunning(false);
-//                            if(view.getCurrentSceneState() != SceneState.LEVEL_EDITOR)
-                                JSONParser.saveStatementProgress(model.getCurrentLevel().getUnlockedStatementList());
-                            view.getSpellBookPane().updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
-                        }
-                        if (model.getCurrentLevel().isLost()){
-                            timeline.stop();
-                            Alert alert;
-                            if(model.getCurrentLevel().isStackOverflow()){
-                                alert = new Alert(Alert.AlertType.NONE,"You might have accidentally caused an endless loop! You are not allowed to use big loops without method calls!", ButtonType.OK);
-                                Platform.runLater(() -> {
-                                    Optional<ButtonType> result = alert.showAndWait();
-                                    if(result.isPresent()){
-                                        view.getBtnReset().fire();
-                                    }
-                                });
-                            }
-                            else{
-                                alert = new Alert(Alert.AlertType.NONE,"", ButtonType.OK);
-                                alert.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));
-                                Label lostLabel = new Label("You have lost!");
-                                lostLabel.setAlignment(Pos.CENTER);
-                                lostLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
-                                lostLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
-                                alert.getDialogPane().setContent(lostLabel);
-                                lostLabel.setFont(GameConstants.BIGGEST_FONT);
-                                Platform.runLater(() -> {
-                                    Optional<ButtonType> result = alert.showAndWait();
-                                    if(result.isPresent()){
-                                        view.getBtnReset().fire();
-                                    }
-                                });
-                            }
-                        }
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-
-                }));
-                timeline.play();
-                if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR)editorController.setAllEditButtonsToDisable(true);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        });
         view.getBtnReset().setOnAction(actionEvent -> {
+            setExecuteHandler();
+
+            view.getCodeArea().highlightCodeField(-1);
             view.setNodesDisableWhenRunning(false);
             if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR){
                 view.getLevelEditorModule().setDisableAllLevelBtns(false);
@@ -348,6 +266,133 @@ public class Controller {
 
     }
 
+    private void setExecuteHandler() {
+
+        ((ImageView)view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
+        view.getBtnExecute().setOnAction(actionEvent -> {
+        CodeParser codeParser = new CodeParser(view.getCodeArea().getAllText(),true);
+        CodeParser aiCodeParser = new CodeParser(view.getAICodeArea().getAllText(),false);
+        try {
+            ComplexStatement behaviour = codeParser.parseProgramCode();
+            ComplexStatement aiBehaviour = new ComplexStatement();
+            if(model.getCurrentLevel().hasAi())aiBehaviour = aiCodeParser.parseProgramCode();
+            if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR) view.getLevelEditorModule().setDisableAllLevelBtns(true);
+            //TODO: delete
+            if(GameConstants.DEBUG)System.out.println(behaviour.print());
+            if(GameConstants.DEBUG)System.out.println(aiBehaviour.print());
+            model.getCurrentLevel().setPlayerBehaviour(behaviour);
+            //TODO: model.getCurrentLevel().addListener(view);
+            model.getCurrentLevel().setAiBehaviour(aiBehaviour);
+            view.setNodesDisableWhenRunning(true);
+            codeAreaController.setGameRunning(true);
+//                model.getCurrentLevel().setCurrentMapToOriginal();
+            view.getBtnExecute().setDisable(false);
+
+            view.getSpeedSlider().setDisable(false);
+//            actionEvent.consume();
+
+            ((ImageView)view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.PAUSE_BTN_IMAGE_PATH));
+            setPauseAndRunHandler();
+
+            timeline = new Timeline();
+
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.setRate(GameConstants.TICK_SPEED*view.getSpeedSlider().getValue());
+            timeline.getKeyFrames().addAll(new KeyFrame(Duration.seconds(0.8), event ->
+            {
+                try {
+                    Statement executedStatement = model.getCurrentLevel().executeTurn();
+                    int index = behaviour.findIndexOf(executedStatement,0);
+                    //sadly with the current implementation, executeIfs cannot be detected as they are changed inside the CodeEvaluator
+                    if(index == -1) index = behaviour.findIndexOf(model.getCurrentLevel().getExecuteIfStatementWorkaround(),0);
+                    if(index != -1)view.getCodeArea().highlightCodeField(index);
+
+
+                    view.drawMap(model.getCurrentLevel().getCurrentMap());
+                    view.deselect();
+                    if (model.getCurrentLevel().isWon()){
+                        int turns = model.getCurrentLevel().getTurnsTaken();
+                        int loc = behaviour.getActualSize();
+
+                        double nStars = Util.calculateStars(turns,loc,model.getCurrentLevel().getTurnsToStars(),model.getCurrentLevel().getLocToStars());
+                        //TODO: really not in editor??!
+//                            if(view.getCurrentSceneState()==SceneState.PLAY){
+
+                        JSONParser.storeProgressIfBetter(model.getCurrentLevel().getName(),turns,loc,model.getCurrentLevel().getPlayerBehaviour());
+                        model.updateFinishedList();
+//                            }
+                        timeline.stop();
+                        String winString = "You have won!"+"\nYou earned "  + (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (")+turns + " Turns, " + loc + " Lines of Code)";
+//                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,winString, ButtonType.OK).showAndWait());
+
+                        Platform.runLater(() -> {
+                            try {
+                                showWinDialog(winString,view.getCurrentSceneState(),nStars);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                        codeAreaController.setGameRunning(false);
+//                            if(view.getCurrentSceneState() != SceneState.LEVEL_EDITOR)
+                        JSONParser.saveStatementProgress(model.getCurrentLevel().getUnlockedStatementList());
+                        view.getSpellBookPane().updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
+                    }
+                    if (model.getCurrentLevel().isLost()){
+                        timeline.stop();
+                        Alert alert;
+                        if(model.getCurrentLevel().isStackOverflow()){
+                            alert = new Alert(Alert.AlertType.NONE,"You might have accidentally caused an endless loop! You are not allowed to use big loops without method calls!", ButtonType.OK);
+                            Platform.runLater(() -> {
+                                Optional<ButtonType> result = alert.showAndWait();
+                                if(result.isPresent()){
+                                    view.getBtnReset().fire();
+                                }
+                            });
+                        }
+                        else{
+                            alert = new Alert(Alert.AlertType.NONE,"", ButtonType.OK);
+                            alert.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));
+                            Label lostLabel = new Label("You have lost!");
+                            lostLabel.setAlignment(Pos.CENTER);
+                            lostLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
+                            lostLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
+                            alert.getDialogPane().setContent(lostLabel);
+                            lostLabel.setFont(GameConstants.BIGGEST_FONT);
+                            Platform.runLater(() -> {
+                                Optional<ButtonType> result = alert.showAndWait();
+                                if(result.isPresent()){
+                                    view.getBtnReset().fire();
+                                }
+                            });
+                        }
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+            }));
+            timeline.play();
+            if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR)editorController.setAllEditButtonsToDisable(true);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }});
+    }
+
+    private void setPauseAndRunHandler() {
+        view.getBtnExecute().setOnAction(evt -> {
+            timeline.pause();
+            ((ImageView)view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
+            view.getBtnExecute().setOnAction(evt2 -> {
+                timeline.play();
+                setPauseAndRunHandler();
+                ((ImageView)view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.PAUSE_BTN_IMAGE_PATH));
+            });
+        });
+    }
+
     private void addHighlightingEffect(Button... buttons) {
 
         for(Button b : buttons){
@@ -360,22 +405,8 @@ public class Controller {
     private void showWinDialog(String winString, SceneState sceneState,double stars) throws IOException {
         Dialog<ButtonType> winDialog = new Dialog<>();
         winDialog.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));
-        ImageView starsIV = new ImageView();
-        if(stars==1){
-            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"1StarRating.png"));
-        }
-        else if(stars==1.5){
-            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"1_5StarRating.png"));
-        }
-        else if(stars==2){
-            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"2StarRating.png"));
-        }
-        else if(stars==2.5){
-            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"2_5StarRating.png"));
-        }
-        else{
-            starsIV.setImage(new Image("file:"+GameConstants.IMAGES_PATH+"3StarRating.png"));
-        }
+        ImageView starsIV = new ImageView(Util.getStarImageFromDouble(stars));
+
         Label winLabel = new Label(winString);
         winLabel.setAlignment(Pos.CENTER);
         winLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);

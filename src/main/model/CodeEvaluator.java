@@ -22,6 +22,7 @@ public class CodeEvaluator {
     private Statement currentStatement;
     private GameMap gameMap;
     private boolean lastStatementSummonedKnight;
+    private Statement executeIfWorkaround;
 
     public CodeEvaluator(){
         this.currentStatement = null; //TODO: may cause problems?
@@ -76,6 +77,7 @@ public class CodeEvaluator {
             case METHOD_CALL:
                 MethodCall mC = (MethodCall)currentStatement;
                 if(mC.getMethodType()== EXECUTE_IF){
+                    executeIfWorkaround = currentStatement;
                     Variable v = currentStatement.getParentStatement().getVariable(mC.getObjectName());
                     if(v != null){
                         return evaluateExecuteIf(mC,v);
@@ -418,5 +420,9 @@ public class CodeEvaluator {
 
     public boolean lastStatementSummonedKnight() {
         return lastStatementSummonedKnight;
+    }
+
+    public Statement getExecuteIfWorkaround() {
+        return executeIfWorkaround;
     }
 }

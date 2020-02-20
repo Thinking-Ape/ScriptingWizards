@@ -3,6 +3,9 @@ package main.view;
 
 //import javafx.scene.control.TextArea;
 
+import javafx.application.Platform;
+import javafx.scene.effect.Bloom;
+import javafx.scene.effect.Glow;
 import main.controller.Selection;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Orientation;
@@ -46,9 +49,14 @@ public class CodeArea extends HBox {
         this.isEditable = isEditable;
         this.isAi = isAi;
         scrollBar = CodeScrollBar.getInstance(isAi);
+//        scrollBar.setScrollAmount(0);
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
+//        if(codeFieldList.size()>GameConstants.MAX_CODE_LINES)Platform.runLater(()->{
+//            makeScrollable();
+//            scrollBar.setVisible(true);
+//        });
 //        scrollBar.setPrefHeight(rectVBox.getPrefHeight());
     }
     public CodeArea (ComplexStatement behaviour, boolean isAi) {
@@ -169,13 +177,13 @@ public class CodeArea extends HBox {
             return;
         }
             CodeField codeField = codeFieldList.get(index);
-            if(index >= GameConstants.MAX_CODE_LINES+scrollBar.getScrollAmount()&&isScrollable){
-                scrollBar.setScrollAmount(index-GameConstants.MAX_CODE_LINES+1);
-            }else if (index < scrollBar.getScrollAmount()&&isScrollable){
-
-                scrollBar.setScrollAmount(index);
-//            scroll(index);
-        }
+//            if(index >= GameConstants.MAX_CODE_LINES+scrollBar.getScrollAmount()&&isScrollable){
+//                scrollBar.setScrollAmount(index-GameConstants.MAX_CODE_LINES+1);
+//            }else if (index < scrollBar.getScrollAmount()&&isScrollable){
+//
+//                scrollBar.setScrollAmount(index);
+////            scroll(index);
+//        }
 //            if(index == i){
             if(codeField.isEditable())codeField.setStyle(null);
             else codeField.setStyle("-fx-background-color: rgba(200,200,255,0.5);");
@@ -248,13 +256,17 @@ public class CodeArea extends HBox {
         }
     }
 
-    public ScrollBar getScrollBar(){
+    public CodeScrollBar getScrollBar(){
         return scrollBar;
     }
 
     public void scroll(int t1) {
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
+        if(scrollBar.getScrollAmount() != t1){
+            scrollBar.setScrollAmount(t1);
+            return;
+        }
 //        if(t1+GameConstants.MAX_CODE_LINES > codeFieldList.size())t1 = 0;
         for(int i = t1; i < t1+GameConstants.MAX_CODE_LINES; i++){
             if(i >= codeFieldList.size())break;
@@ -316,9 +328,20 @@ public class CodeArea extends HBox {
         return isEditable;
     }
 
-//    public void setBehaviuour(ComplexStatement complexStatement) {
-//        this.codeFieldList = new ArrayList<>();
-//        codeFieldList.addAll(getCodeFieldsFromStatement(complexStatement));
-//        rectStackList = getRectanglesFromList(codeFieldList);
-//    }
+    public void highlightCodeField(int index){
+        if(index == -1)scroll(0);
+        int i = 0;
+        for (CodeField cf : codeFieldList){
+            if(i == index){
+                codeFieldList.get(index).setStyle("-fx-background-color: green");
+                if(index >= GameConstants.MAX_CODE_LINES){
+                    scroll(index-GameConstants.MAX_CODE_LINES+1);
+                }
+            }
+            else {
+                cf.resetStyle();
+            }
+            i++;
+        }
+    }
 }
