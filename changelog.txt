@@ -1,7 +1,14 @@
 Version 1.2a:
+- Added a changelog
 - Currently executed line of code will be highlighted
 - Game can now be paused and resumed
 - Game execution-speed can now be altered in-game
 - Added a pause game button
 - Scrolling of Codearea has been improved (Mouse wheel is now working and arrow keys work more intuitively)
 - Level Select Scene has been improved visually
+- Replaced Clipboard Button with a Store Current Code Button
+- Clear Code Button now warns before deleting all code
+- fixed Endless Loop Warning occuring everytime after occuring once
+- Smaller adjustments to tutorialTextArea in Editor
+- Level LearnTheRopes now requires less code
+- Title Screen added

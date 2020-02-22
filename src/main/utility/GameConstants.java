@@ -45,7 +45,11 @@ public abstract class GameConstants {
     public static final Entity NO_ENTITY = new Entity("", null, EntityType.NONE);
     public static final boolean EXECUTE_IF_IS_COMMAND = true;
     public static final String TOOLTIP_VARIABLE_NAME = "Reference this variable via this name.";
-    public static final String TOOLTIP_BOOLEAN = "True, false, a boolean variable, boolean method call or comparisons thereof";
+    public static final String TOOLTIP_BOOLEAN = "True, false, a boolean variable, boolean method call or comparisons thereof. You can link booleans or conditions in the following ways:\n" +
+            "- boolean1 && boolean2 is true if boolean1 and boolean2 are true\n" +
+            "- boolean1 || boolean2 is true if one or both of boolean1, boolean2 are true\n" +
+            "- You can also write !boolean1 which is true if boolean1 is false\n" +
+            "Lastly here is an example with the boolean variable b1: !( ((1<2) && false) || b1). Can you figure out when its true?";
     public static final String TOOLTIP_VARIABLE_VALUE = "The value of the variable:\nint : a whole number, randInt(<lowestValue>,<highestValue>) or any other int variable as well as a term thereof\n"+TOOLTIP_BOOLEAN+"\nDirection: EAST, WEST, NORTH, SOUTH\nTurnDirection: LEFT, RIGHT, AROUND\nCommand: a Method Call (see Knight Methods) but without an object name and the '.' e.g. move()";
     public static final String TOOLTIP_VARIABLE_TYPE = "Options are: int, boolean, Direction, TurnDirection, Command (, Knight and Army)";
     public static final Effect GREEN_ADJUST = new ColorAdjust(-0.35, 0, 0, 0);

@@ -244,6 +244,7 @@ public class Controller {
                     CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode),true,false);
                     view.setCodeArea(codeArea,false);
                     view.getBtnExecute().setDisable(false);
+                    view.getStoreCodeBtn().setDisable(false);
 //                    codeArea.draw();
 //                    codeAreaController.setAllHandlersForCodeArea(false);
                 }
@@ -254,11 +255,46 @@ public class Controller {
                 e.printStackTrace();
             }
         });
+        view.getStoreCodeBtn().setOnAction(actionEvent -> {
+
+            try {
+                JSONParser.storeCode(view.getCodeArea().getAllText());
+//                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
+
+               new Alert(Alert.AlertType.NONE,"Code stored!",ButtonType.OK).showAndWait();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
         view.getClearCodeBtn().setOnAction(actionEvent -> {
-            ComplexStatement complexStatement = new ComplexStatement();
-            complexStatement.addSubStatement(new SimpleStatement());
-            CodeArea codeArea = new CodeArea(complexStatement,true,false);
-            view.setCodeArea(codeArea,false);
+            Dialog<ButtonType> deleteDialog = new Dialog<>();
+//            deleteDialog.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));
+
+            Label deleteLabel = new Label("You are going to remove all code! Are you sure?");
+            deleteLabel.setAlignment(Pos.CENTER);
+            deleteLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
+//            deleteLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
+            deleteLabel.setTextAlignment(TextAlignment.CENTER);
+            deleteLabel.setFont(GameConstants.BIGGEST_FONT);
+
+
+            deleteDialog.getDialogPane().setContent(deleteLabel);
+            ButtonType noBtn = new ButtonType("NO", ButtonBar.ButtonData.NO);
+            ButtonType yesBtn = new ButtonType("YES", ButtonBar.ButtonData.YES);
+            deleteDialog.getDialogPane().getButtonTypes().addAll(noBtn,yesBtn);
+            Optional<ButtonType> result = deleteDialog.showAndWait();
+            if(result.isPresent()){
+                switch (result.get().getButtonData()){
+                    default:
+                        break;
+                    case YES:
+                        ComplexStatement complexStatement = new ComplexStatement();
+                        complexStatement.addSubStatement(new SimpleStatement());
+                        CodeArea codeArea = new CodeArea(complexStatement,true,false);
+                        view.setCodeArea(codeArea,false);
+                        break;
+                }
+            }
 //            codeArea.draw();
 //            codeAreaController.setAllHandlersForCodeArea(false);
 

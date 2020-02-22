@@ -22,9 +22,9 @@ public class StartScreen extends BorderPane {
     public StartScreen(){
         switchLanguage.setDisable(true);
         Util.applyStartButtonFormat(tutorialBtn,playBtn,exitBtn,lvlEditor);
-        Separator sep = new Separator(Orientation.HORIZONTAL);
-        sep.setHalignment(HPos.CENTER);
-        VBox vBox = new VBox(tutorialBtn,playBtn,lvlEditor,sep,exitBtn);
+//        Separator sep = new Separator(Orientation.HORIZONTAL);
+//        sep.setHalignment(HPos.CENTER);
+        VBox vBox = new VBox(tutorialBtn,playBtn,lvlEditor,exitBtn);
         vBox.setSpacing(25);
         vBox.setAlignment(Pos.CENTER);
         this.setTop(new Label("Version"+ GameConstants.VERSION));

@@ -32,6 +32,9 @@ https://cloud.chrz.de/s/ieiSggK6YfwJq28) die neue data.json durch die alte erset
 ------------------------------------------------------------------------------------------------------------------------
 Das Tutorial:
 -------------
+Diese Version des Spiels entspricht nicht derjenigen, die die Schüler erhalten werden, da für jedes Level bereits eine
+Musterlösung abgespeichert ist. Das dient hier dafür, dass einerseits ein Vergleich zur Verfügung steht und andererseits
+die Hilfestellung ersetzt werden soll, die den Schüler durch die Anwesenheit des Lehrers verfügbar ist.
 Das Tutorial besteht aus mehreren Levels sowie einer kurzen Einführung. Wichtige Informationen sind, dass man den
 Mauszeiger über den Knöpfen am unteren Bildschirmrand verweilen lassen kann, um eine kurze Erklärung ihrer Funktion zu
 erhalten. Von links nach rechts, gibt es einen Knopf, der dich zurück ins Hauptmenü bringt, einen der den momentanen
@@ -59,19 +62,21 @@ nicht, ob es erst freigeschaltet werden muss und welcher Text im Tutorial angeze
 ------------------------------------------------------------------------------------------------------------------------
 
 Feedback sowohl zu den Informationen in dieser README als auch zum Spiel selber bitte an folgende Mail-Adresse:
-sgunzelmann@arcor.de
+sgunzelmann@arcor.de am besten mit Betreff Feedback
 Ich würde mich über jegliche Anregungen, Wünsche, didaktische Einschätzungen, gefundene Fehler und allgemeine Kritik
 freuen. Folgende Fragen sind für mich von besonderem Interesse:
-- Was sind deine Vorkenntnisse in Java und konntest du das Tutorial durchspielen?
+- Was sind deine Vorkenntnisse in Java / Programmieren und konntest du das Tutorial durchspielen?
 - Wenn nein, bei welchem Level bist du gescheitert und warum?
 - Wenn ja, was ist deine Einschätzung zur Schwierigkeit und dem Tempo des Tutorials?
 - Wie leicht ist es dir gefallen, dich in den Umgang mit dem Programm einzufinden?
-- Wie war die Darstellung/Übersichtlichkeit auf deinem Bildschirm (evt Screenshot mitschicken)
+- Wie war die Darstellung/Übersichtlichkeit auf deinem Bildschirm? (evt Screenshot mitschicken)
 - Waren alle Elemente da wo sie hingehören?
 - Konntest du auch bei höchster Ausführgeschwindigkeit das Spiel problemlos laufen lassen? (Wenn nein, bitte ein paar
                                                                                             Infos zur Hardware)
+- Fällt dir ein toller Name (deutsch oder englisch) für das Projekt ein? Das Titelbild soll nämlich noch durch einen
+  Namen ergänzt werden und ich habe bisher noch keinen gefunden, mit dem ich 100% glücklich bin
 Und zuletzt noch eine weitere Bitte: Falls dir das Projekt gut gefallen hat und es dir Spaß macht, selber Level zu
 erstellen: Benutze doch den Leveleditor, um ein eigenes Level für die Challenges (oder auch Tutorials) zu erstellen und
-schicke mir dieses dann über Mail. (Nach der Erstellung, auf speichern drücken und dann ist die Datei unter
+schicke mir dieses dann auch an obige Mailadresse. (Nach der Erstellung, auf speichern drücken und dann ist die Datei unter
 "bin/resources/levels/<levelname>.json" zu finden)
 ------------------------------------------------------------------------------------------------------------------------

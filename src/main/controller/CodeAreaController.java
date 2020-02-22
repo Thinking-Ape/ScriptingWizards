@@ -338,6 +338,7 @@ public class CodeAreaController implements PropertyChangeListener {
         }
         else {
             view.getBtnExecute().setDisable(true);
+            view.getStoreCodeBtn().setDisable(true);
             codeArea.setEditable(false);
             codeArea.getSelectedCodeField().setEditable(true);
             if(codeArea.isAi())view.getCodeArea().setDisable(true);
@@ -363,6 +364,8 @@ public class CodeAreaController implements PropertyChangeListener {
             codeArea.setEditable(true);
             if(model.getCurrentLevel().getOriginalMap().findSpawn().getX()!=-1){
                 view.getBtnExecute().setDisable(false);
+
+                view.getStoreCodeBtn().setDisable(false);
                 if(codeArea.isAi())view.getLevelEditorModule().getSaveLevelBtn().setDisable(false);
             }
             if(codeArea.isAi())view.getCodeArea().setDisable(false);

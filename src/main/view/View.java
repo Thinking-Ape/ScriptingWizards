@@ -30,6 +30,7 @@ import main.model.enums.CFlag;
 import main.model.enums.EntityType;
 import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
+import main.parser.CodeParser;
 import main.parser.JSONParser;
 import main.utility.GameConstants;
 //import org.jetbrains.annotations.Contract;
@@ -46,16 +47,13 @@ import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static main.utility.GameConstants.BUTTON_SIZE;
-import static main.utility.GameConstants.NO_ENTITY;
+import static main.utility.GameConstants.*;
 
 public class View implements PropertyChangeListener {
 
+    private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/project_background.png" ), BackgroundRepeat.NO_REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT ));
     private final BackgroundImage backgroundImage = new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
     private final LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
@@ -70,7 +68,7 @@ public class View implements PropertyChangeListener {
     private Button btnExecute;
     private Button btnReset;
     //    TextArea codeTextArea;
-    private CodeArea codeArea = new CodeArea(false);
+    private CodeArea codeArea ;
     private CodeArea aiCodeArea;
     private VBox vBox;
     private Slider speedSlider;
@@ -107,6 +105,7 @@ public class View implements PropertyChangeListener {
 
     private Button loadBestCodeBtn = new Button("Load Best Code");
     private Button clearCodeBtn = new Button("Clear Code");
+    private Button storeCodeBtn = new Button("Store Code");
     private IntroductionPane introductionPane = IntroductionPane.getInstance();
 
     //TODO: for visual purposes:
@@ -127,7 +126,7 @@ public class View implements PropertyChangeListener {
         tutorialGroup = new TutorialGroup();
 
         startScene = new Scene(startScreen);
-        startScreen.setBackground(brickBackground);
+        startScreen.setBackground(startBackground);
         cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
         cell_size = Math.round(cell_size);
         tutorialTextArea.setEditable(false);
@@ -148,7 +147,17 @@ public class View implements PropertyChangeListener {
             stage.setFullScreen(true);
         }
         stage.setFullScreenExitHint("");
-        codeArea.addNewCodeFieldAtIndex(0, new CodeField("", 1, true));
+        CodeParser codeParser = new CodeParser();
+        List<String> storedCode = new ArrayList<>();
+        try {
+            storedCode = JSONParser.getStoredCode();
+            if(storedCode.size()>0)
+                codeArea = new CodeArea(codeParser.parseProgramCode(storedCode),true,false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if(codeArea.getSize()==0){ codeArea = new CodeArea(false);
+        codeArea.addNewCodeFieldAtIndex(0, new CodeField("", 1, true));}
         model.addChangeListener(this);
         actualMapGPane = new GridPane();
         actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
@@ -229,8 +238,8 @@ public class View implements PropertyChangeListener {
             clipboard.setContents(selection, selection);
         });
         //TODO: delete
-
-        hBox.getChildren().addAll(debugBtn, loadBestCodeBtn, clearCodeBtn);
+        if(DEBUG)hBox.getChildren().add(debugBtn );
+        hBox.getChildren().addAll(storeCodeBtn,loadBestCodeBtn, clearCodeBtn);
         if (model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0)
             aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(), isEditor,true);
         else aiCodeArea = new CodeArea(true);
@@ -1195,6 +1204,9 @@ public class View implements PropertyChangeListener {
 
     public Button getClearCodeBtn() {
         return clearCodeBtn;
+    }
+    public Button getStoreCodeBtn() {
+        return storeCodeBtn;
     }
 
     public IntroductionPane getIntroductionPane() {

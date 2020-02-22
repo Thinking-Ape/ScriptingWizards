@@ -69,6 +69,7 @@ public class Level implements PropertyChangeListener {
         removeTemporaryFlags();
         boolean method_Called_1 = false, method_Called_2 = false;
         Statement statement=playerBehaviour;
+        isStackOverflow = false;
         while(!method_Called_1 && !isWon()&&!isLost()) {
             statement = evaluator.evaluateNext(playerBehaviour,currentMap);
             if(evaluator.lastStatementSummonedKnight()){

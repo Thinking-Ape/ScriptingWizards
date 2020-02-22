@@ -88,7 +88,7 @@ public class LevelEditorModule {
     private Button nextTutorialTextBtn = new Button("Next Entry");
     private Button newTutorialTextBtn = new Button("New Entry");
     private Button prevTutorialTextBtn = new Button("Previous Entry");
-    private Button deleteTutorialTextBtn = new Button("Delete Text");
+    private Button deleteTutorialTextBtn = new Button("Delete Entry");
     private HBox editTutHBox = new HBox(editTutorialTextBtn,deleteTutorialTextBtn,newTutorialTextBtn);
     private HBox prevNextTutHBox = new HBox(prevTutorialTextBtn,nextTutorialTextBtn);
     private VBox tutorialVBox = new VBox(tutorialTopHBox,tutorialTextArea,editTutHBox,prevNextTutHBox);
@@ -126,7 +126,7 @@ public class LevelEditorModule {
         tutorialTextArea.setEditable(false);
         tutorialTextArea.setMaxWidth(GameConstants.TEXTFIELD_WIDTH*0.8);
         tutorialTextArea.setMinWidth(GameConstants.TEXTFIELD_WIDTH*0.8);
-        tutorialTextArea.setMaxHeight(TEXTFIELD_HEIGHT*6);
+        tutorialTextArea.setMaxHeight(TEXTFIELD_HEIGHT*7);
         tutorialTextArea.setMinHeight(TEXTFIELD_HEIGHT*6);
         tutorialTextArea.setFont(new Font(tutorialTextArea.getFont().getName(), FONT_SIZE));
 

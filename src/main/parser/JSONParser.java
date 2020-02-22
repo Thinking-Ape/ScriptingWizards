@@ -600,4 +600,30 @@ public abstract class JSONParser {
         }
         return output;
     }
+
+    public static void storeCode(List<String> allCode) throws IOException {
+        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
+        String jsonString = String.join("", Files.readAllLines(filePath));
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray jsonArray = new JSONArray();
+        for(String s : allCode){
+            jsonArray.put(s);
+        }
+        jsonObject.put("storedCode",jsonArray);
+        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
+            file.write(jsonObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static List<String> getStoredCode() throws IOException {
+        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
+        String jsonString = String.join("", Files.readAllLines(filePath));
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray jsonArray = jsonObject.getJSONArray("storedCode", new JSONArray());
+        List<String> output = new ArrayList<>();
+        for(int i = 0; i <jsonArray.length();i++){
+            output.add(jsonArray.getString(i ));
+        }return output;
+    }
 }
