@@ -47,7 +47,7 @@ Rechts oben befindet sich das Skript, in dem man selber programmieren kann, inde
 befolgt. In späteren Levels wird sich zudem Links ein Skript welches Gegner steuert befinden. Nachdem das gesamte
 Tutorial durchgespielt wurde, kann man danach beliebige Tutorial-Levels auswählen, um diese erneut auszuprobieren.
 Weitere Levels, um sein Können zu testen befinden sich zudem unter "Challenges".
-Durch die Tastenkombination Shift+Pfeiltaste Oben/Unten lässt sich zudem die derzeitig ausgewählte Codezeile bewegen!
+Durch die Tastenkombination Strg+Pfeiltaste Oben/Unten lässt sich zudem die derzeitig ausgewählte Codezeile bewegen!
 ----------------
 Der Leveleditor:
 ----------------

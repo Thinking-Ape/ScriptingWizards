@@ -40,6 +40,7 @@ public class Controller {
     private Timeline timeline;
     private CodeAreaController codeAreaController;
     private EditorController editorController;
+    private int minIndex = 0;
 
     public Controller(View view, Model model){
         this.model = model;
@@ -50,6 +51,11 @@ public class Controller {
         codeAreaController = new CodeAreaController(view,model);
         editorController = new EditorController(view,model,codeAreaController);
 //        codeAreaController.setAllHandlersForCodeArea();
+        try {
+            minIndex = JSONParser.getTutorialProgressIndex();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         view.getStage().getScene().setOnKeyPressed(event -> {
             if(!(view.getStage().getScene().getFocusOwner() instanceof CodeField)){
                 if(view.getCodeArea().getSelectedCodeField() == null)
@@ -94,15 +100,23 @@ public class Controller {
 //                    view.getShowSpellBookBtn().setText("Show Spellbook");
                     view.setSceneState(SceneState.START_SCREEN);
                     break;
+                case TUTORIAL_LEVEL_SELECT:
+//                    view.getShowSpellBookBtn().setText("Show Spellbook");
+
+                    view.setSceneState(SceneState.START_SCREEN);
+                    break;
                 case LEVEL_SELECT:
                     throw new IllegalStateException("This should not have been possible!");
                 case PLAY:
+
                     if(codeAreaController.isGameRunning())view.getBtnReset().fire();
                     view.setSceneState(SceneState.LEVEL_SELECT);
+
                     break;
                 case TUTORIAL:
                     if(codeAreaController.isGameRunning())view.getBtnReset().fire();
-                    view.setSceneState(SceneState.START_SCREEN);
+                    if(minIndex == -1)view.setSceneState(SceneState.START_SCREEN);
+                    else view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
                     view.getBtnExecute().setMouseTransparent(false);
                     view.getSpeedSlider().setMouseTransparent(false);
                     view.getShowSpellBookBtn().setMouseTransparent(false);
@@ -129,36 +143,27 @@ public class Controller {
 
         view.getStartScreen().getTutorialBtn().setOnAction(actionEvent -> {
             Level selectedLevel = model.getCurrentLevel();
-            int minIndex = 0;
-            try {
-                minIndex = JSONParser.getTutorialProgressIndex();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
             int amountOfTuts = 0;
             for(Level l :model.getLevelListCopy()){
                 if(l.isTutorial() && l.getIndex() < selectedLevel.getIndex() && l.getIndex() > minIndex)selectedLevel = l;
                 if(l.isTutorial())amountOfTuts++;
             }
             model.selectLevel(selectedLevel.getName());
-            if(minIndex == amountOfTuts-1){
-                view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
-                view.getTutorialLevelOverviewPane().getBackBtn().setOnAction(actionEvent2 ->
+            view.getTutorialLevelOverviewPane().getBackBtn().setOnAction(actionEvent2 ->
                     view.setSceneState(SceneState.START_SCREEN)
-                );
-                view.getTutorialLevelOverviewPane().getPlayBtn().setOnAction(actionEvent1 -> {
-                    String levelName = view.getTutorialLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
-                    model.selectLevel(levelName);
-                    view.setSceneState(SceneState.PLAY);
-                });
+            );
+            view.getTutorialLevelOverviewPane().getPlayBtn().setOnAction(actionEvent1 -> {
+                String levelName = view.getTutorialLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
+                model.selectLevel(levelName);
+                view.setSceneState(SceneState.TUTORIAL);
+            });
+            if(minIndex != -1){
+                view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
+
             }
             else view.setSceneState(SceneState.TUTORIAL);
-//            view.getIntroductionPane().getStartTutorialBtn().setOnAction(evt -> {
-//                view.getStage().getScene().setRoot(view.getRootPane());
-//            });
-//            view.getIntroductionPane().getBackBtn().setOnAction(evt -> {
-//                view.setSceneState(SceneState.START_SCREEN);
-//            });
+
             view.getTutorialGroup().getNextBtn().setOnAction(evt -> {view.getTutorialGroup().next();
                 //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
                 ScrollPane sp = (ScrollPane)view.getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
@@ -180,30 +185,9 @@ public class Controller {
                 for (Node n : sp.getChildrenUnmodifiable()) {
                     n.setCache(false);
                 }});
-//            view.getIntroductionPane().getTutorialGroup().getNextBtn().setOnAction(evt -> {
-//                view.getIntroductionPane().getTutorialGroup().next();
-//                if(view.getIntroductionPane().getTutorialGroup().isLastMsg())view.getIntroductionPane().getStartTutorialBtn().setDisable(false);
-//                if(view.)
-//                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
-//                ScrollPane sp = (ScrollPane)view.getIntroductionPane().getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
-//                sp.setCache(false);
-//                for (Node n : sp.getChildrenUnmodifiable()) {
-//                    n.setCache(false);
-//                }
-//            });
-//            view.getIntroductionPane().getTutorialGroup().getPrevBtn().setOnAction(evt -> {
-//                view.getIntroductionPane().getTutorialGroup().prev();
-//                view.getIntroductionPane().getStartTutorialBtn().setDisable(true);
-//                //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
-//                ScrollPane sp = (ScrollPane)view.getIntroductionPane().getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
-//                sp.setCache(false);
-//                for (Node n : sp.getChildrenUnmodifiable()) {
-//                    n.setCache(false);
-//                }
-//            });
         });
 
-
+        if(view.getLevelOverviewPane().getLevelListView().getItems().size()==0)view.getStartScreen().getPlayBtn().setDisable(true);
         view.getStartScreen().getPlayBtn().setOnAction(actionEvent -> {
             view.setSceneState(SceneState.LEVEL_SELECT);
             view.getLevelOverviewPane().getBackBtn().setOnAction(actionEvent2 ->
@@ -360,6 +344,30 @@ public class Controller {
                         timeline.stop();
                         String winString = "You have won!"+"\nYou earned "  + (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (")+turns + " Turns, " + loc + " Lines of Code)";
 //                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,winString, ButtonType.OK).showAndWait());
+                        int amountOfTuts = 0;
+                        for(Level l :model.getLevelListCopy()){
+                            if(l.isTutorial())amountOfTuts++;
+                        }
+                        if(model.getCurrentLevel().isTutorial()){
+                            view.getTutorialLevelOverviewPane().updateLevel(model.getCurrentLevel(),amountOfTuts,Util.getStarImageFromDouble(nStars));
+//                            minIndex = (minIndex > model.getCurrentLevel().getIndex()) ? minIndex : model.getCurrentLevel().getIndex();
+                            int nextIndex = model.getCurrentLevel().getIndex()+1;
+                            minIndex = nextIndex-1 > minIndex ? nextIndex-1 : minIndex;
+                            if(nextIndex < amountOfTuts-1){
+                                Level nextLevel = model.getLevelWithIndex(nextIndex);
+                                view.getTutorialLevelOverviewPane().addLevel(nextLevel, view.getImageFromMap(nextLevel.getOriginalMap()));
+                            }
+                        }
+                        else {
+                            view.getLevelOverviewPane().updateLevel(model.getCurrentLevel(),amountOfTuts,Util.getStarImageFromDouble(nStars));
+                            int nextIndex = model.getCurrentLevel().getIndex()+1;
+
+                            if(nextIndex < model.getAmountOfLevels()-1){
+                                Level nextLevel = model.getLevelWithIndex(nextIndex);
+                                view.getLevelOverviewPane().addLevel(nextLevel, view.getImageFromMap(nextLevel.getOriginalMap()));
+                            }
+                        }
+
 
                         Platform.runLater(() -> {
                             try {
@@ -371,6 +379,7 @@ public class Controller {
                         codeAreaController.setGameRunning(false);
 //                            if(view.getCurrentSceneState() != SceneState.LEVEL_EDITOR)
                         JSONParser.saveStatementProgress(model.getCurrentLevel().getUnlockedStatementList());
+                        if(view.getLevelOverviewPane().getLevelListView().getItems().size()>0)view.getStartScreen().getPlayBtn().setDisable(false);
                         view.getSpellBookPane().updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
                     }
                     if (model.getCurrentLevel().isLost()){

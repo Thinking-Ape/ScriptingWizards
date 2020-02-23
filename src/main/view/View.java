@@ -1065,7 +1065,7 @@ public class View implements PropertyChangeListener {
         rootPane.setBackground(brickBackground);
     }
 
-    Image getImageFromMap(GameMap originalMap) {
+    public Image getImageFromMap(GameMap originalMap) {
         GridPane gridPane = getGridPaneFromMap(originalMap);
         gridPane.autosize();
         int dimension = gridPane.getHeight() > gridPane.getWidth() ? (int) Math.round(gridPane.getHeight()) : (int) Math.round(gridPane.getWidth());

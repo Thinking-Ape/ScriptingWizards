@@ -11,10 +11,11 @@ import main.utility.Util;
 
 public class LevelEntry extends HBox {
 
-    Label textField;
-    Label bestScoresLbl;
-    ImageView imageView;
-    Label levelName;
+    private Label textField;
+    private Label bestScoresLbl;
+    private ImageView imageView;
+    private Label levelName;
+    private ImageView bestStars;
 
     public LevelEntry(Image image, String name, String tooltipString,String bestScores,double nStars) {
 
@@ -38,7 +39,7 @@ public class LevelEntry extends HBox {
         bestScoresLbl.layout();
         bestScoresLbl.autosize();
 
-        ImageView bestStars = new ImageView(Util.getStarImageFromDouble(nStars));
+        bestStars = new ImageView(Util.getStarImageFromDouble(nStars));
         bestStars.setPreserveRatio(true);
         bestStars.setFitHeight(GameConstants.LEVEL_ENTRY_SIZE/1.5);
         bestStars.autosize();
@@ -54,5 +55,9 @@ public class LevelEntry extends HBox {
     }
     public String getLevelName() {
         return levelName.getText();
+    }
+
+    public void updateImage(Image starImage) {
+        bestStars.setImage(starImage);
     }
 }

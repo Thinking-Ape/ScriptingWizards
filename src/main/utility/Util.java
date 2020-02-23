@@ -273,6 +273,7 @@ public abstract class Util {
     }
 
     public static double calculateStars(int turns, int loc, Integer[] bestTurns, Integer[] bestLocs) {
+        if(loc == -1 && turns == -1)return 0;
         int turnStars = 1;
         if(turns <= bestTurns[0]) turnStars = 2;
         if(turns <= bestTurns[1]) turnStars = 3;
@@ -294,7 +295,10 @@ public abstract class Util {
     }
 
     public static Image getStarImageFromDouble(double stars) {
-        if(stars==1){
+        if(stars==0){
+            return new Image("file:"+GameConstants.IMAGES_PATH+"0StarRating.png");
+        }
+        else if(stars==1){
             return new Image("file:"+GameConstants.IMAGES_PATH+"1StarRating.png");
         }
         else if(stars==1.5){

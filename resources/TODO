@@ -76,7 +76,9 @@ IMPORTANT:
  - cheap graphics option? (disable smoothing)
  - after introduction -> always level-select?
  - execute one line at a time??
- - replace executeIf with .foreach(knight -> {}) in new branch
+ - Level_1_... Levelname conventions
+ - Required Levels entfernen?
+ - Replace "<" and ">" with proper pictures!
 ---------------------------------------------
 
 

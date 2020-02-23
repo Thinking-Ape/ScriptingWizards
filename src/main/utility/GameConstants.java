@@ -37,7 +37,7 @@ public abstract class GameConstants {
     public static final int MAX_DEPTH = 4;
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
     public static final boolean IS_FULLSCREEN = false;
-    public static final String VERSION = "1.2b";
+    public static final String VERSION = "1.2c";
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
     public static final int MAX_LOOP_SIZE = 500;
     public static final String VARIABLE_NAME_REGEX = "^[a-zA-Z_][a-zA-Z_0-9]*$";
@@ -74,7 +74,7 @@ public abstract class GameConstants {
     public static final String TUTORIAL_LINE_2 = "If you want to escape from here you will need to summon magic Knights to do your bidding! The dungeon is filled with traps and they will ensure you can leave it unhurt...";
     public static final String TUTORIAL_LINE_3 = "At the bottom of your screen you can see 4 Buttons. The first one will bring you back to the menu, the second" +
             " will execute your code, the third will reset the level and the last one will open a spell book.";
-    public static final String TUTORIAL_LINE_4 = "This spellbook contains all spells you have already learned. It is empty right now. The Slider in the middle" +
+    public static final String TUTORIAL_LINE_4 = "This spellbook contains all spells you have already successfully applied. It is empty right now. The Slider in the middle" +
             " controls the speed at which the game is being executed.";
     public static final String TUTORIAL_LINE_5 = "Lastly on the right you can see your magic script. It is also currently empty, but you can click on the" +
             "white bar and type something if you like.";

@@ -4,6 +4,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -78,18 +79,33 @@ public class LevelOverviewPane extends VBox {
             }
             double nStars = Util.calculateStars(bestResults[1],bestResults[0],l.getTurnsToStars(),l.getLocToStars());
             LevelEntry le = new LevelEntry(view.getImageFromMap(l.getOriginalMap()),s,"Has AI: "+l.hasAi()+", Max Knights: " + l.getMaxKnights()+"\nMax Turns for ***: "+l.getTurnsToStars()[1]+", Max Turns for **: "+l.getTurnsToStars()[0]+"\nMax LOC for ***: "+l.getLocToStars()[1]+", Max LOC for **: "+l.getLocToStars()[0],"Best Turns: "+bestResults[1]+"\nBest LOC: "+bestResults[0]+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : ""),nStars);
-
-            if(isTutorial && l.isTutorial()){
-                levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
-                levelListView.getItems().add(le);
-                width = le.getMaxWidth() > width ? le.getWidth() : width;
-            }
-            else if(GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!l.isTutorial()){
-                levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
-                levelListView.getItems().add(le);
-                width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
+            le.autosize();
+            try {
+                if(isTutorial && l.isTutorial() && l.getIndex() <= JSONParser.getTutorialProgressIndex()+1){
+                    levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
+                    levelListView.getItems().add(le);
+                    width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
+                }
+                else if(!isTutorial && (GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!l.isTutorial())){
+                    levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
+                    levelListView.getItems().add(le);
+                    width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         levelListView.setMaxWidth(width+GameConstants.TEXTFIELD_HEIGHT*2);
+    }
+    public void addLevel(Level l, Image image){
+        LevelEntry le = new LevelEntry(image,l.getName(),"Has AI: "+l.hasAi()+", Max Knights: " + l.getMaxKnights()+
+                "\nMax Turns for ***: "+l.getTurnsToStars()[1]+", Max Turns for **: "+l.getTurnsToStars()[0]+"\nMax LOC for ***: "+l.getLocToStars()[1]+
+                ", Max LOC for **: "+l.getLocToStars()[0],"Best Turns: "+-1+"\nBest LOC: "+-1+"\nEarned Stars: "+ 0,0);
+        levelListView.getItems().add(le);
+    }
+
+    public void updateLevel(Level currentLevel, int amountOfTuts, Image starImage) {
+        int index = isTutorial ? currentLevel.getIndex() : currentLevel.getIndex() - amountOfTuts;
+        levelListView.getItems().get(index).updateImage(starImage);
     }
 }
