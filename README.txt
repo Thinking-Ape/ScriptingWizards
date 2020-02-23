@@ -26,6 +26,8 @@ Aufrufen der Datei "Programmierprojekt.bat" im Ordner "bin" gestartet werden.
 Wenn das Projekt auf den neuesten Stand gebracht werden soll, ohne den bisherigen Spielstand zu verlieren, muss die
 Datei "data.json" im Ordner "bin/resources" kopiert werden und nach herunterladen der neuesten Version (über den Link
 https://cloud.chrz.de/s/ieiSggK6YfwJq28) die neue data.json durch die alte ersetzt werden.
+BEACHTE: Dies kann das Spiel eventuell zum abstürzen bringen! In diesem Fall ist die alte data.json nicht mehr
+kompatibel!
 
 ------------------------------------------------------------------------------------------------------------------------
                                              D A S   S P I E L
@@ -45,6 +47,7 @@ Rechts oben befindet sich das Skript, in dem man selber programmieren kann, inde
 befolgt. In späteren Levels wird sich zudem Links ein Skript welches Gegner steuert befinden. Nachdem das gesamte
 Tutorial durchgespielt wurde, kann man danach beliebige Tutorial-Levels auswählen, um diese erneut auszuprobieren.
 Weitere Levels, um sein Können zu testen befinden sich zudem unter "Challenges".
+Durch die Tastenkombination Shift+Pfeiltaste Oben/Unten lässt sich zudem die derzeitig ausgewählte Codezeile bewegen!
 ----------------
 Der Leveleditor:
 ----------------
@@ -67,16 +70,18 @@ Ich würde mich über jegliche Anregungen, Wünsche, didaktische Einschätzungen
 freuen. Folgende Fragen sind für mich von besonderem Interesse:
 - Was sind deine Vorkenntnisse in Java / Programmieren und konntest du das Tutorial durchspielen?
 - Wenn nein, bei welchem Level bist du gescheitert und warum?
-- Wenn ja, was ist deine Einschätzung zur Schwierigkeit und dem Tempo des Tutorials?
+- In jedem Fall: was ist deine Einschätzung zur Schwierigkeit und dem Tempo des Tutorials?
+- Welche Levels fandest du eher spannend und welche eher langweilig?
+- War die Menge an Text in den Tutorials angemessen?
 - Wie leicht ist es dir gefallen, dich in den Umgang mit dem Programm einzufinden?
 - Wie war die Darstellung/Übersichtlichkeit auf deinem Bildschirm? (evt Screenshot mitschicken)
-- Waren alle Elemente da wo sie hingehören?
+  Waren z.B. alle Elemente da wo sie hingehören?
 - Konntest du auch bei höchster Ausführgeschwindigkeit das Spiel problemlos laufen lassen? (Wenn nein, bitte ein paar
-                                                                                            Infos zur Hardware)
+  Infos zur Hardware)
 - Fällt dir ein toller Name (deutsch oder englisch) für das Projekt ein? Das Titelbild soll nämlich noch durch einen
   Namen ergänzt werden und ich habe bisher noch keinen gefunden, mit dem ich 100% glücklich bin
 Und zuletzt noch eine weitere Bitte: Falls dir das Projekt gut gefallen hat und es dir Spaß macht, selber Level zu
 erstellen: Benutze doch den Leveleditor, um ein eigenes Level für die Challenges (oder auch Tutorials) zu erstellen und
-schicke mir dieses dann auch an obige Mailadresse. (Nach der Erstellung, auf speichern drücken und dann ist die Datei unter
-"bin/resources/levels/<levelname>.json" zu finden)
+schicke mir dieses dann auch an obige Mailadresse. (Nach der Erstellung, auf speichern drücken und dann ist die Datei
+unter "bin/resources/levels/<levelname>.json" zu finden)
 ------------------------------------------------------------------------------------------------------------------------

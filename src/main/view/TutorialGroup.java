@@ -25,7 +25,7 @@ public class TutorialGroup extends Group {
     //    private List<SpellBookLabel> spellBookEntryList;
     private TextArea currentTutorialMessage = new TextArea();
     private Button prevBtn = new Button("<");
-    private Button hideBtn = new Button("v");
+    private Button hideBtn = new Button("Hide Wizard");
     private Button nextBtn = new Button(">");
     private Button endIntroductionBtn = new Button();
     private HBox navigationHBox = new HBox(prevBtn,nextBtn, hideBtn);
@@ -174,6 +174,6 @@ public class TutorialGroup extends Group {
         prevBtn.setVisible(!prevBtn.isVisible());
         sp.setVisible(!sp.isVisible());
         wizard.setVisible(!wizard.isVisible());
-        hideBtn.setText(nextBtn.isVisible()? "v":"^");
+        hideBtn.setText(nextBtn.isVisible()? "Hide Wizard":"Show Wizard");
     }
 }

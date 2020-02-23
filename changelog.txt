@@ -1,3 +1,6 @@
+Version 1.2b:
+- renamed "v" and "^" Buttons to "Show/Hide Wizard" for easier use
+- minor adjustments to title screen image and README
 Version 1.2a:
 - Added a changelog
 - Currently executed line of code will be highlighted
@@ -11,4 +14,4 @@ Version 1.2a:
 - fixed Endless Loop Warning occuring everytime after occuring once
 - Smaller adjustments to tutorialTextArea in Editor
 - Level LearnTheRopes now requires less code
-- Title Screen added
+- Title Screen Image added

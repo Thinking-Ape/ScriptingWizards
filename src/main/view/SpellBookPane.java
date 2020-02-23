@@ -90,7 +90,7 @@ public class SpellBookPane extends VBox {
             spellListView.getItems().addAll(armyHBox);
         }
 
-        spellListView.getItems().add(new HBox(new SpellBookLabel(SpellBookLabelType.DEFAULT,"Declaration:", "Declare a new variable. You may also assign a value to this variable.")));
+
         HBox declarationHBox = new HBox();
         declarationHBox.setAlignment(Pos.TOP_LEFT);
         declarationHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.VARIABLE_TYPE,tabString+"<variable type>",TOOLTIP_VARIABLE_TYPE));
@@ -105,16 +105,23 @@ public class SpellBookPane extends VBox {
         declarationHBox2.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT," = ",""));
         declarationHBox2.getChildren().add(new SpellBookLabel(SpellBookLabelType.VARIABLE_VALUE,"<variable value>",TOOLTIP_VARIABLE_VALUE));
         declarationHBox2.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,";",""));
-        spellListView.getItems().add(new VBox(declarationHBox,declarationHBox2));
 
-        spellListView.getItems().add(new HBox(new SpellBookLabel(SpellBookLabelType.DEFAULT,"Assignment:", "Assign a new value to an already declared variable.")));
+
         HBox assignmentHBox = new HBox();
         assignmentHBox.setAlignment(Pos.TOP_LEFT);
         assignmentHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.VARIABLE_NAME,tabString+"<variable name>",TOOLTIP_VARIABLE_NAME));
         assignmentHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT," = ",""));
         assignmentHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.VARIABLE_VALUE,"<variable value>",TOOLTIP_VARIABLE_VALUE));
         assignmentHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,";",""));
-        spellListView.getItems().add(assignmentHBox);
+        if(unlockedSpells.contains(VariableType.INT.getName())||unlockedSpells.contains(VariableType.BOOLEAN.getName())||
+                unlockedSpells.contains(VariableType.DIRECTION.getName())||unlockedSpells.contains(VariableType.TURN_DIRECTION.getName())||unlockedSpells.contains(VariableType.CELL_CONTENT.getName())||
+                unlockedSpells.contains(VariableType.ENTITY_TYPE.getName())||unlockedSpells.contains(VariableType.ITEM_TYPE.getName())||unlockedSpells.contains(VariableType.COMMAND.getName())) {
+            spellListView.getItems().add(new HBox(new SpellBookLabel(SpellBookLabelType.DEFAULT,"Declaration:", "Declare a new variable. You may also assign a value to this variable.")));
+            spellListView.getItems().add(new VBox(declarationHBox,declarationHBox2));
+
+            spellListView.getItems().add(new HBox(new SpellBookLabel(SpellBookLabelType.DEFAULT,"Assignment:", "Assign a new value to an already declared variable.")));
+            spellListView.getItems().add(assignmentHBox);
+        }
 
 
         HBox ifHBox = new HBox();

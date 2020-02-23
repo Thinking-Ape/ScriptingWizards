@@ -27,7 +27,9 @@ public class StartScreen extends BorderPane {
         VBox vBox = new VBox(tutorialBtn,playBtn,lvlEditor,exitBtn);
         vBox.setSpacing(25);
         vBox.setAlignment(Pos.CENTER);
-        this.setTop(new Label("Version"+ GameConstants.VERSION));
+        Label versionLabel = new Label("Version"+ GameConstants.VERSION);
+        versionLabel.setStyle("-fx-text-fill: white");
+        this.setTop(versionLabel);
         this.setCenter(vBox);
 //        HBox hb = new HBox(,switchLanguage);
 //        Group g = new Group(exitBtn);
