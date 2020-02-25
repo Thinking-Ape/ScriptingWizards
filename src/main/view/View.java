@@ -218,8 +218,7 @@ public class View implements PropertyChangeListener {
         speedSlider.setShowTickLabels(false);
         speedSlider.setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/Speed_Slider.png" ), BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER,BackgroundSize.DEFAULT )));
         File f = new File(GameConstants.ROOT_PATH+"/slider_style.css");
-        speedSlider.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
-//        speedSlider.getStylesheets().add(getClass().getResource("slider_style.css").toExternalForm());
+        if (f.exists()) speedSlider.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
 
         speedSlider.setStyle("-fx-base: rgba(0,0,0,0)");
         speedVBox.setAlignment(Pos.BOTTOM_CENTER);

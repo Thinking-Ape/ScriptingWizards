@@ -108,4 +108,11 @@ public class LevelOverviewPane extends VBox {
         int index = isTutorial ? currentLevel.getIndex() : currentLevel.getIndex() - amountOfTuts;
         levelListView.getItems().get(index).updateImage(starImage);
     }
+
+    public boolean containsLevel(Level nextLevel) {
+        for(LevelEntry levelEntry : levelListView.getItems()){
+            if(levelEntry.getLevelName().equals(nextLevel.getName())) return true;
+        }
+        return false;
+    }
 }

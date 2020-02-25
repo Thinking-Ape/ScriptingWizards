@@ -59,6 +59,8 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setTranslateX(-GameConstants.SCREEN_WIDTH/100.0);
         currentTutorialMessage.setTranslateY(-GameConstants.SCREEN_HEIGHT/50.0);
         ImageView bubble_IView = new ImageView(new Image("file:resources/images/Speech_Bubble.png"));
+        bubble_IView.setScaleX(GameConstants.WIDTH_RATIO);
+        bubble_IView.setScaleY(GameConstants.HEIGHT_RATIO);
         // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
         currentTutorialMessage.setFont(GameConstants.BIG_FONT);
         currentTutorialMessage.setCache(false);
@@ -85,6 +87,7 @@ public class TutorialGroup extends Group {
 //        prevBtn.setAlignment(Pos.TOP_RIGHT);
         vb.setSpacing(GameConstants.TEXTFIELD_HEIGHT);
         hb = new HBox(vb,wizard);
+        hb.setAlignment(Pos.BOTTOM_RIGHT);
 //        hb.setMouseTransparent(true);
         hb.setPickOnBounds(true);
 

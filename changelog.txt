@@ -1,8 +1,13 @@
+Version 1.2d:
+    - fixed a bug, where the wrong line would be highlighted after using blank lines with depth higher than 2 (?!)
+    - fixed a bug, where Level would be added multiple times to LevelOverviewPane
+    - Speech Bubble will now be scaled according to Screen Size
 Version 1.2c:
     - fixed a bug where variables from inside a for-loop would not be recognized inside another for-loop
     - level-select is now always avaiable in tutorial after finishing the first level
     - level entries in levelOverviewPanes are now updated properly
     - changed requirements to unlock certain levels
+    - game no longer crashes when .css cannot be loaded
 Version 1.2b:
     - renamed "v" and "^" Buttons to "Show/Hide Wizard" for easier use
     - minor adjustments to title screen image and README

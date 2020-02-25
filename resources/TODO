@@ -20,7 +20,6 @@ IMPORTANT:
 -define own methods?? (Big!!)
 - language settings
 - duplicate code in new lvl, open lvl, edit lvl?
-- build a prototype -> https://stackoverflow.com/questions/53453212/how-to-deploy-a-javafx-11-desktop-application-with-a-jre
 - add all VariableTypes enumerated in the enum
 - Why is every assignment parsed twice?? (codeparser -> parseassignment sout -> twice in commandline)
 - Status whether level is saved or if changes will be lost
@@ -74,7 +73,7 @@ IMPORTANT:
  - when starting game 7 or more levels are loaded! (is it maybe because of leveloverview pane?)
  - draw map differently entirely (cells same level -> next to each other)
  - cheap graphics option? (disable smoothing)
- - after introduction -> always level-select?
+
  - execute one line at a time??
  - Level_1_... Levelname conventions
  - Required Levels entfernen?

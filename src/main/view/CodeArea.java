@@ -332,7 +332,11 @@ public class CodeArea extends HBox {
         if(index == -1)scroll(0);
         int i = 0;
         for (CodeField cf : codeFieldList){
+            if(cf.getText().equals("")&&cf.getDepth()>2){
+                index++;
+            }
             if(i == index){
+
                 codeFieldList.get(index).setStyle("-fx-background-color: green");
                 if(index >= GameConstants.MAX_CODE_LINES){
                     scroll(index-GameConstants.MAX_CODE_LINES+1);

@@ -355,7 +355,8 @@ public class Controller {
                             minIndex = nextIndex-1 > minIndex ? nextIndex-1 : minIndex;
                             if(nextIndex < amountOfTuts-1){
                                 Level nextLevel = model.getLevelWithIndex(nextIndex);
-                                view.getTutorialLevelOverviewPane().addLevel(nextLevel, view.getImageFromMap(nextLevel.getOriginalMap()));
+                                if(!view.getTutorialLevelOverviewPane().containsLevel(nextLevel))
+                                    view.getTutorialLevelOverviewPane().addLevel(nextLevel, view.getImageFromMap(nextLevel.getOriginalMap()));
                             }
                         }
                         else {
@@ -364,6 +365,8 @@ public class Controller {
 
                             if(nextIndex < model.getAmountOfLevels()-1){
                                 Level nextLevel = model.getLevelWithIndex(nextIndex);
+
+                                if(!view.getLevelOverviewPane().containsLevel(nextLevel))
                                 view.getLevelOverviewPane().addLevel(nextLevel, view.getImageFromMap(nextLevel.getOriginalMap()));
                             }
                         }
