@@ -1,3 +1,8 @@
+Version 1.2e:
+    - fixed a bug, where variables from inside a for-loop would not be recognized in while loop or if statement
+    - fixed a bug, where playing a level in Level Editor would throw an error if this Level was not already unlocked in
+      Tutorial or Challenge mode
+    - Added Images for Next and Previous Buttons under the Speech Bubble
 Version 1.2d:
     - fixed a bug, where the wrong line would be highlighted after using blank lines with depth higher than 2 (?!)
     - fixed a bug, where Level would be added multiple times to LevelOverviewPane

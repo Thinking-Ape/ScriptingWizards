@@ -24,11 +24,11 @@ public class TutorialGroup extends Group {
 
     //    private List<SpellBookLabel> spellBookEntryList;
     private TextArea currentTutorialMessage = new TextArea();
-    private Button prevBtn = new Button("<");
+    private Button prevBtn = new Button();
     private Button hideBtn = new Button("Hide Wizard");
-    private Button nextBtn = new Button(">");
+    private Button nextBtn = new Button();
     private Button endIntroductionBtn = new Button();
-    private HBox navigationHBox = new HBox(prevBtn,nextBtn, hideBtn);
+    private HBox navigationHBox = new HBox(hideBtn,prevBtn,nextBtn);
     private HBox hb;
     private StackPane sp;
     private int index = 0;
@@ -42,8 +42,27 @@ public class TutorialGroup extends Group {
         imageView.setScaleY(GameConstants.HEIGHT_RATIO);
         imageView.setFitHeight(GameConstants.BUTTON_SIZE);
         imageView.setFitWidth(GameConstants.BUTTON_SIZE);
-        prevBtn.setFont(GameConstants.SMALL_FONT);
-        nextBtn.setFont(GameConstants.SMALL_FONT);
+
+        ImageView nextIV = new ImageView(new Image(GameConstants.NEXT_BTN_IMAGE_PATH));
+        nextIV.setScaleX(GameConstants.WIDTH_RATIO);
+        nextIV.setScaleY(GameConstants.HEIGHT_RATIO);
+        nextIV.setFitHeight(GameConstants.BUTTON_SIZE/2.5);
+        nextIV.setFitWidth(GameConstants.BUTTON_SIZE/2.5);
+        ImageView prevIV = new ImageView(new Image(GameConstants.PREV_BTN_IMAGE_PATH));
+        prevIV.setScaleX(GameConstants.WIDTH_RATIO);
+        prevIV.setScaleY(GameConstants.HEIGHT_RATIO);
+        prevIV.setFitHeight(GameConstants.BUTTON_SIZE/2.5);
+        prevIV.setFitWidth(GameConstants.BUTTON_SIZE/2.5);
+        prevBtn.setGraphic(prevIV);
+        nextBtn.setGraphic(nextIV);
+
+        nextBtn.setStyle("-fx-background-color: white;" +
+                "-fx-base: transparent;");
+
+        prevBtn.setStyle("-fx-background-color: white;" +
+                "-fx-base: transparent;");
+//        prevBtn.setFont(GameConstants.SMALL_FONT);
+//        nextBtn.setFont(GameConstants.SMALL_FONT);
         endIntroductionBtn.setGraphic(imageView);
         endIntroductionBtn.setStyle("-fx-background-color: white;" +
                 "-fx-base: transparent;");
@@ -157,6 +176,10 @@ public class TutorialGroup extends Group {
         hb.setBackground(null);
         endIntroductionBtn.setVisible(false);
         hideBtn.setVisible(true);
+        nextBtn.setStyle("-fx-background-color: transparent;" +
+                "-fx-base: transparent;");
+        prevBtn.setStyle("-fx-background-color: transparent;" +
+                "-fx-base: transparent;");
     }
 
     public void activateIntroduction(){

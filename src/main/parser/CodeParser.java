@@ -417,12 +417,13 @@ public class CodeParser {
         Variable v = depthStatementMap.get(depth-1).getVariable(value);
         if(v!=null){
             if(v.getVariableType() != variableType)throw new IllegalArgumentException(value + " has the wrong type!");
-            if(depthStatementMap.get(depth-1).getStatementType() == StatementType.FOR){
-                Variable forVar = ((ForStatement)depthStatementMap.get(depth-1)).getDeclaration().getVariable();
-                if(forVar.getName().equals(value))testForCorrectValueType(variableType, forVar.getValue().getText(),depth);
-                else testForCorrectValueType(variableType, value,depth-1);
-            }
-            else testForCorrectValueType(variableType, depthStatementMap.get(depth-1).getVariable(value).getValue().getText(),depth);
+//            if(depthStatementMap.get(depth-1).getStatementType() == StatementType.FOR){
+//                Variable forVar = ((ForStatement)depthStatementMap.get(depth-1)).getDeclaration().getVariable();
+//                if(forVar.getName().equals(value))testForCorrectValueType(variableType, forVar.getValue().getText(),depth);
+//                else testForCorrectValueType(variableType, value,depth-1);
+//            }
+//            else
+                testForCorrectValueType(variableType, depthStatementMap.get(depth-1).getVariable(value).getValue().getText(),depth);
             return;
         }
         switch (variableType){

@@ -37,7 +37,7 @@ public abstract class GameConstants {
     public static final int MAX_DEPTH = 4;
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
     public static final boolean IS_FULLSCREEN = false;
-    public static final String VERSION = "1.2d";
+    public static final String VERSION = "1.2e";
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
     public static final int MAX_LOOP_SIZE = 500;
     public static final String VARIABLE_NAME_REGEX = "^[a-zA-Z_][a-zA-Z_0-9]*$";
@@ -89,6 +89,8 @@ public abstract class GameConstants {
     public static final String BLUE_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Blue_Script_Icon_2.png";
     public static final String KNIGHT_TOKEN_PATH = "file:"+IMAGES_PATH+"Knight_Token.png";
     public static final Effect HIGHLIGHT_BTN_EFFECT = new Glow();
+    public static final String PREV_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Prev_Btn.png";
+    public static final String NEXT_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Next_Btn.png";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

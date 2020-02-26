@@ -82,7 +82,8 @@ public class Controller {
             mouse_PositionY = evt.getY();
         });
         addHighlightingEffect(view.getShowSpellBookBtn(),view.getBackBtn(),view.getBtnExecute(), view.getBtnReset(), view.getTutorialGroup().getEndIntroductionBtn(),
-                view.getLevelOverviewPane().getBackBtn(),view.getLevelOverviewPane().getPlayBtn(),view.getTutorialLevelOverviewPane().getBackBtn(),view.getTutorialLevelOverviewPane().getPlayBtn());
+                view.getLevelOverviewPane().getBackBtn(),view.getLevelOverviewPane().getPlayBtn(),view.getTutorialLevelOverviewPane().getBackBtn(),
+                view.getTutorialLevelOverviewPane().getPlayBtn(),view.getTutorialGroup().getNextBtn(),view.getTutorialGroup().getPrevBtn());
 
 //        System.out.println("ONCE!");
         view.getSpeedSlider().valueProperty().addListener((observableValue,s,t1) ->{
@@ -348,7 +349,7 @@ public class Controller {
                         for(Level l :model.getLevelListCopy()){
                             if(l.isTutorial())amountOfTuts++;
                         }
-                        if(model.getCurrentLevel().isTutorial()){
+                        if(model.getCurrentLevel().isTutorial()&&view.getCurrentSceneState()==SceneState.TUTORIAL){
                             view.getTutorialLevelOverviewPane().updateLevel(model.getCurrentLevel(),amountOfTuts,Util.getStarImageFromDouble(nStars));
 //                            minIndex = (minIndex > model.getCurrentLevel().getIndex()) ? minIndex : model.getCurrentLevel().getIndex();
                             int nextIndex = model.getCurrentLevel().getIndex()+1;
@@ -359,7 +360,7 @@ public class Controller {
                                     view.getTutorialLevelOverviewPane().addLevel(nextLevel, view.getImageFromMap(nextLevel.getOriginalMap()));
                             }
                         }
-                        else {
+                        else if(view.getCurrentSceneState()==SceneState.PLAY){
                             view.getLevelOverviewPane().updateLevel(model.getCurrentLevel(),amountOfTuts,Util.getStarImageFromDouble(nStars));
                             int nextIndex = model.getCurrentLevel().getIndex()+1;
 

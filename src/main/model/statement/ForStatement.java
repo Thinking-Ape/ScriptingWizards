@@ -18,9 +18,9 @@ public class ForStatement extends ComplexStatement {
         super();
         this.assignment = assignment;
         this.assignment.setParentStatement(this);
-        addLocalVariable(this.assignment.getVariable());
         this.declaration = declaration;
         this.declaration.setParentStatement(this);
+        addLocalVariable(this.declaration.getVariable());
         this.condition = condition;
 //        this.condition.setParentStatement(this);
 //        this.statementList.add(condition);
