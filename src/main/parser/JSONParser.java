@@ -9,11 +9,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import main.model.Cell;
+import main.model.enums.CellContent;
 import main.model.enums.ItemType;
 import main.utility.GameConstants;
 import main.model.GameMap;
 import main.model.Level;
-import main.model.enums.CContent;
 import main.model.enums.CFlag;
 import main.model.statement.ComplexStatement;
 import main.utility.Point;
@@ -182,8 +182,8 @@ public abstract class JSONParser {
     }
 
     private static Cell parseCell(String string) {
-        CContent content;
-        if(Util.stringInEnum(CContent.class,string))content= CContent.valueOf(string.toUpperCase());
+        CellContent content;
+        if(Util.stringInEnum(CellContent.class,string))content= CellContent.valueOf(string.toUpperCase());
         else throw new IllegalArgumentException("CellContent " + string + " does not exist!");
         return new Cell(content);
     }
@@ -199,8 +199,8 @@ public abstract class JSONParser {
             CFlag flag = CFlag.valueOf(flagsArray.getString(i,"").toUpperCase());
             flags.add(flag);
         }
-        CContent content = CContent.EMPTY;
-        if(Util.stringInEnum(CContent.class,contentString))content= CContent.valueOf(contentString.toUpperCase());
+        CellContent content = CellContent.EMPTY;
+        if(Util.stringInEnum(CellContent.class,contentString))content= CellContent.valueOf(contentString.toUpperCase());
 
 
         List<Integer> idList = new ArrayList<>();
@@ -219,8 +219,30 @@ public abstract class JSONParser {
         File folder = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString());
         File[] listOfFiles = folder.listFiles();
         assert listOfFiles != null;
+        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
+        String jsonString = null;
+        try {
+            jsonString = String.join("", Files.readAllLines(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks", new JSONArray());
+
+
         for(File file : listOfFiles){
-            outputList.add(parseLevelJSON(file.getName()));
+            Level l = parseLevelJSON(file.getName());
+            if(unlocksArray != null){
+                String s;
+                for(int i = 0; i<unlocksArray.length();i++){
+                    s=unlocksArray.getJSONObject(i).getString("name","");
+                    if(s.equals(l.getName())){
+                        int loc  = unlocksArray.getJSONObject(i).getInt("loc");
+                        int turns = unlocksArray.getJSONObject(i).getInt("turns");
+                        l.setBestTurnsAndLOC(turns,loc);
+                    }
+                }}
+            outputList.add(l);
         }
         return outputList;
     }

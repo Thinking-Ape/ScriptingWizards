@@ -14,9 +14,9 @@ public abstract class Tester {
         int i = 0;
 //        System.out.println("aha" + i++);
 //        System.out.println("aha" + i);
-//        boolean a = GameConstants.stringInEnum(CContent.class,"banane");
-//        boolean b = GameConstants.stringInEnum(CContent.class,"EMPTY");
-//        boolean c = GameConstants.stringInEnum(CContent.class,"empty");
+//        boolean a = GameConstants.stringInEnum(CellContent.class,"banane");
+//        boolean b = GameConstants.stringInEnum(CellContent.class,"EMPTY");
+//        boolean c = GameConstants.stringInEnum(CellContent.class,"empty");
 //        CodeParser codeParser = new CodeParser();
 //        try {
             //"for( int i = 0;i<10;i++){","knight1.move();","}",

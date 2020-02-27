@@ -52,7 +52,7 @@ public class GameMap {
         return boundY;
     }
 
-    public CContent getContentAtXY(int x, int y){
+    public CellContent getContentAtXY(int x, int y){
         if(x >= boundX || y >= boundY || x < 0 || y < 0)throw  new IllegalArgumentException("Illegal input: x = " + x+", y = " +y+". Must be within 0 and " + (boundX-1) +" and within 0 and " + (boundY-1) +"!");
         return cellArray2D[x][y].getContent();
     }
@@ -97,7 +97,7 @@ public class GameMap {
         }
         return true;
     }
-    public CContent getTargetContent(Point point) {
+    public CellContent getTargetContent(Point point) {
         Entity entity = cellArray2D[point.getX()][point.getY()].getEntity();
         switch (entity.getDirection()){
             case NORTH:
@@ -114,7 +114,7 @@ public class GameMap {
     public Point findSpawn() {
         for(int x = 0; x < getBoundX(); x++){
             for(int y = 0; y < getBoundY(); y++){
-                if(getContentAtXY(x,y) == CContent.SPAWN)return new Point(x,y);
+                if(getContentAtXY(x,y) == CellContent.SPAWN)return new Point(x,y);
             }
         }
        return new Point(-1, -1);
@@ -124,7 +124,7 @@ public class GameMap {
         List<Point> output = new ArrayList<>();
         for(int x = 0; x < getBoundX(); x++){
             for(int y = 0; y < getBoundY(); y++){
-                if(getContentAtXY(x,y) == CContent.ENEMY_SPAWN)output.add(new Point(x,y));
+                if(getContentAtXY(x,y) == CellContent.ENEMY_SPAWN)output.add(new Point(x,y));
             }
         }
         return output;
@@ -265,7 +265,7 @@ public class GameMap {
         return new Point(-1, -1);
     }
 
-    public CContent getContentAtXY(Point targetPos) {
+    public CellContent getContentAtXY(Point targetPos) {
         return getContentAtXY(targetPos.getX(), targetPos.getY());
     }
 
@@ -286,13 +286,13 @@ public class GameMap {
         changeSupport.firePropertyChange("item",new Pair<>(targetPos,oldCell),new Pair<>(targetPos,newCell));
     }
 
-    public void setContent(Point targetPos, CContent path) {
+    public void setContent(Point targetPos, CellContent path) {
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         cellArray2D[targetPos.getX()][targetPos.getY()].setContent(path);
         Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         changeSupport.firePropertyChange("content",new Pair<>(targetPos,oldCell),new Pair<>(targetPos,newCell));
     }
-    public void setContent(List<Point> targetPosList, CContent path) {
+    public void setContent(List<Point> targetPosList, CellContent path) {
         for(Point p : targetPosList){
             cellArray2D[p.getX()][p.getY()].setContent(path);
         }
@@ -350,7 +350,7 @@ public class GameMap {
         return getItem(new Point(x, y));
     }
 
-    public void setContent(int x, int y, CContent path) {
+    public void setContent(int x, int y, CellContent path) {
         setContent(new Point(x, y), path);
     }
 
@@ -394,11 +394,11 @@ public class GameMap {
 
     public boolean isGateWrongDirection(Point actorPoint, Point targetPoint) {
         Entity actorEntity = getEntity(actorPoint);
-        if(getContentAtXY(targetPoint)==CContent.GATE){
+        if(getContentAtXY(targetPoint)== CellContent.GATE){
             if((actorEntity.getDirection()== Direction.NORTH||actorEntity.getDirection()==Direction.SOUTH)&&!cellHasFlag(targetPoint, CFlag.TURNED))return true;
             if((actorEntity.getDirection()==Direction.WEST||actorEntity.getDirection()==Direction.EAST)&&cellHasFlag(targetPoint, CFlag.TURNED))return true;
         }
-        if(getContentAtXY(actorPoint)==CContent.GATE){
+        if(getContentAtXY(actorPoint)== CellContent.GATE){
             if((actorEntity.getDirection()==Direction.NORTH||actorEntity.getDirection()==Direction.SOUTH)&&!cellHasFlag(actorPoint, CFlag.TURNED))return true;
             if((actorEntity.getDirection()==Direction.WEST||actorEntity.getDirection()==Direction.EAST)&&cellHasFlag(actorPoint, CFlag.TURNED))return true;
         }

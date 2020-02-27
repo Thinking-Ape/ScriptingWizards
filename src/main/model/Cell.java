@@ -1,6 +1,6 @@
 package main.model;
 
-import main.model.enums.CContent;
+import main.model.enums.CellContent;
 import main.model.enums.CFlag;
 import main.model.enums.ItemType;
 
@@ -12,19 +12,19 @@ import static main.utility.GameConstants.NO_ENTITY;
 
 public class Cell {
     private int cellId = -1;
-    private CContent content = CContent.EMPTY;
+    private CellContent content = CellContent.EMPTY;
     private List<CFlag> flagList = new ArrayList<>();
     private List<Integer> linkedCellIdList = new ArrayList<>();
     private Entity entity = NO_ENTITY;
     private ItemType item = NONE;
 
-//    public Cell(CContent content, CFlag... flags){
+//    public Cell(CellContent content, CFlag... flags){
 //        this.content = content;
 //        for(CFlag cFlag :flags){
 //            flagList.add(cFlag);
 //        }
 //    }
-    public Cell(CContent content, Entity entity, CFlag... flags){
+    public Cell(CellContent content, Entity entity, CFlag... flags){
         //this.cellId = cellId;
         this.entity =entity;
         this.content = content;
@@ -32,7 +32,7 @@ public class Cell {
             flagList.add(cFlag);
         }
     }
-//    public Cell(CContent content, Entity entity,List<CFlag> flags){
+//    public Cell(CellContent content, Entity entity,List<CFlag> flags){
 //        this.entity = entity;
 //        this.content = content;
 //        for(CFlag cFlag :flags){
@@ -40,12 +40,12 @@ public class Cell {
 //        }
 //
 //    }
-    public Cell(CContent content){
+    public Cell(CellContent content){
         //this.cellId = cellId;
         this.content = content;
     }
 
-    public Cell(CContent content, ItemType item,Entity entity, List<CFlag> flagList, List<Integer> linkedCellIdList, int cellId) {
+    public Cell(CellContent content, ItemType item, Entity entity, List<CFlag> flagList, List<Integer> linkedCellIdList, int cellId) {
         if(item != NONE && entity != NO_ENTITY)throw new IllegalStateException("Cannot hava an item and an entity");
         this.item=item;
         this.entity = entity;
@@ -66,7 +66,7 @@ public class Cell {
         return flagList.contains(cFlag);
     }
 
-    public CContent getContent() {
+    public CellContent getContent() {
         return content;
     }
 
@@ -96,7 +96,7 @@ public class Cell {
         else if(content.isTraversable()||(hasFlag(CFlag.OPEN)^hasFlag(CFlag.INVERTED))) this.item = item;
     }
 
-    public void setContent(CContent content) {
+    public void setContent(CellContent content) {
         if(!content.isTraversable())this.item = NONE;
         this.content = content;
     }

@@ -1,3 +1,14 @@
+Version 1.3a:
+    - Clicking on CodeArea where TutorialGrop (Wizard and Speechbubble) is transparent now works properly
+    - StarImage will now only be updated if you've earned more stars than before!
+    - Levels are now ordered properly according to their index in LevelOverview
+    - Removed Alert on losing the Level
+    - Currently Selected Codefields containing a '}' are now highlighted more saturatedly
+    - Enemy Script will now also be highlighted at the position of current execution
+    - Introduction now explains more detailed and highlights all explained elements
+    - Changed Images of Knight Tokens
+    - Load Best Code now gives a warning when code is not empty
+    - Fixed a bug where entering Challenges would take a lot of time
 Version 1.2e:
     - fixed a bug, where variables from inside a for-loop would not be recognized in while loop or if statement
     - fixed a bug, where playing a level in Level Editor would throw an error if this Level was not already unlocked in

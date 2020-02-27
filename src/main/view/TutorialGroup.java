@@ -100,7 +100,7 @@ public class TutorialGroup extends Group {
         VBox vb = new VBox(sp,navigationHBox,endIntroductionBtn);
         vb.setAlignment(Pos.TOP_CENTER);
 //        vb.setMouseTransparent(true);
-        vb.setPickOnBounds(true);
+        vb.setPickOnBounds(false);
         StackPane.setAlignment(currentTutorialMessage, Pos.BOTTOM_CENTER);
         navigationHBox.setAlignment(Pos.TOP_RIGHT);
 //        prevBtn.setAlignment(Pos.TOP_RIGHT);
@@ -108,7 +108,7 @@ public class TutorialGroup extends Group {
         hb = new HBox(vb,wizard);
         hb.setAlignment(Pos.BOTTOM_RIGHT);
 //        hb.setMouseTransparent(true);
-        hb.setPickOnBounds(true);
+        hb.setPickOnBounds(false);
 
 //        hb.setAlignment(Pos.BOTTOM_RIGHT);
         this.getChildren().addAll(hb);
@@ -196,10 +196,16 @@ public class TutorialGroup extends Group {
         return endIntroductionBtn;
     }
     public void toggleStackpaneVisibility(){
+//        this.setPickOnBounds(nextBtn.isVisible());
         nextBtn.setVisible(!nextBtn.isVisible());
         prevBtn.setVisible(!prevBtn.isVisible());
         sp.setVisible(!sp.isVisible());
         wizard.setVisible(!wizard.isVisible());
         hideBtn.setText(nextBtn.isVisible()? "Hide Wizard":"Show Wizard");
+
+    }
+
+    public int getCurrentIndex() {
+        return index;
     }
 }

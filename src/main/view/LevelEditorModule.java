@@ -3,16 +3,13 @@ package main.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Translate;
 import main.model.Level;
-import main.model.enums.CContent;
+import main.model.enums.CellContent;
 import main.model.enums.ItemType;
 import main.utility.GameConstants;
 import main.utility.Util;
@@ -167,7 +164,7 @@ public class LevelEditorModule {
         }
         int i = 0;
         int j = 0;
-        for (CContent content : CContent.values()){
+        for (CellContent content : CellContent.values()){
 
             if(i>4){
                 i=0;

@@ -1,15 +1,12 @@
 package main.view;
 
 import javafx.event.Event;
-import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import main.model.statement.StatementType;
 import main.model.enums.*;
 import main.utility.GameConstants;
@@ -222,10 +219,10 @@ public class SpellBookPane extends VBox {
                     tooltipString.append(". If left blank will return true if any Item is held!");
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<ItemType>", tooltipString.toString()));
                     break;
-                case TARGET_CELL_IS:
+                case TARGETS_CELL:
                     tooltipString = new StringBuilder("One of the following: ");
                     i = 0;
-                    for(CContent content : CContent.values()){
+                    for(CellContent content : CellContent.values()){
                         if(i>0)tooltipString.append(", ");
                         i++;
                         tooltipString.append(content.name().toUpperCase());

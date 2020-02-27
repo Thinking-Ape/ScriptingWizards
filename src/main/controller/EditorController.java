@@ -11,7 +11,7 @@ import main.model.Cell;
 import main.model.GameMap;
 import main.model.Level;
 import main.model.Model;
-import main.model.enums.CContent;
+import main.model.enums.CellContent;
 import main.model.enums.CFlag;
 import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
@@ -56,8 +56,8 @@ public class EditorController implements PropertyChangeListener {
         view.getLevelEditorModule().getEditLvlBtn().setDisable(b);
         if(b){
             view.setAllCellButtonsDisabled(true);
-            view.setCContentButtonDisabled(CContent.EMPTY,true);
-            view.setCContentButtonDisabled(CContent.WALL,true);
+            view.setCContentButtonDisabled(CellContent.EMPTY,true);
+            view.setCContentButtonDisabled(CellContent.WALL,true);
         }
     }
 
@@ -72,7 +72,7 @@ public class EditorController implements PropertyChangeListener {
         for(Point p : view.getSelectedPointList()){
             int k = p.getX();
             int h = p.getY();
-            CContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(k, h);
+            CellContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(k, h);
 //            view.setCContentButtonDisabled(content,true);
             //END OF TODO
 
@@ -387,7 +387,7 @@ public class EditorController implements PropertyChangeListener {
                     Cell[][] map = new Cell[width][height];
                     for(int i = 0; i < width;i++){
                         for(int j = 0; j < height;j++){
-                            map[i][j] = new Cell(CContent.WALL);
+                            map[i][j] = new Cell(CellContent.WALL);
                         }
                     }
 //                    ComplexStatement aiCode = new ComplexStatement();
@@ -639,7 +639,7 @@ public class EditorController implements PropertyChangeListener {
             for(int y = 0; y < rowC; y++){
                 //TODO: 2-dim array?
                 StackPane stackPane = (StackPane) view.getActualMapGPane().getChildren().get(x*rowC+y);
-                final CContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(x,y);
+                final CellContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(x,y);
                 final int k = x;
                 final int h = y;
                 stackPane.setOnMousePressed(mouseEvent -> {
@@ -660,7 +660,7 @@ public class EditorController implements PropertyChangeListener {
 
                     view.highlightInMap(selectedList);
 
-                    if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setCContentButtonDisabled(CContent.EMPTY,true);
+                    if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setCContentButtonDisabled(CellContent.EMPTY,true);
                     if(!testIfNormalContentIsAllowed(model.getCurrentLevel().getOriginalMap(),k,h))view.setAllCellButtonsDisabled(true);
 
                     int cellId  = model.getCurrentLevel().getOriginalMap().getCellID(k,h);
@@ -739,9 +739,9 @@ public class EditorController implements PropertyChangeListener {
                     ChoiceDialog<Integer> idsDialog = new ChoiceDialog<>();
                     for(int x2 = 0; x2 < map.getBoundX();x2++){
                         for(int y2 = 0; y2 < map.getBoundY();y2++){
-                            CContent content1 = map.getContentAtXY(x2,y2);
+                            CellContent content1 = map.getContentAtXY(x2,y2);
                             int cellId = map.getCellID(x2,y2);
-                            if(cellId!=-1&&content1==CContent.PRESSURE_PLATE&&!view.getLinkedCellsListView().getItems().contains(cellId))idsDialog.getItems().add(cellId);
+                            if(cellId!=-1&&content1== CellContent.PRESSURE_PLATE&&!view.getLinkedCellsListView().getItems().contains(cellId))idsDialog.getItems().add(cellId);
                         }
                     }
                     if(idsDialog.getItems().size()>0){
@@ -766,19 +766,19 @@ public class EditorController implements PropertyChangeListener {
     }
 
     private boolean testIfNormalContentIsAllowed(GameMap currentMap, int k, int h) {
-        boolean leftSideNothing = h == 0 || currentMap.getContentAtXY(k,h-1)==CContent.EMPTY;
-        boolean rightSideNothing = h == currentMap.getBoundY()-1 || currentMap.getContentAtXY(k,h+1)==CContent.EMPTY;
-        boolean topSideNothing = k == 0 || currentMap.getContentAtXY(k-1,h)==CContent.EMPTY;
-        boolean bottomSideNothing = k == currentMap.getBoundX()-1 || currentMap.getContentAtXY(k+1,h)==CContent.EMPTY;
+        boolean leftSideNothing = h == 0 || currentMap.getContentAtXY(k,h-1)== CellContent.EMPTY;
+        boolean rightSideNothing = h == currentMap.getBoundY()-1 || currentMap.getContentAtXY(k,h+1)== CellContent.EMPTY;
+        boolean topSideNothing = k == 0 || currentMap.getContentAtXY(k-1,h)== CellContent.EMPTY;
+        boolean bottomSideNothing = k == currentMap.getBoundX()-1 || currentMap.getContentAtXY(k+1,h)== CellContent.EMPTY;
 
         return !leftSideNothing && !rightSideNothing && !bottomSideNothing && !topSideNothing;
     }
 
     private boolean testIfEmptyIsAllowed(GameMap originalMap, int k, int h) {
-        boolean leftSideWallOrNothing = h == 0 || originalMap.getContentAtXY(k,h-1)==CContent.WALL||originalMap.getContentAtXY(k,h-1)==CContent.EMPTY;
-        boolean rightSideWallOrNothing = h == originalMap.getBoundY()-1 || originalMap.getContentAtXY(k,h+1)==CContent.WALL ||originalMap.getContentAtXY(k,h+1)==CContent.EMPTY;
-        boolean topSideWallOrNothing = k == 0 || originalMap.getContentAtXY(k-1,h)==CContent.WALL|| originalMap.getContentAtXY(k-1,h)==CContent.EMPTY;
-        boolean bottomSideWallOrNothing = k == originalMap.getBoundX()-1 || originalMap.getContentAtXY(k+1,h)==CContent.WALL || originalMap.getContentAtXY(k+1,h)==CContent.EMPTY;
+        boolean leftSideWallOrNothing = h == 0 || originalMap.getContentAtXY(k,h-1)== CellContent.WALL||originalMap.getContentAtXY(k,h-1)== CellContent.EMPTY;
+        boolean rightSideWallOrNothing = h == originalMap.getBoundY()-1 || originalMap.getContentAtXY(k,h+1)== CellContent.WALL ||originalMap.getContentAtXY(k,h+1)== CellContent.EMPTY;
+        boolean topSideWallOrNothing = k == 0 || originalMap.getContentAtXY(k-1,h)== CellContent.WALL|| originalMap.getContentAtXY(k-1,h)== CellContent.EMPTY;
+        boolean bottomSideWallOrNothing = k == originalMap.getBoundX()-1 || originalMap.getContentAtXY(k+1,h)== CellContent.WALL || originalMap.getContentAtXY(k+1,h)== CellContent.EMPTY;
 
         return leftSideWallOrNothing && rightSideWallOrNothing && bottomSideWallOrNothing && topSideWallOrNothing;
     }
@@ -793,16 +793,16 @@ public class EditorController implements PropertyChangeListener {
         GameMap map = model.getCurrentLevel().getOriginalMap();
         boolean traversable = true;
         boolean noItem = true;
-        CContent content = null;
+        CellContent content = null;
         for(Point p : points){
             int x = p.getX();
             int y = p.getY();
             if(!testIfNormalContentIsAllowed(model.getCurrentLevel().getOriginalMap(),x,y)){
                 view.setAllCellButtonsDisabled(true);
-                view.setCContentButtonDisabled(CContent.EMPTY,false);
-                view.setCContentButtonDisabled(CContent.WALL,false);
+                view.setCContentButtonDisabled(CellContent.EMPTY,false);
+                view.setCContentButtonDisabled(CellContent.WALL,false);
             }
-            if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),x,y))view.setCContentButtonDisabled(CContent.EMPTY,true);
+            if(!testIfEmptyIsAllowed(model.getCurrentLevel().getOriginalMap(),x,y))view.setCContentButtonDisabled(CellContent.EMPTY,true);
             content = map.getContentAtXY(x, y);
             traversable = traversable && content.isTraversable();
         }
@@ -817,7 +817,7 @@ public class EditorController implements PropertyChangeListener {
         else view.setItemButtonDisabled(ItemType.NONE,true);
         //TODO!!
         if(view.getSelectedPointList().size() > 1){
-            view.setCContentButtonDisabled(CContent.SPAWN,true);
+            view.setCContentButtonDisabled(CellContent.SPAWN,true);
             view.getLevelEditorModule().deactivateCellDetails();
             view.setItemButtonDisabled(ItemType.NONE,false);
             return;
@@ -825,7 +825,7 @@ public class EditorController implements PropertyChangeListener {
         final int x = points.get(0).getX();
         final int y = points.get(0).getY();
         view.setCContentButtonDisabled(content, true);
-        if(content == CContent.TRAP){
+        if(content == CellContent.TRAP){
             view.getLevelEditorModule().activateTrapChoicebox();
 
             ChoiceBox<String> choiceBox = view.getLevelEditorModule().getTrapChoiceBox();
@@ -850,12 +850,12 @@ public class EditorController implements PropertyChangeListener {
                 if(flag == CFlag.ARMED)map.setItem(x, y, ItemType.NONE);
             });
         }
-        else if(content == CContent.PRESSURE_PLATE||content == CContent.ENEMY_SPAWN){
-            view.getLevelEditorModule().activateCellIDHBox(content == CContent.PRESSURE_PLATE);
+        else if(content == CellContent.PRESSURE_PLATE||content == CellContent.ENEMY_SPAWN){
+            view.getLevelEditorModule().activateCellIDHBox(content == CellContent.PRESSURE_PLATE);
             view.getLevelEditorModule().getIsInvertedCBox().setSelected(map.cellHasFlag(x,y,CFlag.INVERTED));
         }
 
-        else if(content == CContent.GATE){
+        else if(content == CellContent.GATE){
             view.getLevelEditorModule().activateLinkedCellBtns();
             view.getLevelEditorModule().getIsTurnedCBox().setSelected(map.cellHasFlag(x,y,CFlag.TURNED));
 
@@ -880,7 +880,7 @@ public class EditorController implements PropertyChangeListener {
         }else view.getLevelEditorModule().deactivateCellDetails();
 
 
-//        if(content == CContent.ENEMY_SPAWN || content == CContent.SPAWN||content == CContent.EXIT){
+//        if(content == CellContent.ENEMY_SPAWN || content == CellContent.SPAWN||content == CellContent.EXIT){
 //            view.getLevelEditorModule().addTurnable();
 //            view.getLevelEditorModule().getIsTurnedCBox().setSelected(map.cellHasFlag(x,y,CFlag.TURNED));
 //            view.getLevelEditorModule().getIsTurnedCBox().setOnAction(evt -> {
@@ -901,7 +901,7 @@ public class EditorController implements PropertyChangeListener {
         for(int i = 0; i < columnC; i++) for(int j = 0; j < rowC; j++){
             if(i*rowC+j > view.getCellTypeSelectionPane().getChildren().size()-1)return;
             Button btn = (Button) view.getCellTypeSelectionPane().getChildren().get(i*rowC+j);
-            final CContent content = CContent.getValueFromName(btn.getText().toUpperCase().replaceAll(" ", "_"));
+            final CellContent content = CellContent.getValueFromName(btn.getText().toUpperCase().replaceAll(" ", "_"));
             btn.setOnAction(mouseEvent -> {
                 for(Point p : view.getSelectedPointList()){
                 int column = p.getX();
@@ -909,11 +909,11 @@ public class EditorController implements PropertyChangeListener {
                 gameMap.clearFlags(column,row);
                 //TODO: darf es wirklich nur einen geben?
                 if(content == null) throw new IllegalStateException("Content: " + btn.getText().toUpperCase().replaceAll(" ", "_") + " doesnt exist!");
-                if(content == CContent.SPAWN){
+                if(content == CellContent.SPAWN){
                     for(int x = 0; x < gameMap.getBoundX();x++){
                         for(int y = 0; y < gameMap.getBoundY();y++){
-                            if(gameMap.getContentAtXY(x,y) == CContent.SPAWN){
-                                gameMap.setContent(x,y,CContent.PATH);
+                            if(gameMap.getContentAtXY(x,y) == CellContent.SPAWN){
+                                gameMap.setContent(x,y, CellContent.PATH);
                             }
                         }
                     }
@@ -925,7 +925,7 @@ public class EditorController implements PropertyChangeListener {
                 }
                 view.setCContentButtonDisabled(content,true);
                 if(!testIfEmptyIsAllowed(gameMap,column,row)){
-                    view.setCContentButtonDisabled(CContent.EMPTY,true);
+                    view.setCContentButtonDisabled(CellContent.EMPTY,true);
                 }
                 changeEditorModuleDependingOnCellContent(view.getSelectedPointList());}
                 gameMap.setContent(view.getSelectedPointList(),content);
@@ -943,7 +943,7 @@ public class EditorController implements PropertyChangeListener {
                     int column = p.getX();
                     int row = p.getY();
 
-                    CContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(column, row);
+                    CellContent content = model.getCurrentLevel().getOriginalMap().getContentAtXY(column, row);
                     view.setAllItemBtnsDisable(false);
                     view.setItemButtonDisabled(item,true);
                     setHandlersForMapCells();

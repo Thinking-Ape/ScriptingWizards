@@ -30,7 +30,7 @@ public abstract class GameConstants {
     public static final String LEVEL_ROOT_PATH = Paths.get("resources/levels/").toString();
     public static final String IMAGES_PATH = "resources/images/";
     public static final String ROOT_PATH = Paths.get("resources/").toString();
-    public static final int MAX_CODE_LINES = 30;
+    public static final int MAX_CODE_LINES = (int)Math.round(30*SCREEN_HEIGHT/1080.0);
     public static final int MAX_LEVEL_SIZE = 15;
     public static final int MIN_LEVEL_SIZE = 3;
     public static final double MAX_GAMEMAP_SIZE = SCREEN_HEIGHT/1.6;
@@ -57,9 +57,9 @@ public abstract class GameConstants {
     public static final Effect LAST_ADJUST = new ColorAdjust(0.5, 0.1, 0.15, 0.1);
     public static final double LEVEL_ENTRY_SIZE = SCREEN_HEIGHT/10;
     public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.12;
-    public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.4;
+    public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.25;
     public static final double BUTTON_SIZE = SCREEN_HEIGHT/10;
-    public static final double FONT_SIZE = 14.0*SCREEN_WIDTH/1920.0;
+    public static final double FONT_SIZE = 14.5*SCREEN_WIDTH/1920.0;
     public static final double SMALL_FONT_SIZE = 12.0*SCREEN_WIDTH/1920.0;
     public static final double BIGGEST_FONT_SIZE = 24.0*SCREEN_WIDTH/1920.0;
     public static final double BIG_FONT_SIZE = 17.0*SCREEN_WIDTH/1920.0;
@@ -70,14 +70,19 @@ public abstract class GameConstants {
     public static final String RESET_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Reset_Btn.png";
     public static final String SHOW_SPELLS_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Show_Spells_Btn.png";
     public static final String WIZARD_IMAGE_PATH = "file:"+IMAGES_PATH+"TutorialWizard.png";
-    public static final String TUTORIAL_LINE_1 = "Hello there! I see you are seeking guidance in order to escape this dungeon. I will aid you by introducing you to the magic language of JAVA!";
-    public static final String TUTORIAL_LINE_2 = "If you want to escape from here you will need to summon magic Knights to do your bidding! The dungeon is filled with traps and they will ensure you can leave it unhurt...";
-    public static final String TUTORIAL_LINE_3 = "At the bottom of your screen you can see 4 Buttons. The first one will bring you back to the menu, the second" +
-            " will execute your code, the third will reset the level and the last one will open a spell book.";
-    public static final String TUTORIAL_LINE_4 = "This spellbook contains all spells you have already successfully applied. It is empty right now. The Slider in the middle" +
-            " controls the speed at which the game is being executed.";
-    public static final String TUTORIAL_LINE_5 = "Lastly on the right you can see your magic script. It is also currently empty, but you can click on the" +
-            "white bar and type something if you like.";
+    public static final String[] TUTORIAL_LINES = new String[] {"Hello there! I see you are seeking guidance in order to escape this dungeon. I will aid you by introducing you to the magic language of JAVA!"
+    , "If you want to escape from here you will need to summon magic Knights to do your bidding! The dungeon is filled with traps and these Knights will ensure you may leave it unhurt..."
+    ,"Below this tutorial field is the game map"
+    , "To the left of it you can see how many Knights you have avaiable for the current Level"
+
+    ,"At the bottom of your screen you can see multiple interactable elements:"
+    , "The first one is the Back Button:\n" + "It will bring you back to the previous menu"
+   ,"The second one is the Execute or Pause Button:\n" +  "It will execute your code or pause it while running"
+    , "The third is the Speed Slider:\nIt controls the rate at which the code is executed"
+    ,"The fourth one is the Reset Button:\n" + "It will reset the level and can't be used currently as the game isnt running!"
+    ,"The last one is the spellbook:\nIt contains all spells you have already successfully applied. It is empty right now."
+    ,"To your right you can see your magic script. It is also currently empty, but you can click on it," +
+            "after clicking on the Start Button that just appeared and type something if you like."};
     public static final Font SMALL_FONT = new Font("System Regular",GameConstants.SMALL_FONT_SIZE);
     public static final Font MEDIUM_FONT = new Font("System Regular",GameConstants.FONT_SIZE);
     public static final Font BIG_FONT = new Font("System Regular",GameConstants.BIG_FONT_SIZE);
@@ -91,6 +96,7 @@ public abstract class GameConstants {
     public static final Effect HIGHLIGHT_BTN_EFFECT = new Glow();
     public static final String PREV_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Prev_Btn.png";
     public static final String NEXT_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Next_Btn.png";
+    public static final String EMPTY_TOKEN_PATH = "file:"+IMAGES_PATH+"Knight_Token_Used.png";;
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

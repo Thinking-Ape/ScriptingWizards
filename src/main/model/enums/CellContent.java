@@ -2,7 +2,7 @@ package main.model.enums;
 
 import main.utility.Util;
 
-public enum CContent {
+public enum CellContent {
 
     WALL(false),//,false,"Wall"),
     EMPTY(false),//,false,"Empty"),
@@ -22,14 +22,14 @@ public enum CContent {
 //    private boolean isCollectible;
 //    private String name;
 
-    CContent(boolean isTraversable){//, boolean isCollectible,String name){
+    CellContent(boolean isTraversable){//, boolean isCollectible,String name){
 //        this.isCollectible = isCollectible;
         this.isTraversable = isTraversable;
 //        this.name = name;
     }
 
-    public static CContent getValueFromName(String s) {
-        for(CContent c : values()){
+    public static CellContent getValueFromName(String s) {
+        for(CellContent c : values()){
             if(c.name().toUpperCase().equals(s))return c;
         }
 //        System.out.println(s);

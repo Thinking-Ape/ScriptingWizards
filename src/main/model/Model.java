@@ -17,12 +17,14 @@ public class Model implements PropertyChangeListener {
     private List<Level> finishedLevelsList;
     private PropertyChangeSupport changeSupport;
     private List<String> unlockedStatementsList;
+    private Map<Level,Integer> levelStarMap;
 
     public Model(){
         levelSet = new HashSet<>();
         finishedLevelsList = new ArrayList<>();
         currentLevelIndex = 0;
         changeSupport = new PropertyChangeSupport(this);
+        levelStarMap = new HashMap<>();
     }
 
     public Level getCurrentLevel() {
@@ -35,7 +37,6 @@ public class Model implements PropertyChangeListener {
     public void addLevel(Level level) {
         levelSet.add(level);
     }
-
 //    public void setCurrentIndexLevel(int i) {
 //        currentLevelIndex = i;
 //    }

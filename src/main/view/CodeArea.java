@@ -186,7 +186,7 @@ public class CodeArea extends HBox {
 //        }
 //            if(index == i){
             if(codeField.isEditable())codeField.setStyle(null);
-            else codeField.setStyle("-fx-background-color: rgba(200,200,255,0.5);");
+            else codeField.setStyle("-fx-background-color: rgba(150,150,255,1);");
             codeField.requestFocus();
             switch (selection){
                 case NONE:
@@ -336,8 +336,10 @@ public class CodeArea extends HBox {
                 index++;
             }
             if(i == index){
-
-                codeFieldList.get(index).setStyle("-fx-background-color: green");
+                if(!isAi)
+                    codeFieldList.get(index).setStyle("-fx-background-color: green");
+                else
+                    codeFieldList.get(index).setStyle("-fx-background-color: violet");
                 if(index >= GameConstants.MAX_CODE_LINES){
                     scroll(index-GameConstants.MAX_CODE_LINES+1);
                 }

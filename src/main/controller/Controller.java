@@ -6,11 +6,11 @@ import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.effect.Bloom;
-import javafx.scene.effect.BoxBlur;
+import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import main.model.Level;
@@ -165,12 +165,16 @@ public class Controller {
             }
             else view.setSceneState(SceneState.TUTORIAL);
 
-            view.getTutorialGroup().getNextBtn().setOnAction(evt -> {view.getTutorialGroup().next();
+            view.getTutorialGroup().getNextBtn().setOnAction(evt -> {
+                view.getTutorialGroup().next();
+                if(view.isIntroduction()){
+                    view.highlightButtons();
+                }
                 //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
                 ScrollPane sp = (ScrollPane)view.getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
                 if(view.getTutorialGroup().isLastMsg()&&view.isIntroduction())view.getTutorialGroup().getEndIntroductionBtn().setVisible(true);
                 view.getTutorialGroup().getEndIntroductionBtn().setOnAction(event-> {
-                    view.leaveInstructions();
+                    view.leaveIntroductions();
                 });
                 sp.setCache(false);
                 for (Node n : sp.getChildrenUnmodifiable()) {
@@ -178,8 +182,13 @@ public class Controller {
                 }});
             view.getTutorialGroup().getHideBtn().setOnAction(evt -> {
                 view.getTutorialGroup().toggleStackpaneVisibility();
+
             });
-            view.getTutorialGroup().getPrevBtn().setOnAction(evt -> {view.getTutorialGroup().prev();
+            view.getTutorialGroup().getPrevBtn().setOnAction(evt -> {
+                view.getTutorialGroup().prev();
+                if(view.isIntroduction()){
+                    view.highlightButtons();
+                }
                 //ANOTHER WEIRD WORKAROUND FOR BLURRY TEXT -> JAVAFX IS FULL OF BUGS!!
                 ScrollPane sp = (ScrollPane)view.getTutorialGroup().getCurrentTutorialMessage().getChildrenUnmodifiable().get(0);
                 sp.setCache(false);
@@ -208,6 +217,7 @@ public class Controller {
             setExecuteHandler();
 
             view.getCodeArea().highlightCodeField(-1);
+            if(model.getCurrentLevel().hasAi())view.getAICodeArea().highlightCodeField(-1);
             view.setNodesDisableWhenRunning(false);
             if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR){
                 view.getLevelEditorModule().setDisableAllLevelBtns(false);
@@ -221,19 +231,25 @@ public class Controller {
             view.getCodeArea().select(0,Selection.END);
         });
         view.getLoadBestCodeBtn().setOnAction(actionEvent -> {
-            List<String> bestCode = new ArrayList<>();
+            List<String> bestCode;
             try {
+                boolean noCode = view.getCodeArea().getAllText().size() == 1 && view.getCodeArea().getAllText().get(0).equals("");
+                Alert alert = new Alert(Alert.AlertType.NONE,"Do you really want to overwrite the current code?",ButtonType.OK, ButtonType.CANCEL);
+//                alert.getDialogPane().setStyle("-fx-font-size:"+GameConstants.BIG_FONT_SIZE);
+                Optional<ButtonType> result = noCode ? null : alert.showAndWait();
+                if(noCode ||(result.isPresent() && result.get() == ButtonType.OK)){
                 bestCode = JSONParser.getBestCode(model.getCurrentLevel().getName());
 //                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
-                if(bestCode.size() !=0){
-                    CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode),true,false);
-                    view.setCodeArea(codeArea,false);
+                if(bestCode.size() !=0) {
+                    CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode), true, false);
+                    view.setCodeArea(codeArea, false);
                     view.getBtnExecute().setDisable(false);
                     view.getStoreCodeBtn().setDisable(false);
 //                    codeArea.draw();
 //                    codeAreaController.setAllHandlersForCodeArea(false);
+                }else new Alert(Alert.AlertType.NONE,"No best code stored!",ButtonType.OK).showAndWait();
                 }
-                else new Alert(Alert.AlertType.NONE,"No best code stored!",ButtonType.OK).showAndWait();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
@@ -260,7 +276,7 @@ public class Controller {
             deleteLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
 //            deleteLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
             deleteLabel.setTextAlignment(TextAlignment.CENTER);
-            deleteLabel.setFont(GameConstants.BIGGEST_FONT);
+//            deleteLabel.setFont(GameConstants.BIG_FONT);
 
 
             deleteDialog.getDialogPane().setContent(deleteLabel);
@@ -293,20 +309,21 @@ public class Controller {
         view.getBtnExecute().setOnAction(actionEvent -> {
         CodeParser codeParser = new CodeParser(view.getCodeArea().getAllText(),true);
         CodeParser aiCodeParser = new CodeParser(view.getAICodeArea().getAllText(),false);
+        Level currentLevel = model.getCurrentLevel();
         try {
             ComplexStatement behaviour = codeParser.parseProgramCode();
             ComplexStatement aiBehaviour = new ComplexStatement();
-            if(model.getCurrentLevel().hasAi())aiBehaviour = aiCodeParser.parseProgramCode();
+            if(currentLevel.hasAi())aiBehaviour = aiCodeParser.parseProgramCode();
             if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR) view.getLevelEditorModule().setDisableAllLevelBtns(true);
             //TODO: delete
             if(GameConstants.DEBUG)System.out.println(behaviour.print());
             if(GameConstants.DEBUG)System.out.println(aiBehaviour.print());
-            model.getCurrentLevel().setPlayerBehaviour(behaviour);
-            //TODO: model.getCurrentLevel().addListener(view);
-            model.getCurrentLevel().setAiBehaviour(aiBehaviour);
+            currentLevel.setPlayerBehaviour(behaviour);
+            //TODO: currentLevel.addListener(view);
+            currentLevel.setAiBehaviour(aiBehaviour);
             view.setNodesDisableWhenRunning(true);
             codeAreaController.setGameRunning(true);
-//                model.getCurrentLevel().setCurrentMapToOriginal();
+//                currentLevel.setCurrentMapToOriginal();
             view.getBtnExecute().setDisable(false);
 
             view.getSpeedSlider().setDisable(false);
@@ -322,24 +339,29 @@ public class Controller {
             timeline.getKeyFrames().addAll(new KeyFrame(Duration.seconds(0.8), event ->
             {
                 try {
-                    Statement executedStatement = model.getCurrentLevel().executeTurn();
-                    int index = behaviour.findIndexOf(executedStatement,0);
+                    Statement[] executedStatements = currentLevel.executeTurn();
+                    int index = behaviour.findIndexOf(executedStatements[0],0);
                     //sadly with the current implementation, executeIfs cannot be detected as they are changed inside the CodeEvaluator
-                    if(index == -1) index = behaviour.findIndexOf(model.getCurrentLevel().getExecuteIfStatementWorkaround(),0);
+                    if(index == -1) index = behaviour.findIndexOf(currentLevel.getExecuteIfStatementWorkaround(),0);
                     if(index != -1)view.getCodeArea().highlightCodeField(index);
+                    if(model.getCurrentLevel().hasAi()){
+                        int index2 = model.getCurrentLevel().getAIBehaviour().findIndexOf(executedStatements[1],0);
+                        if(index2 == -1) index2 = model.getCurrentLevel().getAIBehaviour().findIndexOf(currentLevel.getExecuteIfStatementWorkaround(),0);
 
+                        if(index2 != -1)view.getAICodeArea().highlightCodeField(index2);
+                    }
 
-                    view.drawMap(model.getCurrentLevel().getCurrentMap());
+                    view.drawMap(currentLevel.getCurrentMap());
                     view.deselect();
-                    if (model.getCurrentLevel().isWon()){
-                        int turns = model.getCurrentLevel().getTurnsTaken();
+                    if (currentLevel.isWon()){
+                        int turns = currentLevel.getTurnsTaken();
                         int loc = behaviour.getActualSize();
 
-                        double nStars = Util.calculateStars(turns,loc,model.getCurrentLevel().getTurnsToStars(),model.getCurrentLevel().getLocToStars());
+                        double nStars = Util.calculateStars(turns,loc,currentLevel.getTurnsToStars(),currentLevel.getLocToStars());
                         //TODO: really not in editor??!
 //                            if(view.getCurrentSceneState()==SceneState.PLAY){
 
-                        JSONParser.storeProgressIfBetter(model.getCurrentLevel().getName(),turns,loc,model.getCurrentLevel().getPlayerBehaviour());
+                        JSONParser.storeProgressIfBetter(currentLevel.getName(),turns,loc,currentLevel.getPlayerBehaviour());
                         model.updateFinishedList();
 //                            }
                         timeline.stop();
@@ -349,10 +371,11 @@ public class Controller {
                         for(Level l :model.getLevelListCopy()){
                             if(l.isTutorial())amountOfTuts++;
                         }
-                        if(model.getCurrentLevel().isTutorial()&&view.getCurrentSceneState()==SceneState.TUTORIAL){
-                            view.getTutorialLevelOverviewPane().updateLevel(model.getCurrentLevel(),amountOfTuts,Util.getStarImageFromDouble(nStars));
-//                            minIndex = (minIndex > model.getCurrentLevel().getIndex()) ? minIndex : model.getCurrentLevel().getIndex();
-                            int nextIndex = model.getCurrentLevel().getIndex()+1;
+                        if(currentLevel.isTutorial()&&view.getCurrentSceneState()==SceneState.TUTORIAL){
+                            if(nStars >= Util.calculateStars(currentLevel.getBestTurns(),currentLevel.getBestLOC(),currentLevel.getTurnsToStars(),currentLevel.getLocToStars()))
+                                view.getTutorialLevelOverviewPane().updateLevel(currentLevel,amountOfTuts,Util.getStarImageFromDouble(nStars));
+//                            minIndex = (minIndex > currentLevel.getIndex()) ? minIndex : currentLevel.getIndex();
+                            int nextIndex = currentLevel.getIndex()+1;
                             minIndex = nextIndex-1 > minIndex ? nextIndex-1 : minIndex;
                             if(nextIndex < amountOfTuts-1){
                                 Level nextLevel = model.getLevelWithIndex(nextIndex);
@@ -361,8 +384,9 @@ public class Controller {
                             }
                         }
                         else if(view.getCurrentSceneState()==SceneState.PLAY){
-                            view.getLevelOverviewPane().updateLevel(model.getCurrentLevel(),amountOfTuts,Util.getStarImageFromDouble(nStars));
-                            int nextIndex = model.getCurrentLevel().getIndex()+1;
+                            if(nStars >= Util.calculateStars(currentLevel.getBestTurns(),currentLevel.getBestLOC(),currentLevel.getTurnsToStars(),currentLevel.getLocToStars()))
+                                view.getLevelOverviewPane().updateLevel(currentLevel,amountOfTuts,Util.getStarImageFromDouble(nStars));
+                            int nextIndex = currentLevel.getIndex()+1;
 
                             if(nextIndex < model.getAmountOfLevels()-1){
                                 Level nextLevel = model.getLevelWithIndex(nextIndex);
@@ -382,39 +406,21 @@ public class Controller {
                         });
                         codeAreaController.setGameRunning(false);
 //                            if(view.getCurrentSceneState() != SceneState.LEVEL_EDITOR)
-                        JSONParser.saveStatementProgress(model.getCurrentLevel().getUnlockedStatementList());
+                        JSONParser.saveStatementProgress(currentLevel.getUnlockedStatementList());
                         if(view.getLevelOverviewPane().getLevelListView().getItems().size()>0)view.getStartScreen().getPlayBtn().setDisable(false);
-                        view.getSpellBookPane().updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
+                        view.getSpellBookPane().updateSpellbookEntries(currentLevel.getUnlockedStatementList());
                     }
-                    if (model.getCurrentLevel().isLost()){
+                    if(currentLevel.isStackOverflow()){
                         timeline.stop();
-                        Alert alert;
-                        if(model.getCurrentLevel().isStackOverflow()){
-                            alert = new Alert(Alert.AlertType.NONE,"You might have accidentally caused an endless loop! You are not allowed to use big loops without method calls!", ButtonType.OK);
-                            Platform.runLater(() -> {
-                                Optional<ButtonType> result = alert.showAndWait();
-                                if(result.isPresent()){
-                                    view.getBtnReset().fire();
-                                }
-                            });
-                        }
-                        else{
-                            alert = new Alert(Alert.AlertType.NONE,"", ButtonType.OK);
-                            alert.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));
-                            Label lostLabel = new Label("You have lost!");
-                            lostLabel.setAlignment(Pos.CENTER);
-                            lostLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
-                            lostLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
-                            alert.getDialogPane().setContent(lostLabel);
-                            lostLabel.setFont(GameConstants.BIGGEST_FONT);
-                            Platform.runLater(() -> {
-                                Optional<ButtonType> result = alert.showAndWait();
-                                if(result.isPresent()){
-                                    view.getBtnReset().fire();
-                                }
-                            });
-                        }
+                        Alert alert = new Alert(Alert.AlertType.NONE,"You might have accidentally caused an endless loop! You are not allowed to use big loops without method calls!", ButtonType.OK);
+                        Platform.runLater(() -> {
+                            Optional<ButtonType> result = alert.showAndWait();
+                            if(result.isPresent()){
+                                view.getBtnReset().fire();
+                            }
+                        });
                     }
+//
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 } catch (IOException e) {

@@ -15,7 +15,7 @@ public enum MethodType {
     COLLECT("collect\\(\\)", ACTION,"Collect any item that is in front of this Knight. If this Knight already has an Item equipped, swap them!"),
     CAN_MOVE("canMove\\(\\)",BOOLEAN,"Returns a boolean value corresponding to whether this Knight can move in its current Direction"),
     HAS_ITEM("hasItem\\(.*\\)",BOOLEAN,"Optionally takes an ItemType Parameter. Returns true if this Knight is holding an Item of the specified type or if left blank any Item at all."),
-    TARGET_CELL_IS("targetCellIs\\(.+\\)",BOOLEAN,"Requires a CellContent Parameter. Returns true, if this Knight's target cell is of a type equal to the parameter."), //TODO: DISALLOW ITEMS -> PATH
+    TARGETS_CELL("targetsCell\\(.+\\)",BOOLEAN,"Requires a CellContent Parameter. Returns true, if this Knight's target cell is of a type equal to the parameter."), //TODO: DISALLOW ITEMS -> PATH
     TARGETS_ITEM("targetsItem\\(.*\\)",BOOLEAN, "Optionally takes an ItemType Parameter. Returns true if this Knight's target cell contains an Item of a type equal to the parameter. If left blank any ItemType will return true."),
     TARGETS_ENTITY("targetsEntity\\(.*\\)",BOOLEAN, "Optionally takes an EntityType Parameter. Returns true if this Knight's target cell contains an Entity of a type equal to the parameter. If left blank any EntityType will return true."),
     WAIT("wait\\(\\)", ACTION,"This Knight skips a turn."),

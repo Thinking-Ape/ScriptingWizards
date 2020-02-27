@@ -287,8 +287,8 @@ public class CodeParser {
                     return;
                 }
                 break;
-            case TARGET_CELL_IS:
-                CContent content = CContent.getValueFromName(parameters);
+            case TARGETS_CELL:
+                CellContent content = CellContent.getValueFromName(parameters);
                 if(content != null){
                     return;
                 }
@@ -540,7 +540,7 @@ public class CodeParser {
                 if(!value.matches(variableType.getAllowedRegex()))throw new IllegalArgumentException(value + " is no TurnDirection!");
                 else return;
             case CELL_CONTENT:
-                CContent content = CContent.getValueFromName(value);
+                CellContent content = CellContent.getValueFromName(value);
                 if(content == null)throw new IllegalArgumentException(value + " is no CellContent!");
                 else return;
             case ITEM_TYPE:

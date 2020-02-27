@@ -1,6 +1,6 @@
 package main.utility;
 
-import main.model.enums.CContent;
+import main.model.enums.CellContent;
 import main.model.enums.EntityType;
 import main.model.enums.ItemType;
 import main.model.enums.MethodType;
@@ -12,7 +12,7 @@ public enum VariableType {
     SKELETON("Skeleton","(new Skeleton\\((EAST|WEST|NORTH|SOUTH)?\\)|new Skeleton\\((EAST|WEST|NORTH|SOUTH),-?\\d+\\))"),
     DIRECTION ("Direction","(NORTH|SOUTH|EAST|WEST)"), // NORTH SOUTH EAST WEST
     TURN_DIRECTION ("TurnDirection","(LEFT|RIGHT|AROUND)"), // LEFT RIGHT AROUND
-    CELL_CONTENT("CellContent", Util.getRegEx(CContent.values())),
+    CELL_CONTENT("CellContent", Util.getRegEx(CellContent.values())),
     ITEM_TYPE("ItemType", Util.getRegEx(ItemType.values())),
     ENTITY_TYPE("EntityType", Util.getRegEx(EntityType.values())),
     ARMY("Army","new Army\\(( *"+GameConstants.VARIABLE_NAME_REGEX+" *, *)*"+GameConstants.VARIABLE_NAME_REGEX+" *\\)"),

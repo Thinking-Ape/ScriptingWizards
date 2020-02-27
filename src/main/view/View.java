@@ -1,5 +1,6 @@
 package main.view;
 
+import javafx.scene.effect.DropShadow;
 import main.controller.Selection;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -25,7 +26,7 @@ import javafx.stage.Stage;
 import main.main.Tester;
 import main.model.*;
 import main.model.Cell;
-import main.model.enums.CContent;
+import main.model.enums.CellContent;
 import main.model.enums.CFlag;
 import main.model.enums.EntityType;
 import main.model.enums.ItemType;
@@ -248,7 +249,7 @@ public class View implements PropertyChangeListener {
                 codeArea = Tester.evaluateCodeBox(
                         //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
           //              "Knight k1 = new Knight();","k1.move();","Knight k2 = new Knight(EAST);","k2.move();","Knight k3 = new Knight(WEST);","Army army = new Army(k1,k2,k3);","boolean b = army.isLooking(EAST);","TurnDirection dir = RIGHT;","Command cc = executeIf(b,turn(LEFT),turn(dir));","boolean bb = true;","while(bb) {","army.executeIf(army.canMove(),move(),cc);","if (army.targetCellIs(PRESSURE_PLATE)) {","bb = false;","}","}");
-                        "Knight k = new Knight(NORTH);","k.move();","Knight k2 = new Knight(EAST);","Army a = new Army(k,k2);","while(true) {","if (k.targetCellIs(PRESSURE_PLATE)) {","a.move();","a.executeIf(a.isLooking(EAST),move(),wait());","}","else if (a.canMove()) {","a.move();","}","else if (a.targetsItem()) {","a.collect();","}","else if (k2.targetCellIs(DIRT)) {","a.executeIf(a.isLooking(EAST),turn(RIGHT),useItem());","a.move();","}","else {","a.executeIf(a.isLooking(EAST),turn(LEFT),turn(RIGHT));","}","}");
+                        "Knight k = new Knight(NORTH);","k.move();","Knight k2 = new Knight(EAST);","Army a = new Army(k,k2);","while(true) {","if (k.targetsCell(PRESSURE_PLATE)) {","a.move();","a.executeIf(a.isLooking(EAST),move(),wait());","}","else if (a.canMove()) {","a.move();","}","else if (a.targetsItem()) {","a.collect();","}","else if (k2.targetCellIs(DIRT)) {","a.executeIf(a.isLooking(EAST),turn(RIGHT),useItem());","a.move();","}","else {","a.executeIf(a.isLooking(EAST),turn(LEFT),turn(RIGHT));","}","}");
 //                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -279,17 +280,26 @@ public class View implements PropertyChangeListener {
         actualMapGPane.getChildren().addAll(getGridPaneFromMap(map).getChildren());
         //TODO!
 //        actualMapGPane.setBackground(brickBackground);
+        redrawKnightsLeftVBox();
+        changeSupport.firePropertyChange("map", null, null);
+    }
+
+    private void redrawKnightsLeftVBox() {
         knightsLeftVBox.getChildren().clear();
         knightsLeftVBox.setSpacing(cell_size/4);
         knightsLeftVBox.setMinWidth(cell_size/1.5);
-        for (int i = 0; i < model.getCurrentLevel().getMaxKnights() - model.getCurrentLevel().getUsedKnights(); i++) {
+        for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
+            if(i+model.getCurrentLevel().getUsedKnights() == 1)tokenIView.setEffect(GREEN_ADJUST);
+            if(i+model.getCurrentLevel().getUsedKnights() == 2)tokenIView.setEffect(VIOLET_ADJUST);
+            if(i+model.getCurrentLevel().getUsedKnights() == 3)tokenIView.setEffect(LAST_ADJUST);
+            if(i >= model.getCurrentLevel().getMaxKnights()-model.getCurrentLevel().getUsedKnights())
+                tokenIView.setImage(new  Image(GameConstants.EMPTY_TOKEN_PATH));
             tokenIView.setFitHeight(cell_size/1.5);
             tokenIView.setFitWidth(cell_size/1.5);
             knightsLeftVBox.getChildren().add(tokenIView);
 //            System.out.println(model.getCurrentLevel().getName()+", " +getCurrentSceneState().name()+": " +cell_size);
         }
-        changeSupport.firePropertyChange("map", null, null);
     }
 
     private GridPane getGridPaneFromMap(GameMap map) {
@@ -326,7 +336,7 @@ public class View implements PropertyChangeListener {
                             continue;
 //                            if(cell.hasFlag(CFlag.KNIGHT_DEATH) && contentImageMap.containsKey(entityName+"_Death"))entityName+="_Death";
                         if(flag == CFlag.TURNED && (isTurned = true))continue;
-                        if(flag == CFlag.INVERTED && cell.getContent()==CContent.GATE){
+                        if(flag == CFlag.INVERTED && cell.getContent()== CellContent.GATE){
                             isInverted = true;
                             if(!isOpen)contentString += "_" + CFlag.OPEN.getDisplayName();
                             else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
@@ -338,7 +348,7 @@ public class View implements PropertyChangeListener {
                             else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
                             continue;
                         }
-                        if(flag == CFlag.INVERTED && cell.getContent()==CContent.PRESSURE_PLATE && model.getCurrentLevel().getTurnsTaken()==0){
+                        if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && model.getCurrentLevel().getTurnsTaken()==0){
                             isInverted = true;
                             contentString += "_"+CFlag.INVERTED.getDisplayName()+ "_" + CFlag.TRIGGERED.getDisplayName();
                             continue;
@@ -356,7 +366,7 @@ public class View implements PropertyChangeListener {
                 else {
                     ImageView imageView = new ImageView(contentImageMap.get(contentString));
                     if(isTurned)imageView.setRotate(270);
-                    if((model.getCurrentLevel().getUsedKnights() < model.getCurrentLevel().getMaxKnights()&&cell.getContent()==CContent.SPAWN))
+                    if((model.getCurrentLevel().getUsedKnights() < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN))
                         switch (model.getCurrentLevel().getUsedKnights()){
                             case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                                 break;
@@ -365,7 +375,7 @@ public class View implements PropertyChangeListener {
                             case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
                                 break;
                         }
-                    if(cell.getContent()==CContent.ENEMY_SPAWN)
+                    if(cell.getContent()== CellContent.ENEMY_SPAWN)
                         switch (entityColorMap.size() -model.getCurrentLevel().getUsedKnights()){
                             case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                                 break;
@@ -537,7 +547,7 @@ public class View implements PropertyChangeListener {
     }
 
     private Shape getCellShape(Cell cell) {
-        CContent content = cell.getContent();
+        CellContent content = cell.getContent();
         Shape shape;
         Color color = Color.WHITE;
 //        canvas.getGraphicsContext2D().setFill(Color.WHITE);
@@ -709,7 +719,7 @@ public class View implements PropertyChangeListener {
         return levelEditorModule;
     }
 
-    public void setCContentButtonDisabled(CContent content, boolean b) {
+    public void setCContentButtonDisabled(CellContent content, boolean b) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
             Button btn = (Button) n;
             if (btn.getText().equals(content.getDisplayName())) btn.setDisable(b);
@@ -732,7 +742,7 @@ public class View implements PropertyChangeListener {
     public void setAllCellButtonsDisabled(boolean b) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
             Button btn = (Button) n;
-//            if (!btn.getText().equals(CContent.EMPTY.getDisplayName()) && !btn.getText().equals(CContent.WALL.getDisplayName()))
+//            if (!btn.getText().equals(CellContent.EMPTY.getDisplayName()) && !btn.getText().equals(CellContent.WALL.getDisplayName()))
             btn.setDisable(b);
         }
         for (Node n : levelEditorModule.getCellItemSelectionGPane().getChildren()) {
@@ -817,13 +827,7 @@ public class View implements PropertyChangeListener {
                 break;
             case "maxKnights":
                 levelEditorModule.getMaxKnightsValueLbl().setText("" + model.getCurrentLevel().getMaxKnights());
-                knightsLeftVBox.getChildren().clear();
-                for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
-                    ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
-                    tokenIView.setFitHeight(cell_size);
-                    tokenIView.setFitWidth(cell_size);
-                    knightsLeftVBox.getChildren().add(tokenIView);
-                }
+               redrawKnightsLeftVBox();
                 break;
             case "aiBehaviour":
 //                System.out.println("First");
@@ -925,7 +929,6 @@ public class View implements PropertyChangeListener {
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
-                levelOverviewPane.updateUnlockedLevels(model, this);
                 stage.getScene().setRoot(rootPane);
                 break;
             case TUTORIAL:
@@ -1022,7 +1025,7 @@ public class View implements PropertyChangeListener {
                     e.printStackTrace();
                 }
                 if(isIntroduction){
-                    tutorialGroup.setEntries(Util.StringListFromArray(GameConstants.TUTORIAL_LINE_1,GameConstants.TUTORIAL_LINE_2,GameConstants.TUTORIAL_LINE_3,GameConstants.TUTORIAL_LINE_4,GameConstants.TUTORIAL_LINE_5));
+                    tutorialGroup.setEntries(Util.StringListFromArray(TUTORIAL_LINES));
                 }
                 else tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
                 break;
@@ -1052,6 +1055,7 @@ public class View implements PropertyChangeListener {
         if (getCurrentSceneState() == SceneState.TUTORIAL) {
 
             rootPane.getChildren().add(tutorialGroup);
+
 
             StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
             if(isIntroduction){
@@ -1234,7 +1238,7 @@ public class View implements PropertyChangeListener {
         return isIntroduction;
     }
 
-    public void leaveInstructions() {
+    public void leaveIntroductions() {
         tutorialGroup.leaveIntroduction();
         tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
         StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
@@ -1248,6 +1252,61 @@ public class View implements PropertyChangeListener {
 
     public LevelOverviewPane getTutorialLevelOverviewPane() {
         return tutorialLevelOverviewPane;
+    }
+
+    public void highlightButtons() {
+        Effect dropShadow = new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.YELLOW);
+        final int n = 2;
+        switch (getTutorialGroup().getCurrentIndex()){
+            case n:
+                removeEffectsOfControlElements();
+                actualMapGPane.setEffect(dropShadow);
+                break;
+            case n+1:
+                removeEffectsOfControlElements();
+                knightsLeftVBox.setEffect(dropShadow);
+                break;
+            case n+2:
+                removeEffectsOfControlElements();
+                break;
+            case n+3:
+                removeEffectsOfControlElements();
+                getBackBtn().setEffect(dropShadow);
+                break;
+            case n+4:
+                removeEffectsOfControlElements();
+                getBtnExecute().setEffect(dropShadow);
+                break;
+            case n+5:
+                removeEffectsOfControlElements();
+                getSpeedSlider().setEffect(dropShadow);
+                break;
+            case n+6:
+                removeEffectsOfControlElements();
+                getBtnReset().setEffect(dropShadow);
+                break;
+            case n+7:
+                removeEffectsOfControlElements();
+                getShowSpellBookBtn().setEffect(dropShadow);
+                break;
+
+            case n+8:
+                removeEffectsOfControlElements();
+                codeArea.setEffect(dropShadow);
+                break;
+            default: break;
+        }
+    }
+
+    private void removeEffectsOfControlElements() {
+        getBackBtn().setEffect(null);
+        actualMapGPane.setEffect(null);
+        knightsLeftVBox.setEffect(null);
+        getBtnExecute().setEffect(null);
+        getSpeedSlider().setEffect(null);
+        getBtnReset().setEffect(null);
+        getShowSpellBookBtn().setEffect(null);
+        codeArea.setEffect(null);
     }
 }
 //KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"

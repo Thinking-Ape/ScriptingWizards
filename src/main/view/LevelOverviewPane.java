@@ -15,6 +15,7 @@ import main.parser.JSONParser;
 import main.utility.Util;
 
 import java.io.IOException;
+import java.util.List;
 
 import static main.utility.GameConstants.*;
 
@@ -68,8 +69,14 @@ public class LevelOverviewPane extends VBox {
     public void updateUnlockedLevels(Model model, View view) {
         levelListView.getItems().clear();
         double width=0;
+        String[] levelNames =JSONParser.getUnlockedLevelNames();
+        String[] sortedLevelNames = new String[levelNames.length];
+        for(int i = 0; i < sortedLevelNames.length; i++)
+            for(String s : levelNames){
+            if(model.getLevelWithIndex(i).getName().equals(s))sortedLevelNames[i]=s;
+        }
 
-        for(String s : JSONParser.getUnlockedLevelNames()){
+        for(String s : sortedLevelNames){
             Level l = model.getLevelWithName(s);
             int[] bestResults = new int[0];
             try {

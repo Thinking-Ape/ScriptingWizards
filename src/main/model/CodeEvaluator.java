@@ -359,7 +359,7 @@ public class CodeEvaluator {
             if(actorPoint == null) continue;
             Point targetPoint = gameMap.getTargetPoint(objectName);
             if(targetPoint.getX()==-1)return false;
-            CContent targetContent = gameMap.getContentAtXY(targetPoint);
+            CellContent targetContent = gameMap.getContentAtXY(targetPoint);
             Entity actorEntity = gameMap.getEntity(actorPoint);
             Entity targetEntity = gameMap.getEntity(targetPoint);
             switch (MethodType.getMethodTypeFromName(methodName)){
@@ -378,8 +378,8 @@ public class CodeEvaluator {
                     if(parameterString.equals(""))output = output && (actorEntity.getItem()!= ItemType.NONE);
                     else output = output && (actorEntity.getItem()==ItemType.getValueFromName(parameterString));
                     continue;
-                case TARGET_CELL_IS:
-                    output = output && (targetContent == CContent.getValueFromName(parameterString));
+                case TARGETS_CELL:
+                    output = output && (targetContent == CellContent.getValueFromName(parameterString));
                     continue;
                 case TARGET_IS_DANGER:
                     output = output && (gameMap.cellHasFlag(targetPoint,CFlag.PREPARING)||gameMap.cellHasFlag(targetPoint,CFlag.ARMED)); //||!(targetEntity.getEntityType()!= EntityType.SKELETON)

@@ -1,11 +1,14 @@
 package main.model;
 
-import main.model.enums.CContent;
+import javafx.util.Pair;
+import main.model.enums.CellContent;
 import main.model.enums.CFlag;
 import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.utility.GameConstants;
+import main.utility.Util;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -24,6 +27,8 @@ public class Level implements PropertyChangeListener {
     private List<String> requiredLevels;
     private Integer[] locToStars;
     private Integer[] turnsToStars;
+    private int bestLOC = -1;
+    private int bestTurns = -1;
     private int turnsTaken;
     private String name;
     private int maxKnights;
@@ -39,7 +44,8 @@ public class Level implements PropertyChangeListener {
     private boolean isStackOverflow;
 
 
-    public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, String[] requiredLevels, int maxKnights, int index, boolean isTutorial,List<String> tutorialEntryList) {
+    public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, String[] requiredLevels, int maxKnights,
+                 int index, boolean isTutorial,List<String> tutorialEntryList) {
         this.name = name;
         this.index = index;
         this.isTutorial = isTutorial;
@@ -62,15 +68,20 @@ public class Level implements PropertyChangeListener {
         }
     }
 
+    public void setBestTurnsAndLOC(int bestTurns, int bestLOC){
+        this.bestTurns = bestTurns;
+        this.bestLOC = bestLOC;
+    }
 
-    public Statement executeTurn() throws IllegalAccessException {
+    public Statement[] executeTurn() throws IllegalAccessException {
         turnsTaken++;
         int noStackOverflow = 0;
         removeTemporaryFlags();
         boolean method_Called_1 = false, method_Called_2 = false;
         Statement statement=playerBehaviour;
+        Statement statement2 = aiBehaviour;
         isStackOverflow = false;
-        while(!method_Called_1 && !isWon()&&!isLost()) {
+        while(!method_Called_1 && !isWon()){ //&&!isLost()) {
             statement = evaluator.evaluateNext(playerBehaviour,currentMap);
             if(evaluator.lastStatementSummonedKnight()){
                 usedKnights++;
@@ -91,8 +102,8 @@ public class Level implements PropertyChangeListener {
             if(usedKnights == maxKnights && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
         }
 
-        while(!method_Called_2&& !isLost() && !isWon() &&!aiFinished&& GameConstants.IS_AI_ACTIVE&&aiBehaviour!=null) {
-            Statement statement2 = evaluator.evaluateNext(aiBehaviour,currentMap);
+        while(!method_Called_2 && !isWon() &&!aiFinished&& GameConstants.IS_AI_ACTIVE&&aiBehaviour!=null) { //&& !isLost()) {
+            statement2 = evaluator.evaluateNext(aiBehaviour,currentMap);
             if (statement2 == null) {
                 aiFinished = true;
                 break;
@@ -106,7 +117,7 @@ public class Level implements PropertyChangeListener {
             method_Called_2 = executor.executeBehaviour(statement2,currentMap,false);
         }
         applyGameLogicToCells();
-        return statement;
+        return new Statement[]{statement,statement2};
     }
 
     private void removeTemporaryFlags() {
@@ -123,8 +134,8 @@ public class Level implements PropertyChangeListener {
     private void applyGameLogicToCells() {
         for(int x = 0; x < currentMap.getBoundX(); x++)for(int y = 0; y < currentMap.getBoundY(); y++) {
             final Cell cell = currentMap.getCellAtXYClone(x,y);
-            CContent content = currentMap.getContentAtXY(x,y);
-            if (content == CContent.PRESSURE_PLATE) {
+            CellContent content = currentMap.getContentAtXY(x,y);
+            if (content == CellContent.PRESSURE_PLATE) {
                 boolean invertedAndNotFree = (cell.getEntity() == NO_ENTITY && cell.getItem() != ItemType.BOULDER) && cell.hasFlag(CFlag.INVERTED);
                 boolean notInvertedAndFree = (cell.getEntity() != NO_ENTITY || cell.getItem() == ItemType.BOULDER) && !cell.hasFlag(CFlag.INVERTED);
                 if (invertedAndNotFree || notInvertedAndFree) currentMap.setFlag(x, y, CFlag.TRIGGERED, true);
@@ -133,9 +144,9 @@ public class Level implements PropertyChangeListener {
         }
         for(int x = 0; x < currentMap.getBoundX(); x++)for(int y = 0; y < currentMap.getBoundY(); y++){
             final Cell cell = currentMap.getCellAtXYClone(x,y);
-            CContent content = currentMap.getContentAtXY(x,y);
+            CellContent content = currentMap.getContentAtXY(x,y);
             boolean notAllTriggered = false;
-            if(content == CContent.GATE){
+            if(content == CellContent.GATE){
                 for (int i = 0; i < cell.getLinkedCellsSize();i++){
                     if(!currentMap.findCellWithId(currentMap.getLinkedCellId(x,y,i)).hasFlag(CFlag.TRIGGERED)){
                         if(!currentMap.cellHasFlag(x, y, CFlag.INVERTED))
@@ -154,7 +165,7 @@ public class Level implements PropertyChangeListener {
                 }
             }
 
-            if(cell.getContent() == CContent.TRAP && currentMap.getItem(x,y) != ItemType.BOULDER){
+            if(cell.getContent() == CellContent.TRAP && currentMap.getItem(x,y) != ItemType.BOULDER){
             if(cell.hasFlag(CFlag.PREPARING)&&cell.hasFlag(CFlag.ARMED))
                 throw new IllegalStateException("A cell is not allowed to have more than 1 of these flags: armed or preparing!");
             if(cell.hasFlag(CFlag.PREPARING)){
@@ -228,10 +239,10 @@ public class Level implements PropertyChangeListener {
             for(int x = 0; x < originalMap.getBoundX(); x++){
 
                 if(y < originalMap.getBoundY()){
-                    if(y == newHeight-1 && originalMap.getContentAtXY(x,y) != CContent.EMPTY)newMap[x][y]=  new Cell(CContent.WALL);
+                    if(y == newHeight-1 && originalMap.getContentAtXY(x,y) != CellContent.EMPTY)newMap[x][y]=  new Cell(CellContent.WALL);
                     else newMap[x][y]=originalMap.getCellAtXYClone(x,y);
                 }
-                else newMap[x][y] = new Cell(CContent.WALL);
+                else newMap[x][y] = new Cell(CellContent.WALL);
             }
         }
         originalMap = new GameMap(newMap,this);
@@ -245,10 +256,10 @@ public class Level implements PropertyChangeListener {
         for(int y = 0; y < originalMap.getBoundY(); y++ ){
             for(int x = 0; x < newWidth; x++){
                 if(x < originalMap.getBoundX()){
-                    if(x == newWidth-1 && originalMap.getContentAtXY(x,y) != CContent.EMPTY)newMap[x][y]=  new Cell(CContent.WALL);
+                    if(x == newWidth-1 && originalMap.getContentAtXY(x,y) != CellContent.EMPTY)newMap[x][y]=  new Cell(CellContent.WALL);
                     else newMap[x][y]=originalMap.getCellAtXYClone(x,y);
                 }
-                else newMap[x][y] = new Cell(CContent.WALL);
+                else newMap[x][y] = new Cell(CellContent.WALL);
             }
         }
         originalMap = new GameMap(newMap,this);
@@ -413,5 +424,12 @@ public class Level implements PropertyChangeListener {
     }
     public Statement getExecuteIfStatementWorkaround(){
         return evaluator.getExecuteIfWorkaround();
+    }
+
+    public int getBestLOC() {
+        return bestLOC;
+    }
+    public int getBestTurns() {
+        return bestTurns;
     }
 }

@@ -150,8 +150,8 @@ public class CodeExecutor {
         String name = gameMap.getEntity(actorPos).getName();
         Point targetPos =  gameMap.getTargetPoint(name);
         Entity actorEntity = gameMap.getEntity(actorPos);
-        CContent targetContent = gameMap.getContentAtXY(targetPos);
-        if(actorEntity.getItem() == ItemType.KEY&&targetContent == CContent.EXIT){
+        CellContent targetContent = gameMap.getContentAtXY(targetPos);
+        if(actorEntity.getItem() == ItemType.KEY&&targetContent == CellContent.EXIT){
             actorEntity.setItem(ItemType.NONE);
             gameMap.setFlag(targetPos, CFlag.OPEN, true);
             hasWon = true;
@@ -161,8 +161,8 @@ public class CodeExecutor {
 //            beaconEntity = actorEntity;
 //        }
         if((actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD)&&GameConstants.ACTION_WITHOUT_CONSEQUENCE)gameMap.setFlag(actorPos , CFlag.ACTION,true );
-        if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CContent.DIRT){
-            gameMap.setContent(targetPos,CContent.PATH);
+        if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CellContent.DIRT){
+            gameMap.setContent(targetPos, CellContent.PATH);
             gameMap.setFlag(actorPos, CFlag.ACTION, true );
             gameMap.setFlag(targetPos, CFlag.DIRT_REMOVED, true );
         }
@@ -178,7 +178,7 @@ public class CodeExecutor {
         String name = gameMap.getEntity(actorPos).getName();
         Point targetPos =  gameMap.getTargetPoint(name);
         Entity actorEntity = gameMap.getEntity(actorPos);
-        CContent targetContent = gameMap.getContentAtXY(targetPos);
+        CellContent targetContent = gameMap.getContentAtXY(targetPos);
 
         if((targetContent.isTraversable()||gameMap.gateIsOpen(targetPos))&&gameMap.isCellFree(targetPos)){
                 gameMap.setItem(targetPos,actorEntity.getItem());
@@ -269,8 +269,8 @@ public class CodeExecutor {
         boolean isOpen = gameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ gameMap.cellHasFlag(targetPoint, CFlag.INVERTED);
         if(gameMap.isGateWrongDirection(actorPoint, targetPoint))return;
         if((gameMap.getContentAtXY(targetPoint).isTraversable()||isOpen) && gameMap.isCellFree(targetPoint)){
-            CContent targetContent =gameMap.getContentAtXY(targetPoint);
-//            if(targetContent==CContent.EXIT){
+            CellContent targetContent =gameMap.getContentAtXY(targetPoint);
+//            if(targetContent==CellContent.EXIT){
 //                if(isPlayer)hasWon = true;
 //                return;
 //                //TODO: replace with better handling in controller!
@@ -279,14 +279,14 @@ public class CodeExecutor {
             gameMap.removeEntity(actorPoint);
             gameMap.setEntity(targetPoint,  actorEntity );
 
-            if(targetContent==CContent.TRAP && gameMap.cellHasFlag(targetPoint,CFlag.ARMED)){
+            if(targetContent== CellContent.TRAP && gameMap.cellHasFlag(targetPoint,CFlag.ARMED)){
                 gameMap.kill(targetPoint);
             }
 
-            if(targetContent == CContent.PRESSURE_PLATE){
+            if(targetContent == CellContent.PRESSURE_PLATE){
                 gameMap.setFlag(targetPoint,CFlag.TRIGGERED,true);
             }
-            if(gameMap.getContentAtXY(actorPoint) == CContent.PRESSURE_PLATE){
+            if(gameMap.getContentAtXY(actorPoint) == CellContent.PRESSURE_PLATE){
                 gameMap.setFlag(actorPoint,CFlag.TRIGGERED,false);
             }
 //            output = targetCell;
