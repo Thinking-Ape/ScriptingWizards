@@ -4,8 +4,14 @@ package main.view;
 //import javafx.scene.control.TextArea;
 
 import javafx.application.Platform;
+import javafx.scene.control.Button;
 import javafx.scene.effect.Bloom;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.Effect;
 import javafx.scene.effect.Glow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.paint.Color;
 import main.controller.Selection;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Orientation;
@@ -23,7 +29,10 @@ import main.utility.Util;
 
 import java.util.*;
 
-public class CodeArea extends HBox {
+import static main.utility.GameConstants.BUTTON_SIZE;
+import static main.utility.GameConstants.SMALL_BUTTON_SIZE;
+
+public class CodeArea extends VBox {
 
     private VBox rectVBox = new VBox();
 //    private VBox rectVBox2 = new VBox();
@@ -41,6 +50,9 @@ public class CodeArea extends HBox {
     private boolean isAi = false;
 //    private StackPane secondStackPane = new StackPane();
 
+    private  Button upBtn = new Button();
+    private Button downBtn = new Button();
+
     public CodeArea (boolean isAi){
         this(new ComplexStatement(),true,isAi);
     }
@@ -53,11 +65,48 @@ public class CodeArea extends HBox {
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
-//        if(codeFieldList.size()>GameConstants.MAX_CODE_LINES)Platform.runLater(()->{
-//            makeScrollable();
-//            scrollBar.setVisible(true);
-//        });
-//        scrollBar.setPrefHeight(rectVBox.getPrefHeight());
+        ImageView iconIView;
+        ImageView upBtnIV = new ImageView(new Image(GameConstants.UP_BTN_IMAGE_PATH));
+        ImageView downBtnIV = new ImageView(new Image(GameConstants.DOWN_BTN_IMAGE_PATH));
+        upBtnIV.setFitHeight(SMALL_BUTTON_SIZE/2);
+        upBtnIV.setFitWidth(SMALL_BUTTON_SIZE/2);
+        downBtnIV.setFitHeight(SMALL_BUTTON_SIZE/2);
+        downBtnIV.setFitWidth(SMALL_BUTTON_SIZE/2);
+        upBtn.setGraphic(upBtnIV);
+        upBtn.setStyle("-fx-background-color: transparent;" +
+                "-fx-base: transparent;");
+        downBtn.setStyle("-fx-background-color: transparent;" +
+                "-fx-base: transparent;");
+        downBtn.setGraphic(downBtnIV);
+        HBox hb1 = new HBox(upBtn);
+
+        HBox hb2 = new HBox(downBtn);
+
+        if(!isAi){
+            iconIView = new ImageView(new Image(GameConstants.BLUE_SCRIPT_ICON_PATH));
+            hb1.setAlignment(Pos.BOTTOM_RIGHT);
+            hb2.setAlignment(Pos.TOP_RIGHT);
+        }
+        else{
+            iconIView = new ImageView(new Image(GameConstants.RED_SCRIPT_ICON_PATH));
+            hb1.setAlignment(Pos.BOTTOM_LEFT);
+            hb2.setAlignment(Pos.TOP_LEFT);
+        }
+
+        iconIView.setFitWidth(SMALL_BUTTON_SIZE);
+        iconIView.setFitHeight(SMALL_BUTTON_SIZE);
+
+        hb1.setPrefWidth(GameConstants.TEXTFIELD_WIDTH);
+        hb2.setPrefWidth(GameConstants.TEXTFIELD_WIDTH);
+
+        StackPane sp = new StackPane(iconIView,hb1);
+        this.getChildren().addAll(new HBox(),new HBox(),new HBox());
+        this.getChildren().set(0, sp);
+        this.getChildren().set(2, hb2);
+
+        upBtn.setDisable(true);
+        downBtn.setDisable(true);
+
     }
     public CodeArea (ComplexStatement behaviour, boolean isAi) {
         this(behaviour,true,isAi);
@@ -104,7 +153,6 @@ public class CodeArea extends HBox {
         codeFieldList.add(index,codeField);
     }
     void draw(){
-        this.getChildren().clear();
         rectStackList = getRectanglesFromList(codeFieldList);
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
@@ -121,18 +169,34 @@ public class CodeArea extends HBox {
         else isScrollable = false;
         firstStackPane.getChildren().clear();
         firstStackPane.getChildren().addAll(rectVBox,codeVBox);
-        this.getChildren().add(firstStackPane);
-        this.getChildren().add(scrollBar);
-        scrollBar.setOrientation(Orientation.VERTICAL);
-        scrollBar.setMin(0);
-        scrollBar.setMax(codeFieldList.size()-GameConstants.MAX_CODE_LINES);
-        scrollBar.setBlockIncrement(1);
-        scrollBar.setVisibleAmount(0.5);
+        this.getChildren().set(1,firstStackPane);
+//        this.getChildren().add(scrollBar);
+        //ALL COMMENTS BELOW WITHIN THIS METHOD ARE TO BE REMOVED!
+//        scrollBar.setOrientation(Orientation.VERTICAL);
+//        scrollBar.setMin(0);
+//        scrollBar.setMax(codeFieldList.size()-GameConstants.MAX_CODE_LINES);
+//        scrollBar.setBlockIncrement(1);
+//        scrollBar.setVisibleAmount(0.5);
         rectVBox.autosize();
         scrollBar.setPrefHeight(rectVBox.getLayoutBounds().getHeight());
         scrollBar.setDisable(GameConstants.MAX_CODE_LINES >= codeFieldList.size());
-        if(codeFieldList.size() == 1)scrollBar.setVisible(false);
-        else scrollBar.setVisible(true);
+//        if(codeFieldList.size() == 1)scrollBar.setVisible(false);
+//        else scrollBar.setVisible(true);
+        updateScrollButtons(bound);
+    }
+
+    private void updateScrollButtons(int bound) {
+        Effect effect = GameConstants.GLOW_BTN_EFFECT;
+        if(bound > 0){
+            upBtn.setDisable(false);
+            upBtn.setEffect(effect);
+        }
+        else upBtn.setDisable(true);
+        if(bound+GameConstants.MAX_CODE_LINES < codeFieldList.size()){
+            downBtn.setDisable(false);
+            downBtn.setEffect(effect);
+        }
+        else downBtn.setDisable(true);
     }
 
     private void makeScrollable() {
@@ -273,6 +337,15 @@ public class CodeArea extends HBox {
             codeVBox.getChildren().add(codeFieldList.get(i));
             rectVBox.getChildren().add(rectStackList.get(i));
         }
+        if(indexOfCodeField(selectedCodeField)>=GameConstants.MAX_CODE_LINES+t1){
+            deselectAll();
+            select(GameConstants.MAX_CODE_LINES-1+t1, Selection.END);
+        }
+        else if(indexOfCodeField(selectedCodeField)<t1){
+            deselectAll();
+            select(t1, Selection.END);
+        }
+        updateScrollButtons(t1);
     }
     public void addListenerToScrollbar(ChangeListener<Number> changeListener){
         // make sure the Listener is only added once!
@@ -349,5 +422,13 @@ public class CodeArea extends HBox {
             }
             i++;
         }
+    }
+
+    public Button getUpBtn() {
+        return upBtn;
+    }
+
+    public Button getDownBtn() {
+        return downBtn;
     }
 }

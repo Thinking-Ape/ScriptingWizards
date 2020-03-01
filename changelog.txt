@@ -9,6 +9,15 @@ Version 1.3a:
     - Changed Images of Knight Tokens
     - Load Best Code now gives a warning when code is not empty
     - Fixed a bug where entering Challenges would take a lot of time
+    - Changed LearnTheRopes.json
+    - Added functionality to dropItem(): You can now pass Items to other Knights facing the opposite direction and
+      carrying no Items of their own
+    - Scrolling now selects correct CodeFields
+    - Removed ScrollBar
+    - Added Up and Down Buttons to scroll
+    - Added new Level 'UnexpectedTurn' to introduce Variables
+    - Changed WastePress, TheThreeBrothers and The Final Stand AI to work without ExecuteIfs
+    - Removed executeIf as it was didactically impractical
 Version 1.2e:
     - fixed a bug, where variables from inside a for-loop would not be recognized in while loop or if statement
     - fixed a bug, where playing a level in Level Editor would throw an error if this Level was not already unlocked in

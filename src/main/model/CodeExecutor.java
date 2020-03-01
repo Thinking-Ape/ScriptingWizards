@@ -178,11 +178,24 @@ public class CodeExecutor {
         String name = gameMap.getEntity(actorPos).getName();
         Point targetPos =  gameMap.getTargetPoint(name);
         Entity actorEntity = gameMap.getEntity(actorPos);
+        Entity targetEntity = gameMap.getEntity(targetPos);
         CellContent targetContent = gameMap.getContentAtXY(targetPos);
 
-        if((targetContent.isTraversable()||gameMap.gateIsOpen(targetPos))&&gameMap.isCellFree(targetPos)){
+        if((targetContent.isTraversable()||gameMap.gateIsOpen(targetPos))&&gameMap.getCellAtXYClone(targetPos.getX(),targetPos.getY() ).getItem()==ItemType.NONE){
+            boolean correctDirection = false;
+            if(targetEntity.getDirection() != null){
+                correctDirection = targetEntity.getDirection() != actorEntity.getDirection();
+                int ordinalSum = targetEntity.getDirection().ordinal() + actorEntity.getDirection().ordinal();
+                correctDirection = correctDirection && (ordinalSum%2 == 0);
+            }
+            if(targetEntity==GameConstants.NO_ENTITY){
                 gameMap.setItem(targetPos,actorEntity.getItem());
                 actorEntity.setItem(ItemType.NONE);
+            }
+            else if(targetEntity.getItem()==ItemType.NONE && correctDirection){
+                gameMap.getEntity(targetPos).setItem(actorEntity.getItem());
+                actorEntity.setItem(ItemType.NONE);
+            }
         }
     }
 
@@ -339,24 +352,7 @@ public class CodeExecutor {
                 if(gameMap.getEntity(position).getItem()==ItemType.NONE)break;
                 tryToDropItem(position);
                 break;
-            case EXECUTE_IF:
-                String booleanString = methodCall.getParameters()[0];
-                if(booleanString.matches("(.+ )*"+name+":"+"true (.+ )*")){
-                    ExpressionTree expressionTree = evaluateCommand(methodCall.getParameters()[1],methodCall);
-                    MethodCall mc1 = new MethodCall(MethodType.getMethodTypeFromCall(expressionTree.getText()), name,expressionTree.getRightNode().getText() );
-                    mc1.setParentStatement(methodCall.getParentStatement());
-                    executeMethodCall(mc1, isPlayer);
-//                    booleanString =booleanString.replaceFirst("true", "");
-                }
-                else if(booleanString.matches("(.+ )*"+name+":"+"false (.+ )*")){
-                    ExpressionTree expressionTree = evaluateCommand(methodCall.getParameters()[2],methodCall);
-                    MethodCall mc2 = new MethodCall(MethodType.getMethodTypeFromCall(expressionTree.getText()), name,expressionTree.getRightNode().getText() );
-                    mc2.setParentStatement(methodCall.getParentStatement());
-                    executeMethodCall(mc2, isPlayer);
-//                    booleanString =booleanString.replaceFirst("false", "");
-                }
-                else throw new IllegalArgumentException("Something went wrong");
-                break;
+
         }}
     }
 

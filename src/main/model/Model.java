@@ -19,12 +19,19 @@ public class Model implements PropertyChangeListener {
     private List<String> unlockedStatementsList;
     private Map<Level,Integer> levelStarMap;
 
-    public Model(){
+    private static Model single_Instance = null;
+
+    private Model(){
         levelSet = new HashSet<>();
         finishedLevelsList = new ArrayList<>();
         currentLevelIndex = 0;
         changeSupport = new PropertyChangeSupport(this);
         levelStarMap = new HashMap<>();
+    }
+
+    public static Model getInstance() {
+        if(single_Instance == null)single_Instance = new Model();
+        return single_Instance;
     }
 
     public Level getCurrentLevel() {
@@ -60,7 +67,7 @@ public class Model implements PropertyChangeListener {
         }
     }
 
-    public void removeLevel(Level currentLevel) throws IOException, IllegalAccessException {
+    public void removeLevel(Level currentLevel) throws IOException {
         int index = currentLevel.getIndex();
         levelSet.remove(currentLevel);
         JSONParser.removeLevelFromData(currentLevel.getName());

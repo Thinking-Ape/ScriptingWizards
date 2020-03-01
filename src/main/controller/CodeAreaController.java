@@ -48,12 +48,35 @@ public class CodeAreaController implements PropertyChangeListener {
         if(codeArea.isAi() && view.getCurrentSceneState() != SceneState.LEVEL_EDITOR)codeArea.setEditable(false);
         codeArea.addListenerToScrollbar((observableValue, number, t1) -> codeArea.scroll(Math.round(t1.floatValue())));
         codeArea.setOnScroll(evt -> {
+            if(isError)return;
             double y = evt.getDeltaY();
             int dy = codeArea.getScrollBar().getScrollAmount();
             if(y < 0 && codeArea.getScrollBar().getScrollAmount()+1<=codeArea.getSize()-GameConstants.MAX_CODE_LINES)dy =codeArea.getScrollBar().getScrollAmount()+1;
             if(y > 0 && codeArea.getScrollBar().getScrollAmount()-1 >= 0)dy =codeArea.getScrollBar().getScrollAmount()-1;
             codeArea.scroll(dy);
 
+        });
+        codeArea.getUpBtn().setOnAction(actionEvent -> {
+            if(isError)return;
+            codeArea.scroll(codeArea.getScrollBar().getScrollAmount() - 1);
+        });
+        codeArea.getDownBtn().setOnAction(actionEvent -> {
+            if(isError)return;
+            codeArea.scroll(codeArea.getScrollBar().getScrollAmount()+ 1);
+        });
+        codeArea.getUpBtn().setOnMouseEntered(actionEvent -> {
+            codeArea.getUpBtn().setEffect(GameConstants.HIGHLIGHT_BTN_EFFECT);
+        });
+        codeArea.getDownBtn().setOnMouseEntered(actionEvent -> {
+
+            codeArea.getDownBtn().setEffect(GameConstants.HIGHLIGHT_BTN_EFFECT);
+        });
+        codeArea.getUpBtn().setOnMouseExited(actionEvent -> {
+            codeArea.getUpBtn().setEffect(GameConstants.GLOW_BTN_EFFECT);
+        });
+        codeArea.getDownBtn().setOnMouseExited(actionEvent -> {
+
+            codeArea.getDownBtn().setEffect(GameConstants.GLOW_BTN_EFFECT);
         });
     }
     private void setHandlerForCodeField(CodeField currentCodeField,boolean isAi) {
@@ -337,6 +360,8 @@ public class CodeAreaController implements PropertyChangeListener {
 //            return true;
         }
         else {
+            codeArea.getUpBtn().setDisable(true);
+            codeArea.getDownBtn().setDisable(true);
             view.getBtnExecute().setDisable(true);
             view.getStoreCodeBtn().setDisable(true);
             codeArea.setEditable(false);

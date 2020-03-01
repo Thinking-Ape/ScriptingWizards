@@ -69,7 +69,7 @@ public class View implements PropertyChangeListener {
     private Button btnExecute;
     private Button btnReset;
     //    TextArea codeTextArea;
-    private CodeArea codeArea ;
+    private CodeArea codeArea = new CodeArea(false) ;
     private CodeArea aiCodeArea;
     private VBox vBox;
     private Slider speedSlider;
@@ -107,15 +107,20 @@ public class View implements PropertyChangeListener {
     private Button loadBestCodeBtn = new Button("Load Best Code");
     private Button clearCodeBtn = new Button("Clear Code");
     private Button storeCodeBtn = new Button("Store Code");
-    private IntroductionPane introductionPane = IntroductionPane.getInstance();
 
     //TODO: for visual purposes:
     List<Entity> entityActionList = new ArrayList<>();
     Map<String, Effect> entityColorMap = new HashMap<>();
     private boolean isIntroduction;
 
+    private static View instance = null;
 
-    public View(Model model, Stage stage, boolean isEditor) {
+    public static View getInstance(Model model, Stage stage){
+        if(instance == null)instance = new View(model, stage);
+        return instance;
+    }
+
+    private View(Model model, Stage stage) {
         msgLabel.setStyle("-fx-text-fill: red;-fx-background-color: white");
         msgLabel.setFont(GameConstants.BIG_FONT);
         spellBookPane.updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
@@ -241,7 +246,7 @@ public class View implements PropertyChangeListener {
         if(DEBUG)hBox.getChildren().add(debugBtn );
         hBox.getChildren().addAll(storeCodeBtn,loadBestCodeBtn, clearCodeBtn);
         if (model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0)
-            aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(), isEditor,true);
+            aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true, true);
         else aiCodeArea = new CodeArea(true);
         //"Knight knight = new Knight(WEST);","int turns = 0;","while(true){","if(knight.targetIsUnarmed() && knight.canMove()){","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)){","knight.wait();","}","else if (knight.targetCellIs(EXIT)){","knight.useItem();","}","else if (knight.targetCellIs(KEY)){","knight.collect();","}","else if (turns < 2){","turns = turns + 1;","knight.turn(EAST);","}","else {","knight.turn(WEST);","}","}"
         if (GameConstants.DEBUG) {
@@ -641,10 +646,8 @@ public class View implements PropertyChangeListener {
             leftVBox.getChildren().clear();
             if(codeArea.getSize()>0)
             {
-                ImageView redIconIView = new ImageView(new Image(GameConstants.RED_SCRIPT_ICON_PATH));
-                redIconIView.setFitWidth(BUTTON_SIZE/2.5);
-                redIconIView.setFitHeight(BUTTON_SIZE/2.5);
-                leftVBox.getChildren().addAll(redIconIView, aiCodeArea);
+
+                leftVBox.getChildren().addAll( aiCodeArea);
             }
             leftVBox.setAlignment(Pos.TOP_CENTER);
         }
@@ -779,6 +782,8 @@ public class View implements PropertyChangeListener {
                 entityColorMap = new HashMap<>();
                 selectedPointList = new ArrayList<>();
                 selectedPointList.add(new Point(0, 0));
+                codeArea.getScrollBar().setScrollAmount(0);
+                aiCodeArea.getScrollBar().setScrollAmount(0);
                 if (model.getCurrentLevel().hasAi()) {
                     aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true);
                     setCodeArea(aiCodeArea,true);
@@ -960,13 +965,11 @@ public class View implements PropertyChangeListener {
         knightsLeftVBox.setAlignment(Pos.TOP_RIGHT);
         //TODO
 
-        ImageView blueIconIView = new ImageView(new Image(GameConstants.BLUE_SCRIPT_ICON_PATH));
-        blueIconIView.setFitWidth(BUTTON_SIZE/2.5);
-        blueIconIView.setFitHeight(BUTTON_SIZE/2.5);
+
         rightVBox.setAlignment(Pos.TOP_CENTER);
-        rightVBox.getChildren().addAll(blueIconIView, vBox);
+        rightVBox.getChildren().addAll(vBox);
         baseContentVBox.getChildren().clear();
-        HBox topCenterHBox;
+
 
         HBox bottomHBox = new HBox(backBtn, btnExecute, speedVBox, btnReset, showSpellBookBtn);
         bottomHBox.setAlignment(Pos.BOTTOM_CENTER);
@@ -1210,10 +1213,6 @@ public class View implements PropertyChangeListener {
     }
     public Button getStoreCodeBtn() {
         return storeCodeBtn;
-    }
-
-    public IntroductionPane getIntroductionPane() {
-        return introductionPane;
     }
 
     public Stage getStage() {

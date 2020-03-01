@@ -15,7 +15,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Model model = new Model();
+        Model model = Model.getInstance();
         String[] levelNameList = JSONParser.getUnlockedLevelNames();
         List<Level> levelList = JSONParser.parseAllResourceLevels();
         levelList.sort((l1, l2) -> l1.getIndex() > l2.getIndex() ? 1 : -1);
@@ -28,7 +28,7 @@ public class Main extends Application {
         model.selectLevel(levelNameList[levelNameList.length-1]);
 
         Tester.runTests(model);
-        View view = new View(model, primaryStage,true);
+        View view = View.getInstance(model, primaryStage);
 //        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 //            public void handle(WindowEvent we) {
 //                try {
@@ -38,7 +38,7 @@ public class Main extends Application {
 //                }
 //            }
 //        });
-        Controller controller = new Controller(view,model);
+        Controller.instantiate(view,model);
 
         /*Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Hello World");

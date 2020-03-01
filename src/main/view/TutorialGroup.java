@@ -46,13 +46,13 @@ public class TutorialGroup extends Group {
         ImageView nextIV = new ImageView(new Image(GameConstants.NEXT_BTN_IMAGE_PATH));
         nextIV.setScaleX(GameConstants.WIDTH_RATIO);
         nextIV.setScaleY(GameConstants.HEIGHT_RATIO);
-        nextIV.setFitHeight(GameConstants.BUTTON_SIZE/2.5);
-        nextIV.setFitWidth(GameConstants.BUTTON_SIZE/2.5);
+        nextIV.setFitHeight(GameConstants.SMALL_BUTTON_SIZE);
+        nextIV.setFitWidth(GameConstants.SMALL_BUTTON_SIZE);
         ImageView prevIV = new ImageView(new Image(GameConstants.PREV_BTN_IMAGE_PATH));
         prevIV.setScaleX(GameConstants.WIDTH_RATIO);
         prevIV.setScaleY(GameConstants.HEIGHT_RATIO);
-        prevIV.setFitHeight(GameConstants.BUTTON_SIZE/2.5);
-        prevIV.setFitWidth(GameConstants.BUTTON_SIZE/2.5);
+        prevIV.setFitHeight(GameConstants.SMALL_BUTTON_SIZE);
+        prevIV.setFitWidth(GameConstants.SMALL_BUTTON_SIZE);
         prevBtn.setGraphic(prevIV);
         nextBtn.setGraphic(nextIV);
 

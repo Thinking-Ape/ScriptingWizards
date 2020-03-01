@@ -22,10 +22,7 @@ import main.utility.GameConstants;
 import main.parser.CodeParser;
 import main.parser.JSONParser;
 import main.utility.Util;
-import main.view.CodeArea;
-import main.view.CodeField;
-import main.view.SceneState;
-import main.view.View;
+import main.view.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +39,14 @@ public class Controller {
     private EditorController editorController;
     private int minIndex = 0;
 
-    public Controller(View view, Model model){
+    private static Controller single_Instance = null;
+
+    public static Controller instantiate(View view, Model model){
+        if(single_Instance == null)single_Instance = new Controller(view, model);
+        return single_Instance;
+    }
+
+    private Controller(View view, Model model){
         this.model = model;
         this.view = view;
 //        view.notify(Event.LEVEL_CHANGED); //TODO: better solution?
@@ -242,6 +246,7 @@ public class Controller {
 //                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
                 if(bestCode.size() !=0) {
                     CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode), true, false);
+                    codeArea.getScrollBar().setScrollAmount(0);
                     view.setCodeArea(codeArea, false);
                     view.getBtnExecute().setDisable(false);
                     view.getStoreCodeBtn().setDisable(false);
@@ -289,9 +294,11 @@ public class Controller {
                     default:
                         break;
                     case YES:
+
                         ComplexStatement complexStatement = new ComplexStatement();
                         complexStatement.addSubStatement(new SimpleStatement());
                         CodeArea codeArea = new CodeArea(complexStatement,true,false);
+                        codeArea.getScrollBar().setScrollAmount(0);
                         view.setCodeArea(codeArea,false);
                         break;
                 }
@@ -309,6 +316,8 @@ public class Controller {
         view.getBtnExecute().setOnAction(actionEvent -> {
         CodeParser codeParser = new CodeParser(view.getCodeArea().getAllText(),true);
         CodeParser aiCodeParser = new CodeParser(view.getAICodeArea().getAllText(),false);
+            view.getCodeArea().getScrollBar().setScrollAmount(0);
+            view.getAICodeArea().getScrollBar().setScrollAmount(0);
         Level currentLevel = model.getCurrentLevel();
         try {
             ComplexStatement behaviour = codeParser.parseProgramCode();
@@ -342,11 +351,11 @@ public class Controller {
                     Statement[] executedStatements = currentLevel.executeTurn();
                     int index = behaviour.findIndexOf(executedStatements[0],0);
                     //sadly with the current implementation, executeIfs cannot be detected as they are changed inside the CodeEvaluator
-                    if(index == -1) index = behaviour.findIndexOf(currentLevel.getExecuteIfStatementWorkaround(),0);
+//                    if(index == -1) index = behaviour.findIndexOf(currentLevel.getExecuteIfStatementWorkaround(),0);
                     if(index != -1)view.getCodeArea().highlightCodeField(index);
                     if(model.getCurrentLevel().hasAi()){
                         int index2 = model.getCurrentLevel().getAIBehaviour().findIndexOf(executedStatements[1],0);
-                        if(index2 == -1) index2 = model.getCurrentLevel().getAIBehaviour().findIndexOf(currentLevel.getExecuteIfStatementWorkaround(),0);
+//                        if(index2 == -1) index2 = model.getCurrentLevel().getAIBehaviour().findIndexOf(currentLevel.getExecuteIfStatementWorkaround(),0);
 
                         if(index2 != -1)view.getAICodeArea().highlightCodeField(index2);
                     }

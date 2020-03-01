@@ -255,13 +255,7 @@ public class CodeParser {
         if(isPlayerCode && mType == MethodType.ATTACK) throw new IllegalArgumentException("Knights cannot attack!");
         testForCorrectParameters(parameters,mType,depth);
         if(!parameters.equals("")){
-            if(mType == MethodType.EXECUTE_IF){
-                String[] parameterList = parameters.split(",");
-                checkConditionForUnknownVars(Condition.getConditionFromString(parameterList[0]), depth);
-                checkExpressionTreeForUnknownVars(new ExpressionLeaf(parameterList[1]),depth);
-                checkExpressionTreeForUnknownVars(new ExpressionLeaf(parameterList[2]),depth);
-            }
-            else checkExpressionTreeForUnknownVars(new ExpressionLeaf(parameters),depth);
+           checkExpressionTreeForUnknownVars(new ExpressionLeaf(parameters),depth);
         }
         return new MethodCall(MethodType.getMethodTypeFromCall(methodName+"("+parameters+")"),objectName,parameters);
     }
@@ -312,20 +306,7 @@ public class CodeParser {
                     return;
                 }
                 break;
-            case EXECUTE_IF:
-                String[] parameterList = parameters.split(",");
-                checkConditionForUnknownVars(Condition.getConditionFromString(parameterList[0]), depth);
-                if(parameterList.length < 3)throw new IllegalArgumentException("Not enough paramters in method Call!");
-                boolean parameter1Okay = parameterList[1].matches(VariableType.COMMAND.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameterList[1])!=null &&depthStatementMap.get(depth-1).getVariable(parameterList[1]).getVariableType()==VariableType.COMMAND&&!depthStatementMap.get(depth-1).getVariable(parameterList[1]).getValue().getText().equals(""));
-                boolean parameter2Okay = parameterList[2].matches(VariableType.COMMAND.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameterList[2])!=null &&depthStatementMap.get(depth-1).getVariable(parameterList[2]).getVariableType()==VariableType.COMMAND&&!depthStatementMap.get(depth-1).getVariable(parameterList[2]).getValue().getText().equals(""));
-                if(!parameter1Okay)throw new IllegalArgumentException(parameterList[1] + " is not a valid Command!");
-                else if(!parameter2Okay)throw new IllegalArgumentException(parameterList[2] + " is not a valid Command!");
-                else {
-                    ExpressionTree exp1 =Variable.evaluateVariable(parameterList[1],depthStatementMap.get(depth-1));
-                    ExpressionTree exp2 =Variable.evaluateVariable(parameterList[2],depthStatementMap.get(depth-1));
-                    testForCorrectParameters(exp1.getRightNode().getText(),MethodType.getMethodTypeFromName(exp1.getLeftNode().getText()),depth);
-                    testForCorrectParameters(exp2.getRightNode().getText(),MethodType.getMethodTypeFromName(exp2.getLeftNode().getText()),depth);
-                return;}
+
             case IS_LOOKING:
                 if(parameters.matches(VariableType.DIRECTION.getAllowedRegex())||(depthStatementMap.get(depth-1).getVariable(parameters)!=null &&depthStatementMap.get(depth-1).getVariable(parameters).getVariableType()==VariableType.DIRECTION&&!depthStatementMap.get(depth-1).getVariable(parameters).getValue().getText().equals(""))){
                     return;
@@ -573,22 +554,22 @@ public class CodeParser {
                 break;
             case COMMAND:
                 if(!value.matches(variableType.getAllowedRegex())){
-                    if(value.matches(MethodType.EXECUTE_IF.getRegex()))
-                        throw new IllegalArgumentException("ExecuteIf is not allowed as a command!");
+//                    if(value.matches(MethodType.EXECUTE_IF.getRegex()))
+//                        throw new IllegalArgumentException("ExecuteIf is not allowed as a command!");
                     throw new IllegalArgumentException(value + " is not a valid Command!");
                 }
                 else {
-                    if(value.matches(MethodType.EXECUTE_IF.getRegex())){
-                        Matcher m = Pattern.compile(MethodType.EXECUTE_IF.getRegex()).matcher(value);
-                        if(m.matches())testForCorrectParameters(m.group(1),MethodType.EXECUTE_IF,depth);
-                    }else {
+//                    if(value.matches(MethodType.EXECUTE_IF.getRegex())){
+//                        Matcher m = Pattern.compile(MethodType.EXECUTE_IF.getRegex()).matcher(value);
+//                        if(m.matches())testForCorrectParameters(m.group(1),MethodType.EXECUTE_IF,depth);
+//                    }else {
                         String parameters = value.replaceFirst(".+\\(", "").replace(")", "");
                         value = value.replaceFirst("\\(.*\\)", "");
                     MethodType mt = MethodType.getMethodTypeFromName(value);
                     if(mt == null) throw new IllegalArgumentException("Unknown method: " +value);
 
                     testForCorrectParameters(parameters,mt,depth);
-                    }
+//                    }
 
                     return;
                 }

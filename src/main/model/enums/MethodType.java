@@ -22,7 +22,7 @@ public enum MethodType {
     TARGET_IS_DANGER("targetIsDanger\\(\\)",BOOLEAN,"Returns a boolean value corresponding to whether this Knight's target cell will kill it upon moving forward."),
     DROP_ITEM("dropItem\\(\\)", ACTION,"Drops any item currently held by this Knight."),
     ATTACK("attack\\(\\)", ACTION,"Only for Skeletons!"),
-    EXECUTE_IF("executeIf\\((.+,.+,.+)\\)", ACTION,"If the conditions are met, execute the first Command, else execute the second!\nCan be applied to Armies in order to have every Knight within it\nexecute a different Command depending on whether they meet the condition individually!"),
+//    EXECUTE_IF("executeIf\\((.+,.+,.+)\\)", ACTION,"If the conditions are met, execute the first Command, else execute the second!\nCan be applied to Armies in order to have every Knight within it\nexecute a different Command depending on whether they meet the condition individually!"),
     IS_LOOKING("isLooking\\((.+)\\)", BOOLEAN,"Returns a boolean value corresponding to whether this Entity is looking in the given Direction!");
 
 // WARNING: NEVER HAVE A VARIABLE TYPE COMMAND! BECAUSE OF CIRCULAR REFERENCES!
@@ -60,7 +60,7 @@ public enum MethodType {
     public static String getAllActionRegex() {
         String output = "(";
         for(MethodType mt : values()){
-            if(mt.getOutputType() == ACTION && (mt != EXECUTE_IF|| GameConstants.EXECUTE_IF_IS_COMMAND))output+=mt.regex+"|";
+            if(mt.getOutputType() == ACTION )output+=mt.regex+"|";
         }
         return output.substring(0, output.length()-1)+")";
     }

@@ -297,8 +297,6 @@ public class EditorController implements PropertyChangeListener {
                         model.removeLevel(model.getCurrentLevel());
                     } catch (IOException e) {
                         e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
                     }
                     //TODO: model.getCurrentLevel().addListener(view);
 //                    view.notify(Event.LEVEL_CHANGED);

@@ -2,8 +2,8 @@ package main.model.enums;
 
 public enum Direction {
     NORTH,
-    SOUTH,
     EAST,
+    SOUTH,
     WEST;
 
     public static Direction getValueFromString(String text) {

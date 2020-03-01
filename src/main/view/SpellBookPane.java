@@ -261,22 +261,7 @@ public class SpellBookPane extends VBox {
                     }
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<Direction>", tooltipString.toString()));
                     break;
-                case EXECUTE_IF:
-                    tooltipString = new StringBuilder("One of the following:\n");
-                    i = 0;
-                    for(MethodType mt : MethodType.values()){
-                        if(mt.getOutputType() == VariableType.ACTION &&mt == MethodType.ATTACK && (mt != MethodType.EXECUTE_IF || EXECUTE_IF_IS_COMMAND)){
-                            if(i>0)tooltipString.append(", ");
-                            i++;
-                            tooltipString.append(mt.getName()).append("()");
-                        }
-                    }
-                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<condition>", TOOLTIP_BOOLEAN));
-                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,",",""));
-                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<then Command>", tooltipString.toString()));
-                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,",",""));
-                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<else Command>", tooltipString.toString()));
-                    break;
+
             }
             methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,");",""));
 

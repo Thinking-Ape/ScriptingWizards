@@ -11,7 +11,7 @@ public enum StatementType {
     ELSE("else( +if *\\( *(.*) *\\) *)? *\\{",false),
     METHOD_CALL(".+\\..+\\( *(.*|(.* *, *)*.* *) *\\);",true),
     ASSIGNMENT("(.+ *= *.+;|.+\\+\\+;|.+--;)",false),
-    DECLARATION("(.+ +.+ *= *.+;)|(.+ +.+;)",true),
+    DECLARATION("(.+ +.+ *= *.+;)|(.+ +.+;)",false),
     COMPLEX(".*",true),
     SIMPLE(" *",true)
     ;

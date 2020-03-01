@@ -422,9 +422,7 @@ public class Level implements PropertyChangeListener {
     public List<String> getUnlockedStatementList() {
         return executor.getUnlockedStatementList();
     }
-    public Statement getExecuteIfStatementWorkaround(){
-        return evaluator.getExecuteIfWorkaround();
-    }
+
 
     public int getBestLOC() {
         return bestLOC;
