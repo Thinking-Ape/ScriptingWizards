@@ -629,7 +629,7 @@ public abstract class JSONParser {
         JSONObject jsonObject = new JSONObject(jsonString);
         JSONArray jsonArray = new JSONArray();
         for(String s : allCode){
-            jsonArray.put(s);
+            jsonArray.put(s.trim());
         }
         jsonObject.put("storedCode",jsonArray);
         try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {

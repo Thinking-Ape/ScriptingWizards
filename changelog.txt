@@ -18,6 +18,8 @@ Version 1.3a:
     - Added new Level 'UnexpectedTurn' to introduce Variables
     - Changed WastePress, TheThreeBrothers and The Final Stand AI to work without ExecuteIfs
     - Removed executeIf as it was didactically impractical
+    - Removed StoreCode Button
+    - Code will now always be stored upon exiting the program
 Version 1.2e:
     - fixed a bug, where variables from inside a for-loop would not be recognized in while loop or if statement
     - fixed a bug, where playing a level in Level Editor would throw an error if this Level was not already unlocked in

@@ -143,6 +143,16 @@ public class Controller {
         });
 
         view.getStartScreen().getExitBtn().setOnAction(actionEvent -> {
+            try {
+                new CodeParser().parseProgramCode(view.getCodeArea().getAllText());
+                JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllText()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                if(GameConstants.DEBUG){
+                    System.out.println("Code wasnt saved because of error: \n"+e.getMessage());
+                }
+            }
             System.exit(0);
         });
 
@@ -261,17 +271,7 @@ public class Controller {
                 e.printStackTrace();
             }
         });
-        view.getStoreCodeBtn().setOnAction(actionEvent -> {
 
-            try {
-                JSONParser.storeCode(view.getCodeArea().getAllText());
-//                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
-
-               new Alert(Alert.AlertType.NONE,"Code stored!",ButtonType.OK).showAndWait();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
         view.getClearCodeBtn().setOnAction(actionEvent -> {
             Dialog<ButtonType> deleteDialog = new Dialog<>();
 //            deleteDialog.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));

@@ -319,4 +319,10 @@ public abstract class Util {
         Text text = new Text(label.getText());
         return text.getLayoutBounds().getWidth();
     }
+
+    public static List<String> trimStringList(List<String> allText) {
+        if(allText.size() == 0)return allText;
+        if(allText.get(allText.size()-1).matches(" *"))return trimStringList(allText.subList(0, allText.size()-1));
+        else return allText;
+    }
 }

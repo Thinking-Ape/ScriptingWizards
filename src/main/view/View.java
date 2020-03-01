@@ -244,7 +244,8 @@ public class View implements PropertyChangeListener {
         });
         //TODO: delete
         if(DEBUG)hBox.getChildren().add(debugBtn );
-        hBox.getChildren().addAll(storeCodeBtn,loadBestCodeBtn, clearCodeBtn);
+        hBox.setTranslateY(-SMALL_BUTTON_SIZE/2);
+        hBox.getChildren().addAll(loadBestCodeBtn, clearCodeBtn);
         if (model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0)
             aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true, true);
         else aiCodeArea = new CodeArea(true);
