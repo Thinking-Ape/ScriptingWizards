@@ -20,7 +20,7 @@ public class CodeField extends TextField {
         isEmpty = code.equals("");
         if(code.equals("}"))this.setEditable(false);
         setText(code);
-        this.setFont(new Font(getFont().getName(), GameConstants.FONT_SIZE));
+        this.setFont(GameConstants.CODE_FONT);
         this.getTransforms().add(new Translate((depth-1)*GameConstants.CODE_OFFSET,0,0));
 //        textField.setBackground(new Background(new BackgroundFill(Color.WHITE.deriveColor(1,1,1,0.3),new CornerRadii(5,false),null)));
         resetStyle();
@@ -44,7 +44,7 @@ public class CodeField extends TextField {
 //        });
         this.autosize();
         Text text = new Text(code);
-        text.setFont(new Font(getFont().getName(), GameConstants.FONT_SIZE));
+        text.setFont(GameConstants.CODE_FONT);
         if(text.getLayoutBounds().getWidth() > getMaxWidth()-GameConstants.SCREEN_WIDTH/130)throw new IllegalStateException("This code line is too long: " + text.getText() + "!");
     }
 

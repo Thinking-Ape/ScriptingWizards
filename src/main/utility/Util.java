@@ -4,20 +4,23 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.effect.Bloom;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import main.model.Cell;
+import main.model.gamemap.Cell;
+import main.model.Model;
+import main.model.enums.CFlag;
+import main.model.enums.CellContent;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public abstract class Util {
@@ -325,4 +328,88 @@ public abstract class Util {
         if(allText.get(allText.size()-1).matches(" *"))return trimStringList(allText.subList(0, allText.size()-1));
         else return allText;
     }
+
+    public static StackPane getStackPane(Cell cell, Model model, Map<String,Image> contentImageMap, Shape shape, double cell_size, Map<String,Effect> entityColorMap) {
+        String contentString = cell.getContent().getDisplayName();
+        StackPane stackPane = new StackPane();
+
+        boolean isTurned = false;
+        boolean isInverted = false;
+        boolean isOpen = false;
+        for (CFlag flag : CFlag.values()) {
+            if (cell.hasFlag(flag)) {
+                if(flag.isTemporary())
+                    continue;
+                if(flag == CFlag.TURNED && (isTurned = true))continue;
+                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.GATE){
+                    isInverted = true;
+                    if(!isOpen)contentString += "_" + CFlag.OPEN.getDisplayName();
+                    else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
+                    continue;
+                }
+                if(flag == CFlag.OPEN ){
+                    isOpen = true;
+                    if(!isInverted)contentString += "_" + CFlag.OPEN.getDisplayName();
+                    else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
+                    continue;
+                }
+                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && model.getCurrentLevel().getTurnsTaken()==0){
+                    isInverted = true;
+                    contentString += "_"+CFlag.INVERTED.getDisplayName()+ "_" + CFlag.TRIGGERED.getDisplayName();
+                    continue;
+                }
+                contentString += "_" + flag.getDisplayName();
+            }
+        }
+        ImageView imageView = new ImageView(contentImageMap.get(contentString));
+        imageView.setFitWidth(cell_size);
+        imageView.setFitHeight(cell_size);
+        if(isTurned)imageView.setRotate(270);
+        if((model.getCurrentLevel().getUsedKnights() < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN))
+            switch (model.getCurrentLevel().getUsedKnights()){
+                case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
+                    break;
+                case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
+                    break;
+                case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
+                    break;
+            }
+        if(cell.getContent()== CellContent.ENEMY_SPAWN)
+            switch (entityColorMap.size() -model.getCurrentLevel().getUsedKnights()){
+                case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
+                    break;
+                case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
+                    break;
+                case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
+                    break;
+            }
+        stackPane.getChildren().add(imageView);
+
+        return stackPane;
+    }
+
+    public static Set<Point> getAllPointsIn(Point minBounds, Point maxBounds) {
+        Set<Point> output = new SimpleSet<>();
+        int minX = minBounds.getX();
+        int maxX = maxBounds.getX();
+        int minY = minBounds.getY();
+        int maxY = maxBounds.getY();
+        for(int x = minX; x < maxX; x++)
+            for(int y = minY; y < maxY; y++){
+                output.add(new Point(x, y));
+            }
+        return output;
+    }
+
+//    public static ImageView getEntityImageView(int number, Cell cell, Model model,List<Entity> entityActionList, Map<String,Image> contentImageMap, double cell_size, Map<String,Effect> entityColorMap, String entityName) {
+//
+//    }
+
+//    public static StackPane getStackPane2(Cell cell, Model model,List<Entity> entityActionList, Map<String,Image> contentImageMap, double cell_size, Map<String,Effect> entityColorMap) {
+//        StackPane stackPane = new StackPane();
+//        int number = 1;
+//
+//
+//        return stackPane;
+//    }
 }

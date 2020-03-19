@@ -15,10 +15,10 @@ public enum CFlag {
     KEY_DESTROYED(true),
     ITEM_DESTROYED(true),
     DIRT_REMOVED(true),
-    ACTION(true); //only used for SPAWN when there are no more knights to spawn!
+    ACTION(true), //only used for SPAWN when there are no more knights to spawn!
     //HURTING("Hurting"),
     //COLLECTIBLE("Collectible");
-
+    CHANGE_COLOR(true);
     boolean isTemporary;
 
     CFlag(boolean isTemporary) {

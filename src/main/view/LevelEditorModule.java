@@ -1,5 +1,6 @@
 package main.view;
 
+import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -142,7 +143,8 @@ public class LevelEditorModule {
 //        removeLinkedCellBtn.setVisible(false);
 //        linkedCellListView.setVisible(false);
 //        exitOpenCheckBox.setVisible(false);
-        levelNameValueLbl.setText(level.getName());
+        levelNameValueLbl.textProperty().bind(level.getNameProperty());
+        maxKnightsValueLbl.textProperty().bind(level.getMaxKnightsProperty());
         heightValueLbl.setText(""+level.getOriginalMap().getBoundY());
         widthValueLbl.setText(""+level.getOriginalMap().getBoundX());
         maxLoc3StarsVLbl.setText(""+level.getLocToStars()[1]);
@@ -156,7 +158,6 @@ public class LevelEditorModule {
         requiredLevelsLabel.setFont(new Font(requiredLevelsLabel.getFont().getName(),GameConstants.FONT_SIZE));
         indexValueLbl.setText(""+(level.getIndex()+1));
         isTutorialValueLbl.setText(""+level.isTutorial());
-        maxKnightsValueLbl.setText(level.getMaxKnights()+"");
         requiredLVBOX.getTransforms().add(new Translate(0,-20,0));
         topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevels().length*25+25);
         for(int i = 0; i < level.getRequiredLevels().size();i++){
@@ -243,8 +244,21 @@ public class LevelEditorModule {
         return saveLevelBtn;
     }
 
-    public Label getLevelNameTField() {
-        return levelNameValueLbl;
+    public void bindProperty(StringProperty stringProperty) {
+        switch (stringProperty.getName()){
+            case GameConstants.LEVEL_NAME_PROPERTY_NAME:
+                levelNameValueLbl.textProperty().unbind();
+                levelNameValueLbl.textProperty().bind(stringProperty);
+                break;
+            case GameConstants.MAX_KNIGHTS_PROPERTY_NAME:
+                maxKnightsValueLbl.textProperty().unbind();
+                maxKnightsValueLbl.textProperty().bind(stringProperty);
+                break;
+            case GameConstants.IS_TUTORIAL_PROPERTY_NAME:
+                isTutorialValueLbl.textProperty().unbind();
+                isTutorialValueLbl.textProperty().bind(stringProperty);
+                break;
+        }
     }
 
     public Button getOpenLevelBtn() {

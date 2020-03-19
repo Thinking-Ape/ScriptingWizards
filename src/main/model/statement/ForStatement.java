@@ -1,9 +1,9 @@
 package main.model.statement;
 
 import main.model.statement.Condition.Condition;
+import main.utility.SimpleSet;
 import main.utility.Variable;
 
-import java.util.HashSet;
 
 public class ForStatement extends ComplexStatement {
     private Assignment declaration;
@@ -84,7 +84,7 @@ public class ForStatement extends ComplexStatement {
             }
         }
         else {
-            localVariableSet = new HashSet<>();
+            localVariableSet = new SimpleSet<>();
             counter = -2;
         }
         for(Statement statement : statementList){

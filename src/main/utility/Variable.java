@@ -30,8 +30,15 @@ public class Variable {
     public VariableType getVariableType() {
         return variableType;
     }
-    public boolean equals(Variable variable){
-        return name.equals(variable.name) && value.equals(variable.value);
+
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof Variable){
+            Variable variable = (Variable)o;
+            return name.equals(variable.name) && value.equals(variable.value);
+        }
+        else return super.equals(o);
+
     }
 
     public void update(ExpressionTree value) {

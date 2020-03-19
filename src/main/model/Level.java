@@ -1,13 +1,16 @@
 package main.model;
 
-import javafx.util.Pair;
+import javafx.beans.property.*;
+import main.model.enums.EntityType;
+import main.model.gamemap.Cell;
+import main.model.gamemap.GameMap;
 import main.model.enums.CellContent;
 import main.model.enums.CFlag;
 import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.utility.GameConstants;
-import main.utility.Util;
+import main.utility.Point;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -19,7 +22,6 @@ import static main.utility.GameConstants.NO_ENTITY;
 public class Level implements PropertyChangeListener {
 
     private PropertyChangeSupport changeSupport;
-    private boolean isTutorial;
     private List<String> tutorialMessages;
     private int index;
     private GameMap originalMap;
@@ -30,8 +32,8 @@ public class Level implements PropertyChangeListener {
     private int bestLOC = -1;
     private int bestTurns = -1;
     private int turnsTaken;
-    private String name;
-    private int maxKnights;
+    private StringProperty nameProperty;
+    private StringProperty maxKnightsProperty;
     private int usedKnights;
     private ComplexStatement aiBehaviour;
     private ComplexStatement playerBehaviour;
@@ -42,14 +44,17 @@ public class Level implements PropertyChangeListener {
     private CodeExecutor executor;
     private CodeEvaluator evaluator;
     private boolean isStackOverflow;
+    private StringProperty isTutorialProperty;
+    private int skeletonCount = 0;
 
 
     public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, String[] requiredLevels, int maxKnights,
-                 int index, boolean isTutorial,List<String> tutorialEntryList) {
-        this.name = name;
+                 int index, boolean isTutorial, List<String> tutorialEntryList) {
+
+        this.nameProperty = new SimpleStringProperty(null,GameConstants.LEVEL_NAME_PROPERTY_NAME, name);
+        this.maxKnightsProperty = new SimpleStringProperty(null,GameConstants.MAX_KNIGHTS_PROPERTY_NAME,maxKnights+"");
+        this.isTutorialProperty = new SimpleStringProperty(null,GameConstants.IS_TUTORIAL_PROPERTY_NAME,isTutorial+"");
         this.index = index;
-        this.isTutorial = isTutorial;
-        this.maxKnights = maxKnights;
         this.usedKnights = 0;
         this.originalMap = new GameMap(originalArray,this);
         this.currentMap = originalMap.clone();
@@ -96,10 +101,10 @@ public class Level implements PropertyChangeListener {
                 isLost = true;
                 break;
             }
-            if(usedKnights <= maxKnights)method_Called_1 = executor.executeBehaviour(statement,currentMap, true);
+            if(usedKnights <= getMaxKnights())method_Called_1 = executor.executeBehaviour(statement,currentMap, true);
             else usedKnights--;
 
-            if(usedKnights == maxKnights && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
+            if(usedKnights == getMaxKnights() && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
         }
 
         while(!method_Called_2 && !isWon() &&!aiFinished&& GameConstants.IS_AI_ACTIVE&&aiBehaviour!=null) { //&& !isLost()) {
@@ -132,7 +137,9 @@ public class Level implements PropertyChangeListener {
 
 
     private void applyGameLogicToCells() {
-        for(int x = 0; x < currentMap.getBoundX(); x++)for(int y = 0; y < currentMap.getBoundY(); y++) {
+        if(executor.skeletonWasSpawned())skeletonCount++;
+        for(int x = 0; x < currentMap.getBoundX(); x++)
+        for(int y = 0; y < currentMap.getBoundY(); y++) {
             final Cell cell = currentMap.getCellAtXYClone(x,y);
             CellContent content = currentMap.getContentAtXY(x,y);
             if (content == CellContent.PRESSURE_PLATE) {
@@ -140,6 +147,12 @@ public class Level implements PropertyChangeListener {
                 boolean notInvertedAndFree = (cell.getEntity() != NO_ENTITY || cell.getItem() == ItemType.BOULDER) && !cell.hasFlag(CFlag.INVERTED);
                 if (invertedAndNotFree || notInvertedAndFree) currentMap.setFlag(x, y, CFlag.TRIGGERED, true);
                 else currentMap.setFlag(x, y, CFlag.TRIGGERED, false);
+            }
+
+            if (content == CellContent.ENEMY_SPAWN) {
+                if(executor.skeletonWasSpawned()){
+                    currentMap.setFlag(x, y, CFlag.CHANGE_COLOR, true);
+                }
             }
         }
         for(int x = 0; x < currentMap.getBoundX(); x++)for(int y = 0; y < currentMap.getBoundY(); y++){
@@ -172,7 +185,7 @@ public class Level implements PropertyChangeListener {
                 currentMap.setFlag(x,y,CFlag.PREPARING,false);
                 currentMap.setFlag(x,y,CFlag.ARMED,true);
                 currentMap.kill(x,y);
-//                cell.setItem(null);
+//                cell.setMultipleItems(null);
             }else if(cell.hasFlag(CFlag.ARMED)){
                 currentMap.setFlag(x,y,CFlag.ARMED,false);
             } else currentMap.setFlag(x,y,CFlag.PREPARING,true);}
@@ -196,6 +209,7 @@ public class Level implements PropertyChangeListener {
         if(aiBehaviour != null) aiBehaviour.resetVariables(true);
 //        noStackOverflow = 0;
 //        isWon=false;
+        skeletonCount = 0;
         isLost = false;
         aiFinished = false;
         currentMap = originalMap.clone();
@@ -227,25 +241,27 @@ public class Level implements PropertyChangeListener {
     }
 
     public void setName(String name) {
-        String oldName = this.name;
-        this.name = name;
-        if(!name.equals(oldName))changeSupport.firePropertyChange("name", oldName, name);
+        String oldName = this.nameProperty.getValue();
+        this.nameProperty.setValue(name);
+        if(!name.equals(oldName))changeSupport.firePropertyChange("nameProperty", oldName, name);
     }
 
     public void changeHeight(int newHeight) {
         int oldHeight = originalMap.getBoundY();
-        Cell[][] newMap = new Cell[originalMap.getBoundX()][newHeight];
+        Cell[][] newMapArray = new Cell[originalMap.getBoundX()][newHeight];
         for(int y = 0; y < newHeight; y++ ){
             for(int x = 0; x < originalMap.getBoundX(); x++){
 
                 if(y < originalMap.getBoundY()){
-                    if(y == newHeight-1 && originalMap.getContentAtXY(x,y) != CellContent.EMPTY)newMap[x][y]=  new Cell(CellContent.WALL);
-                    else newMap[x][y]=originalMap.getCellAtXYClone(x,y);
+                    if(y == newHeight-1 && originalMap.getContentAtXY(x,y) != CellContent.EMPTY)newMapArray[x][y]=  new Cell(CellContent.WALL);
+                    else newMapArray[x][y]=originalMap.getCellAtXYClone(x,y);
                 }
-                else newMap[x][y] = new Cell(CellContent.WALL);
+                else newMapArray[x][y] = new Cell(CellContent.WALL);
             }
         }
-        originalMap = new GameMap(newMap,this);
+        originalMap.removeAllListeners();
+        currentMap.removeAllListeners();
+        originalMap = new GameMap(newMapArray,this);
         currentMap = originalMap.clone();
         if(oldHeight != newHeight)changeSupport.firePropertyChange("height", oldHeight, newHeight);
         //notifyListener(Event.LEVEL_CHANGED);
@@ -262,6 +278,8 @@ public class Level implements PropertyChangeListener {
                 else newMap[x][y] = new Cell(CellContent.WALL);
             }
         }
+        originalMap.removeAllListeners();
+        currentMap.removeAllListeners();
         originalMap = new GameMap(newMap,this);
         currentMap = originalMap.clone();
         if(oldWidth != newWidth)changeSupport.firePropertyChange("width", oldWidth, newWidth);
@@ -305,7 +323,7 @@ public class Level implements PropertyChangeListener {
 
 
     public String getName() {
-        return name;
+        return nameProperty.getValue();
     }
 
     public int getTurnsTaken() {
@@ -341,13 +359,13 @@ public class Level implements PropertyChangeListener {
     }
 
     public int getMaxKnights() {
-        return maxKnights;
+        return Integer.parseInt(maxKnightsProperty.get());
     }
 
     public void setMaxKnights(int maxKnights) {
-        int oldMaxKnights = this.maxKnights;
-        this.maxKnights = maxKnights;
-        if(oldMaxKnights != maxKnights)changeSupport.firePropertyChange("maxKnights", oldMaxKnights, maxKnights);
+        int oldMaxKnights = getMaxKnights();
+        this.maxKnightsProperty.setValue(maxKnights+"");
+        if(oldMaxKnights != maxKnights)changeSupport.firePropertyChange("maxKnightsProperty", oldMaxKnights, maxKnights);
     }
 
     public void addChangeListener(PropertyChangeListener pcl) {
@@ -376,7 +394,7 @@ public class Level implements PropertyChangeListener {
     }
 
     public boolean isTutorial() {
-        return isTutorial;
+        return Boolean.parseBoolean(isTutorialProperty.get());
     }
 
     public int getIndex() {
@@ -384,8 +402,8 @@ public class Level implements PropertyChangeListener {
     }
 
     public void setIsTutorial(boolean selected) {
-        boolean old = isTutorial;
-        isTutorial = selected;
+        boolean old = isTutorial();
+        isTutorialProperty.setValue(selected+"");
         changeSupport.firePropertyChange("isTutorial", old,selected);
     }
 
@@ -429,5 +447,25 @@ public class Level implements PropertyChangeListener {
     }
     public int getBestTurns() {
         return bestTurns;
+    }
+
+    public StringProperty getNameProperty() {
+        return nameProperty;
+    }
+
+    public StringProperty getMaxKnightsProperty() {
+        return maxKnightsProperty;
+    }
+
+    public StringProperty getIsTutorialProperty() {
+        return isTutorialProperty;
+    }
+
+    public boolean isAiFinished() {
+        return aiFinished;
+    }
+
+    public int getSkeletonCount() {
+        return skeletonCount;
     }
 }

@@ -77,8 +77,15 @@ IMPORTANT:
  - execute one line at a time??
  - Level_1_... Levelname conventions
  - Required Levels entfernen?
- - siehe Email Zhu
- - ScrollBar was removed! What to do instead?!
+ - Wenn möglich, die Zeilen etwas größer machen. Größere Fontsize für Code.
+ - Buttons für das Entfernen und Hinzufügen von Zeilen an bestimmten Stellen wären super. ZB. ein rotes Kreuz bei allen Zeilen, die man gerade löschen kann.
+ - Cursor ist bei Zeilen mit "}" nicht vorhanden, dh man sieht nicht, ob man gerade in dieser Zeile ist
+ - Es wäre cool, wenn man irgendwie mehrere zusammenhängende Zeilen löschen könnte, zB. durch Pausieren des Syntax-Checkers.
+ - Allgemein mehr Features für den Editor wie zB. Markieren oder Drag & Drop von Code-Zeilen wären sehr hilfreich.
+ - Zhu: Spiral In hat diesen schwarzen scrollbar bug
+ - Text nicht zentriert
+ - wizard mit pfeiltasten bedienen?
+ - f5 für kompilieren?
 ---------------------------------------------
 
 

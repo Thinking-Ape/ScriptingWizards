@@ -1,5 +1,7 @@
 package main.model;
 
+import main.model.gamemap.Entity;
+import main.model.gamemap.GameMap;
 import main.model.enums.*;
 import main.model.statement.*;
 import main.model.statement.Condition.*;
@@ -14,13 +16,12 @@ import main.utility.VariableType;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static main.utility.GameConstants.NO_ENTITY;
-
 public class CodeEvaluator {
 
     private Statement currentStatement;
     private GameMap gameMap;
     private boolean lastStatementSummonedKnight;
+//    private boolean lastStatementSummonedSkeleton;
 
     public CodeEvaluator(){
         this.currentStatement = null; //TODO: may cause problems?
@@ -31,6 +32,7 @@ public class CodeEvaluator {
     public Statement evaluateNext(ComplexStatement behaviour, GameMap gameMap) throws IllegalAccessException {
         this.gameMap =gameMap;
         lastStatementSummonedKnight = false;
+//        lastStatementSummonedSkeleton = false;
         currentStatement = behaviour.nextStatement();
         if(currentStatement==null)return null;
         switch (currentStatement.getStatementType()){
@@ -80,6 +82,7 @@ public class CodeEvaluator {
                 Assignment declaration = (Assignment)currentStatement;
                 Variable variable = declaration.getVariable();
                 if(declaration.getVariable().getVariableType()==VariableType.KNIGHT && gameMap.isCellFree(gameMap.findSpawn()))lastStatementSummonedKnight = true;
+
                 currentStatement.getParentStatement().addLocalVariable(new Variable(variable.getVariableType(),variable.getName(),variable.getValue()));
                 break;
             case ASSIGNMENT:
@@ -214,7 +217,7 @@ public class CodeEvaluator {
             String objectName = leftTree.getText(); //TODO: ????Does Cal have to be an Expression? -> just objectString.methodString(parameterString)??:
             String methodName = rightTree.getLeftNode() == null ? rightTree.getText().substring(0,rightTree.getText().length()-2) : rightTree.getLeftNode().getText();
             String parameters = rightTree.getRightNode() == null ? "" : rightTree.getRightNode().getText();
-            if(GameConstants.SHOW_BOOLEAN_METHODS)System.out.println(objectName+"."+methodName+"("+parameters+")");
+            //if(GameConstants.SHOW_BOOLEAN_METHODS)System.out.println(objectName+"."+methodName+"("+parameters+")");
             return evaluateBooleanMethodCall(objectName,methodName,parameters);
         }
         if(conditionLeaf.getSimpleConditionType() == BooleanType.SIMPLE){
@@ -352,4 +355,7 @@ public class CodeEvaluator {
         return lastStatementSummonedKnight;
     }
 
+//    public boolean lastStatementSummonedSkeleton() {
+//        return lastStatementSummonedSkeleton;
+//    }
 }

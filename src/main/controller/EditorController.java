@@ -7,8 +7,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import main.model.Cell;
-import main.model.GameMap;
+import main.model.gamemap.Cell;
+import main.model.gamemap.GameMap;
 import main.model.Level;
 import main.model.Model;
 import main.model.enums.CellContent;
@@ -38,7 +38,7 @@ public class EditorController implements PropertyChangeListener {
 
     private boolean actionEventFiring = true;
 
-    //    GameMap map;
+    //    gamemap map;
     public EditorController(View view, Model model, CodeAreaController codeAreaController){
         this.model = model;
         this.view = view;
@@ -254,27 +254,12 @@ public class EditorController implements PropertyChangeListener {
                     if (index == -1) throw new IllegalStateException("This Level shouldnt exist!");
                     index++;
                     levelsToOpenDialog.getItems().set(model.getIndexOfLevelInList(levelName), levelName);
-//                    int diff = levelsToOpenDialog.getItems().size() - index;
-//                    if(diff > 0)   levelsToOpenDialog.getItems().set(index,levelName);
-//                    else {
-//                        for(int i = 0; i < -diff; i++){
-//                            levelsToOpenDialog.getItems().add("");
-//                        }
-//                        levelsToOpenDialog.getItems().add(levelName);
-//                    }
                 }
                 levelsToOpenDialog.setSelectedItem(model.getCurrentLevel().getName());
                 Optional<String> s = levelsToOpenDialog.showAndWait();
                 if (s.isPresent()) {
-//                    Level level = JSONParser.parseLevelJSON(s.get()+".json");
-////                    model.addLevel(level);
                     model.selectLevel(s.get());
-                    //TODO: model.getCurrentLevel().addListener(view);
-//                    model.setCurrentIndexLevel(1);
-//                    view.notify(Event.MAP_CHANGED);
-//                    view.notify(Event.LEVEL_CHANGED);
                 }
-//                setEditorHandlers();
             }
             catch (Exception e){
                 //TODO delete
@@ -926,7 +911,7 @@ public class EditorController implements PropertyChangeListener {
                     view.setCContentButtonDisabled(CellContent.EMPTY,true);
                 }
                 changeEditorModuleDependingOnCellContent(view.getSelectedPointList());}
-                gameMap.setContent(view.getSelectedPointList(),content);
+                gameMap.setMultipleContents(view.getSelectedPointList(),content);
                 setHandlersForMapCells();
                 });
         }
@@ -946,7 +931,7 @@ public class EditorController implements PropertyChangeListener {
                     view.setItemButtonDisabled(item,true);
                     setHandlersForMapCells();
                 }
-                model.getCurrentLevel().getOriginalMap().setItem(view.getSelectedPointList(), item);
+                model.getCurrentLevel().getOriginalMap().setMultipleItems(view.getSelectedPointList(), item);
             });
 
         }

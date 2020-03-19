@@ -1,5 +1,8 @@
 package main.model;
 
+import main.model.gamemap.Cell;
+import main.model.gamemap.Entity;
+import main.model.gamemap.GameMap;
 import main.model.enums.*;
 import main.model.statement.*;
 import main.model.statement.Expression.ExpressionTree;
@@ -15,6 +18,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import main.model.statement.Condition.*;
 
+import static main.utility.GameConstants.NO_ENTITY;
+
 public class CodeExecutor {
     private int noStackOverflow; //TODO: evaluate
     private GameMap gameMap;
@@ -22,12 +27,14 @@ public class CodeExecutor {
     private boolean hasLost = false;
 
     private List<String> unlocks;
+    private boolean skeletonWasSpawned;
 
     public void setUnlockedStatementList(List<String> unlockedStatementList){
         this.unlocks  = unlockedStatementList;
     }
 
     boolean executeBehaviour(Statement statement, GameMap gameMap, boolean isPlayer) throws IllegalAccessException {
+        skeletonWasSpawned = false;
         this.gameMap  = gameMap;
         boolean method_Called = false;
         noStackOverflow++;
@@ -74,10 +81,14 @@ public class CodeExecutor {
                         spawnPoint = point;
                         if(gameMap.getCellID(spawnPoint)==Integer.valueOf(spawnId)){
                             gameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
+                            skeletonWasSpawned = true;
                         }
                     }
                 }
-                else gameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
+                else {
+                    gameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
+                    skeletonWasSpawned = true;
+                }
             }
 
         }
@@ -152,7 +163,7 @@ public class CodeExecutor {
         Entity actorEntity = gameMap.getEntity(actorPos);
         CellContent targetContent = gameMap.getContentAtXY(targetPos);
         if(actorEntity.getItem() == ItemType.KEY&&targetContent == CellContent.EXIT){
-            actorEntity.setItem(ItemType.NONE);
+            gameMap.setEntityItem(actorPos,ItemType.NONE);
             gameMap.setFlag(targetPos, CFlag.OPEN, true);
             hasWon = true;
             return;
@@ -160,13 +171,17 @@ public class CodeExecutor {
 //        if(actorEntity.getItem() == ItemType.BEACON){
 //            beaconEntity = actorEntity;
 //        }
-        if((actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD)&&GameConstants.ACTION_WITHOUT_CONSEQUENCE)gameMap.setFlag(actorPos , CFlag.ACTION,true );
+        if((actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD)&&GameConstants.ACTION_WITHOUT_CONSEQUENCE){
+            gameMap.setFlag(actorPos , CFlag.ACTION,true );
+            //this will have the effect that the target cell will be drawn, even though it did not change
+            if(gameMap.getEntity(gameMap.getTargetPoint(name))==NO_ENTITY)gameMap.setFlag(gameMap.getTargetPoint(name),CFlag.ACTION,true);
+        }
         if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CellContent.DIRT){
             gameMap.setContent(targetPos, CellContent.PATH);
             gameMap.setFlag(actorPos, CFlag.ACTION, true );
             gameMap.setFlag(targetPos, CFlag.DIRT_REMOVED, true );
         }
-        if(actorEntity.getItem() == ItemType.SWORD){//&&gameMap.getEntity(targetPos) != NO_ENTITY){
+        if(actorEntity.getItem() == ItemType.SWORD&&gameMap.getEntity(targetPos) != NO_ENTITY){
             if(gameMap.getItem(targetPos) == ItemType.BOULDER)return;
             gameMap.kill(targetPos); //TODO: maybe -> targetCell.kill();??
             gameMap.setFlag(actorPos, CFlag.ACTION, true );
@@ -188,13 +203,13 @@ public class CodeExecutor {
                 int ordinalSum = targetEntity.getDirection().ordinal() + actorEntity.getDirection().ordinal();
                 correctDirection = correctDirection && (ordinalSum%2 == 0);
             }
-            if(targetEntity==GameConstants.NO_ENTITY){
+            if(targetEntity== NO_ENTITY){
                 gameMap.setItem(targetPos,actorEntity.getItem());
-                actorEntity.setItem(ItemType.NONE);
+                gameMap.setEntityItem(actorPos,ItemType.NONE);
             }
             else if(targetEntity.getItem()==ItemType.NONE && correctDirection){
-                gameMap.getEntity(targetPos).setItem(actorEntity.getItem());
-                actorEntity.setItem(ItemType.NONE);
+                gameMap.setEntityItem(targetPos,actorEntity.getItem());
+                gameMap.setEntityItem(actorPos,ItemType.NONE);
             }
         }
     }
@@ -210,7 +225,7 @@ public class CodeExecutor {
         if(gameMap.getItem(targetPoint) != ItemType.NONE){
             ItemType item = ItemType.NONE;
             if(actorCell.getEntity().getItem()!=ItemType.NONE) item = actorCell.getEntity().getItem();
-            gameMap.getEntity(actorPoint).setItem(gameMap.getItem(targetPoint));
+            gameMap.setEntityItem(actorPoint,gameMap.getItem(targetPoint));
             gameMap.setItem(targetPoint,item);
 //            targetCell.setFlagValue(CFlag.TRAVERSABLE,true);
 //            targetCell.setFlagValue(CFlag.COLLECTIBLE,false);
@@ -219,44 +234,9 @@ public class CodeExecutor {
         return false;
     }
     private void tryToTurnCell(Point actorPoint,String direction,MethodCall mc){
-        Entity entity = gameMap.getEntity(actorPoint);
-
         direction = evaluateTurnDirection(direction,mc);
+        gameMap.changeEntityDirection(actorPoint,direction);
 
-        switch (entity.getDirection()){
-            case NORTH:
-                if(direction.equals("LEFT"))
-                    entity.setDirection(Direction.WEST);
-                else if(direction.equals("RIGHT"))
-                    entity.setDirection(Direction.EAST);
-                else if(direction.equals("AROUND"))
-                    entity.setDirection(Direction.SOUTH);
-                break;
-            case SOUTH:
-                if(direction.equals("LEFT"))
-                    entity.setDirection(Direction.EAST);
-                else if(direction.equals("RIGHT"))
-                    entity.setDirection(Direction.WEST);
-                else if(direction.equals("AROUND"))
-                    entity.setDirection(Direction.NORTH);
-                break;
-            case EAST:
-                if(direction.equals("LEFT"))
-                    entity.setDirection(Direction.NORTH);
-                else if(direction.equals("RIGHT"))
-                    entity.setDirection(Direction.SOUTH);
-                else if(direction.equals("AROUND"))
-                    entity.setDirection(Direction.WEST);
-                break;
-            case WEST:
-                if(direction.equals("LEFT"))
-                    entity.setDirection(Direction.SOUTH);
-                else if(direction.equals("RIGHT"))
-                    entity.setDirection(Direction.NORTH);
-                else if(direction.equals("AROUND"))
-                    entity.setDirection(Direction.EAST);
-                break;
-        }
     }
 
     private String evaluateTurnDirection(String direction, MethodCall mc) {
@@ -327,9 +307,13 @@ public class CodeExecutor {
 
                 // Can't attack with an item in hand
                 if(gameMap.getEntity(name).getItem()!=ItemType.NONE)break;
-                if(GameConstants.ACTION_WITHOUT_CONSEQUENCE)gameMap.setFlag(position , CFlag.ACTION,true );
+                if(GameConstants.ACTION_WITHOUT_CONSEQUENCE){
+                    gameMap.setFlag(position , CFlag.ACTION,true );
+                    //this will have the effect that the target cell will be drawn, even though it did not change
+                    if(gameMap.getEntity(gameMap.getTargetPoint(name))==NO_ENTITY)gameMap.setFlag(gameMap.getTargetPoint(name),CFlag.ACTION,true);
+                }
 //                if(gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY ||gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY)break;
-
+                if(gameMap.getEntity(gameMap.getTargetPoint(name))==NO_ENTITY)break;
                 if(gameMap.getItem(gameMap.getTargetPoint(name)) == ItemType.BOULDER)break;
                 gameMap.setFlag(position , CFlag.ACTION,true );
                 gameMap.kill(gameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
@@ -382,5 +366,9 @@ public class CodeExecutor {
 
     public List<String> getUnlockedStatementList() {
         return unlocks;
+    }
+
+    public boolean skeletonWasSpawned() {
+        return skeletonWasSpawned;
     }
 }

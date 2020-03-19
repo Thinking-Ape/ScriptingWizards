@@ -1,11 +1,10 @@
 package main.model.statement;
 
 import main.model.statement.Condition.Condition;
+import main.utility.SimpleSet;
 import main.utility.Variable;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -14,7 +13,7 @@ public class ComplexStatement implements Statement {
     List<Statement> statementList = new ArrayList<>();
     StatementType statementType;
     int counter=-1;
-    Set<Variable> localVariableSet = new HashSet<>();
+    Set<Variable> localVariableSet = new SimpleSet<>();
     ComplexStatement parentStatement = null;
     protected Condition condition;
 
@@ -53,7 +52,7 @@ public class ComplexStatement implements Statement {
     }
     public void resetVariables(boolean total) {
         counter = -1;
-        localVariableSet = new HashSet<>();
+        localVariableSet = new SimpleSet<>();
         for(Statement statement : statementList){
             if(statement.isComplex()){
                 ((ComplexStatement)statement).resetVariables(true);

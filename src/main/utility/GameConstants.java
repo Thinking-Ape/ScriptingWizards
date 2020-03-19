@@ -1,10 +1,9 @@
 package main.utility;
 
 import javafx.scene.effect.*;
-import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import main.model.Entity;
+import main.model.gamemap.Entity;
 import main.model.enums.EntityType;
 
 //import javax.swing.text.html.ImageView;
@@ -35,13 +34,13 @@ public abstract class GameConstants {
     public static final int MAX_DEPTH = 4;
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
     public static final boolean IS_FULLSCREEN = false;
-    public static final String VERSION = "1.3a";
+    public static final String VERSION = "1.3b";
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
     public static final int MAX_LOOP_SIZE = 500;
     public static final String VARIABLE_NAME_REGEX = "^[a-zA-Z_][a-zA-Z_0-9]*$";
     public static final double PLAY_CELL_SIZE_FACTOR = 1.2;
     public static final Entity NO_ENTITY = new Entity("", null, EntityType.NONE);
-    public static final boolean EXECUTE_IF_IS_COMMAND = true;
+//    public static final boolean EXECUTE_IF_IS_COMMAND = true;
     public static final String TOOLTIP_VARIABLE_NAME = "Reference this variable via this name.";
     public static final String TOOLTIP_BOOLEAN = "True, false, a boolean variable, boolean method call or comparisons of int:\n" +
             "a and b are int Variables:" +
@@ -78,9 +77,10 @@ public abstract class GameConstants {
     public static final String SHOW_SPELLS_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Show_Spells_Btn.png";
     public static final String WIZARD_IMAGE_PATH = "file:"+IMAGES_PATH+"TutorialWizard.png";
     public static final String[] TUTORIAL_LINES = new String[] {"Hello there! I see you are seeking guidance in order to escape this dungeon. I will aid you by introducing you to the magic language of JAVA!"
+    , "You can navigate these messages by holding down the Alt-Key and pressing either the right or left arrow key!"
     , "If you want to escape from here you will need to summon magic Knights to do your bidding! The dungeon is filled with traps and these Knights will ensure you may leave it unhurt..."
-    ,"Below this tutorial field is the game map"
-    , "To the left of it you can see how many Knights you have avaiable for the current Level"
+    ,"Below this tutorial field is the game map."
+    , "To the left of it you can see how many Knights you have avaiable for the current Level."
 
     ,"At the bottom of your screen you can see multiple interactable elements:"
     , "The first one is the Back Button:\n" + "It will bring you back to the previous menu"
@@ -92,6 +92,7 @@ public abstract class GameConstants {
             " after clicking on the Start Button that just appeared and type something if you like."};
     public static final Font SMALL_FONT = new Font("System Regular",GameConstants.SMALL_FONT_SIZE);
     public static final Font MEDIUM_FONT = new Font("System Regular",GameConstants.FONT_SIZE);
+    public static final Font CODE_FONT = new Font("Courier New",GameConstants.FONT_SIZE);
     public static final Font BIG_FONT = new Font("System Regular",GameConstants.BIG_FONT_SIZE);
     public static final Font BIGGEST_FONT = new Font("Arial",GameConstants.BIGGEST_FONT_SIZE);
     public static final double HEIGHT_RATIO = SCREEN_HEIGHT/1080.0;
@@ -107,6 +108,10 @@ public abstract class GameConstants {
     public static final String UP_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Up_Btn.png";;
     public static final String DOWN_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Down_Btn.png";;
     public static final Effect GLOW_BTN_EFFECT = new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.WHITE);
+
+    public static final String LEVEL_NAME_PROPERTY_NAME = "LevelName";
+    public static final String MAX_KNIGHTS_PROPERTY_NAME = "MaxKnights";
+    public static final String IS_TUTORIAL_PROPERTY_NAME = "IsTutorial";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

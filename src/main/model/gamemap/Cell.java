@@ -1,4 +1,4 @@
-package main.model;
+package main.model.gamemap;
 
 import main.model.enums.CellContent;
 import main.model.enums.CFlag;
@@ -70,7 +70,7 @@ public class Cell {
         return content;
     }
 
-    void setFlagValue(CFlag flag, Boolean flagValue) {
+    private void setFlagValue(CFlag flag, Boolean flagValue) {
         if (flagValue) {
             if(!hasFlag(flag))flagList.add(flag);
         } else {
@@ -86,17 +86,17 @@ public class Cell {
         return entity;
     }
 
-    public void setEntity(Entity entity) {
+    private void setEntity(Entity entity) {
         if(item != NONE)throw new IllegalStateException("There is already an item in this cell!");
         else this.entity = entity;
     }
 
-    public void setItem(ItemType item) {
+    private void setItem(ItemType item) {
         if(entity != NO_ENTITY)throw new IllegalStateException("There is already an entity in this cell!");
         else if(content.isTraversable()||(hasFlag(CFlag.OPEN)^hasFlag(CFlag.INVERTED))) this.item = item;
     }
 
-    public void setContent(CellContent content) {
+    private void setContent(CellContent content) {
         if(!content.isTraversable())this.item = NONE;
         this.content = content;
     }
@@ -126,5 +126,37 @@ public class Cell {
 
     public boolean isFree() {
         return item == NONE && entity == NO_ENTITY;
+    }
+
+    public List<CFlag> getFlags() {
+        return new ArrayList<>(flagList);
+    }
+
+    public Cell getMutation(Entity actorEntity) {
+        Cell mutatedCell = this.copy();
+        mutatedCell.entity = actorEntity;
+        return mutatedCell;
+    }
+
+    public Cell getMutation(CFlag flag, boolean flagValue) {
+        Cell mutatedCell = this.copy();
+        if (flagValue) {
+            if(!hasFlag(flag))mutatedCell.flagList.add(flag);
+        } else {
+            if(hasFlag(flag))mutatedCell.flagList.remove(flag);
+        }
+        return mutatedCell;
+    }
+
+    public Cell getMutation(ItemType item) {
+        Cell mutatedCell = this.copy();
+        mutatedCell.item = item;
+        return mutatedCell;
+    }
+
+    public Cell getMutation(CellContent content) {
+        Cell mutatedCell = this.copy();
+        mutatedCell.content = content;
+        return mutatedCell;
     }
 }

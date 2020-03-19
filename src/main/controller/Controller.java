@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
@@ -126,6 +127,7 @@ public class Controller {
                     view.getSpeedSlider().setMouseTransparent(false);
                     view.getShowSpellBookBtn().setMouseTransparent(false);
                     view.getCodeArea().setDisable(false);
+                    view.getStage().requestFocus();
                     break;
                 case START_SCREEN:
                     System.exit(0);
@@ -155,7 +157,16 @@ public class Controller {
             }
             System.exit(0);
         });
-
+        view.getStage().getScene().setOnKeyPressed(evt -> {
+            evt.consume();
+            if(view.getCurrentSceneState() != SceneState.TUTORIAL)return;
+            if(evt.getCode() == KeyCode.RIGHT && evt.isAltDown()){
+                if(!view.getTutorialGroup().getNextBtn().isDisabled())view.getTutorialGroup().getNextBtn().fire();
+            }
+            else if(evt.getCode() == KeyCode.LEFT && evt.isAltDown()){
+                if(!view.getTutorialGroup().getPrevBtn().isDisabled())view.getTutorialGroup().getPrevBtn().fire();
+            }
+        });
         view.getStartScreen().getTutorialBtn().setOnAction(actionEvent -> {
             Level selectedLevel = model.getCurrentLevel();
 
@@ -256,7 +267,7 @@ public class Controller {
 //                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
                 if(bestCode.size() !=0) {
                     CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode), true, false);
-                    codeArea.getScrollBar().setScrollAmount(0);
+                    codeArea.scroll(0);
                     view.setCodeArea(codeArea, false);
                     view.getBtnExecute().setDisable(false);
                     view.getStoreCodeBtn().setDisable(false);
@@ -298,7 +309,7 @@ public class Controller {
                         ComplexStatement complexStatement = new ComplexStatement();
                         complexStatement.addSubStatement(new SimpleStatement());
                         CodeArea codeArea = new CodeArea(complexStatement,true,false);
-                        codeArea.getScrollBar().setScrollAmount(0);
+                        codeArea.scroll(0);
                         view.setCodeArea(codeArea,false);
                         break;
                 }
@@ -316,8 +327,8 @@ public class Controller {
         view.getBtnExecute().setOnAction(actionEvent -> {
         CodeParser codeParser = new CodeParser(view.getCodeArea().getAllText(),true);
         CodeParser aiCodeParser = new CodeParser(view.getAICodeArea().getAllText(),false);
-            view.getCodeArea().getScrollBar().setScrollAmount(0);
-            view.getAICodeArea().getScrollBar().setScrollAmount(0);
+        view.getCodeArea().scroll(0);
+        if(model.getCurrentLevel().hasAi()) view.getAICodeArea().scroll(0);
         Level currentLevel = model.getCurrentLevel();
         try {
             ComplexStatement behaviour = codeParser.parseProgramCode();
@@ -345,6 +356,8 @@ public class Controller {
 
             timeline.setCycleCount(Timeline.INDEFINITE);
             timeline.setRate(GameConstants.TICK_SPEED*view.getSpeedSlider().getValue());
+            view.deselect();
+//            model.getCurrentLevel().getCurrentMap().bindToGameMap(view);
             timeline.getKeyFrames().addAll(new KeyFrame(Duration.seconds(0.8), event ->
             {
                 try {
@@ -355,13 +368,18 @@ public class Controller {
                     if(index != -1)view.getCodeArea().highlightCodeField(index);
                     if(model.getCurrentLevel().hasAi()){
                         int index2 = model.getCurrentLevel().getAIBehaviour().findIndexOf(executedStatements[1],0);
-//                        if(index2 == -1) index2 = model.getCurrentLevel().getAIBehaviour().findIndexOf(currentLevel.getExecuteIfStatementWorkaround(),0);
 
                         if(index2 != -1)view.getAICodeArea().highlightCodeField(index2);
                     }
-
-                    view.drawMap(currentLevel.getCurrentMap());
-                    view.deselect();
+//                    view.drawMap(currentLevel.getCurrentMap());
+                    view.drawAllChangedCells();
+//                    model.getCurrentLevel().getOriginalMap().removeAllListeners();
+                    if(currentLevel.isLost()){
+                        view.getCodeArea().highlightCodeField(-1);
+                    }
+                    if(currentLevel.isAiFinished()){
+                        view.getAICodeArea().highlightCodeField(-1);
+                    }
                     if (currentLevel.isWon()){
                         int turns = currentLevel.getTurnsTaken();
                         int loc = behaviour.getActualSize();

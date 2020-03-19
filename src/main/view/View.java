@@ -25,7 +25,9 @@ import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import main.main.Tester;
 import main.model.*;
-import main.model.Cell;
+import main.model.gamemap.Cell;
+import main.model.gamemap.Entity;
+import main.model.gamemap.GameMap;
 import main.model.enums.CellContent;
 import main.model.enums.CFlag;
 import main.model.enums.EntityType;
@@ -54,7 +56,7 @@ import static main.utility.GameConstants.*;
 
 public class View implements PropertyChangeListener {
 
-    private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/project_background.png" ), BackgroundRepeat.NO_REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT ));
+    private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/project_background.png", SCREEN_WIDTH,SCREEN_HEIGHT,true,true ), BackgroundRepeat.NO_REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT ));
     private final BackgroundImage backgroundImage = new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
     private final LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
@@ -167,7 +169,7 @@ public class View implements PropertyChangeListener {
         model.addChangeListener(this);
         actualMapGPane = new GridPane();
         actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
-        actualMapGPane.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/background_Test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
+        actualMapGPane.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/Background_test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
 //        actualMapGPane.setHgap(1);
 //        actualMapGPane.setVgap(1);
         rootPane = new StackPane();
@@ -245,6 +247,7 @@ public class View implements PropertyChangeListener {
         //TODO: delete
         if(DEBUG)hBox.getChildren().add(debugBtn );
         hBox.setTranslateY(-SMALL_BUTTON_SIZE/2);
+        hBox.setPickOnBounds(false);
         hBox.getChildren().addAll(loadBestCodeBtn, clearCodeBtn);
         if (model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0)
             aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true, true);
@@ -283,12 +286,34 @@ public class View implements PropertyChangeListener {
 
     public void drawMap(GameMap map) {
         actualMapGPane.getChildren().clear();
-        actualMapGPane.getChildren().addAll(getGridPaneFromMap(map).getChildren());
-        //TODO!
-//        actualMapGPane.setBackground(brickBackground);
+        Point minBounds = new Point(0, 0);
+        Point maxBounds = new Point(map.getBoundX(), map.getBoundY());
+        StackPane[][] stackpaneField = getStackPaneFieldFromMap(map,Util.getAllPointsIn(minBounds,maxBounds));
+        for(int x = 0; x < map.getBoundX(); x++)
+            for(int y = 0; y < map.getBoundY(); y++)
+                actualMapGPane.add(stackpaneField[x][y],x,y);
         redrawKnightsLeftVBox();
         changeSupport.firePropertyChange("map", null, null);
     }
+
+
+    public void drawAllChangedCells() {
+        GameMap map = model.getCurrentLevel().getCurrentMap();
+        StackPane[][] stackpaneField = getStackPaneFieldFromMap(map,map.getAndResetChangedPointList());
+        //x+1 and y+1 should not be a problem, as the outer rim never changes -> no out of bounds
+        for(int x = 0; x < map.getBoundX(); x++)
+        for(int y = 0; y < map.getBoundY(); y++){
+            if(stackpaneField[x][y]==null)continue;
+            actualMapGPane.getChildren().set(y+x*map.getBoundY(),new StackPane());
+            actualMapGPane.add(stackpaneField[x][y],x,y);
+        }
+
+        //TODO!
+//        actualMapGPane.setBackground(brickBackground);
+        redrawKnightsLeftVBox();
+//        changeSupport.firePropertyChange("map", null, null);
+    }
+
 
     private void redrawKnightsLeftVBox() {
         knightsLeftVBox.getChildren().clear();
@@ -308,219 +333,218 @@ public class View implements PropertyChangeListener {
         }
     }
 
-    private GridPane getGridPaneFromMap(GameMap map) {
+    private StackPane[][] getStackPaneFieldFromMap(GameMap map, Set<Point> pointSet) {
+        //TODO: cell_size = calculateCellSize
         calculateCellSize();
         File folder = new File(Paths.get(GameConstants.ROOT_PATH + "/images").toString());
         File[] listOfFiles = folder.listFiles();
         assert listOfFiles != null;
         for (File file : listOfFiles) {
             String s = file.getName().replaceAll("\\.png", "");
-            contentImageMap.put(s, new Image("file:resources/images/" + s + ".png", cell_size, cell_size, true, true));
+            if(!contentImageMap.containsKey(s))
+                contentImageMap.put(s, new Image("file:resources/images/" + s + ".png"));
         }
-        GridPane gPane = new GridPane();
-        gPane.getChildren().clear();
-        gPane.setHgap(0);
-        gPane.setVgap(0);
+        StackPane[][] output = new StackPane[map.getBoundX()][map.getBoundY()];
         mapShapes = new Shape[map.getBoundX()][map.getBoundY()];
-        for (int x = 0; x < map.getBoundX(); x++) {
-            for (int y = 0; y < map.getBoundY(); y++) {
+        for(Point p : pointSet){
+            int x = p.getX();
+            int y = p.getY();
                 final Cell cell = map.getCellAtXYClone(x, y);
-//                drawCell(map[row][column],column,row);
-                Shape shape = mapShapes[x][y] = getCellShape(cell);
-//                GridPane.setRowIndex(mapShapes[row][column],row);
-//                GridPane.setColumnIndex(mapShapes[row][column],column);
                 StackPane stackPane = new StackPane();
-                String contentString = cell.getContent().getDisplayName();
-
-                boolean isTurned = false;
-                boolean isInverted = false;
-                boolean isOpen = false;
-//                boolean isTriggered=false;
-                for (CFlag flag : CFlag.values()) {
-                    if (cell.hasFlag(flag)) {
-                        if(flag.isTemporary())
-                            continue;
-//                            if(cell.hasFlag(CFlag.KNIGHT_DEATH) && contentImageMap.containsKey(entityName+"_Death"))entityName+="_Death";
-                        if(flag == CFlag.TURNED && (isTurned = true))continue;
-                        if(flag == CFlag.INVERTED && cell.getContent()== CellContent.GATE){
-                            isInverted = true;
-                            if(!isOpen)contentString += "_" + CFlag.OPEN.getDisplayName();
-                            else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
-                            continue;
-                        }
-                        if(flag == CFlag.OPEN ){
-                            isOpen = true;
-                            if(!isInverted)contentString += "_" + CFlag.OPEN.getDisplayName();
-                            else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
-                            continue;
-                        }
-                        if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && model.getCurrentLevel().getTurnsTaken()==0){
-                            isInverted = true;
-                            contentString += "_"+CFlag.INVERTED.getDisplayName()+ "_" + CFlag.TRIGGERED.getDisplayName();
-                            continue;
-                        }
-//                        if(flag == CFlag.TRIGGERED ){
-//                            isTriggered = true;
-//                            if(!isInverted)contentString += "_" + CFlag.TRIGGERED.getDisplayName();
-//                            else contentString = contentString.replace("_" + CFlag.TRIGGERED.getDisplayName(),"");
-//                            continue;
-//                        }
-                        contentString += "_" + flag.getDisplayName();
-                    }
-                }
-                if (shape != null && !contentImageMap.containsKey(contentString)) stackPane.getChildren().add(shape);
-                else {
-                    ImageView imageView = new ImageView(contentImageMap.get(contentString));
-                    if(isTurned)imageView.setRotate(270);
-                    if((model.getCurrentLevel().getUsedKnights() < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN))
-                        switch (model.getCurrentLevel().getUsedKnights()){
-                            case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
-                                break;
-                            case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
-                                break;
-                            case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
-                                break;
-                        }
-                    if(cell.getContent()== CellContent.ENEMY_SPAWN)
-                        switch (entityColorMap.size() -model.getCurrentLevel().getUsedKnights()){
-                            case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
-                                break;
-                            case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
-                                break;
-                            case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
-                                break;
-                        }
-                    stackPane.getChildren().add(imageView);
-                }
+                ImageView contentImageView = getContentImageView(cell);
+                stackPane.getChildren().add(contentImageView  );
                 String itemString = cell.getItem() != ItemType.NONE ? cell.getItem().getDisplayName() : "";
-                if (cell.getItem() != ItemType.NONE && !contentImageMap.containsKey(itemString))
-                    stackPane.getChildren().add(getItemShape(cell.getItem()));
-                else {
-                    ImageView imageView = new ImageView(contentImageMap.get(itemString));
-//                    imageView.setFitWidth(cell_size);
-//                    imageView.setFitHeight(cell_size);
 
-
-                    stackPane.getChildren().add(imageView);
-                }
-
-                gPane.add(stackPane, x, y);
-//                actualMapGPane.getChildren().add(mapShapes[row][column]);
-            }
+                ImageView itemImageView = new ImageView(contentImageMap.get(itemString));
+                itemImageView.setFitWidth(cell_size);
+                itemImageView.setFitHeight(cell_size);
+                if(!itemString.equals(""))stackPane.getChildren().add(itemImageView);
+                output[x][y] = stackPane;
         }
-        for (int x = 0; x < map.getBoundX(); x++) {
-            for (int y = 0; y < map.getBoundY(); y++) {
+        for (Point p : pointSet) {
+            int x = p.getX();
+            int y = p.getY();
                 final Cell cell = map.getCellAtXYClone(x, y);
-//                drawCell(map[row][column],column,row);
-//                GridPane.setRowIndex(mapShapes[row][column],row);
-//                GridPane.setColumnIndex(mapShapes[row][column],column);
-                int number = 1;
-                StackPane stackPane = new StackPane();
-                stackPane.setMouseTransparent(true);
-//                if(cell.getEntity()!=null)stackPane.getChildren().add(getEntityShape(cell.getEntity()));
                 if (cell.getEntity() != NO_ENTITY) {
+                    int number = 1;
                     if(entityActionList.contains(cell.getEntity())){
                         number = 3;
                     }
                     String entityName = cell.getEntity().getEntityType().getDisplayName();
                     if(cell.getEntity().getItem()!= ItemType.NONE && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
                     if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_"+number))entityName+="_Action_"+number;
-                    ImageView imageView = new ImageView(contentImageMap.get(entityName));
+                    ImageView entityImageView = getEntityImageView( cell,entityName);
+                    //TODO: ImageViews durch Methoden einzeln generieren!
 
-                    //COLOR EXPERIMENT:
-                    int knightCount = 0;
-                    int skeletonCount = 0;
-                    for(String s : entityColorMap.keySet()){
-                        if(model.getCurrentLevel().getCurrentMap().getEntity(s).getEntityType()==EntityType.KNIGHT)knightCount++;
-                    }
-                    if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
-                        switch (knightCount){
-                            case 0: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
-                                break;
-                            case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
-                                break;
-                            case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
-                                break;
-                            case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
-                                break;
-                        }
-                    }
-                    skeletonCount = entityColorMap.size()-knightCount;
-                    if(cell.getEntity().getEntityType() == EntityType.SKELETON){
-                        switch (skeletonCount){
-                            case 0: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
-                                break;
-                            case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
-                                break;
-                            case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
-                                break;
-                            case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
-                                break;
-                        }
-                    }
-                    imageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
-
-                    //END OF COLOR EXPERIMENT
-
-                    stackPane.getChildren().add(imageView);
-                    ImageView iView=null;
+                    ImageView actionImageView = null;
                     if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName))
                     {
                         if(entityActionList.contains(cell.getEntity()))
                             entityActionList.remove(cell.getEntity());
                         else entityActionList.add(cell.getEntity());
-                        iView = new ImageView(contentImageMap.get(entityName.replace(""+number, ""+(number+1))));
+                        actionImageView = new ImageView(contentImageMap.get(entityName.replace(""+number, ""+(number+1))));
+                        actionImageView.setFitWidth(cell_size);
+                        actionImageView.setFitHeight(cell_size);
                     }
                     else
-                    if(entityActionList.contains(cell.getEntity()))
                         entityActionList.remove(cell.getEntity());
+
                     switch (cell.getEntity().getDirection()) {
                         case NORTH:
-                            imageView.setRotate(90);
-                            if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName)){
-                                iView.setRotate(90);
+                            entityImageView.setRotate(90);
+                            if(actionImageView !=null){
+                                actionImageView.setRotate(90);
 
-                                iView.setEffect(entityColorMap.get(cell.getEntity().getName()));
-                                gPane.add(iView, x, y-1);
+                                actionImageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
+                                if(output[x][y-1]==null)output[x][y-1] = new StackPane(actionImageView);
+                                else output[x][y-1].getChildren().add(actionImageView);
                             }
                             break;
                         case SOUTH:
-                            imageView.setRotate(270);
-                            if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName)){
-                                iView.setRotate(270);
-                                iView.setEffect(entityColorMap.get(cell.getEntity().getName()));
-                                gPane.add(iView, x, y+1);
+                            entityImageView.setRotate(270);
+                            if(actionImageView !=null){
+                                actionImageView.setRotate(270);
+                                actionImageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
+                                if(output[x][y+1]==null)output[x][y+1] = new StackPane(actionImageView);
+                                else output[x][y+1].getChildren().add(actionImageView);
                             }
                             break;
                         case EAST:
-                            imageView.setRotate(180);
-                            if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName)){
-                                iView.setRotate(180);
-                                iView.setEffect(entityColorMap.get(cell.getEntity().getName()));
-                                gPane.add(iView, x+1, y);
+                            entityImageView.setRotate(180);
+                            if(actionImageView !=null){
+                                actionImageView.setRotate(180);
+                                actionImageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
+                                if(output[x+1][y]==null)output[x+1][y] = new StackPane(actionImageView);
+                                else output[x+1][y].getChildren().add(actionImageView);
                             }
                             break;
                         case WEST:
-                            if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName)){
-                                iView.setEffect(entityColorMap.get(cell.getEntity().getName()));
-                                gPane.add(iView, x-1, y);
+                            if(actionImageView !=null){
+                                actionImageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
+                                if(output[x-1][y]==null)output[x-1][y] = new StackPane(actionImageView);
+                                else output[x-1][y].getChildren().add(actionImageView);
                             }
                             break;
                     }
-                }
 
-                if(cell.hasFlag(CFlag.KNIGHT_DEATH))
-                    stackPane.getChildren().add(new ImageView(contentImageMap.get(CFlag.KNIGHT_DEATH.getDisplayName())));
-                else if (cell.hasFlag(CFlag.SKELETON_DEATH))stackPane.getChildren().add(new ImageView(contentImageMap.get(CFlag.SKELETON_DEATH.getDisplayName())));
-                else if (cell.hasFlag(CFlag.DIRT_REMOVED))stackPane.getChildren().add(new ImageView(contentImageMap.get(CFlag.DIRT_REMOVED.getDisplayName())));
-                else if (cell.hasFlag(CFlag.KEY_DESTROYED))stackPane.getChildren().add(new ImageView(contentImageMap.get(CFlag.KEY_DESTROYED.getDisplayName())));
-                else if (cell.hasFlag(CFlag.ITEM_DESTROYED))
-                    stackPane.getChildren().add(new ImageView(contentImageMap.get(CFlag.ITEM_DESTROYED.getDisplayName())));
-                gPane.add(stackPane, x, y);
+                    output[x][y].getChildren().add(entityImageView);
+                }
+            ImageView destructionIView = new ImageView();
+            destructionIView.setFitWidth(cell_size);
+            destructionIView.setFitHeight(cell_size);
+            if(cell.hasFlag(CFlag.KNIGHT_DEATH)) destructionIView.setImage(contentImageMap.get(CFlag.KNIGHT_DEATH.getDisplayName()));
+            else if (cell.hasFlag(CFlag.SKELETON_DEATH))destructionIView.setImage(contentImageMap.get(CFlag.SKELETON_DEATH.getDisplayName()));
+            else if (cell.hasFlag(CFlag.DIRT_REMOVED))destructionIView.setImage(contentImageMap.get(CFlag.DIRT_REMOVED.getDisplayName()));
+            else if (cell.hasFlag(CFlag.KEY_DESTROYED))destructionIView.setImage(contentImageMap.get(CFlag.KEY_DESTROYED.getDisplayName()));
+            else if (cell.hasFlag(CFlag.ITEM_DESTROYED))
+                destructionIView.setImage(contentImageMap.get(CFlag.ITEM_DESTROYED.getDisplayName()));
+
+            if(destructionIView.getImage()!=null)
+                output[x][y].getChildren().add(destructionIView);
 //                actualMapGPane.getChildren().add(mapShapes[row][column]);
+        }
+        return output;
+    }
+
+    private ImageView getEntityImageView(Cell cell, String entityName) {
+        ImageView imageView = new ImageView(contentImageMap.get(entityName));
+        imageView.setFitWidth(cell_size);
+        imageView.setFitHeight(cell_size);
+        //COLOR EXPERIMENT:
+        int knightCount = 0;
+        int skeletonCount = 0;
+        for(String s : entityColorMap.keySet()){
+            if(model.getCurrentLevel().getCurrentMap().getEntity(s).getEntityType()== EntityType.KNIGHT)knightCount++;
+        }
+        if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
+            switch (knightCount){
+                case 0: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
+                    break;
+                case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
+                    break;
+                case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
+                    break;
+                case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
+                    break;
             }
         }
-        return gPane;
+        skeletonCount = entityColorMap.size()-knightCount;
+        if(cell.getEntity().getEntityType() == EntityType.SKELETON){
+            switch (skeletonCount){
+                case 0: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
+                    break;
+                case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
+                    break;
+                case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
+                    break;
+                case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
+                    break;
+            }
+        }
+        imageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
+
+        //END OF COLOR EXPERIMENT
+
+        return imageView;
+    }
+
+    private ImageView getContentImageView(Cell cell){
+        String contentString = cell.getContent().getDisplayName();
+
+        boolean isTurned = false;
+        boolean isInverted = false;
+        boolean isOpen = false;
+        for (CFlag flag : CFlag.values()) {
+            if (cell.hasFlag(flag)) {
+                if(flag.isTemporary())
+                    continue;
+                if(flag == CFlag.TURNED && (isTurned = true))continue;
+                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.GATE){
+                    isInverted = true;
+                    if(!isOpen)contentString += "_" + CFlag.OPEN.getDisplayName();
+                    else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
+                    continue;
+                }
+                if(flag == CFlag.OPEN ){
+                    isOpen = true;
+                    if(!isInverted)contentString += "_" + CFlag.OPEN.getDisplayName();
+                    else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
+                    continue;
+                }
+                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && model.getCurrentLevel().getTurnsTaken()==0){
+                    isInverted = true;
+                    contentString += "_"+CFlag.INVERTED.getDisplayName()+ "_" + CFlag.TRIGGERED.getDisplayName();
+                    continue;
+                }
+                contentString += "_" + flag.getDisplayName();
+            }
+        }
+        ImageView imageView = new ImageView(contentImageMap.get(contentString));
+        imageView.setFitWidth(cell_size);
+        imageView.setFitHeight(cell_size);
+        if(isTurned)imageView.setRotate(270);
+        if((model.getCurrentLevel().getUsedKnights() < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN))
+            switch (model.getCurrentLevel().getUsedKnights()){
+                case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
+                    break;
+                case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
+                    break;
+                case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
+                    break;
+            }
+        if(cell.getContent()== CellContent.ENEMY_SPAWN){
+            //switch (entityColorMap.size() -model.getCurrentLevel().getUsedKnights()){
+            int skelCount = model.getCurrentLevel().getSkeletonCount();
+            switch (skelCount){
+                case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
+                    break;
+                case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
+                    break;
+                case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
+                    break;
+            }}
+
+        return imageView;
     }
 
     private void calculateCellSize() {
@@ -675,7 +699,7 @@ public class View implements PropertyChangeListener {
         Polyline highlight;
         List<Line> edgeList = new ArrayList<>();
         for(int x = 0; x < model.getCurrentLevel().getOriginalMap().getBoundX(); x++)
-        for(int y = 0; y < model.getCurrentLevel().getOriginalMap().getBoundY(); y++) {
+        for(int y = 0; y < model.getCurrentLevel().getOriginalMap().getBoundY(); y++){
             if (!points.contains(new Point(x, y))) continue;
 //            System.out.println("X: " +x + ", Y:" +y);
             double dx = x * cell_size;
@@ -760,17 +784,17 @@ public class View implements PropertyChangeListener {
     }
 
     private void updateLevelEditorModule() {
-        levelEditorModule.getLevelNameTField().setText(model.getCurrentLevel().getName());
+//        levelEditorModule.getLevelNameTField().setText(model.getCurrentLevel().getName());
         levelEditorModule.getWidthValueLbl().setText("" + model.getCurrentLevel().getOriginalMap().getBoundX());
         levelEditorModule.getHeightValueLbl().setText("" + model.getCurrentLevel().getOriginalMap().getBoundY());
         levelEditorModule.setLOCToStarsValues(model.getCurrentLevel().getLocToStars());
         levelEditorModule.setTurnsToStarsValues(model.getCurrentLevel().getTurnsToStars());
         levelEditorModule.setRequiredLevels(model.getCurrentLevel().getRequiredLevels());
-        levelEditorModule.getIsTutorialValueLbl().setText(model.getCurrentLevel().isTutorial() + "");
+//        levelEditorModule.getIsTutorialValueLbl().setText(model.getCurrentLevel().isTutorial() + "");
         levelEditorModule.getIndexValueLbl().setText((model.getCurrentLevel().getIndex() + 1) + "");
         levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
         levelEditorModule.updateTutorialSection(model.getCurrentLevel());
-        levelEditorModule.getMaxKnightsValueLbl().setText(model.getCurrentLevel().getMaxKnights()+"");
+//        levelEditorModule.getMaxKnightsValueLbl().setText(model.getCurrentLevel().getMaxKnights()+"");
         levelEditorModule.getHasAiValueLbl().setText(model.getCurrentLevel().hasAi()+"");
     }
 
@@ -783,19 +807,25 @@ public class View implements PropertyChangeListener {
                 entityColorMap = new HashMap<>();
                 selectedPointList = new ArrayList<>();
                 selectedPointList.add(new Point(0, 0));
-                codeArea.getScrollBar().setScrollAmount(0);
-                aiCodeArea.getScrollBar().setScrollAmount(0);
                 if (model.getCurrentLevel().hasAi()) {
                     aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true);
                     setCodeArea(aiCodeArea,true);
+                    aiCodeArea.scroll(0);
                 } else {
                     setCodeArea(new CodeArea(new ComplexStatement(), false),true);
                 }
-                if (sceneState == SceneState.LEVEL_EDITOR) updateLevelEditorModule();
+                codeArea.scroll(0);
+                if (sceneState == SceneState.LEVEL_EDITOR) {
+                    updateLevelEditorModule();
+                    levelEditorModule.bindProperty(model.getCurrentLevel().getNameProperty());
+                    levelEditorModule.bindProperty(model.getCurrentLevel().getMaxKnightsProperty());
+                    levelEditorModule.bindProperty(model.getCurrentLevel().getIsTutorialProperty());
+                }
                 spellBookPane.updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
                 if(!levelNameLabel.getText().equals(model.getCurrentLevel().getName())){
                 tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
-                levelNameLabel.setText(model.getCurrentLevel().getName());}
+                levelNameLabel.setText(model.getCurrentLevel().getName());
+                }
             case "map":
                 drawMap(model.getCurrentLevel().getOriginalMap());
                 if(sceneState == SceneState.LEVEL_EDITOR)
@@ -807,7 +837,7 @@ public class View implements PropertyChangeListener {
 //                codeArea.draw();
                 break;
             case "name":
-                levelEditorModule.getLevelNameTField().setText("" + model.getCurrentLevel().getName());
+//                levelEditorModule.getLevelNameTField().setText("" + model.getCurrentLevel().getName());
                 break;
             case "width":
                 levelEditorModule.getWidthValueLbl().setText(model.getCurrentLevel().getOriginalMap().getBoundX() + "");
@@ -1073,7 +1103,12 @@ public class View implements PropertyChangeListener {
     }
 
     public Image getImageFromMap(GameMap originalMap) {
-        GridPane gridPane = getGridPaneFromMap(originalMap);
+        GridPane gridPane = new GridPane();
+
+        StackPane[][] stackpaneField = getStackPaneFieldFromMap(originalMap,Util.getAllPointsIn(new Point(0,0),new Point(originalMap.getBoundX(),originalMap.getBoundY())));
+        for(int y = 0; y < originalMap.getBoundY(); y++)
+            for(int x = 0; x < originalMap.getBoundX(); x++)
+                gridPane.add(stackpaneField[x][y],x,y);
         gridPane.autosize();
         int dimension = gridPane.getHeight() > gridPane.getWidth() ? (int) Math.round(gridPane.getHeight()) : (int) Math.round(gridPane.getWidth());
         BufferedImage bufferedImage = new BufferedImage(dimension, dimension, BufferedImage.TYPE_INT_ARGB);
@@ -1308,6 +1343,7 @@ public class View implements PropertyChangeListener {
         getShowSpellBookBtn().setEffect(null);
         codeArea.setEffect(null);
     }
+
 }
 //KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"
 //COLLECTANDDROP: "Knight knight = new Knight(NORTH);","knight.move();","knight.turn(RIGHT);","knight.move();","knight.collect();","knight.turn(AROUND);","knight.move();","knight.turn(RIGHT);","knight.collect();","knight.turn(AROUND);","knight.dropItem();","knight.turn(AROUND);","knight.collect();","knight.move();","knight.move();","knight.dropItem();","knight.turn(AROUND);","knight.move();","knight.move();","knight.collect();","knight.turn(AROUND);","knight.move();","knight.move();","knight.turn(AROUND);","knight.dropItem();","knight.turn(AROUND);","knight.collect();","knight.move();","knight.turn(RIGHT);","knight.move();","knight.useItem();"

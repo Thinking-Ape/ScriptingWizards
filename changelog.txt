@@ -1,3 +1,11 @@
+Version 1.3b:
+    - Fixed clicking on Scroll Buttons not working
+    - Now only redrawes images that are different instead of redrawing the whole map
+    - Fixed a bug where after an empty line in an if-Statement the wrong line would be marked as currently executed
+    - Now no code will be marked upon finishing
+    - Fixed a bug where HashSets would contain identical Elements (o1.equals(o2) = true)
+    - Code Font is now MonoSpaced
+    - Tutorial can now be navigated using Alt+(Left or Right)
 Version 1.3a:
     - Clicking on CodeArea where TutorialGrop (Wizard and Speechbubble) is transparent now works properly
     - StarImage will now only be updated if you've earned more stars than before!

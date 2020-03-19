@@ -1,6 +1,7 @@
 package main.model;
 
 import main.parser.JSONParser;
+import main.utility.SimpleSet;
 import main.utility.Util;
 import main.view.View;
 
@@ -22,7 +23,7 @@ public class Model implements PropertyChangeListener {
     private static Model single_Instance = null;
 
     private Model(){
-        levelSet = new HashSet<>();
+        levelSet = new SimpleSet<>();
         finishedLevelsList = new ArrayList<>();
         currentLevelIndex = 0;
         changeSupport = new PropertyChangeSupport(this);

@@ -1,4 +1,4 @@
-package main.model;
+package main.model.gamemap;
 
 // an interface for classes that use Behaviour
 // maybe make abstract class instead?
@@ -24,7 +24,7 @@ public class Entity {
     public Direction getDirection(){
         return direction;
     }
-    public void setDirection(Direction direction){
+    void setDirection(Direction direction){
         this.direction = direction;
     }
     public String getName(){return name;}
@@ -33,7 +33,7 @@ public class Entity {
         return entityType;
     }
 
-    public void setItem(ItemType item) {
+    void setItem(ItemType item) {
         this.item = item;
     }
 
