@@ -1,7 +1,6 @@
 package main.model;
 
 import javafx.beans.property.*;
-import main.model.enums.EntityType;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
 import main.model.enums.CellContent;
@@ -10,7 +9,7 @@ import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.utility.GameConstants;
-import main.utility.Point;
+import main.utility.StringListProperty;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -23,17 +22,20 @@ public class Level implements PropertyChangeListener {
 
     private PropertyChangeSupport changeSupport;
     private List<String> tutorialMessages;
-    private int index;
     private GameMap originalMap;
     private GameMap currentMap;
     private List<String> requiredLevels;
-    private Integer[] locToStars;
-    private Integer[] turnsToStars;
+    private StringProperty[] locToStarsProperties; // actually int
+    private StringProperty[] turnsToStarsProperties; // actually int
+    private StringProperty currentTutorialMessageProperty;
+    private StringProperty nameProperty;
+    private StringProperty maxKnightsProperty; // actually int
+    private StringProperty isTutorialProperty; // actually boolean
+    private StringProperty indexProperty; // actually int
+    private StringProperty currentTutorialIndexProperty = new SimpleStringProperty(null,GameConstants.CURRENT_TUTORIAL_INDEX_PROPERTY_NAME,0+""); // actually int
     private int bestLOC = -1;
     private int bestTurns = -1;
     private int turnsTaken;
-    private StringProperty nameProperty;
-    private StringProperty maxKnightsProperty;
     private int usedKnights;
     private ComplexStatement aiBehaviour;
     private ComplexStatement playerBehaviour;
@@ -44,17 +46,22 @@ public class Level implements PropertyChangeListener {
     private CodeExecutor executor;
     private CodeEvaluator evaluator;
     private boolean isStackOverflow;
-    private StringProperty isTutorialProperty;
     private int skeletonCount = 0;
 
 
     public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, String[] requiredLevels, int maxKnights,
                  int index, boolean isTutorial, List<String> tutorialEntryList) {
-
         this.nameProperty = new SimpleStringProperty(null,GameConstants.LEVEL_NAME_PROPERTY_NAME, name);
         this.maxKnightsProperty = new SimpleStringProperty(null,GameConstants.MAX_KNIGHTS_PROPERTY_NAME,maxKnights+"");
         this.isTutorialProperty = new SimpleStringProperty(null,GameConstants.IS_TUTORIAL_PROPERTY_NAME,isTutorial+"");
-        this.index = index;
+        this.indexProperty = new SimpleStringProperty(null,GameConstants.INDEX_PROPERTY_NAME,index+"");
+        StringProperty turnsToStars3 = new SimpleStringProperty(null,GameConstants.TURNS_TO_STARS_3_PROPERTY_NAME,turnsToStars[1]+"");
+        StringProperty turnsToStars2 = new SimpleStringProperty(null,GameConstants.TURNS_TO_STARS_2_PROPERTY_NAME,turnsToStars[0]+"");
+        this.turnsToStarsProperties = new StringProperty[]{turnsToStars2,turnsToStars3};
+        StringProperty locToStars3 = new SimpleStringProperty(null,GameConstants.LOC_TO_STARS_3_PROPERTY_NAME,locToStars[1]+"");
+        StringProperty locToStars2 = new SimpleStringProperty(null,GameConstants.LOC_TO_STARS_2_PROPERTY_NAME,locToStars[0]+"");
+        this.locToStarsProperties = new StringProperty[]{locToStars2,locToStars3};
+
         this.usedKnights = 0;
         this.originalMap = new GameMap(originalArray,this);
         this.currentMap = originalMap.clone();
@@ -62,14 +69,17 @@ public class Level implements PropertyChangeListener {
         this.aiBehaviour = aiBehaviour;
         this.evaluator = new CodeEvaluator();
         this.executor = new CodeExecutor();
-        this.turnsToStars = turnsToStars;
-        this.locToStars = locToStars;
         this.requiredLevels = new ArrayList<>(Arrays.asList(requiredLevels));
         this.changeSupport = new PropertyChangeSupport(this);
         this.tutorialMessages = new ArrayList<>();
         if(isTutorial){
-            if(tutorialEntryList.size() > 0)tutorialMessages.addAll(tutorialEntryList);
-//            else tutorialMessages.add("");
+            if(tutorialEntryList.size() > 0){
+                tutorialMessages.addAll(tutorialEntryList);
+                currentTutorialMessageProperty =
+                        new SimpleStringProperty(null,GameConstants.CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME, tutorialMessages.get(getCurrentTutorialIndex()));
+
+            }
+
         }
     }
 
@@ -292,7 +302,7 @@ public class Level implements PropertyChangeListener {
     }
 
 //    public int getIndex() {
-//        return index;
+//        return indexProperty;
 //    }
 
 
@@ -335,22 +345,22 @@ public class Level implements PropertyChangeListener {
     }
 
     public Integer[] getLocToStars() {
-        return locToStars;
+        return new Integer[]{Integer.valueOf(locToStarsProperties[0].get()),Integer.valueOf(locToStarsProperties[1].get())};
     }
     public Integer[] getTurnsToStars() {
-        return turnsToStars;
+        return new Integer[]{Integer.valueOf(turnsToStarsProperties[0].get()),Integer.valueOf(turnsToStarsProperties[1].get())};
     }
 
     public void changeLocToStars(Integer[] locStarArray) {
-        Integer[] oldLocTOStars = this.locToStars;
-        this.locToStars = locStarArray;
-        changeSupport.firePropertyChange("locToStars", oldLocTOStars, locStarArray);
+        StringProperty locToStars3 = new SimpleStringProperty(null,GameConstants.LOC_TO_STARS_3_PROPERTY_NAME,locStarArray[1]+"");
+        StringProperty locToStars2 = new SimpleStringProperty(null,GameConstants.LOC_TO_STARS_2_PROPERTY_NAME,locStarArray[0]+"");
+        this.locToStarsProperties = new StringProperty[]{locToStars2,locToStars3};
     }
 //TODO: only if they differ
     public void changeTurnsToStars(Integer[] turnsToStars) {
-        Integer[] oldTurnsToStars = this.turnsToStars;
-        this.turnsToStars = turnsToStars;
-        changeSupport.firePropertyChange("turnsToStars",oldTurnsToStars, turnsToStars);
+        StringProperty turnsToStars3 = new SimpleStringProperty(null,GameConstants.TURNS_TO_STARS_3_PROPERTY_NAME,turnsToStars[1]+"");
+        StringProperty turnsToStars2 = new SimpleStringProperty(null,GameConstants.TURNS_TO_STARS_2_PROPERTY_NAME,turnsToStars[0]+"");
+        this.turnsToStarsProperties = new StringProperty[]{turnsToStars2,turnsToStars3};
     }
     //TODO: only if they differ
     public void setRequiredLevels(List<String> requiredLevelNames) {
@@ -363,9 +373,9 @@ public class Level implements PropertyChangeListener {
     }
 
     public void setMaxKnights(int maxKnights) {
-        int oldMaxKnights = getMaxKnights();
+//        int oldMaxKnights = getMaxKnights();
         this.maxKnightsProperty.setValue(maxKnights+"");
-        if(oldMaxKnights != maxKnights)changeSupport.firePropertyChange("maxKnightsProperty", oldMaxKnights, maxKnights);
+//        if(oldMaxKnights != maxKnights)changeSupport.firePropertyChange("maxKnightsProperty", oldMaxKnights, maxKnights);
     }
 
     public void addChangeListener(PropertyChangeListener pcl) {
@@ -398,34 +408,37 @@ public class Level implements PropertyChangeListener {
     }
 
     public int getIndex() {
-        return index;
+        return Integer.parseInt(indexProperty.get());
     }
 
     public void setIsTutorial(boolean selected) {
-        boolean old = isTutorial();
+//        boolean old = isTutorial();
         isTutorialProperty.setValue(selected+"");
-        changeSupport.firePropertyChange("isTutorial", old,selected);
+//        changeSupport.firePropertyChange("isTutorial", old,selected);
     }
 
-    public void setIndex(int i) {
-        int old = index;
-        index = i;
-        changeSupport.firePropertyChange("index", null,this);
+    public void setIndexProperty(int i) {
+        indexProperty.setValue(i+"");
+//        changeSupport.firePropertyChange("indexProperty", null,this);
     }
-    public void addTutorialLine(int i,String tutorialLine){
+    public void addTutorialLine(String entry){
         if(tutorialMessages.size()==0)
-            tutorialMessages.add(tutorialLine);
-        else tutorialMessages.add(i,tutorialLine);
+            tutorialMessages.add(entry);
+        else tutorialMessages.add(getCurrentTutorialIndex()+1,entry);
+        currentTutorialIndexProperty.setValue(getCurrentTutorialIndex()+1+"");
+        currentTutorialMessageProperty.setValue(entry);
     }
-    public void setTutorialLine(int index, String tutorialLine){
-        if(tutorialMessages.size() == 0)tutorialMessages.add(tutorialLine);
-        else tutorialMessages.set(index,tutorialLine);
-        changeSupport.firePropertyChange("tutorial", null,tutorialLine);
+    public void setTutorialLine(String entry){
+        if(tutorialMessages.size() == 0) tutorialMessages.add(entry);
+        else tutorialMessages.set(getCurrentTutorialIndex(),entry);
+        currentTutorialMessageProperty.setValue(entry);
     }
 
-    public void deleteTutorialLine(int index) {
-        tutorialMessages.remove(index);
-        changeSupport.firePropertyChange("tutorialDeletion", null,index);
+    public void deleteCurrentTutorialLine() {
+        tutorialMessages.remove(getCurrentTutorialIndex());
+
+        if(getCurrentTutorialIndex() == tutorialMessages.size() )currentTutorialIndexProperty.setValue(getCurrentTutorialIndex()-1+"");
+        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialIndex()));
     }
 
     public boolean isStackOverflow() {
@@ -449,23 +462,34 @@ public class Level implements PropertyChangeListener {
         return bestTurns;
     }
 
-    public StringProperty getNameProperty() {
-        return nameProperty;
-    }
-
-    public StringProperty getMaxKnightsProperty() {
-        return maxKnightsProperty;
-    }
-
-    public StringProperty getIsTutorialProperty() {
-        return isTutorialProperty;
-    }
-
     public boolean isAiFinished() {
         return aiFinished;
     }
 
     public int getSkeletonCount() {
         return skeletonCount;
+    }
+
+    public int getCurrentTutorialIndex() {
+        return Integer.valueOf(currentTutorialIndexProperty.get());
+    }
+
+
+    public StringProperty[] getAllProperties() {
+        return new StringProperty[] {nameProperty,maxKnightsProperty,isTutorialProperty,indexProperty, locToStarsProperties[0], locToStarsProperties[1],
+                turnsToStarsProperties[0], turnsToStarsProperties[1], currentTutorialMessageProperty, currentTutorialIndexProperty};
+    }
+
+    public void prevTutorialMessage() {
+        currentTutorialIndexProperty.setValue(Integer.valueOf(currentTutorialIndexProperty.get())-1+"");
+        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialIndex()));
+    }
+    public void nextTutorialMessage() {
+        currentTutorialIndexProperty.setValue(Integer.valueOf(currentTutorialIndexProperty.get())+1+"");
+        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialIndex()));
+    }
+
+    public String getCurrentTutorialMsg() {
+        return currentTutorialMessageProperty.get();
     }
 }

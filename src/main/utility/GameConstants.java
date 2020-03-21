@@ -111,7 +111,14 @@ public abstract class GameConstants {
 
     public static final String LEVEL_NAME_PROPERTY_NAME = "LevelName";
     public static final String MAX_KNIGHTS_PROPERTY_NAME = "MaxKnights";
+    public static final String INDEX_PROPERTY_NAME = "Index";
     public static final String IS_TUTORIAL_PROPERTY_NAME = "IsTutorial";
+    public static final String TURNS_TO_STARS_2_PROPERTY_NAME = "TurnsToStars2";
+    public static final String LOC_TO_STARS_2_PROPERTY_NAME = "LocToStars2";
+    public static final String TURNS_TO_STARS_3_PROPERTY_NAME = "TurnsToStars3";
+    public static final String LOC_TO_STARS_3_PROPERTY_NAME = "LocToStars3";
+    public static final String CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME = "CurrentTutorialMessage";
+    public static final String CURRENT_TUTORIAL_INDEX_PROPERTY_NAME = "CurrentTutorialIndex";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

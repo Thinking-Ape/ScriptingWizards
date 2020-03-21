@@ -74,7 +74,7 @@ public class Model implements PropertyChangeListener {
         JSONParser.removeLevelFromData(currentLevel.getName());
         for(Level l : levelSet){
             if(l.getIndex() > index){
-                l.setIndex(l.getIndex()-1);
+                l.setIndexProperty(l.getIndex()-1);
             }
             if(Util.listContains(l.getRequiredLevels(), currentLevel.getName()))
             l.getRequiredLevels().remove(currentLevel.getName());
@@ -148,7 +148,7 @@ public class Model implements PropertyChangeListener {
         levelSet.remove(levelToRemove);
         levelToRemove.removeAllListener();
         levelSet.add(newLevel);
-        newLevel.setIndex(currentLevelIndex);
+        newLevel.setIndexProperty(currentLevelIndex);
         newLevel.addChangeListener(this);
         changeSupport.firePropertyChange("level", null, getCurrentLevel());
 //        for(int i = 0; i < levelSet.size(); i++){
@@ -170,8 +170,8 @@ public class Model implements PropertyChangeListener {
         currentLevelIndex--;
 
         for(Level l : levelSet){
-            if(l.getIndex() == currentLevelIndex)l.setIndex(currentLevelIndex+1);
-            else if(l.getIndex() == currentLevelIndex+1)l.setIndex(currentLevelIndex);
+            if(l.getIndex() == currentLevelIndex)l.setIndexProperty(currentLevelIndex+1);
+            else if(l.getIndex() == currentLevelIndex+1)l.setIndexProperty(currentLevelIndex);
         }
 //        Level oldLevel = levelSet.get(currentLevelIndex-1);
     }
@@ -187,8 +187,8 @@ public class Model implements PropertyChangeListener {
         currentLevelIndex++;
         getCurrentLevel().getRequiredLevels().remove(getLevelWithIndex(currentLevelIndex-1).getName());
         for(Level l : levelSet){
-            if(l.getIndex() == currentLevelIndex)l.setIndex(currentLevelIndex-1);
-            else if(l.getIndex() == currentLevelIndex-1)l.setIndex(currentLevelIndex);
+            if(l.getIndex() == currentLevelIndex)l.setIndexProperty(currentLevelIndex-1);
+            else if(l.getIndex() == currentLevelIndex-1)l.setIndexProperty(currentLevelIndex);
         }
 //        Level oldLevel = levelSet.get(currentLevelIndex+1);
 

@@ -4,6 +4,7 @@ package main.view;
 //import javafx.scene.control.TextArea;
 
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
 import javafx.scene.control.Button;
 import javafx.scene.effect.Bloom;
 import javafx.scene.effect.DropShadow;
@@ -406,5 +407,11 @@ public class CodeArea extends VBox {
 
     public int getScrollAmount() {
         return isAi ? aiScrollAmount : scrollAmount;
+    }
+
+    public void markCodeFields(Set<Integer> indexSet) {
+        for(Integer i : indexSet){
+            codeFieldList.get(i).setStyle("-fx-background-color: lightblue");
+        }
     }
 }

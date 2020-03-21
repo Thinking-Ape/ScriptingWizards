@@ -1,15 +1,14 @@
 package main.controller;
 
 import javafx.application.Platform;
-import javafx.event.EventTarget;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import main.model.Model;
 import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
 import main.utility.GameConstants;
+import main.utility.SimpleSet;
 import main.view.CodeArea;
 import main.view.CodeField;
 import main.view.SceneState;
@@ -29,6 +28,7 @@ public class CodeAreaController implements PropertyChangeListener {
     private boolean addBefore;
     private boolean isError = false;
     private boolean gameRunning = false;
+    private SimpleSet<Integer> selectedIndexSet = new SimpleSet<>();
 
     public CodeAreaController(View view, Model model) {
         this.model =model;
@@ -254,12 +254,20 @@ public class CodeAreaController implements PropertyChangeListener {
                     if(currentIndex<= codeArea.getScrollAmount())
                         codeArea.scroll(scrollAmount);
                     if(event.isControlDown()){
-                        codeAreaClone.moveCodeField(currentIndex,true);
+                        codeAreaClone.moveCodeField(currentIndex, true);
+//                        for(Integer i : selectedIndexSet)
+//                            codeAreaClone.moveCodeField(i,true);
                     }
-                    //TODO: pass selection to method
-//                    codeArea.deselectAll();
+//                    else if(event.isShiftDown()){
+//                        selectedIndexSet.add(currentIndex);
+//                        int nextDepth = codeArea.getCodeFieldListClone().get(codeArea.indexOfCodeField(currentCodeField)-1).getDepth();
+//                        if(currentCodeField.getDepth() == nextDepth)selectedIndexSet.add(currentIndex-1);
+//                    }
+//                    else {
+//                        selectedIndexSet.clear();
+//                        selectedIndexSet.add(currentIndex-1);
+//                    }
                     currentIndex--;
-//                    codeArea.select(currentIndex,Selection.END);
                     silentError = false;
 
                     break;
@@ -272,10 +280,19 @@ public class CodeAreaController implements PropertyChangeListener {
                     scrollAmount = codeArea.getScrollAmount()+1 < codeArea.getSize() ? codeArea.getScrollAmount()+1 : codeArea.getSize()-1-GameConstants.MAX_CODE_LINES;
                     if(currentIndex+1>=GameConstants.MAX_CODE_LINES+ codeArea.getScrollAmount())codeArea.scroll(scrollAmount);
                     if(event.isControlDown()){
-                        codeAreaClone.moveCodeField(currentIndex,false);
+                        codeAreaClone.moveCodeField(currentIndex, false);
+//                        for(Integer i : selectedIndexSet)
+//                            codeAreaClone.moveCodeField(i,false);
                     }
-                    //TODO: pass selection to method
-//                    codeArea.deselectAll();
+//                    else if(event.isShiftDown()){
+//                        selectedIndexSet.add(currentIndex);
+//                        int nextDepth = codeArea.getCodeFieldListClone().get(codeArea.indexOfCodeField(currentCodeField)+1).getDepth();
+//                        if(currentCodeField.getDepth() == nextDepth)selectedIndexSet.add(currentIndex+1);
+//                    }
+//                    else {
+//                        selectedIndexSet.clear();
+//                        selectedIndexSet.add(currentIndex+1);
+//                    }
                     currentIndex++;
                     silentError = false;
 
@@ -288,6 +305,8 @@ public class CodeAreaController implements PropertyChangeListener {
                     silentError = true;
                     break;
                 default:
+//                    selectedIndexSet.clear();
+//                    selectedIndexSet.add(currentIndex);
                     if(!currentCodeField.isEditable())return;
                     Platform.runLater(()->currentCodeField.fireEvent(new KeyEvent(event.getEventType(), event.getCharacter(), event.getText(), KeyCode.RECORD, false,false,false,false )));
                     return;
@@ -300,14 +319,6 @@ public class CodeAreaController implements PropertyChangeListener {
             }
             recreateCodeAreaIfCodeCorrect(codeAreaClone,currentCodeField,isAi);
         });
-//        currentCodeField.setOnKeyTyped(event -> {
-//            if(event.getCharacter().equals(";")||event.getCharacter().equals("{")){
-//                if(currentCodeField.getCaretPosition() == currentCodeField.getText().length()){
-//                    tryToRecompileCodeArea();
-//                    return;
-//                }
-//            }
-//        });
     }
 
 
@@ -316,9 +327,11 @@ public class CodeAreaController implements PropertyChangeListener {
 //        Platform.runLater(()->{
             CodeArea newCodeArea = tryToRecompileCodeArea(codeAreaClone,silentError,isAi);
 
+
             if(newCodeArea != null){
                 isError = false;
                 view.setCodeArea(newCodeArea,isAi);
+//                newCodeArea.markCodeFields(selectedIndexSet);
                 if(!silentError)
 //                    Platform.runLater(()->
                         newCodeArea.select(currentIndex,Selection.END);

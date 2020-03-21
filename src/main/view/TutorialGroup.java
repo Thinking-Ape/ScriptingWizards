@@ -1,6 +1,8 @@
 package main.view;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -15,6 +17,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import main.utility.GameConstants;
+import main.utility.StringListProperty;
 import main.utility.Util;
 
 import java.util.ArrayList;
@@ -208,4 +211,15 @@ public class TutorialGroup extends Group {
     public int getCurrentIndex() {
         return index;
     }
+//
+//    public void unbind() {
+//        for(StringProperty stringProperty : tutorialEntries){
+//            stringProperty.unbind();
+//        }
+//    }
+//
+//    public void bindEntriesTo(StringListProperty tutorialEntryList) {
+//        tutorialEntryList.bindAll(tutorialEntries);
+//        currentTutorialMessage.textProperty().bind();
+//    }
 }

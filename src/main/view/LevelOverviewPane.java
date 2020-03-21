@@ -15,7 +15,6 @@ import main.parser.JSONParser;
 import main.utility.Util;
 
 import java.io.IOException;
-import java.util.List;
 
 import static main.utility.GameConstants.*;
 

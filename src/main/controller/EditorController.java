@@ -107,10 +107,9 @@ public class EditorController implements PropertyChangeListener {
         });
 
         view.getLevelEditorModule().getEditTutorialTextBtn().setOnAction(evt -> {
-            int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
             Dialog<ButtonType> editTutorialDialog = new Dialog<>();
             String text = "";
-            if(model.getCurrentLevel().getTutorialEntryList().size() > 0) text = model.getCurrentLevel().getTutorialEntryList().get(index-1);
+            if(model.getCurrentLevel().getTutorialEntryList().size() > 0) text = model.getCurrentLevel().getCurrentTutorialMsg();
             TextArea tutorialTextArea = new TextArea(text);
             tutorialTextArea.setWrapText(true);
             tutorialTextArea.setPromptText("Type your tutorial text here!");
@@ -161,7 +160,7 @@ public class EditorController implements PropertyChangeListener {
             tutorialTextArea.requestFocus();
             if(o.isPresent()&& o.get() == ButtonType.OK){
                 String tutorialText = tutorialTextArea.getText();
-                model.getCurrentLevel().setTutorialLine(index-1,tutorialText.trim());
+                model.getCurrentLevel().setTutorialLine(tutorialText.trim());
                 //TODO: evaluate necessity
 //                setEditorHandlers();
             }
@@ -170,15 +169,14 @@ public class EditorController implements PropertyChangeListener {
         view.getLevelEditorModule().getDeleteTutorialTextBtn().setOnAction(evt -> {
             Optional<ButtonType> o  = new Alert(Alert.AlertType.NONE,"Do you really want to delete this tutorial text?",ButtonType.OK, ButtonType.CANCEL).showAndWait();
             if(o.isPresent()&& o.get() == ButtonType.OK){
-                int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
-                model.getCurrentLevel().deleteTutorialLine(index-1);
+                model.getCurrentLevel().deleteCurrentTutorialLine();
                 if(model.getCurrentLevel().getTutorialEntryList().size()<=2){
                     if(model.getCurrentLevel().getTutorialEntryList().size()==1){
                         view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(true);
                         view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
                         view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
                     }
-                    else if(index == 1)view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
+                    else if(model.getCurrentLevel().getCurrentTutorialIndex() == 1)view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
                     else view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
                 }
                 //TODO: evaluate necessity
@@ -187,53 +185,31 @@ public class EditorController implements PropertyChangeListener {
         });
 
         view.getLevelEditorModule().getNewTutorialTextBtn().setOnAction(evt -> {
-            int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
             if(view.getLevelEditorModule().getTutorialTextArea().getText().equals("")){
                 new Alert(Alert.AlertType.NONE,"Please enter some text into the current TextArea!",ButtonType.OK).showAndWait();
                 return;
             }
-            view.getLevelEditorModule().getTutorialNumberValueLbl().setText(""+(index+1));
-//            if(index == model.getCurrentLevel().getTutorialEntryList().size()){
-            view.getLevelEditorModule().getTutorialTextArea().setText("");
 
-            model.getCurrentLevel().addTutorialLine(index,"");
-//            }
-//            else{
-//                view.getLevelEditorModule().getTutorialTextArea().setText(model.getCurrentLevel().getTutorialEntryList().get(index));
-//                if(index+1 == model.getCurrentLevel().getTutorialEntryList().size()){
-//                    view.getLevelEditorModule().getNextOrNewTutorialTextBtn().setText("New Entry");
-//                }
-//            }
+            model.getCurrentLevel().addTutorialLine("");
             view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(false);
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
-            //TODO: evaluate necessity
-//            setEditorHandlers();
-
         });
 
         view.getLevelEditorModule().getPrevTutorialTextBtn().setOnAction(evt -> {
-            int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
-            view.getLevelEditorModule().getTutorialTextArea().setText(model.getCurrentLevel().getTutorialEntryList().get(index-2));
-            view.getLevelEditorModule().getTutorialNumberValueLbl().setText((index-1)+"");
+            model.getCurrentLevel().prevTutorialMessage();
+            int index = model.getCurrentLevel().getCurrentTutorialIndex();
             view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(false);
-            if(index-1 == 1){
+            if(index == 0){
                 view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
             }
-            //TODO: evaluate necessity
-//            setEditorHandlers();
-
         });
         view.getLevelEditorModule().getNextTutorialTextBtn().setOnAction(evt -> {
-            int index = Integer.parseInt(view.getLevelEditorModule().getTutorialNumberValueLbl().getText());
-            view.getLevelEditorModule().getTutorialTextArea().setText(model.getCurrentLevel().getTutorialEntryList().get(index));
-            view.getLevelEditorModule().getTutorialNumberValueLbl().setText((index+1)+"");
+            model.getCurrentLevel().nextTutorialMessage();
+            int index = model.getCurrentLevel().getCurrentTutorialIndex();
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
             if(index+1 == model.getCurrentLevel().getTutorialEntryList().size()){
                 view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
             }
-            //TODO: evaluate necessity
-//            setEditorHandlers();
-
         });
 
         view.getLevelEditorModule().getOpenLevelBtn().setOnAction(event -> {
@@ -385,7 +361,7 @@ public class EditorController implements PropertyChangeListener {
                     locToStars[1] = 0;
                     int index = model.getCurrentLevel().getIndex()+1;
                     for(int i = index; i <model.getAmountOfLevels();i++){
-                        model.getLevelWithIndex(i).setIndex(i+1);
+                        model.getLevelWithIndex(i).setIndexProperty(i+1);
                     }
                     model.addLevel(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new String[0],3,index,false,null)); //TODO!
 

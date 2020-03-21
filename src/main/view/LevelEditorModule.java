@@ -136,28 +136,26 @@ public class LevelEditorModule {
         prevNextTutHBox.setAlignment(Pos.TOP_CENTER);
         cellDetailVBox.setAlignment(Pos.TOP_CENTER);
         cellDetailVBox.setSpacing(5);
-        updateTutorialSection(level);
+
+        prevTutorialTextBtn.setDisable(true);
+        if(level.getTutorialEntryList().size()== 0)nextTutorialTextBtn.setDisable(true);
 
 //        cellIDHBox.setVisible(false);
 //        addLinkedCellBtn.setVisible(false);
 //        removeLinkedCellBtn.setVisible(false);
 //        linkedCellListView.setVisible(false);
 //        exitOpenCheckBox.setVisible(false);
-        levelNameValueLbl.textProperty().bind(level.getNameProperty());
-        maxKnightsValueLbl.textProperty().bind(level.getMaxKnightsProperty());
+        bindProperties(level.getAllProperties());
+
         heightValueLbl.setText(""+level.getOriginalMap().getBoundY());
         widthValueLbl.setText(""+level.getOriginalMap().getBoundX());
-        maxLoc3StarsVLbl.setText(""+level.getLocToStars()[1]);
-        maxLoc2StarsVLbl.setText(""+level.getLocToStars()[0]);
-        maxTurns3StarsVLbl.setText(""+level.getTurnsToStars()[1]);
-        maxTurns2StarsVLbl.setText(""+level.getTurnsToStars()[0]);
         requiredLevelsLView.setMaxHeight(TEXTFIELD_HEIGHT*1.2);
         requiredLevelsLView.setMinHeight(TEXTFIELD_HEIGHT*1.2);
         requiredLevelsLView.setMaxWidth(TEXTFIELD_WIDTH*0.5);
         requiredLevelsLView.setMinWidth(TEXTFIELD_WIDTH*0.5);
         requiredLevelsLabel.setFont(new Font(requiredLevelsLabel.getFont().getName(),GameConstants.FONT_SIZE));
-        indexValueLbl.setText(""+(level.getIndex()+1));
-        isTutorialValueLbl.setText(""+level.isTutorial());
+//        indexValueLbl.setText(""+(level.getIndex()+1));
+//        isTutorialValueLbl.setText(""+level.isTutorial());
         requiredLVBOX.getTransforms().add(new Translate(0,-20,0));
         topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevels().length*25+25);
         for(int i = 0; i < level.getRequiredLevels().size();i++){
@@ -194,25 +192,6 @@ public class LevelEditorModule {
         topHBox.setAlignment(Pos.BASELINE_CENTER);
     }
 
-    void updateTutorialSection(Level level) {
-        boolean notEnoughEntries = false;
-        if(level.getTutorialEntryList().size() <= 1){
-            notEnoughEntries = true;
-        }
-        prevTutorialTextBtn.setDisable(true);
-        nextTutorialTextBtn.setDisable(notEnoughEntries);
-        tutorialNumberValueLbl.setText(1+"");
-        if(level.getTutorialEntryList().size() == 0){
-            tutorialTextArea.setText("");
-            deleteTutorialTextBtn.setDisable(true);
-        }
-        else {
-            tutorialTextArea.setText(level.getTutorialEntryList().get(0));
-            deleteTutorialTextBtn.setDisable(false);
-        }
-    }
-
-
     public VBox getRightVBox(){
         return rightVBox;
     }
@@ -244,7 +223,8 @@ public class LevelEditorModule {
         return saveLevelBtn;
     }
 
-    public void bindProperty(StringProperty stringProperty) {
+    public void bindProperties(StringProperty[] properties) {
+        for(StringProperty stringProperty : properties)
         switch (stringProperty.getName()){
             case GameConstants.LEVEL_NAME_PROPERTY_NAME:
                 levelNameValueLbl.textProperty().unbind();
@@ -257,6 +237,35 @@ public class LevelEditorModule {
             case GameConstants.IS_TUTORIAL_PROPERTY_NAME:
                 isTutorialValueLbl.textProperty().unbind();
                 isTutorialValueLbl.textProperty().bind(stringProperty);
+                break;
+            case GameConstants.INDEX_PROPERTY_NAME:
+                indexValueLbl.textProperty().unbind();
+                indexValueLbl.textProperty().bind(stringProperty);
+                break;
+            case TURNS_TO_STARS_3_PROPERTY_NAME:
+                maxTurns3StarsVLbl.textProperty().unbind();
+                maxTurns3StarsVLbl.textProperty().bind(stringProperty);
+                break;
+            case TURNS_TO_STARS_2_PROPERTY_NAME:
+                maxTurns2StarsVLbl.textProperty().unbind();
+                maxTurns2StarsVLbl.textProperty().bind(stringProperty);
+                break;
+            case LOC_TO_STARS_3_PROPERTY_NAME:
+                maxLoc3StarsVLbl.textProperty().unbind();
+                maxLoc3StarsVLbl.textProperty().bind(stringProperty);
+                break;
+            case LOC_TO_STARS_2_PROPERTY_NAME:
+                maxLoc2StarsVLbl.textProperty().unbind();
+                maxLoc2StarsVLbl.textProperty().bind(stringProperty);
+                break;
+            case CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME:
+                tutorialTextArea.textProperty().unbind();
+                tutorialTextArea.textProperty().bind(stringProperty);
+                break;
+
+            case CURRENT_TUTORIAL_INDEX_PROPERTY_NAME:
+                tutorialNumberValueLbl.textProperty().unbind();
+                tutorialNumberValueLbl.textProperty().bind(stringProperty);
                 break;
         }
     }

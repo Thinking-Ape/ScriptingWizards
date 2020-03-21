@@ -32,7 +32,6 @@ IMPORTANT:
 - requiredlevels arent ordered in levelviewlist as in opening screen
 - merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
 -> figure out how to evaluate values of conditions and assignments!
-- changelog
 - newturns > turns but newlines < lines -> better? (not justifiable to give 2.5!)
 - schleusen level with and without an inverted gate
 - evil wizard explains level editor
@@ -48,7 +47,6 @@ IMPORTANT:
 - instead of unknown method it says variable not in scope
 - make Introduction Pane transparent, show first level and highlight every part of the screen one after the other (code section, spellbook)
 - create a clean event handling implementation!
-- create a "GamePane" with "States" and a boolean "isEditor"
 - CodeAreaController Listens to CodeArea and sets the handlers everytime it changes
 - Where to throw the error when COdeArea wrong? -> anyways when error change state of GamePane to "ErrorState" (Maybe there are also "PlayState" and "IdleState")
 - Is CodeParser okay to be abstract? (why errors in parser and in evaluator??)
@@ -65,13 +63,12 @@ IMPORTANT:
  - check arguments of skeleton constructor whether they are viable...
  - replace the number argument with a color and give the spawns different colors?? (CFlag.RED,CFlag.VIOLET)
  - ! skells.canMove() doesnt work!!
- - make it run faster! (maybe dont draw every cell again every time? only when a cell has changed??) also only draw the map once!
+ - only draw the map once in the beginning!
  - one step button einbauen
  - level editor mit passwort vor schülern schützen
  - alle escape sequenzen implementieren
  - be able to reset various aspects of data?
  - when starting game 7 or more levels are loaded! (is it maybe because of leveloverview pane?)
- - draw map differently entirely (cells same level -> next to each other)
  - cheap graphics option? (disable smoothing)
 
  - execute one line at a time??
@@ -84,7 +81,6 @@ IMPORTANT:
  - Allgemein mehr Features für den Editor wie zB. Markieren oder Drag & Drop von Code-Zeilen wären sehr hilfreich.
  - Zhu: Spiral In hat diesen schwarzen scrollbar bug
  - Text nicht zentriert
- - wizard mit pfeiltasten bedienen?
  - f5 für kompilieren?
 ---------------------------------------------
 

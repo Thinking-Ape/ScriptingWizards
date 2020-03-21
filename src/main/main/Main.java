@@ -1,7 +1,5 @@
 package main.main;
 
-import javafx.event.EventHandler;
-import javafx.stage.WindowEvent;
 import main.controller.Controller;
 import javafx.application.Application;
 import javafx.stage.Stage;

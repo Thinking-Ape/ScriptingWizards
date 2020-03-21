@@ -784,17 +784,13 @@ public class View implements PropertyChangeListener {
     }
 
     private void updateLevelEditorModule() {
-//        levelEditorModule.getLevelNameTField().setText(model.getCurrentLevel().getName());
         levelEditorModule.getWidthValueLbl().setText("" + model.getCurrentLevel().getOriginalMap().getBoundX());
         levelEditorModule.getHeightValueLbl().setText("" + model.getCurrentLevel().getOriginalMap().getBoundY());
-        levelEditorModule.setLOCToStarsValues(model.getCurrentLevel().getLocToStars());
-        levelEditorModule.setTurnsToStarsValues(model.getCurrentLevel().getTurnsToStars());
         levelEditorModule.setRequiredLevels(model.getCurrentLevel().getRequiredLevels());
-//        levelEditorModule.getIsTutorialValueLbl().setText(model.getCurrentLevel().isTutorial() + "");
-        levelEditorModule.getIndexValueLbl().setText((model.getCurrentLevel().getIndex() + 1) + "");
         levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
-        levelEditorModule.updateTutorialSection(model.getCurrentLevel());
-//        levelEditorModule.getMaxKnightsValueLbl().setText(model.getCurrentLevel().getMaxKnights()+"");
+        levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
+        if(model.getCurrentLevel().getTutorialEntryList().size()== 0)levelEditorModule.getNextTutorialTextBtn().setDisable(true);
+//        levelEditorModule.updateTutorialSection(model.getCurrentLevel());
         levelEditorModule.getHasAiValueLbl().setText(model.getCurrentLevel().hasAi()+"");
     }
 
@@ -802,7 +798,6 @@ public class View implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
             default:
-
             case "level":
                 entityColorMap = new HashMap<>();
                 selectedPointList = new ArrayList<>();
@@ -817,15 +812,10 @@ public class View implements PropertyChangeListener {
                 codeArea.scroll(0);
                 if (sceneState == SceneState.LEVEL_EDITOR) {
                     updateLevelEditorModule();
-                    levelEditorModule.bindProperty(model.getCurrentLevel().getNameProperty());
-                    levelEditorModule.bindProperty(model.getCurrentLevel().getMaxKnightsProperty());
-                    levelEditorModule.bindProperty(model.getCurrentLevel().getIsTutorialProperty());
+                    levelEditorModule.bindProperties(model.getCurrentLevel().getAllProperties());
                 }
                 spellBookPane.updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
-                if(!levelNameLabel.getText().equals(model.getCurrentLevel().getName())){
-                tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
-                levelNameLabel.setText(model.getCurrentLevel().getName());
-                }
+
             case "map":
                 drawMap(model.getCurrentLevel().getOriginalMap());
                 if(sceneState == SceneState.LEVEL_EDITOR)
@@ -853,16 +843,16 @@ public class View implements PropertyChangeListener {
                 drawMap(model.getCurrentLevel().getOriginalMap());
                 Platform.runLater(()->highlightInMap(selectedPointList));
                 break;
-            case "locToStars":
-                Integer[] locToStars = model.getCurrentLevel().getLocToStars();
-                levelEditorModule.setLOCToStarsValues(locToStars);
-                break;
-            case "turnsToStars":
-                Integer[] turnsToStars = model.getCurrentLevel().getTurnsToStars();
-                levelEditorModule.setTurnsToStarsValues(turnsToStars);
-                break;
+//            case "locToStars":
+//                Integer[] locToStars = model.getCurrentLevel().getLocToStars();
+//                levelEditorModule.setLOCToStarsValues(locToStars);
+//                break;
+//            case "turnsToStars":
+//                Integer[] turnsToStars = model.getCurrentLevel().getTurnsToStars();
+//                levelEditorModule.setTurnsToStarsValues(turnsToStars);
+//                break;
             case "maxKnights":
-                levelEditorModule.getMaxKnightsValueLbl().setText("" + model.getCurrentLevel().getMaxKnights());
+//                levelEditorModule.getMaxKnightsValueLbl().setText("" + model.getCurrentLevel().getMaxKnights());
                redrawKnightsLeftVBox();
                 break;
             case "aiBehaviour":
@@ -889,13 +879,13 @@ public class View implements PropertyChangeListener {
                     }});
                 }
                 break;
-            case "isTutorial":
-                levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
-                levelEditorModule.updateTutorialSection(model.getCurrentLevel());
-                levelEditorModule.getIsTutorialValueLbl().setText("" + model.getCurrentLevel().isTutorial());
-                break;
-            case "index":
-                levelEditorModule.getIndexValueLbl().setText("" + (model.getCurrentLevel().getIndex() + 1));
+//            case "isTutorial":
+//                levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
+//                levelEditorModule.updateTutorialSection(model.getCurrentLevel());
+//                levelEditorModule.getIsTutorialValueLbl().setText("" + model.getCurrentLevel().isTutorial());
+//                break;
+//            case "index":
+//                levelEditorModule.getIndexValueLbl().setText("" + (model.getCurrentLevel().getIndex() + 1));
             case "requiredLevels":
                 List<String> requiredLevelsList = model.getCurrentLevel().getRequiredLevels();
                 levelEditorModule.setRequiredLevels(requiredLevelsList);
@@ -1058,6 +1048,7 @@ public class View implements PropertyChangeListener {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                //TODO: move to controller?
                 if(isIntroduction){
                     tutorialGroup.setEntries(Util.StringListFromArray(TUTORIAL_LINES));
                 }
