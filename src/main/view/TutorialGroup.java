@@ -17,21 +17,17 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import main.utility.GameConstants;
-import main.utility.StringListProperty;
-import main.utility.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TutorialGroup extends Group {
 
-    //    private List<SpellBookLabel> spellBookEntryList;
     private TextArea currentTutorialMessage = new TextArea();
     private Button prevBtn = new Button();
     private Button hideBtn = new Button("Hide Wizard");
     private Button nextBtn = new Button();
     private Button endIntroductionBtn = new Button();
-    private HBox navigationHBox = new HBox(hideBtn,prevBtn,nextBtn);
     private HBox hb;
     private StackPane sp;
     private int index = 0;
@@ -64,8 +60,6 @@ public class TutorialGroup extends Group {
 
         prevBtn.setStyle("-fx-background-color: white;" +
                 "-fx-base: transparent;");
-//        prevBtn.setFont(GameConstants.SMALL_FONT);
-//        nextBtn.setFont(GameConstants.SMALL_FONT);
         endIntroductionBtn.setGraphic(imageView);
         endIntroductionBtn.setStyle("-fx-background-color: white;" +
                 "-fx-base: transparent;");
@@ -100,7 +94,8 @@ public class TutorialGroup extends Group {
         sp.layout();
         sp.autosize();
         sp.setCache(false);
-        VBox vb = new VBox(sp,navigationHBox,endIntroductionBtn);
+        HBox navigationHBox = new HBox(hideBtn, prevBtn, nextBtn);
+        VBox vb = new VBox(sp, navigationHBox,endIntroductionBtn);
         vb.setAlignment(Pos.TOP_CENTER);
 //        vb.setMouseTransparent(true);
         vb.setPickOnBounds(false);

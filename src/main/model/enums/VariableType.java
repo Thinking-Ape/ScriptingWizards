@@ -1,9 +1,7 @@
-package main.utility;
+package main.model.enums;
 
-import main.model.enums.CellContent;
-import main.model.enums.EntityType;
-import main.model.enums.ItemType;
-import main.model.enums.MethodType;
+import main.utility.GameConstants;
+import main.utility.Util;
 
 public enum VariableType {
     INT("int","[-+]?\\d+"),
@@ -15,11 +13,11 @@ public enum VariableType {
     CELL_CONTENT("CellContent", Util.getRegEx(CellContent.values())),
     ITEM_TYPE("ItemType", Util.getRegEx(ItemType.values())),
     ENTITY_TYPE("EntityType", Util.getRegEx(EntityType.values())),
-    ARMY("Army","new Army\\(( *"+GameConstants.VARIABLE_NAME_REGEX+" *, *)*"+GameConstants.VARIABLE_NAME_REGEX+" *\\)"),
+    ARMY("Army","new Army\\(( *"+ GameConstants.VARIABLE_NAME_REGEX+" *, *)*"+GameConstants.VARIABLE_NAME_REGEX+" *\\)"),
     BOOLEAN("boolean","(true|false)"),
 
     //THIS MUST BE THE LAST ENTRY BECAUSE OF A CIRCULAR REFERENCE TO METHODTYPE!!!!
-    COMMAND("Command",MethodType.getAllActionRegex()),
+//    COMMAND("Command",MethodType.getAllActionRegex()),
 
     ;
 

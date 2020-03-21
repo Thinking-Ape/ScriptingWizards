@@ -1,11 +1,9 @@
 package main.model.enums;
 
-import main.utility.GameConstants;
-import main.utility.VariableType;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static main.utility.VariableType.*;
+import static main.model.enums.VariableType.*;
 
 
 public enum MethodType {

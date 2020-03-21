@@ -79,9 +79,20 @@ IMPORTANT:
  - Cursor ist bei Zeilen mit "}" nicht vorhanden, dh man sieht nicht, ob man gerade in dieser Zeile ist
  - Es wäre cool, wenn man irgendwie mehrere zusammenhängende Zeilen löschen könnte, zB. durch Pausieren des Syntax-Checkers.
  - Allgemein mehr Features für den Editor wie zB. Markieren oder Drag & Drop von Code-Zeilen wären sehr hilfreich.
- - Zhu: Spiral In hat diesen schwarzen scrollbar bug
- - Text nicht zentriert
+ - Zhu: Spiral In hat diesen schwarzen scrollbar bug!
+ - Text nicht zentriert in Sprechblase
  - f5 für kompilieren?
+ ==========================
+ - allow XOR (^)?
+ - EIGENE METHODEN
+ - SPEICHERN IM LEVEL EDITOR BESSER IMPLEMENTIEREN!
+ - Parameter werden momentan nicht sehr günstig gehandled!
+ + NumberFormatException (- 2) <- CodeEvaluator 194
+ - Level, das randInt verwendet!
+ - Levelname green background in LevelEditor -> saved else red and warning upon leaving level
+ - View should no longer "observe" Level!
+ - Better Understand and clean up CodeParser
+ - you can just put ; wherever nd it will be removed
 ---------------------------------------------
 
 

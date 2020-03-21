@@ -142,7 +142,7 @@ public abstract class Util {
     public static void applyValueFormat(Label... valueLabels) {
         for(Label l : valueLabels){
             l.setStyle("-fx-background-color: rgba(0,0,0,0.1);");
-            l.setFont(new Font(l.getFont().getName(),GameConstants.FONT_SIZE));
+            l.setFont(GameConstants.SMALL_FONT);
         }
     }
 
@@ -262,8 +262,8 @@ public abstract class Util {
 
     public static void applyFontFormatRecursively(Pane topHBox) {
         for(Node n : topHBox.getChildren()){
-            if(n instanceof Button)((Button) n).setFont(new Font(((Button) n).getFont().getName(),GameConstants.SMALL_FONT_SIZE));
-            if(n instanceof Label)((Label) n).setFont(new Font(((Label) n).getFont().getName(),GameConstants.SMALL_FONT_SIZE));
+            if(n instanceof Button)((Button) n).setFont(GameConstants.SMALL_FONT);
+            if(n instanceof Label)((Label) n).setFont(GameConstants.SMALL_FONT);
             if(Pane.class.isAssignableFrom(n.getClass()))applyFontFormatRecursively((Pane)n);
         }
     }
@@ -365,8 +365,9 @@ public abstract class Util {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         if(isTurned)imageView.setRotate(270);
-        if((model.getCurrentLevel().getUsedKnights() < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN))
-            switch (model.getCurrentLevel().getUsedKnights()){
+        int amountOfKnights = model.getCurrentLevel().getCurrentMap().getAmountOfKnights();
+        if(amountOfKnights < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN)
+            switch (amountOfKnights){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                     break;
                 case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
@@ -375,7 +376,7 @@ public abstract class Util {
                     break;
             }
         if(cell.getContent()== CellContent.ENEMY_SPAWN)
-            switch (entityColorMap.size() -model.getCurrentLevel().getUsedKnights()){
+            switch (entityColorMap.size() -amountOfKnights){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                     break;
                 case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
@@ -399,6 +400,25 @@ public abstract class Util {
                 output.add(new Point(x, y));
             }
         return output;
+    }
+
+
+    public static StringPair splitAtChar(String code, char targetChar,boolean keepCharacter) {
+
+        String first ="";
+        String second="";
+        boolean found=false;
+        for(int i = 0; i < code.length(); i++){
+            char c = code.charAt(i);
+            if(!found)first = first.concat(c+"");
+            else second = second.concat(c+"");
+
+            if(c==targetChar){
+                found=true;
+            }
+        }
+        if(!keepCharacter && found)first = first.substring(0,first.length()-1);
+        return  new StringPair(first,second);
     }
 
 //    public static ImageView getEntityImageView(int number, Cell cell, Model model,List<Entity> entityActionList, Map<String,Image> contentImageMap, double cell_size, Map<String,Effect> entityColorMap, String entityName) {

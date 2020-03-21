@@ -145,7 +145,7 @@ public abstract class JSONParser {
         for (int i = 0; i < aiLineArray.length(); i++){
             aiLines.add(aiLineArray.getString(i));
         }
-            complexStatement =  new CodeParser(aiLines,false).parseProgramCode();
+            complexStatement =  CodeParser.parseProgramCode(aiLines,false);
         }
         assert spawn.getX()!=-1;
         JSONArray turnsToStarsArray = jsonObject.getJSONArray("turnsToStars",new JSONArray());

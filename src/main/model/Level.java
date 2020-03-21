@@ -9,7 +9,6 @@ import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.utility.GameConstants;
-import main.utility.StringListProperty;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -36,15 +35,12 @@ public class Level implements PropertyChangeListener {
     private int bestLOC = -1;
     private int bestTurns = -1;
     private int turnsTaken;
-    private int usedKnights;
     private ComplexStatement aiBehaviour;
     private ComplexStatement playerBehaviour;
 
     private boolean isLost = false;
     private boolean aiFinished = false;
     //TODO: change to enum state? (LevelStates: RUNNING, AI_FINISHED, LOST, WON)
-    private CodeExecutor executor;
-    private CodeEvaluator evaluator;
     private boolean isStackOverflow;
     private int skeletonCount = 0;
 
@@ -61,14 +57,12 @@ public class Level implements PropertyChangeListener {
         StringProperty locToStars3 = new SimpleStringProperty(null,GameConstants.LOC_TO_STARS_3_PROPERTY_NAME,locToStars[1]+"");
         StringProperty locToStars2 = new SimpleStringProperty(null,GameConstants.LOC_TO_STARS_2_PROPERTY_NAME,locToStars[0]+"");
         this.locToStarsProperties = new StringProperty[]{locToStars2,locToStars3};
-
-        this.usedKnights = 0;
+        this.currentTutorialMessageProperty = new SimpleStringProperty(null,GameConstants.CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME,"");
+        this.currentTutorialIndexProperty = new SimpleStringProperty(null,GameConstants.CURRENT_TUTORIAL_INDEX_PROPERTY_NAME,""+0);
         this.originalMap = new GameMap(originalArray,this);
         this.currentMap = originalMap.clone();
         this.turnsTaken = 0;
         this.aiBehaviour = aiBehaviour;
-        this.evaluator = new CodeEvaluator();
-        this.executor = new CodeExecutor();
         this.requiredLevels = new ArrayList<>(Arrays.asList(requiredLevels));
         this.changeSupport = new PropertyChangeSupport(this);
         this.tutorialMessages = new ArrayList<>();
@@ -97,10 +91,8 @@ public class Level implements PropertyChangeListener {
         Statement statement2 = aiBehaviour;
         isStackOverflow = false;
         while(!method_Called_1 && !isWon()){ //&&!isLost()) {
-            statement = evaluator.evaluateNext(playerBehaviour,currentMap);
-            if(evaluator.lastStatementSummonedKnight()){
-                usedKnights++;
-            }
+            statement = CodeEvaluator.evaluateNext(playerBehaviour,currentMap);
+
             if(statement==null){
                 isLost=true;
                 break;
@@ -111,14 +103,15 @@ public class Level implements PropertyChangeListener {
                 isLost = true;
                 break;
             }
-            if(usedKnights <= getMaxKnights())method_Called_1 = executor.executeBehaviour(statement,currentMap, true);
-            else usedKnights--;
+            boolean canSpawnKnights = currentMap.getAmountOfKnights() < getMaxKnights();
+            method_Called_1 = CodeExecutor.executeBehaviour(statement,currentMap, true, canSpawnKnights);
 
-            if(usedKnights == getMaxKnights() && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
+            if(currentMap.getAmountOfKnights() == getMaxKnights() && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))
+                currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
         }
 
         while(!method_Called_2 && !isWon() &&!aiFinished&& GameConstants.IS_AI_ACTIVE&&aiBehaviour!=null) { //&& !isLost()) {
-            statement2 = evaluator.evaluateNext(aiBehaviour,currentMap);
+            statement2 = CodeEvaluator.evaluateNext(aiBehaviour,currentMap);
             if (statement2 == null) {
                 aiFinished = true;
                 break;
@@ -129,7 +122,7 @@ public class Level implements PropertyChangeListener {
                 isLost = true;
                 break;
             }
-            method_Called_2 = executor.executeBehaviour(statement2,currentMap,false);
+            method_Called_2 = CodeExecutor.executeBehaviour(statement2,currentMap,false, false);
         }
         applyGameLogicToCells();
         return new Statement[]{statement,statement2};
@@ -147,7 +140,7 @@ public class Level implements PropertyChangeListener {
 
 
     private void applyGameLogicToCells() {
-        if(executor.skeletonWasSpawned())skeletonCount++;
+        if(CodeExecutor.skeletonWasSpawned())skeletonCount++;
         for(int x = 0; x < currentMap.getBoundX(); x++)
         for(int y = 0; y < currentMap.getBoundY(); y++) {
             final Cell cell = currentMap.getCellAtXYClone(x,y);
@@ -160,7 +153,7 @@ public class Level implements PropertyChangeListener {
             }
 
             if (content == CellContent.ENEMY_SPAWN) {
-                if(executor.skeletonWasSpawned()){
+                if(CodeExecutor.skeletonWasSpawned()){
                     currentMap.setFlag(x, y, CFlag.CHANGE_COLOR, true);
                 }
             }
@@ -213,7 +206,6 @@ public class Level implements PropertyChangeListener {
 
     public void reset()  {
 //        playerBehaviour.resetCounter();
-        usedKnights = 0;
         if(playerBehaviour != null)
         playerBehaviour.resetVariables(true);
         if(aiBehaviour != null) aiBehaviour.resetVariables(true);
@@ -223,7 +215,7 @@ public class Level implements PropertyChangeListener {
         isLost = false;
         aiFinished = false;
         currentMap = originalMap.clone();
-        executor.reset();
+        CodeExecutor.reset();
         turnsTaken = 0;
         //notifyListener(Event.MAP_CHANGED);
         changeSupport.firePropertyChange("level", null,null);
@@ -232,11 +224,11 @@ public class Level implements PropertyChangeListener {
 
 
     public boolean isWon(){
-        return executor.hasWon();
+        return CodeExecutor.hasWon();
     }
     public boolean isLost(){
-        if(executor.hasLost() || isLost)
-        return executor.hasLost() || isLost;
+        if(CodeExecutor.hasLost() || isLost)
+        return CodeExecutor.hasLost() || isLost;
         else return false;
     }
 
@@ -383,7 +375,7 @@ public class Level implements PropertyChangeListener {
     }
 
     public void setUnlockedStatementList(List<String> unlockedStatementList){
-        executor.setUnlockedStatementList(unlockedStatementList);
+        CodeExecutor.setUnlockedStatementList(unlockedStatementList);
     }
 
     @Override
@@ -397,10 +389,6 @@ public class Level implements PropertyChangeListener {
 
     public void removeAllListener() {
         changeSupport = new PropertyChangeSupport(this);
-    }
-
-    public int getUsedKnights() {
-        return usedKnights;
     }
 
     public boolean isTutorial() {
@@ -451,7 +439,7 @@ public class Level implements PropertyChangeListener {
     }
 
     public List<String> getUnlockedStatementList() {
-        return executor.getUnlockedStatementList();
+        return CodeExecutor.getUnlockedStatementList();
     }
 
 

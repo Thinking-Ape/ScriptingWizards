@@ -47,7 +47,4 @@ public class WhileStatement extends ComplexStatement {
 //        super.print();
 //        System.out.println("}");
 //    }
-    public Condition getCondition(){
-        return condition;
-    }
 }

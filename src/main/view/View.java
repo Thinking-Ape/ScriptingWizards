@@ -155,12 +155,11 @@ public class View implements PropertyChangeListener {
             stage.setFullScreen(true);
         }
         stage.setFullScreenExitHint("");
-        CodeParser codeParser = new CodeParser();
-        List<String> storedCode = new ArrayList<>();
+        List<String> storedCode;
         try {
             storedCode = JSONParser.getStoredCode();
             if(storedCode.size()>0)
-                codeArea = new CodeArea(codeParser.parseProgramCode(storedCode),true,false);
+                codeArea = new CodeArea(CodeParser.parseProgramCode(storedCode),true,false);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -253,17 +252,17 @@ public class View implements PropertyChangeListener {
             aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true, true);
         else aiCodeArea = new CodeArea(true);
         //"Knight knight = new Knight(WEST);","int turns = 0;","while(true){","if(knight.targetIsUnarmed() && knight.canMove()){","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)){","knight.wait();","}","else if (knight.targetCellIs(EXIT)){","knight.useItem();","}","else if (knight.targetCellIs(KEY)){","knight.collect();","}","else if (turns < 2){","turns = turns + 1;","knight.turn(EAST);","}","else {","knight.turn(WEST);","}","}"
-        if (GameConstants.DEBUG) {
-            try {
-                codeArea = Tester.evaluateCodeBox(
-                        //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-          //              "Knight k1 = new Knight();","k1.move();","Knight k2 = new Knight(EAST);","k2.move();","Knight k3 = new Knight(WEST);","Army army = new Army(k1,k2,k3);","boolean b = army.isLooking(EAST);","TurnDirection dir = RIGHT;","Command cc = executeIf(b,turn(LEFT),turn(dir));","boolean bb = true;","while(bb) {","army.executeIf(army.canMove(),move(),cc);","if (army.targetCellIs(PRESSURE_PLATE)) {","bb = false;","}","}");
-                        "Knight k = new Knight(NORTH);","k.move();","Knight k2 = new Knight(EAST);","Army a = new Army(k,k2);","while(true) {","if (k.targetsCell(PRESSURE_PLATE)) {","a.move();","a.executeIf(a.isLooking(EAST),move(),wait());","}","else if (a.canMove()) {","a.move();","}","else if (a.targetsItem()) {","a.collect();","}","else if (k2.targetCellIs(DIRT)) {","a.executeIf(a.isLooking(EAST),turn(RIGHT),useItem());","a.move();","}","else {","a.executeIf(a.isLooking(EAST),turn(LEFT),turn(RIGHT));","}","}");
-//                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
+//        if (GameConstants.DEBUG) {
+//            try {
+//                codeArea = Tester.evaluateCodeBox(
+//                        //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
+//          //              "Knight k1 = new Knight();","k1.move();","Knight k2 = new Knight(EAST);","k2.move();","Knight k3 = new Knight(WEST);","Army army = new Army(k1,k2,k3);","boolean b = army.isLooking(EAST);","TurnDirection dir = RIGHT;","Command cc = executeIf(b,turn(LEFT),turn(dir));","boolean bb = true;","while(bb) {","army.executeIf(army.canMove(),move(),cc);","if (army.targetCellIs(PRESSURE_PLATE)) {","bb = false;","}","}");
+//                        "");
+////                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+//        }
         vBox.getChildren().addAll(codeArea, hBox, msgLabel);
         VBox leftVBox = new VBox();
         leftVBox.getChildren().add(aiCodeArea);
@@ -315,16 +314,17 @@ public class View implements PropertyChangeListener {
     }
 
 
-    private void redrawKnightsLeftVBox() {
+    public void redrawKnightsLeftVBox() {
         knightsLeftVBox.getChildren().clear();
         knightsLeftVBox.setSpacing(cell_size/4);
         knightsLeftVBox.setMinWidth(cell_size/1.5);
         for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
-            if(i+model.getCurrentLevel().getUsedKnights() == 1)tokenIView.setEffect(GREEN_ADJUST);
-            if(i+model.getCurrentLevel().getUsedKnights() == 2)tokenIView.setEffect(VIOLET_ADJUST);
-            if(i+model.getCurrentLevel().getUsedKnights() == 3)tokenIView.setEffect(LAST_ADJUST);
-            if(i >= model.getCurrentLevel().getMaxKnights()-model.getCurrentLevel().getUsedKnights())
+            int amountOfKnights = model.getCurrentLevel().getCurrentMap().getAmountOfKnights();
+            if(i+ amountOfKnights == 1)tokenIView.setEffect(GREEN_ADJUST);
+            if(i+amountOfKnights == 2)tokenIView.setEffect(VIOLET_ADJUST);
+            if(i+amountOfKnights == 3)tokenIView.setEffect(LAST_ADJUST);
+            if(i >= model.getCurrentLevel().getMaxKnights()-amountOfKnights)
                 tokenIView.setImage(new  Image(GameConstants.EMPTY_TOKEN_PATH));
             tokenIView.setFitHeight(cell_size/1.5);
             tokenIView.setFitWidth(cell_size/1.5);
@@ -523,8 +523,9 @@ public class View implements PropertyChangeListener {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         if(isTurned)imageView.setRotate(270);
-        if((model.getCurrentLevel().getUsedKnights() < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN))
-            switch (model.getCurrentLevel().getUsedKnights()){
+        int amountOfKnights = model.getCurrentLevel().getCurrentMap().getAmountOfKnights();
+        if((amountOfKnights< model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN))
+            switch (amountOfKnights){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                     break;
                 case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
@@ -797,7 +798,7 @@ public class View implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
-            default:
+//            default:
             case "level":
                 entityColorMap = new HashMap<>();
                 selectedPointList = new ArrayList<>();
@@ -821,14 +822,6 @@ public class View implements PropertyChangeListener {
                 if(sceneState == SceneState.LEVEL_EDITOR)
                 Platform.runLater(()->highlightInMap(selectedPointList));
                 break;
-            case "playerBehaviour":
-//                codeArea = new CodeArea(model.getCurrentLevel().getPlayerBehaviour());
-//                setCodeArea(codeArea);
-//                codeArea.draw();
-                break;
-            case "name":
-//                levelEditorModule.getLevelNameTField().setText("" + model.getCurrentLevel().getName());
-                break;
             case "width":
                 levelEditorModule.getWidthValueLbl().setText(model.getCurrentLevel().getOriginalMap().getBoundX() + "");
 
@@ -842,18 +835,6 @@ public class View implements PropertyChangeListener {
                 selectedPointList = pointListOutOfBounds();
                 drawMap(model.getCurrentLevel().getOriginalMap());
                 Platform.runLater(()->highlightInMap(selectedPointList));
-                break;
-//            case "locToStars":
-//                Integer[] locToStars = model.getCurrentLevel().getLocToStars();
-//                levelEditorModule.setLOCToStarsValues(locToStars);
-//                break;
-//            case "turnsToStars":
-//                Integer[] turnsToStars = model.getCurrentLevel().getTurnsToStars();
-//                levelEditorModule.setTurnsToStarsValues(turnsToStars);
-//                break;
-            case "maxKnights":
-//                levelEditorModule.getMaxKnightsValueLbl().setText("" + model.getCurrentLevel().getMaxKnights());
-               redrawKnightsLeftVBox();
                 break;
             case "aiBehaviour":
 //                System.out.println("First");
@@ -879,28 +860,9 @@ public class View implements PropertyChangeListener {
                     }});
                 }
                 break;
-//            case "isTutorial":
-//                levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
-//                levelEditorModule.updateTutorialSection(model.getCurrentLevel());
-//                levelEditorModule.getIsTutorialValueLbl().setText("" + model.getCurrentLevel().isTutorial());
-//                break;
-//            case "index":
-//                levelEditorModule.getIndexValueLbl().setText("" + (model.getCurrentLevel().getIndex() + 1));
             case "requiredLevels":
                 List<String> requiredLevelsList = model.getCurrentLevel().getRequiredLevels();
                 levelEditorModule.setRequiredLevels(requiredLevelsList);
-                break;
-            case "tutorial":
-                levelEditorModule.getTutorialTextArea().setText("" + evt.getNewValue());
-                break;
-            case "tutorialDeletion":
-                int index = (int) evt.getNewValue();
-                if (model.getCurrentLevel().getTutorialEntryList().size() > index)
-                    levelEditorModule.getTutorialTextArea().setText("" + model.getCurrentLevel().getTutorialEntryList().get(index));
-                else {
-                    levelEditorModule.getTutorialTextArea().setText("" + model.getCurrentLevel().getTutorialEntryList().get(index - 1));
-                    levelEditorModule.getTutorialNumberValueLbl().setText("" + (index));
-                }
                 break;
             case "linkedCellId":
             case "cellId":

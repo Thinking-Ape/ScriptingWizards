@@ -14,8 +14,6 @@ public class ConditionalStatement extends ComplexStatement {
         this.statementType = isElse ? StatementType.ELSE :StatementType.IF;
     }
 
-    public Condition getCondition(){return condition;}
-
     public void setElseStatement(ConditionalStatement elseStatement){
         this.elseStatement = elseStatement;
         elseStatement.setParentStatement(getParentStatement());

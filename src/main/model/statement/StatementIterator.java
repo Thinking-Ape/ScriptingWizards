@@ -11,7 +11,7 @@ public class StatementIterator {
     Map<Statement,Integer> statementCounterMap = new HashMap<>();
     Statement currentStatement;
 
-    public StatementIterator (ComplexStatement complexStatement){
+    StatementIterator (ComplexStatement complexStatement){
         this.complexStatement = complexStatement;
         currentStatement = complexStatement;
     }
@@ -34,10 +34,12 @@ public class StatementIterator {
                    ConditionalStatement conditionalStatement = ((ConditionalStatement)complexStatement);
 
                    if(!conditionalStatement.isActive() && conditionalStatement.hasElseStatement()){
+                       statementCounterMap.remove(conditionalStatement);
                        return walk(conditionalStatement.getElseStatement());
                    } else if (!conditionalStatement.isActive()){
                        int parentCounter = statementCounterMap.get(complexStatement.getParentStatement());
                        statementCounterMap.replace(complexStatement.getParentStatement(),parentCounter+1);
+                       statementCounterMap.remove(conditionalStatement);
                        return walk(complexStatement.getParentStatement());
                    }
                }
@@ -48,10 +50,10 @@ public class StatementIterator {
                return walk((ComplexStatement)(complexStatement.getSubStatement(counter)));
            }
            else {
+               statementCounterMap.remove(complexStatement);
                switch (complexStatement.getStatementType()){
                    case FOR:
                    case WHILE:
-                       statementCounterMap.replace(complexStatement,0);
                        return complexStatement;
                    case IF:
                    case ELSE:

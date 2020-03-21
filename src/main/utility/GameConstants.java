@@ -14,7 +14,7 @@ import java.util.Random;
 public abstract class GameConstants {
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final char ANY_CHAR = '?';
     public static final double TICK_SPEED = 0.65;
     public static final boolean SHOW_BOOLEAN_METHODS = false;
@@ -37,7 +37,7 @@ public abstract class GameConstants {
     public static final String VERSION = "1.3b";
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
     public static final int MAX_LOOP_SIZE = 500;
-    public static final String VARIABLE_NAME_REGEX = "^[a-zA-Z_][a-zA-Z_0-9]*$";
+    public static final String VARIABLE_NAME_REGEX = "[a-zA-Z_][a-zA-Z_0-9]*";
     public static final double PLAY_CELL_SIZE_FACTOR = 1.2;
     public static final Entity NO_ENTITY = new Entity("", null, EntityType.NONE);
 //    public static final boolean EXECUTE_IF_IS_COMMAND = true;
@@ -65,8 +65,8 @@ public abstract class GameConstants {
     public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.25;
     public static final double BUTTON_SIZE = SCREEN_HEIGHT/10;
     public static final double SMALL_BUTTON_SIZE = SCREEN_HEIGHT/25;
-    public static final double FONT_SIZE = 14.5*SCREEN_WIDTH/1920.0;
-    public static final double SMALL_FONT_SIZE = 12.0*SCREEN_WIDTH/1920.0;
+    public static final double FONT_SIZE = 14*SCREEN_WIDTH/1920.0;
+    public static final double SMALL_FONT_SIZE = 12*SCREEN_WIDTH/1920.0;
     public static final double BIGGEST_FONT_SIZE = 24.0*SCREEN_WIDTH/1920.0;
     public static final double BIG_FONT_SIZE = 17.0*SCREEN_WIDTH/1920.0;
     public static final double CHALLENGER_FONT_SIZE = 40.0*SCREEN_WIDTH/1920.0;
@@ -92,7 +92,7 @@ public abstract class GameConstants {
             " after clicking on the Start Button that just appeared and type something if you like."};
     public static final Font SMALL_FONT = new Font("System Regular",GameConstants.SMALL_FONT_SIZE);
     public static final Font MEDIUM_FONT = new Font("System Regular",GameConstants.FONT_SIZE);
-    public static final Font CODE_FONT = new Font("Courier New",GameConstants.FONT_SIZE);
+    public static final Font CODE_FONT = new Font("Arial",GameConstants.FONT_SIZE);
     public static final Font BIG_FONT = new Font("System Regular",GameConstants.BIG_FONT_SIZE);
     public static final Font BIGGEST_FONT = new Font("Arial",GameConstants.BIGGEST_FONT_SIZE);
     public static final double HEIGHT_RATIO = SCREEN_HEIGHT/1080.0;

@@ -12,57 +12,48 @@ import main.model.statement.Expression.ExpressionType;
 
 import java.util.*;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static main.model.statement.Condition.ConditionType.NEGATION;
 import static main.model.statement.Condition.ConditionType.SINGLE;
 
 //TODO: make abstract?
-public class CodeParser {
+public abstract class CodeParser {
 
-    private ComplexStatement behaviour;
-    private List<String> codeLines;
-    private Map<Integer,ComplexStatement> depthStatementMap;
-    private boolean isPlayerCode = true;
-    private Statement lastStatement;
-    private Variable currentForVariable;
+    private static ComplexStatement behaviour;
+    private static List<String> codeLines;
+    private static Map<Integer,ComplexStatement> depthStatementMap;
+    private static boolean isPlayerCode = true;
+    private static Statement lastStatement;
+    private static Variable currentForVariable;
 
-    public int getCurrentLine() {
-        return currentLine;
+    public static ComplexStatement parseProgramCode(List<String> lines) throws IllegalAccessException {
+        return parseProgramCode(lines, true);
     }
 
-    private int currentLine = 0;
-
-    public CodeParser(List<String> lines,boolean isPlayerCode) {
-        this.codeLines = lines;
-        this.isPlayerCode = isPlayerCode;
-//        counter = 0;
-    }
-
-    public CodeParser() {
-//        counter = 0;
-
-    }
-
-    public ComplexStatement parseProgramCode() throws IllegalAccessException, IllegalArgumentException{
-        List<String> codeLineArray = new ArrayList<>();
-//        int i = 0;
-        //TODO: doesnt work for methodcall/assignment/declaration chained with for/if/while yet (cause it adds ;)
-        for(String line : codeLines){
-            if(!line.matches(StatementType.FOR.getRegex()))
-            {
-                if(line.matches(".*;"))
-                for(String s : line.split(";")){
-                    codeLineArray.add(s+";");
-                }
-                else codeLineArray.add(line);
-            }
-            else codeLineArray.add(line);
-//            i++;
-        }
-        return parseProgramCode(codeLineArray);
-    }
-    public ComplexStatement parseProgramCode(List<String> codeLines) throws IllegalAccessException,IllegalArgumentException {
+    /** Will try to convert the first given Parameter into a ComplexStatement consisting of multiple Substatements
+     *  (Statements) representing the respective line of code
+     *
+     * @param lines The given lines of code
+     * @param isPlayerCodeValue whether it is player code or code of the enemy. the first cannot spawn Skeletons, the latter
+     *                          cant spawn Knights
+     * @throws IllegalAccessException TODO
+     * @throws IllegalArgumentException TODO
+     */
+    public static ComplexStatement parseProgramCode(List<String> lines,boolean isPlayerCodeValue) throws IllegalAccessException, IllegalArgumentException{
+        codeLines = lines;
+        isPlayerCode = isPlayerCodeValue;
+//        List<String> codeLineArray = new ArrayList<>();
+//        for(String line : codeLines){
+//            if(!line.matches(StatementType.FOR.getRegex()))
+//            {
+//                if(line.matches(".*;"))
+//                for(String s : line.split(";")){
+//                    codeLineArray.add(s+";");
+//                }
+//                else codeLineArray.add(line);
+//            }
+//            else codeLineArray.add(line);
+//        }
         behaviour = new ComplexStatement();
         int depth = 1;
         depthStatementMap = new HashMap<>();
@@ -72,7 +63,6 @@ public class CodeParser {
                 depthStatementMap.get(depth - 1).addSubStatement(new SimpleStatement());
                 continue;
             }
-            currentLine++;
             currentForVariable = null;
             code = code.trim();
             code = Util.removeUnnecessarySpace(code);
@@ -80,10 +70,6 @@ public class CodeParser {
                 depth--;
                 continue;
             }
-//            if(code.matches(" *")){
-//                System.out.println("Empty Line found (remove this in CodeParser -> parseProgramCode(...))");
-////                continue;
-////            }
             Statement statement = parseString(code,depth);
             if(statement==null )throw new IllegalArgumentException("Unknown statement: \""+code+"\"!");
             if (statement.isComplex()){
@@ -97,8 +83,8 @@ public class CodeParser {
                     depthStatementMap.put(depth, (ComplexStatement) statement);
 
                 depthStatementMap.get(depth - 1).addSubStatement(statement);
-
-                if(depth > GameConstants.MAX_DEPTH)throw new IllegalStateException("You are not allowed to have a greater depth than "+ GameConstants.MAX_DEPTH +"!"); //TODO: evaluate if I want to keep that!
+                //TODO: evaluate if I want to keep that!
+                if(depth > GameConstants.MAX_DEPTH)throw new IllegalStateException("You are not allowed to have a greater depth than "+ GameConstants.MAX_DEPTH +"!");
                 depth++;
             }
             else {
@@ -106,6 +92,7 @@ public class CodeParser {
                 if(statement.getStatementType() == StatementType.DECLARATION){
                     Variable variable = ((Assignment)statement).getVariable();
                     boolean isSkeleton = variable.getVariableType() == VariableType.SKELETON;
+                    //TODO: Implement GHOST or delete
 //                    boolean isGhost = variable.getVariableType() == VariableType.GHOST;
                     if(isPlayerCode && (/*isGhost||*/isSkeleton ))throw new IllegalAccessException("You are not allowed to create Enemy Creatures as Player");
                     boolean isKnight = variable.getVariableType() == VariableType.KNIGHT;
@@ -115,6 +102,7 @@ public class CodeParser {
                             VariableType variableType = VariableType.getVariableTypeFromString(variable.getValue().getLeftNode().getText().substring(4));
                             if(variableType != variable.getVariableType())throw new IllegalArgumentException(((Assignment) statement).getText()+ " is an illegal expression!");
                         }else {
+                            System.out.println(variable.getValue().getText());
                             VariableType variableType = VariableType.getVariableTypeFromString(variable.getValue().getText().substring(4,variable.getValue().getText().length()-2));
                             if(variableType != variable.getVariableType())throw new IllegalArgumentException(((Assignment) statement).getText()+ " is an illegal expression!");
                         }
@@ -124,33 +112,34 @@ public class CodeParser {
             }
             lastStatement = statement;
         }
-        behaviour.resetVariables(true); //TODO: mit map arbeiten stattdessen? (nur hier)
-//        depthStatementMap = new HashMap<>();
+        behaviour.resetVariables(true);
         if(depth != 1)throw new IllegalStateException("Unbalanced amount of brackets!");
         return behaviour;
     }
 
-
-    private boolean testIfElseCanStandHere(int depth) {
+    /** Tests whether an else-Statement is allowed at this position and returns the respective boolean
+     *
+     * @param depth the depth of the current else-Statement
+     */
+    private static boolean testIfElseCanStandHere(int depth) {
+        //TODO: understand this
         if(!depthStatementMap.containsKey(depth))return true;
         boolean noIfBefore = depthStatementMap.get(depth).getStatementType()!=StatementType.IF;
         boolean noElseBefore = depthStatementMap.get(depth).getStatementType()!=StatementType.ELSE;
         //boolean noSimple = lastStatement.getStatementType()!=StatementType.SINGLE; //TODO: what does this do?
         boolean lastStatementIllegal = depth == lastStatement.getDepth()-1 && !lastStatement.isComplex();
-//                    System.out.println(statement.getText() + " " +depth + " " + lastStatement.getDepth());
         if((noIfBefore && noElseBefore)|| lastStatementIllegal)return true;
-        boolean noConditionSet = ((ConditionalStatement)depthStatementMap.get(depth)).getCondition()==null;
-        if(noConditionSet  )
-            return true;
-        return false;
+        final boolean noConditionSet = depthStatementMap.get(depth).getCondition()==null;
+        return noConditionSet;
     }
 
-
-
-
-
-
-    private Statement parseString(String code, int depth) throws IllegalAccessException,IllegalArgumentException {
+    /** Will try to turn the given code into a Statement
+     *
+     * @param depth the current depth of this code
+     * @throws IllegalAccessException TODO
+     * @throws IllegalArgumentException TODO
+     */
+    private static Statement parseString(String code, int depth) throws IllegalAccessException,IllegalArgumentException {
         if(code.matches(" *")){
             return new SimpleStatement();
         }
@@ -169,8 +158,8 @@ public class CodeParser {
         }
         else if(forMatcher.matches()){
             code = forMatcher.group(1);
-            StringPair tempStatements1 = splitAtChar(code,';',false); //split once
-            StringPair tempStatements2 = splitAtChar(tempStatements1.second(),';',false);
+            StringPair tempStatements1 = Util.splitAtChar(code,';',false); //split once
+            StringPair tempStatements2 = Util.splitAtChar(tempStatements1.second(),';',false);
             String assignmentString = tempStatements2.second().replaceAll(";","");
             String[] statements = new String[]{tempStatements1.first(),tempStatements2.first(),assignmentString};
             Assignment assignment = parseAssignment(statements[0],depth);
@@ -197,20 +186,17 @@ public class CodeParser {
         else if(asMatcher.matches()){
             code = asMatcher.toMatchResult().group();
             code = Util.stripCode(code);
-            Assignment assignment = parseAssignment(code,depth);
-            return assignment;
+            return parseAssignment(code,depth);
         }
         else if(decMatcher.matches()){
             code = decMatcher.toMatchResult().group();
             code = Util.stripCode(code);
-            Assignment assignment = parseAssignment(code,depth);
-            return assignment;
+            return parseAssignment(code,depth);
         }
         else if(mcMatcher.matches()){
             code = mcMatcher.toMatchResult().group();
             code = Util.stripCode(code);
-            MethodCall methodCall = parseMethodCall(code,depth);
-            return methodCall;
+            return parseMethodCall(code,depth);
         }
 
         else {
@@ -228,21 +214,13 @@ public class CodeParser {
     }
 
 
-    private StringPair splitAtString(String code, String regex) {
+    private static MethodCall parseMethodCall(String code,int depth) throws IllegalArgumentException {
 
-        String[] parts = code.split(regex);
-        return  new StringPair(parts[0],parts[1]);
-    }
-
-    private MethodCall parseMethodCall(String code,int depth) throws IllegalArgumentException {
-        //System.out.println(code);
-        //TODO: Differentiate between methods with and methods without a TurnTaken!
-        StringPair tempStatements = splitAtChar(code,'.',false);
+        StringPair tempStatements = Util.splitAtChar(code,'.',false);
         String objectName = tempStatements.first();
-        tempStatements = splitAtChar(tempStatements.second(),'(',false);
+        tempStatements = Util.splitAtChar(tempStatements.second(),'(',false);
         String methodName = tempStatements.first();
         String parameters = tempStatements.second().substring(0,tempStatements.second().length()-1);
-//            throw new IllegalStateException(parameters+ " contains unknown Variables!");
         Variable v = depthStatementMap.get(depth-1).getVariable(objectName);
         if(v==null)
             throw new IllegalArgumentException("Variable inside MethodCall " +objectName +" not in scope!");
@@ -260,10 +238,9 @@ public class CodeParser {
         return new MethodCall(MethodType.getMethodTypeFromCall(methodName+"("+parameters+")"),objectName,parameters);
     }
 
-    private void testForCorrectParameters(String parameters, MethodType mType,int depth) {
+    private static void testForCorrectParameters(String parameters, MethodType mType,int depth) {
 
         switch (mType){
-
             case ATTACK:
             case TARGET_IS_DANGER:
             case WAIT:
@@ -318,7 +295,7 @@ public class CodeParser {
     }
 
 
-    private Assignment parseAssignment(String statementString,int depth) throws IllegalAccessException {
+    private static Assignment parseAssignment(String statementString,int depth) throws IllegalAccessException {
         String variable="";
         String value="";
         if (statementString.contains("++")){
@@ -330,7 +307,7 @@ public class CodeParser {
             value = variable+"-1";
         }
         else {
-            StringPair tempStatements = splitAtChar(statementString,'=',false);
+            StringPair tempStatements = Util.splitAtChar(statementString,'=',false);
             variable = tempStatements.first();
             value = tempStatements.second();
         }
@@ -344,7 +321,7 @@ public class CodeParser {
              throw new IllegalArgumentException(valueTree.getRightNode().getText()+ " is not a Direction!");
         }
 //            throw new IllegalStateException(valueTree.getText()+ " contains unknown Variables!");
-        StringPair variableTypeAndName = splitAtChar(variable,' ',false);
+        StringPair variableTypeAndName = Util.splitAtChar(variable,' ',false);
         String variableName;
         String variableTypeString = "";
 //        System.out.println("\""+variableTypeAndName.second()+"\"");
@@ -391,7 +368,7 @@ public class CodeParser {
     }
 
     //TODO: find out, when to use this as currently there are multiple methods that do more or less the same -> merge!
-    private void testForCorrectValueType(VariableType variableType, String value, int depth) {
+    private static void testForCorrectValueType(VariableType variableType, String value, int depth) {
         value = value.trim();
         if(value.equals(""))throw new IllegalArgumentException("You cannot have an empty value!");
         if(depthStatementMap.get(depth-1) == null)throw new IllegalStateException("You cant have this statement here!");
@@ -409,11 +386,19 @@ public class CodeParser {
         }
         switch (variableType){
             case INT:
-                if(value.matches("[+-]\\d+"))return;
+                if(value.matches("[+-] ?\\d+"))return;
                 ExpressionTree tree = ExpressionTree.expressionTreeFromString(value);
                 if(tree.getRightNode()!=null){
-                    testForCorrectValueType(VariableType.INT,tree.getLeftNode().getText(),depth );
-                    testForCorrectValueType(VariableType.INT,tree.getRightNode().getText(),depth );
+                    if(value.matches(GameConstants.RAND_INT_REGEX)){
+                        String lowerBound = tree.getRightNode().getText().split(",")[0];
+                        String upperBound = tree.getRightNode().getText().split(",")[1];
+                        testForCorrectValueType(VariableType.INT,lowerBound,depth );
+                        testForCorrectValueType(VariableType.INT,upperBound,depth );
+                    }
+                    else {
+                        testForCorrectValueType(VariableType.INT,tree.getLeftNode().getText(),depth );
+                        testForCorrectValueType(VariableType.INT,tree.getRightNode().getText(),depth );
+                    }
                 }
                 else if(!value.matches(GameConstants.RAND_INT_REGEX)&&!value.matches(variableType.getAllowedRegex())){
                     v = currentForVariable;
@@ -537,7 +522,7 @@ public class CodeParser {
                     tree = ExpressionTree.expressionTreeFromString(value);
                     if(tree.getRightNode() == null)throw new IllegalArgumentException("Your Army needs parameters!");
                     String[] parameters =tree.getRightNode().getText().split(",");
-                    if(checkForDoppelgangers(parameters))throw  new IllegalArgumentException("You shall not add the same Entity more than one time!");
+                    if(checkForDoppelgangers(parameters))throw  new IllegalArgumentException("You shall not add the same Entity more than once!");
                     for(String parameter : parameters){
 
                     if(depthStatementMap.get(depth-1).getVariable(parameter) == null)
@@ -552,32 +537,10 @@ public class CodeParser {
                 break;
             case ACTION:
                 break;
-            case COMMAND:
-                if(!value.matches(variableType.getAllowedRegex())){
-//                    if(value.matches(MethodType.EXECUTE_IF.getRegex()))
-//                        throw new IllegalArgumentException("ExecuteIf is not allowed as a command!");
-                    throw new IllegalArgumentException(value + " is not a valid Command!");
-                }
-                else {
-//                    if(value.matches(MethodType.EXECUTE_IF.getRegex())){
-//                        Matcher m = Pattern.compile(MethodType.EXECUTE_IF.getRegex()).matcher(value);
-//                        if(m.matches())testForCorrectParameters(m.group(1),MethodType.EXECUTE_IF,depth);
-//                    }else {
-                        String parameters = value.replaceFirst(".+\\(", "").replace(")", "");
-                        value = value.replaceFirst("\\(.*\\)", "");
-                    MethodType mt = MethodType.getMethodTypeFromName(value);
-                    if(mt == null) throw new IllegalArgumentException("Unknown method: " +value);
-
-                    testForCorrectParameters(parameters,mt,depth);
-//                    }
-
-                    return;
-                }
-
         }
     }
 
-    private boolean checkForDoppelgangers(String[] parameters) {
+    private static boolean checkForDoppelgangers(String[] parameters) {
         List<String> checkedList = new ArrayList<>();
         for(String p : parameters){
             if(checkedList.contains(p))return true;
@@ -586,7 +549,7 @@ public class CodeParser {
         return false;
     }
 
-    private void checkConditionForUnknownVars(Condition condition, int depth) {
+    private static void checkConditionForUnknownVars(Condition condition, int depth) {
         if(condition == null||condition.getText().equals(""))throw new IllegalArgumentException("You cannot have an empty Condition!");
         testForCorrectValueType(VariableType.BOOLEAN,condition.getText(),depth);
         if(condition.getText().matches(" *"))return;
@@ -624,7 +587,7 @@ public class CodeParser {
         throw new IllegalArgumentException(condition.getText() + " is not allowed to stand here!");
     }
 
-    private void checkExpressionTreeForUnknownVars(ExpressionTree valueTree,int depth) {
+    private static void checkExpressionTreeForUnknownVars(ExpressionTree valueTree,int depth) {
         if(valueTree.getDepth()==1 && valueTree.getText().split(",").length > 1){
             for(String s : valueTree.getText().split(","))
                 checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(s), depth);
@@ -656,21 +619,4 @@ public class CodeParser {
         }
     }
 
-    public static StringPair splitAtChar(String code, char targetChar,boolean keepCharacter) {
-
-        String first ="";
-        String second="";
-        boolean found=false;
-        for(int i = 0; i < code.length(); i++){
-            char c = code.charAt(i);
-            if(!found)first = first.concat(c+"");
-            else second = second.concat(c+"");
-
-            if(c==targetChar){
-                found=true;
-            }
-        }
-        if(!keepCharacter && found)first = first.substring(0,first.length()-1);
-        return  new StringPair(first,second);
-    }
 }

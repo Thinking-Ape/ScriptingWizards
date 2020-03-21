@@ -30,20 +30,18 @@ public class ComplexStatement implements Statement {
         var.update(variable.getValue());
     }
 
+    /** Will return a Variable that has the same name as the given parameter. If there are no local variables with that
+     *  name, the search will be passed on to the parent statement
+     *
+     * @return The found Variable or null
+     */
     public Variable getVariable(String variableName) {
-
-//        try {
-//            System.out.println(getText() + localVariableSet.size());
-//        } catch (IllegalAccessException e) {
-//        }
-
         for(Variable var : localVariableSet){
             if(var.getName().equals(variableName)){
                 return  var;
             }
         }
         return parentStatement == null ? null : parentStatement.getVariable(variableName);
-
     }
 
     public ComplexStatement(){
@@ -173,5 +171,9 @@ public class ComplexStatement implements Statement {
             i++;
         }
         return -1;
+    }
+
+    public StatementIterator iterator(){
+        return new StatementIterator(this);
     }
 }

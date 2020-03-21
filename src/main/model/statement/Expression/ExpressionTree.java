@@ -13,6 +13,7 @@ public class ExpressionTree {
     private ExpressionTree rightNode;
 
     public ExpressionTree(ExpressionTree leftNode, ExpressionType expressionType, ExpressionTree rightNode){
+        if(expressionType == null) throw new IllegalArgumentException("ExpressionType cannot be null!");
         this.leftNode = leftNode;
         this.rightNode = rightNode;
         this.expressionType = expressionType;
@@ -36,13 +37,17 @@ public class ExpressionTree {
     public String getText(){
         String leftNodeText = leftNode.getText();
         String rightNodeText = rightNode.getText();
-        if(leftNode.getLeftNode() != null || leftNode.getRightNode() != null) leftNodeText = "("+leftNode.getText()+")";
-        if(rightNode.getLeftNode() != null || rightNode.getRightNode() != null) rightNodeText = "("+rightNode.getText()+")"; // && expressionType!= ExpressionType.CAL)
+        if(leftNode.getLeftNode() != null || leftNode.getRightNode() != null)
+            leftNodeText = "("+leftNode.getText()+")";
+        // parameters are put in brackets twice else!
+        if((rightNode.getLeftNode() != null || rightNode.getRightNode() != null) && !rightNodeText.matches(".*,.*"))
+            rightNodeText = "("+rightNode.getText()+")"; // && expressionType!= ExpressionType.CAL)
         switch (expressionType){
 
             case ADD:
                 return "" + leftNodeText + " + " + rightNodeText+"";
             case SUB:
+//                if(leftNodeText.equals("")) return "-"+rightNodeText;
                 return "" + leftNodeText + " - " + rightNodeText+"";
             case DIV:
                 return "" + leftNodeText + " / " + rightNodeText+"";

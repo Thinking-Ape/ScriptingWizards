@@ -1,9 +1,6 @@
 package main.utility;
 
-import main.model.enums.CellContent;
-import main.model.enums.Direction;
-import main.model.enums.EntityType;
-import main.model.enums.ItemType;
+import main.model.enums.*;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Expression.ExpressionTree;
 

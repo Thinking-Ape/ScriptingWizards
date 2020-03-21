@@ -16,6 +16,8 @@ import main.view.View;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CodeAreaController implements PropertyChangeListener {
 
@@ -120,18 +122,21 @@ public class CodeAreaController implements PropertyChangeListener {
                         addBefore = true;
                     }
                     int depth = currentCodeField.getDepth();
-
 //                    boolean hasThoughtOfBrackets = textAfterCursor.matches(".*}");
-                    String complexStatementRegex = ".*\\{ *";
+                    String complexStatementRegex = ".*\\{(.*)";
 
                     codeArea.deselectAll();
                     CodeField bracketCodeField = null;
-                    if(/*textBeforeCursor*/currentCodeField.getText().matches(complexStatementRegex)){
+                    String textAfterBracket = "";
+                    Matcher matcher = Pattern.compile(complexStatementRegex).matcher( currentCodeField.getText());
+                    if(matcher.matches()){
+                        textAfterBracket = matcher.group(1);
+                        currentCodeField.setText(currentCodeField.getText().replaceAll("\\{.+", "{"));
                         if(codeArea.getBracketBalance() > 0 /*|| hasThoughtOfBrackets*/) bracketCodeField = new CodeField("}",depth,false);
                         if(!addBefore)depth++;
                     }
 
-                    CodeField newCodeField = new CodeField(/*textAfterCursor*/"",depth,true);
+                    CodeField newCodeField = new CodeField(textAfterBracket,depth,true);
 
                     int scrollAmount = codeArea.getScrollAmount()+1 < codeArea.getSize() ? codeArea.getScrollAmount()+1 : codeArea.getSize()-1-GameConstants.MAX_CODE_LINES;
                     //TODO:
@@ -386,6 +391,7 @@ public class CodeAreaController implements PropertyChangeListener {
             if(codeArea.isAi())view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
             if(silentError)return null;
             view.getMsgLabel().setText(errorMessage );
+
             codeArea.highlightError(errorLine); //errorline
             return null;
         }
@@ -397,10 +403,9 @@ public class CodeAreaController implements PropertyChangeListener {
 
     //TODO: transfer to CodeParser
     private ComplexStatement recompileCode(CodeArea codeArea) {
-        CodeParser codeParser =  new CodeParser(codeArea.getAllText(),!codeArea.isAi());
         ComplexStatement complexStatement = null;
         try{
-            complexStatement = codeParser.parseProgramCode();
+            complexStatement = CodeParser.parseProgramCode(codeArea.getAllText(),!codeArea.isAi());
             codeArea.setEditable(true);
             if(model.getCurrentLevel().getOriginalMap().findSpawn().getX()!=-1){
                 view.getBtnExecute().setDisable(false);
@@ -413,6 +418,7 @@ public class CodeAreaController implements PropertyChangeListener {
         }catch (Exception e){
 //            errorLine = codeParser.getCurrentLine()-1;
             errorMessage = e.getMessage();
+            if(GameConstants.DEBUG)e.printStackTrace();
             if(errorMessage==null){
                 e.printStackTrace();
             }

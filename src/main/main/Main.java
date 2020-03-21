@@ -34,7 +34,7 @@ public class Main extends Application {
         View view = View.getInstance(model, primaryStage);
         primaryStage.setOnCloseRequest(we -> {
             try {
-                new CodeParser().parseProgramCode(view.getCodeArea().getAllText());
+                CodeParser.parseProgramCode(view.getCodeArea().getAllText());
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllText()));
             } catch (IOException e) {
                 e.printStackTrace();

@@ -10,7 +10,7 @@ import javafx.scene.layout.*;
 import main.model.statement.StatementType;
 import main.model.enums.*;
 import main.utility.GameConstants;
-import main.utility.VariableType;
+import main.model.enums.VariableType;
 
 import java.util.List;
 
@@ -112,7 +112,7 @@ public class SpellBookPane extends VBox {
         assignmentHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,";",""));
         if(unlockedSpells.contains(VariableType.INT.getName())||unlockedSpells.contains(VariableType.BOOLEAN.getName())||
                 unlockedSpells.contains(VariableType.DIRECTION.getName())||unlockedSpells.contains(VariableType.TURN_DIRECTION.getName())||unlockedSpells.contains(VariableType.CELL_CONTENT.getName())||
-                unlockedSpells.contains(VariableType.ENTITY_TYPE.getName())||unlockedSpells.contains(VariableType.ITEM_TYPE.getName())||unlockedSpells.contains(VariableType.COMMAND.getName())) {
+                unlockedSpells.contains(VariableType.ENTITY_TYPE.getName())||unlockedSpells.contains(VariableType.ITEM_TYPE.getName())) {
             spellListView.getItems().add(new HBox(new SpellBookLabel(SpellBookLabelType.DEFAULT,"Declaration:", "Declare a new variable. You may also assign a value to this variable.")));
             spellListView.getItems().add(new VBox(declarationHBox,declarationHBox2));
 

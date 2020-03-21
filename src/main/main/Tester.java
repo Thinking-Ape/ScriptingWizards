@@ -54,8 +54,7 @@ public abstract class Tester {
 //        return new CodeBoxCompound(behaviour);
 //    }
     public static CodeArea evaluateCodeBox(String... codeList ) throws IllegalAccessException {
-        CodeParser codeParser = new CodeParser();
-        ComplexStatement behaviour = codeParser.parseProgramCode(Arrays.asList(codeList));
+        ComplexStatement behaviour = CodeParser.parseProgramCode(Arrays.asList(codeList));
         return new CodeArea(behaviour,true,false);
     }
 }

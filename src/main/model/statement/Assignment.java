@@ -1,6 +1,6 @@
 package main.model.statement;
 
-import main.utility.VariableType;
+import main.model.enums.VariableType;
 import main.model.statement.Expression.ExpressionTree;
 import main.utility.Variable;
 

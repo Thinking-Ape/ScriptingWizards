@@ -2,10 +2,14 @@ package main.model.statement.Condition;
 
 import main.utility.GameConstants;
 
+/** Whether the respective Condition consists of multiple Conditions linked with && or || or whether it is a Negation or
+ * none of those
+ */
 public enum ConditionType {
     AND('&','&'),
     OR('|','|'),
     NEGATION('!',GameConstants.ANY_CHAR),
+    /** True, False, Booleans or Comparisons */
     SINGLE(GameConstants.ANY_CHAR,GameConstants.ANY_CHAR);
 
     ConditionType(char c1, char c2){

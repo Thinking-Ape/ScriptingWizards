@@ -4,6 +4,8 @@ import main.model.statement.Condition.Condition;
 import main.utility.SimpleSet;
 import main.utility.Variable;
 
+import java.util.Iterator;
+
 
 public class ForStatement extends ComplexStatement {
     private Assignment declaration;
@@ -71,14 +73,12 @@ public class ForStatement extends ComplexStatement {
         return nextStatement;
     }
 
-    public Condition getCondition() {
-        return condition;
-    }
-
     @Override
     public void resetVariables(boolean isTotal) {
         if(!isTotal) {
-            for (Variable variable : localVariableSet) {
+            Iterator<Variable> iterator  = localVariableSet.iterator();
+            for (int i = 0; i < localVariableSet.size(); i++) {
+                Variable variable = iterator.next();
                 if (variable.getName().equals(declaration.getVariable().getName())) continue;
                 localVariableSet.remove(variable);
             }

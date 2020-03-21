@@ -143,7 +143,7 @@ public class Controller {
 
         view.getStartScreen().getExitBtn().setOnAction(actionEvent -> {
             try {
-                new CodeParser().parseProgramCode(view.getCodeArea().getAllText());
+                CodeParser.parseProgramCode(view.getCodeArea().getAllText());
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllText()));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -263,7 +263,7 @@ public class Controller {
                 bestCode = JSONParser.getBestCode(model.getCurrentLevel().getName());
 //                if(bestCode.size() !=0)model.getCurrentLevel().setPlayerBehaviour(new CodeParser().parseProgramCode(bestCode));
                 if(bestCode.size() !=0) {
-                    CodeArea codeArea = new CodeArea(new CodeParser().parseProgramCode(bestCode), true, false);
+                    CodeArea codeArea = new CodeArea(CodeParser.parseProgramCode(bestCode), true, false);
                     codeArea.scroll(0);
                     view.setCodeArea(codeArea, false);
                     view.getBtnExecute().setDisable(false);
@@ -322,15 +322,13 @@ public class Controller {
 
         ((ImageView)view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
         view.getBtnExecute().setOnAction(actionEvent -> {
-        CodeParser codeParser = new CodeParser(view.getCodeArea().getAllText(),true);
-        CodeParser aiCodeParser = new CodeParser(view.getAICodeArea().getAllText(),false);
         view.getCodeArea().scroll(0);
         if(model.getCurrentLevel().hasAi()) view.getAICodeArea().scroll(0);
         Level currentLevel = model.getCurrentLevel();
         try {
-            ComplexStatement behaviour = codeParser.parseProgramCode();
+            ComplexStatement behaviour = CodeParser.parseProgramCode(view.getCodeArea().getAllText(),true);
             ComplexStatement aiBehaviour = new ComplexStatement();
-            if(currentLevel.hasAi())aiBehaviour = aiCodeParser.parseProgramCode();
+            if(currentLevel.hasAi())aiBehaviour = CodeParser.parseProgramCode(view.getAICodeArea().getAllText(),false);
             if(view.getCurrentSceneState()==SceneState.LEVEL_EDITOR) view.getLevelEditorModule().setDisableAllLevelBtns(true);
             //TODO: delete
             if(GameConstants.DEBUG)System.out.println(behaviour.print());

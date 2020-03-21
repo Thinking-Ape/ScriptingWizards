@@ -1,5 +1,6 @@
 package main.utility;
 
+import main.model.enums.VariableType;
 import main.model.statement.Expression.ExpressionTree;
 
 //TODO: remove?
