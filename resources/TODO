@@ -93,6 +93,10 @@ IMPORTANT:
  - View should no longer "observe" Level!
  - Better Understand and clean up CodeParser
  - you can just put ; wherever nd it will be removed
+ - error messages shouldnt be too long <- destroy alignment!
+ - highlight corresponding { codefield
+ - rewrite codeareacontroller! no codeareaclones!!
+ - make controlElements ignore keyboard input?
 ---------------------------------------------
 
 

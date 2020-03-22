@@ -123,21 +123,28 @@ public class CodeAreaController implements PropertyChangeListener {
                     }
                     int depth = currentCodeField.getDepth();
 //                    boolean hasThoughtOfBrackets = textAfterCursor.matches(".*}");
-                    String complexStatementRegex = ".*\\{(.*)";
+                    String complexStatementRegex = "^[^{]+?\\{(.*)$";
+                    String simpleStatementRegex = "^(?!(for *\\())[^{]+?;(.++)$";
 
                     codeArea.deselectAll();
                     CodeField bracketCodeField = null;
                     String textAfterBracket = "";
-                    Matcher matcher = Pattern.compile(complexStatementRegex).matcher( currentCodeField.getText());
-                    if(matcher.matches()){
-                        textAfterBracket = matcher.group(1);
-                        currentCodeField.setText(currentCodeField.getText().replaceAll("\\{.+", "{"));
-                        if(codeArea.getBracketBalance() > 0 /*|| hasThoughtOfBrackets*/) bracketCodeField = new CodeField("}",depth,false);
-                        if(!addBefore)depth++;
+                    Matcher matcherComplex = Pattern.compile(complexStatementRegex).matcher( currentCodeField.getText());
+                    Matcher matcherSimple = Pattern.compile(simpleStatementRegex).matcher( currentCodeField.getText());
+                    if(matcherSimple.matches()){
+                        textAfterBracket = matcherSimple.group(2);
+                        currentCodeField.setText(currentCodeField.getText().replaceAll(";.++", ";"));
+                    }
+                    else if(matcherComplex.matches()){
+                        textAfterBracket = matcherComplex.group(1);
+                        currentCodeField.setText(currentCodeField.getText().replaceAll("\\{.++", "{"));
                     }
 
-                    CodeField newCodeField = new CodeField(textAfterBracket,depth,true);
-
+                    if(matcherComplex.matches()){
+                        if(codeArea.getBracketBalance() > 0 /*|| hasThoughtOfBrackets*/) bracketCodeField = new CodeField("}",depth,false);
+                        if(!addBefore)depth++;
+                    }CodeField newCodeField = new CodeField(textAfterBracket,depth,true);
+                    if(codeArea.getBracketBalance() != 0 && textAfterBracket.matches(complexStatementRegex))codeAreaClone.addNewCodeFieldAtIndex(currentIndex+1, new CodeField("}",depth,false));
                     int scrollAmount = codeArea.getScrollAmount()+1 < codeArea.getSize() ? codeArea.getScrollAmount()+1 : codeArea.getSize()-1-GameConstants.MAX_CODE_LINES;
                     //TODO:
                     if(currentIndex+1>=GameConstants.MAX_CODE_LINES+ codeArea.getScrollAmount())codeArea.scroll(scrollAmount);
@@ -146,11 +153,6 @@ public class CodeAreaController implements PropertyChangeListener {
                     if(bracketCodeField != null){
                         codeAreaClone.addNewCodeFieldAtIndex(currentIndex+1,bracketCodeField);
                     }
-
-//                    if(recompileCode(codeAreaClone)==null){
-//                        codeAreaClone.removeCodeField(newCodeField);
-//                        codeAreaClone.removeCodeField(bracketCodeField);
-//                    }currentIndex++;
                     break;
 
                 case BACK_SPACE:

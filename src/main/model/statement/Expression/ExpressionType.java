@@ -10,6 +10,7 @@ public enum ExpressionType {
     DIV('/'),
     MULT('*'),
     MOD('%'),
+    PAR(','),
     SIMPLE(GameConstants.ANY_CHAR);
 
    ExpressionType(char c1){

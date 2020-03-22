@@ -1,6 +1,7 @@
 package main.model.statement.Expression;
 
 import javafx.util.Pair;
+import main.utility.GameConstants;
 import main.utility.Util;
 
 import java.util.regex.Matcher;
@@ -55,8 +56,8 @@ public class ExpressionTree {
                 return "" + leftNodeText + " * " + rightNodeText+"";
             case MOD:
                 return "" + leftNodeText + " % " + rightNodeText+"";
-//            case CAL:
-//                return leftNodeText +"." +rightNodeText;
+            case PAR:
+                return leftNodeText +"," +rightNodeText;
             case SIMPLE:
                 String expression =leftNodeText +"(" +rightNodeText+")";
                 return expression;
@@ -67,15 +68,18 @@ public class ExpressionTree {
         code = code.trim();
         code = Util.removeUnnecessaryBrackets(code);
 
+
+        Matcher parameterMatcher = Pattern.compile("^([^{}();,]+?),([^{}();]++)$").matcher(code);
+        if(parameterMatcher.matches()){
+            return new ExpressionTree(expressionTreeFromString(parameterMatcher.group(1)),ExpressionType.PAR,expressionTreeFromString(parameterMatcher.group(2)));
+        }
 //        Pair<ExpressionType,Integer> expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.CAL);
 //        if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
 //            return expressionTreeWithType(code, expressionTypeAtPos);
 //        }
         Pair<ExpressionType,Integer> expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.ADD,ExpressionType.SUB);
         if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
-            ExpressionTree e = expressionTreeWithType(code, expressionTypeAtPos);
-//            System.out.println(e.getText()+e.getExpressionType());
-            return e;
+            return expressionTreeWithType(code, expressionTypeAtPos);
         }
         expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.MULT,ExpressionType.MOD,ExpressionType.DIV);
         if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
