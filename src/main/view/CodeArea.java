@@ -23,6 +23,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Translate;
+import main.model.statement.SimpleStatement;
 import main.utility.GameConstants;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
@@ -63,6 +64,7 @@ public class CodeArea extends VBox {
         this.MAX_CODE_LINES = isAi ? GameConstants.MAX_CODE_LINES+1 : GameConstants.MAX_CODE_LINES;
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
+        if(behaviour.getStatementListSize() == 0 && !isAi)behaviour.addSubStatement(new SimpleStatement());
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
         ImageView iconIView;
         ImageView upBtnIV = new ImageView(new Image(GameConstants.UP_BTN_IMAGE_PATH));
@@ -118,10 +120,10 @@ public class CodeArea extends VBox {
     private List<CodeField> getCodeFieldsFromStatement(ComplexStatement complexStatement) throws IllegalArgumentException {
         Statement statement;
         List<CodeField> output = new ArrayList<>();
-        if(complexStatement.getStatementListSize() == 0 && !isAi){
-            output.add(new CodeField("",0,true));
-            return output;
-        }
+//        if(complexStatement.getStatementListSize() == 0 && !isAi){
+//            output.add(new CodeField("",0,true));
+//            return output;
+//        }
         for(int i = 0; i < complexStatement.getStatementListSize(); i++){
 //            if(complexStatement.getStatementType() == StatementType.FOR)statement = ((ComplexStatement)complexStatement.getSubStatement(0)).getSubStatement(i);
 //            else
@@ -333,44 +335,6 @@ public class CodeArea extends VBox {
 
     public boolean isAi() {
         return isAi;
-    }
-
-    public void moveCodeField(int currentIndex, boolean isUp) {
-        CodeField codeField = codeFieldList.get(currentIndex);
-//        int shift = 1;
-        int end = indexOfCodeField(findNextBracket(currentIndex, codeField.getDepth()));
-        if(!codeField.getText().matches(".*\\{"))end = currentIndex;
-
-        int depth = codeField.getDepth();
-        if(isUp) {
-            if(currentIndex == 0)return;
-            codeFieldList.remove(codeField);
-            codeFieldList.add(currentIndex-1,codeField);
-            for(int i = currentIndex+1; i <= end;i++){
-//                boolean isClosingBracket = (codeFieldList.get(i).getDepth()==depth && codeFieldList.get(i).getText().equals("}"));
-                if(codeFieldList.get(i).getDepth() >= depth){// || isClosingBracket){
-                    CodeField tempCodeField = codeFieldList.get(i);
-                    codeFieldList.remove(tempCodeField);
-                    codeFieldList.add(i-1,tempCodeField);
-                }
-            }
-        }else {
-            if(end >= codeFieldList.size()-1)return;
-            for(int i = end; i > currentIndex;i--){
-//                boolean isClosingBracket = (codeFieldList.get(i).getDepth()==depth && codeFieldList.get(i).getText().equals("}"));
-                if(codeFieldList.get(i).getDepth() >= depth){//||isClosingBracket){
-                    CodeField tempCodeField = codeFieldList.get(i);
-                    codeFieldList.remove(tempCodeField);
-                    codeFieldList.add(i+1,tempCodeField);
-                }
-            }
-            codeFieldList.remove(codeField);
-            codeFieldList.add(currentIndex+1,codeField);
-        }
-    }
-
-    public void removeCodeField(int currentIndex) {
-        removeCodeField(codeFieldList.get(currentIndex));
     }
 
     public boolean isEditable() {

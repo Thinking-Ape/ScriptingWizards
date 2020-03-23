@@ -8,6 +8,7 @@ Version 1.3c:
     - Reduced max amount of codelines by one -> error message Label is now always visible
     - Closing brackets of ComplexStatements will now be highlighted when selecting the line of the opening brackets
     - Rewrote CodeAreaController. When editing AI-Code Errors will now be displayed below AI-CodeArea
+    - Fixed a bug where you could save broken levels by leaving and reentering the editor
 Version 1.3b:
     - Fixed clicking on Scroll Buttons not working
     - Now only redrawes images that are different instead of redrawing the whole map

@@ -10,6 +10,7 @@ import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
 import main.utility.GameConstants;
 import main.utility.SimpleSet;
+import main.utility.Util;
 import main.view.CodeArea;
 import main.view.CodeField;
 import main.view.SceneState;
@@ -82,12 +83,11 @@ public class CodeAreaController implements PropertyChangeListener {
     private void setHandlerForCodeField(CodeField currentCodeField, CodeArea currentCodeArea) {
         currentCodeField.setOnMousePressed(event -> {
             if(gameRunning)return;
-
+            needsRecreation = false;
 //            boolean isError = currentCodeArea.isAi() ? isErrorAI : isErrorPlayer;
-            if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
-            else view.getAICodeArea().deselectAll();
 
             if(currentCodeArea.getSelectedCodeField() == currentCodeField) return;
+            currentCodeArea.deselectAll();
             showError = true;
             handleCodefieldEvent(currentCodeArea.getAllText(),currentCodeArea);
             if(!isError){
@@ -110,7 +110,7 @@ public class CodeAreaController implements PropertyChangeListener {
 
         currentCodeField.setOnKeyPressed(event -> {
             if (gameRunning) return;
-//            boolean isError = currentCodeArea.isAi() ? isErrorAI : isErrorPlayer;
+            needsRecreation = false;
             if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
             else view.getAICodeArea().deselectAll();
             List<String> codeLines = currentCodeArea.getAllText();
@@ -121,7 +121,6 @@ public class CodeAreaController implements PropertyChangeListener {
             switch (event.getCode()) {
                 case ENTER:
                     showError = true;
-                    if (isError) break;
 //                    if(!currentCodeField.isEditable())return;
                     int selectedIndex = currentCodeField.getCaretPosition();
                     if (selectedIndex == 0 && !currentCodeField.isEmpty()) {
@@ -138,10 +137,10 @@ public class CodeAreaController implements PropertyChangeListener {
                     Matcher matcherSimple = Pattern.compile(simpleStatementRegex).matcher(currentCodeField.getText());
                     if (matcherSimple.matches()) {
                         textAfterBracket = matcherSimple.group(2);
-                        currentCodeField.setText(currentCodeField.getText().replaceAll(";.++", ";"));
+                        codeLines.set(currentIndex, currentCodeField.getText().replaceAll(";.++", ";"));
                     } else if (matcherComplex.matches()) {
-                        textAfterBracket = matcherComplex.group(1);
-                        currentCodeField.setText(currentCodeField.getText().replaceAll("\\{.++", "{"));
+                        textAfterBracket = matcherComplex.group(2);
+                        codeLines.set(currentIndex, currentCodeField.getText().replaceAll("\\{.++", "{"));
                     }
                     boolean needsBrackets = false;
                     if (matcherComplex.matches()) {
@@ -149,15 +148,17 @@ public class CodeAreaController implements PropertyChangeListener {
                     }
                     int scrollAmount = currentCodeArea.getScrollAmount() + 1 < currentCodeArea.getSize() ? currentCodeArea.getScrollAmount() + 1 : currentCodeArea.getSize() - 1 - GameConstants.MAX_CODE_LINES;
                     //TODO:
-                    if (currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
-                        currentCodeArea.scroll(scrollAmount);
-                    if (!addBefore) currentIndex++;
-                    codeLines.add(currentIndex, textAfterBracket);
+
                     if (needsBrackets) {
                         codeLines.add(currentIndex + 1, "}");
                     }
-                    if (textAfterBracket.matches(complexStatementRegex) && currentCodeArea.getBracketBalance() >= 0)
+                    if (textAfterBracket.matches(complexStatementRegex)) // && currentCodeArea.getBracketBalance() >= 0)
                         codeLines.add(currentIndex + 1, "}");
+
+                    codeLines.add(currentIndex+1, textAfterBracket);
+                    if (!addBefore && !isError) currentIndex++;
+                    if (currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
+                        currentCodeArea.scroll(scrollAmount);
                     break;
 
                 case BACK_SPACE:
@@ -208,9 +209,8 @@ public class CodeAreaController implements PropertyChangeListener {
 
                 case DELETE:
                     if (!currentCodeField.isEditable()) {
-                        currentCodeArea.deselectAll();
                         if (currentIndex < currentCodeArea.getSize() - 1) currentIndex++;
-
+                        currentCodeArea.select(currentIndex, Selection.END);
                         break;
                     }
 
@@ -251,11 +251,18 @@ public class CodeAreaController implements PropertyChangeListener {
                     scrollAmount = currentCodeArea.getScrollAmount() - 1 > 0 ? currentCodeArea.getScrollAmount() - 1 : 0;
                     if (currentIndex <= currentCodeArea.getScrollAmount())
                         currentCodeArea.scroll(scrollAmount);
-                    /*if(event.isControlDown()){
-                        codeAreaClone.moveCodeField(currentIndex, true);
+                    if(event.isControlDown()){
+                        int startIndex = currentIndex;
+                        int endIndex = startIndex;
+                        boolean isBalanced = currentCodeArea.getBracketBalance() == 0;
+                        if(isBalanced && codeLines.get(startIndex).matches(GameConstants.COMPLEX_STATEMENT_REGEX))
+                            endIndex = currentCodeArea.findNextBracketIndex(startIndex, currentCodeField.getDepth());
+                        codeLines = Util.moveItems(codeLines,startIndex, endIndex,-1);
+                        needsRecreation = true;
+//                        codeAreaClone.moveCodeField(currentIndex, true);
 //                        for(Integer i : selectedIndexSet)
 //                            codeAreaClone.moveCodeField(i,true);
-                    }*/
+                    }
 //                    else if(event.isShiftDown()){
 //                        selectedIndexSet.add(currentIndex);
 //                        int nextDepth = codeArea.getCodeFieldListClone().get(codeArea.indexOfCodeField(currentCodeField)-1).getDepth();
@@ -280,11 +287,18 @@ public class CodeAreaController implements PropertyChangeListener {
                     scrollAmount = currentCodeArea.getScrollAmount() + 1 < currentCodeArea.getSize() ? currentCodeArea.getScrollAmount() + 1 : currentCodeArea.getSize() - 1 - GameConstants.MAX_CODE_LINES;
                     if (currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
                         currentCodeArea.scroll(scrollAmount);
-                    /*if(event.isControlDown()){
-                        codeAreaClone.moveCodeField(currentIndex, false);
+                    if(event.isControlDown()){
+                        int startIndex = currentIndex;
+                        int endIndex = startIndex;
+                        boolean isBalanced = currentCodeArea.getBracketBalance() == 0;
+                        if(isBalanced && codeLines.get(startIndex).matches(GameConstants.COMPLEX_STATEMENT_REGEX))
+                            endIndex = currentCodeArea.findNextBracketIndex(startIndex, currentCodeField.getDepth());
+                        codeLines = Util.moveItems(codeLines,startIndex, endIndex,1);
+                        needsRecreation = true;
+//                        codeAreaClone.moveCodeField(currentIndex, false);
 //                        for(Integer i : selectedIndexSet)
 //                            codeAreaClone.moveCodeField(i,false);
-                    }*/
+                    }
 //                    else if(event.isShiftDown()){
 //                        selectedIndexSet.add(currentIndex);
 //                        int nextDepth = codeArea.getCodeFieldListClone().get(codeArea.indexOfCodeField(currentCodeField)+1).getDepth();
@@ -302,7 +316,6 @@ public class CodeAreaController implements PropertyChangeListener {
                     return;
                 //LINES BELOW ARE A WORKAROUND FOR ANOTHER JAVAFX BUG
                 case RECORD:
-//                    silentError = true;
                     break;
                 default:
 //                    selectedIndexSet.clear();
@@ -322,19 +335,12 @@ public class CodeAreaController implements PropertyChangeListener {
     }
 
     private void handleCodefieldEvent(List<String> codeLines, CodeArea currentCodeArea) {
-        needsRecreation = (codeLines.size() != currentCodeArea.getSize());
+        needsRecreation = needsRecreation || (codeLines.size() != currentCodeArea.getSize());
         Label errorLabel = currentCodeArea.isAi() ? view.getErrorLabelAI() : view.getErrorLabel();
         errorLabel.setVisible(false);
         try {
             ComplexStatement behaviour = CodeParser.parseProgramCode(codeLines,!currentCodeArea.isAi());
             disableControlElements(false, currentCodeArea);
-
-//            if(currentCodeArea.isAi()){
-//                if(isErrorAI) currentCodeArea.resetStyle(currentIndex);
-//            }else if(isErrorPlayer) currentCodeArea.resetStyle(currentIndex);
-//
-//            if(currentCodeArea.isAi()) isErrorAI  = false;
-//            else isErrorPlayer = false;
             if(isError)currentCodeArea.resetStyle(currentIndex);
             isError = false;
             currentCodeArea.setEditable(true);
@@ -344,8 +350,6 @@ public class CodeAreaController implements PropertyChangeListener {
                 currentCodeArea.select(currentIndex, Selection.END);
             }
         }catch (Exception e){
-//            if(currentCodeArea.isAi()) isErrorAI  = true;
-//            else isErrorPlayer = true;
             isError = true;
 
             disableControlElements(true,currentCodeArea);

@@ -120,7 +120,7 @@ public abstract class GameConstants {
     public static final String LOC_TO_STARS_3_PROPERTY_NAME = "LocToStars3";
     public static final String CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME = "CurrentTutorialMessage";
     public static final String CURRENT_TUTORIAL_INDEX_PROPERTY_NAME = "CurrentTutorialIndex";
-    public static final String COMPLEX_STATEMENT_REGEX = "^[ a-z]+ *\\( *[^{]+?\\) *\\{(.*)$";
+    public static final String COMPLEX_STATEMENT_REGEX = "^([ a-z]+ *\\( *[^{]+?\\)|else) *\\{(.*)$";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

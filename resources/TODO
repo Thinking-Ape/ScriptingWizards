@@ -95,7 +95,8 @@ IMPORTANT:
  - make controlElements ignore keyboard input?
  - copy level button
  - back() Method?
- - fix this gruesome codeAreaController mess!!!!!
+ - reimplement moving codelines via Ctrl-Arrow
+ - Clear Code for AI?
 ---------------------------------------------
 
 

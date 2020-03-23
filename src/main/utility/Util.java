@@ -421,6 +421,36 @@ public abstract class Util {
         return  new StringPair(first,second);
     }
 
+    public static <T> List<T> moveItems(List<T> codeLines, int startIndex, int endIndex, int amount) {
+        List<T> output = new ArrayList<>(codeLines);
+        int step = 1;
+        if(amount<0) {
+            amount = -amount;
+            step = -1;
+        }
+        if(step == 1){
+            int tempInt = startIndex;
+            startIndex = endIndex;
+            endIndex = tempInt;
+        }
+        for(int i = 0; i < amount; i++){
+            for(int j = startIndex; j != endIndex-step; j = j-step){
+                if(step == 1 && j == codeLines.size()-1)continue;
+                if(step == -1 && j == 0)continue;
+                T temp = output.get(j+step);
+                output.set(j+step,output.get(j));
+                output.set(j,temp);
+            }
+        }
+        return output;
+    }
+
+    public static void printList(List<String> codeLines) {
+        for(String s : codeLines){
+            System.out.println(s);
+        }
+    }
+
 //    public static ImageView getEntityImageView(int number, Cell cell, Model model,List<Entity> entityActionList, Map<String,Image> contentImageMap, double cell_size, Map<String,Effect> entityColorMap, String entityName) {
 //
 //    }
