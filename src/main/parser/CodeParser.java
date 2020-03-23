@@ -26,7 +26,7 @@ public abstract class CodeParser {
     private static Statement lastStatement;
     private static Variable currentForVariable;
 
-    public static ComplexStatement parseProgramCode(List<String> lines) throws IllegalAccessException {
+    public static ComplexStatement parseProgramCode(List<String> lines) {
         return parseProgramCode(lines, true);
     }
 
@@ -39,7 +39,7 @@ public abstract class CodeParser {
      * @throws IllegalAccessException TODO
      * @throws IllegalArgumentException TODO
      */
-    public static ComplexStatement parseProgramCode(List<String> lines,boolean isPlayerCodeValue) throws IllegalAccessException, IllegalArgumentException{
+    public static ComplexStatement parseProgramCode(List<String> lines,boolean isPlayerCodeValue){
         codeLines = lines;
         isPlayerCode = isPlayerCodeValue;
         behaviour = new ComplexStatement();
@@ -84,9 +84,9 @@ public abstract class CodeParser {
                     boolean isSkeleton = variable.getVariableType() == VariableType.SKELETON;
                     //TODO: Implement GHOST or delete
 //                    boolean isGhost = variable.getVariableType() == VariableType.GHOST;
-                    if(isPlayerCode && (/*isGhost||*/isSkeleton ))throw new IllegalAccessException("You are not allowed to create Enemy Creatures as Player");
+                    if(isPlayerCode && (/*isGhost||*/isSkeleton ))throw new IllegalArgumentException("You are not allowed to create Enemy Creatures as Player");
                     boolean isKnight = variable.getVariableType() == VariableType.KNIGHT;
-                    if(!isPlayerCode && isKnight )throw new IllegalAccessException("You are not allowed to create Player Creatures as Enemy");
+                    if(!isPlayerCode && isKnight )throw new IllegalArgumentException("You are not allowed to create Player Creatures as Enemy");
                     if(/*isGhost ||*/ isKnight || isSkeleton){
                         if(variable.getValue().getLeftNode()!=null){
                             VariableType variableType = VariableType.getVariableTypeFromString(variable.getValue().getLeftNode().getText().substring(4));
@@ -132,7 +132,7 @@ public abstract class CodeParser {
      * @throws IllegalAccessException TODO
      * @throws IllegalArgumentException TODO
      */
-    private static Statement parseString(String code, int depth) throws IllegalAccessException,IllegalArgumentException {
+    private static Statement parseString(String code, int depth) {
         Matcher whileMatcher = StatementType.getMatcher(StatementType.WHILE,code);
         Matcher forMatcher = StatementType.getMatcher(StatementType.FOR,code);
         Matcher ifMatcher = StatementType.getMatcher(StatementType.IF,code);
@@ -497,7 +497,19 @@ public abstract class CodeParser {
             case SKELETON:
                 if(!value.matches(variableType.getAllowedRegex())){
                     tree = ExpressionTree.expressionTreeFromString(value);
-                    if(tree.getRightNode() != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)return;
+                    if(tree.getRightNode() != null) {
+                        boolean varDirValid = depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION;
+                        boolean dirValid = tree.getRightNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
+                        if(varDirValid || dirValid)return;
+                        // 2 Parameters
+                        if(tree.getRightNode().getLeftNode() != null && tree.getRightNode().getRightNode() != null){
+                            varDirValid = depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getLeftNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getLeftNode().getText()).getVariableType() == VariableType.DIRECTION;
+                            dirValid = tree.getRightNode().getLeftNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
+                            boolean varIntValid = depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getRightNode().getText()).getVariableType() == VariableType.INT;
+                            boolean intValid = tree.getRightNode().getLeftNode().getText().matches(VariableType.INT.getAllowedRegex());
+                            if((varDirValid || dirValid) && (varIntValid || intValid))return;
+                        }
+                    }
                     throw new IllegalArgumentException(value + " is not a valid Skeleton constructor!");
                 }
                 break;

@@ -43,10 +43,6 @@ public class CodeField extends TextField {
 //            }
 //        });
         this.autosize();
-        Text text = new Text(code);
-        text.setFont(GameConstants.CODE_FONT);
-        //-GameConstants.SCREEN_WIDTH/130
-        if(text.getLayoutBounds().getWidth() > getMaxWidth())throw new IllegalStateException("This code line is too long: " + text.getText() + "! Consider using variables to make it shorter!");
     }
 
     public void addListener(ChangeListener<String> changeListener){

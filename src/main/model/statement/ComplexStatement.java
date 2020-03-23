@@ -58,14 +58,14 @@ public class ComplexStatement implements Statement {
         }
     }
 
-    public void addLocalVariable(Variable variable) throws IllegalAccessException {
+    public void addLocalVariable(Variable variable) {
         for(Variable variable1 : localVariableSet){
             if(variable.getName().equals(variable1.getName())){
-                throw new IllegalAccessException("Variable " + variable.getName()+" already in scope!");
+                throw new IllegalStateException("Variable " + variable.getName()+" already in scope!");
             }
         }
         if(parentStatement != null && parentStatement.getVariable(variable.getName())!=null){
-                throw new IllegalAccessException("Variable " + variable.getName()+" already in scope!");
+                throw new IllegalStateException("Variable " + variable.getName()+" already in scope!");
         }
         localVariableSet.add(variable);
     }

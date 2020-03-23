@@ -138,17 +138,14 @@ public class LevelEditorModule {
         cellDetailVBox.setSpacing(5);
 
         prevTutorialTextBtn.setDisable(true);
-        if(level.getTutorialEntryList().size()== 0)nextTutorialTextBtn.setDisable(true);
 
 //        cellIDHBox.setVisible(false);
 //        addLinkedCellBtn.setVisible(false);
 //        removeLinkedCellBtn.setVisible(false);
 //        linkedCellListView.setVisible(false);
 //        exitOpenCheckBox.setVisible(false);
-        bindProperties(level.getAllProperties());
 
-        heightValueLbl.setText(""+level.getOriginalMap().getBoundY());
-        widthValueLbl.setText(""+level.getOriginalMap().getBoundX());
+
         requiredLevelsLView.setMaxHeight(TEXTFIELD_HEIGHT*1.2);
         requiredLevelsLView.setMinHeight(TEXTFIELD_HEIGHT*1.2);
         requiredLevelsLView.setMaxWidth(TEXTFIELD_WIDTH*0.5);
@@ -158,9 +155,7 @@ public class LevelEditorModule {
 //        isTutorialValueLbl.setText(""+level.isTutorial());
         requiredLVBOX.getTransforms().add(new Translate(0,-20,0));
         topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevels().length*25+25);
-        for(int i = 0; i < level.getRequiredLevels().size();i++){
-            requiredLevelsLView.getItems().add(level.getRequiredLevels().get(i));
-        }
+        adjustToLevel(level);
         int i = 0;
         int j = 0;
         for (CellContent content : CellContent.values()){
@@ -190,6 +185,17 @@ public class LevelEditorModule {
 //        cellItemSelectionGPane.add(button,j,i);
         bottomHBox.setAlignment(Pos.TOP_CENTER);
         topHBox.setAlignment(Pos.BASELINE_CENTER);
+    }
+
+    private void adjustToLevel(Level level) {
+        if(level.getTutorialEntryList().size()== 0)nextTutorialTextBtn.setDisable(true);
+        bindProperties(level.getAllProperties());
+
+        heightValueLbl.setText(""+level.getOriginalMap().getBoundY());
+        widthValueLbl.setText(""+level.getOriginalMap().getBoundX());
+        for(int i = 0; i < level.getRequiredLevels().size();i++){
+            requiredLevelsLView.getItems().add(level.getRequiredLevels().get(i));
+        }
     }
 
     public VBox getRightVBox(){
@@ -457,5 +463,9 @@ public class LevelEditorModule {
     }
     public CheckBox getIsInvertedCBox() {
         return isInvertedCBox;
+    }
+
+    public void setLevel(Level currentLevel) {
+
     }
 }

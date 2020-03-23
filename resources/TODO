@@ -86,17 +86,16 @@ IMPORTANT:
  - allow XOR (^)?
  - EIGENE METHODEN
  - SPEICHERN IM LEVEL EDITOR BESSER IMPLEMENTIEREN!
- - Parameter werden momentan nicht sehr günstig gehandled!
- + NumberFormatException (- 2) <- CodeEvaluator 194
  - Level, das randInt verwendet!
  - Levelname green background in LevelEditor -> saved else red and warning upon leaving level
  - View should no longer "observe" Level!
  - Better Understand and clean up CodeParser
  - you can just put ; wherever nd it will be removed
- - error messages shouldnt be too long <- destroy alignment!
- - highlight corresponding { codefield
  - rewrite codeareacontroller! no codeareaclones!!
  - make controlElements ignore keyboard input?
+ - copy level button
+ - back() Method?
+ - fix this gruesome codeAreaController mess!!!!!
 ---------------------------------------------
 
 

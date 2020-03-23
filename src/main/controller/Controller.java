@@ -275,8 +275,6 @@ public class Controller {
 
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
             }
         });
 

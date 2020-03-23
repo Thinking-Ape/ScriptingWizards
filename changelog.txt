@@ -2,9 +2,12 @@ Version 1.3c:
     - Code Font is no longer MonoSpaced as it restricted the amount of possible code massively!
     - Removed VariableType Command as it can no longer be used (since 1.3a)
     - Fixed randInt() not working properly
-    - You may now write a statement following a '{' and it will be automatically moved in the next line
+    - You may now write 2 statements ina a line and the second will be automatically moved in the next line
     - Improved error messages to be more helpful!
     - Improved representation of parameters inside the datastructure
+    - Reduced max amount of codelines by one -> error message Label is now always visible
+    - Closing brackets of ComplexStatements will now be highlighted when selecting the line of the opening brackets
+    - Rewrote CodeAreaController. When editing AI-Code Errors will now be displayed below AI-CodeArea
 Version 1.3b:
     - Fixed clicking on Scroll Buttons not working
     - Now only redrawes images that are different instead of redrawing the whole map

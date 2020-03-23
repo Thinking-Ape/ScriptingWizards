@@ -121,7 +121,7 @@ public class EditorController implements PropertyChangeListener {
                 String[] words = t1.split(" ");
                 double width =  0;
                 int lines = Util.countChars(t1,'\n');
-                double maxWidth = view.getLevelEditorModule().getTutorialTextArea().getMaxWidth()-GameConstants.SCREEN_WIDTH/130;
+                double maxWidth = view.getLevelEditorModule().getTutorialTextArea().getMaxWidth()-GameConstants.SCREEN_WIDTH/110;
                 int spaces = 1;
                 int i = 1;
 

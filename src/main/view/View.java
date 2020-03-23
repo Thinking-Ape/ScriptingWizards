@@ -23,7 +23,6 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
-import main.main.Tester;
 import main.model.*;
 import main.model.gamemap.Cell;
 import main.model.gamemap.Entity;
@@ -75,7 +74,8 @@ public class View implements PropertyChangeListener {
     private CodeArea aiCodeArea;
     private VBox vBox;
     private Slider speedSlider;
-    private Label msgLabel = new Label();
+    private Label errorLabel = new Label();
+    private Label errorLabelAI = new Label();
     private Shape[][] mapShapes;
     private GridPane actualMapGPane;
     private StackPane rootPane;
@@ -123,11 +123,18 @@ public class View implements PropertyChangeListener {
     }
 
     private View(Model model, Stage stage) {
-        msgLabel.setStyle("-fx-text-fill: red;-fx-background-color: white");
-        msgLabel.setFont(GameConstants.BIG_FONT);
+        errorLabel.setStyle("-fx-text-fill: red;-fx-background-color: white");
+        errorLabel.setFont(GameConstants.BIG_FONT);
+        errorLabel.setMaxWidth(GameConstants.TEXTFIELD_WIDTH);
+        errorLabel.setVisible(false);
+        errorLabelAI.setStyle("-fx-text-fill: red;-fx-background-color: white");
+        errorLabelAI.setFont(GameConstants.BIG_FONT);
+        errorLabelAI.setMaxWidth(GameConstants.TEXTFIELD_WIDTH);
+        errorLabelAI.setVisible(false);
         spellBookPane.updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
         selectedPointList = new ArrayList<>();
         selectedPointList.add(new Point(0, 0));
+        this.levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
         this.stage = stage;
         this.model = model;
         this.startScreen = new StartScreen();
@@ -163,8 +170,11 @@ public class View implements PropertyChangeListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(codeArea.getSize()==0){ codeArea = new CodeArea(false);
-        codeArea.addNewCodeFieldAtIndex(0, new CodeField("", 1, true));}
+        if(codeArea.getSize()==0){
+            codeArea = new CodeArea(false);
+//            codeArea.addNewCodeFieldAtIndex(0, new CodeField("", 1, true));
+        }
+        codeArea.select(0, Selection.START);
         model.addChangeListener(this);
         actualMapGPane = new GridPane();
         actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
@@ -263,13 +273,12 @@ public class View implements PropertyChangeListener {
 //                e.printStackTrace();
 //            }
 //        }
-        vBox.getChildren().addAll(codeArea, hBox, msgLabel);
+        vBox.getChildren().addAll(codeArea, hBox, errorLabel);
         VBox leftVBox = new VBox();
-        leftVBox.getChildren().add(aiCodeArea);
+        leftVBox.getChildren().addAll(aiCodeArea,errorLabelAI);
 
 
         aiCodeArea.draw();
-        codeArea.select(0, Selection.START);
 
         Level l = model.getCurrentLevel();
 
@@ -672,13 +681,14 @@ public class View implements PropertyChangeListener {
             leftVBox.getChildren().clear();
             if(codeArea.getSize()>0)
             {
-
-                leftVBox.getChildren().addAll( aiCodeArea);
+                leftVBox.getChildren().addAll( aiCodeArea, errorLabelAI);
             }
             leftVBox.setAlignment(Pos.TOP_CENTER);
         }
-        else {this.codeArea = codeArea;
-        vBox.getChildren().set(0, codeArea);}
+        else {
+            this.codeArea = codeArea;
+            vBox.getChildren().set(0, codeArea);
+        }
         codeArea.draw();
         changeSupport.firePropertyChange("codeArea", null, codeArea);
     }
@@ -958,7 +968,7 @@ public class View implements PropertyChangeListener {
         bottomHBox.setAlignment(Pos.BOTTOM_CENTER);
         switch (sceneState) {
             case LEVEL_EDITOR:
-                levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
+                levelEditorModule.setLevel(model.getCurrentLevel());
                 HBox editorCenterHBox = new HBox(knightsLeftVBox, new VBox(actualMapGPane), new VBox(levelEditorModule.getRightVBox()));
                 editorCenterHBox.autosize();
                 editorCenterHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
@@ -1127,8 +1137,11 @@ public class View implements PropertyChangeListener {
         return speedSlider;
     }
 
-    public Label getMsgLabel() {
-        return msgLabel;
+    public Label getErrorLabel() {
+        return errorLabel;
+    }
+    public Label getErrorLabelAI() {
+        return errorLabelAI;
     }
 
 

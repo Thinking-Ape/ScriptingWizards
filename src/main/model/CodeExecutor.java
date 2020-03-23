@@ -78,10 +78,11 @@ public abstract class CodeExecutor {
                 if(direction == null)direction = Direction.NORTH;
                 int index = GameConstants.RANDOM.nextInt(currentGameMap.getEnemySpawnList().size());
                 Point spawnPoint = new Point(currentGameMap.getEnemySpawnList().get(index).getX(),currentGameMap.getEnemySpawnList().get(index).getY());
-                if(spawnId != ""){
+                if(!spawnId.equals("")){
+                    int i = CodeEvaluator.evaluateIntVariable(spawnId);
                     for(Point point : currentGameMap.getEnemySpawnList()){
                         spawnPoint = point;
-                        if(currentGameMap.getCellID(spawnPoint)==Integer.valueOf(spawnId)){
+                        if(currentGameMap.getCellID(spawnPoint)==i){
                             currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
                             skeletonWasSpawned = true;
                         }

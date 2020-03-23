@@ -16,7 +16,7 @@ public class ForStatement extends ComplexStatement {
         return statementType;
     }
 
-    public  ForStatement (Assignment declaration, Condition condition, Assignment assignment) throws IllegalAccessException {
+    public  ForStatement (Assignment declaration, Condition condition, Assignment assignment) {
         super();
         this.assignment = assignment;
         this.assignment.setParentStatement(this);

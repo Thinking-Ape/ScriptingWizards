@@ -33,6 +33,7 @@ public class ConditionTree implements Condition {
             leftNodeText = leftNode.getText();
             if(leftNode.getConditionType() != ConditionType.SINGLE) leftNodeText = "(" + leftNodeText + ")";
         }
+        if(rightNode == null)return leftNodeText;
         String rightNodeText = rightNode.getText();
         if(rightNode.getConditionType() != ConditionType.SINGLE && rightNode.getConditionType()!= ConditionType.NEGATION) rightNodeText = "(" + rightNodeText + ")";
         switch (conditionType){

@@ -13,6 +13,7 @@ import java.util.Random;
 
 public abstract class GameConstants {
     public static final boolean DEBUG = false;
+    public static final String VERSION = "1.3c";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
@@ -28,14 +29,13 @@ public abstract class GameConstants {
     public static final String LEVEL_ROOT_PATH = Paths.get("resources/levels/").toString();
     public static final String IMAGES_PATH = "resources/images/";
     public static final String ROOT_PATH = Paths.get("resources/").toString();
-    public static final int MAX_CODE_LINES = (int)(30*SCREEN_HEIGHT/1080.0);
+    public static final int MAX_CODE_LINES = (int)(29*SCREEN_HEIGHT/1080.0);
     public static final int MAX_LEVEL_SIZE = 15;
     public static final int MIN_LEVEL_SIZE = 3;
     public static final double MAX_GAMEMAP_SIZE = SCREEN_HEIGHT/1.6;
     public static final int MAX_DEPTH = 4;
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
     public static final boolean IS_FULLSCREEN = false;
-    public static final String VERSION = "1.3c";
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
     public static final int MAX_LOOP_SIZE = 500;
     public static final String VARIABLE_NAME_REGEX = "[a-zA-Z_][a-zA-Z_0-9]*";
@@ -120,6 +120,7 @@ public abstract class GameConstants {
     public static final String LOC_TO_STARS_3_PROPERTY_NAME = "LocToStars3";
     public static final String CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME = "CurrentTutorialMessage";
     public static final String CURRENT_TUTORIAL_INDEX_PROPERTY_NAME = "CurrentTutorialIndex";
+    public static final String COMPLEX_STATEMENT_REGEX = "^[ a-z]+ *\\( *[^{]+?\\) *\\{(.*)$";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

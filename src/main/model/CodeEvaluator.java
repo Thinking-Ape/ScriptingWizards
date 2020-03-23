@@ -161,7 +161,7 @@ public abstract class CodeEvaluator {
      *
      * @param variableString might either be the name of a variable or a number
      */
-    private static int evaluateIntVariable(String variableString) {
+    static int evaluateIntVariable(String variableString) {
         variableString = variableString.trim();
         Matcher randomMatcher = Pattern.compile(GameConstants.RAND_INT_REGEX).matcher(variableString);
         if(randomMatcher.matches()){
@@ -342,6 +342,7 @@ public abstract class CodeEvaluator {
                     else output = output && (currentGameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString));
                     continue;
                 // has become pretty useless after deleting executeIf
+
                 case IS_LOOKING:
                     output = output && ((actorEntity.getDirection() == Direction.getValueFromString(parameterString)));
                     continue;
