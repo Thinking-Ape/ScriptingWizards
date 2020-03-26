@@ -18,7 +18,7 @@ public class JSONArray {
         keyList = new ArrayList<>();
         if (!pairs.matches(JSON_ARRAY_REGEX)) throw new IllegalArgumentException(pairs + " is no JSONArray!");
         pairs = Util.removeFirstAndLast(pairs);
-        List<String> valueList = JSONParser.splitValues(pairs);
+        List<String> valueList = Util.splitValues(pairs);
         for (String value : valueList) {
             value = value.trim();
             if(value.equals(""))continue;

@@ -12,8 +12,6 @@ import static main.utility.GameConstants.NO_ENTITY;
 public class GameMap {
 
 //    private PropertyChangeSupport changeSupport;
-    private int boundX;
-    private int boundY;
     private Cell[][] cellArray2D;
     private Map<String,Point> entityCellMap;
     private Set<Point> changedCellPoints;
@@ -21,8 +19,6 @@ public class GameMap {
     public GameMap(Cell[][] cellArray2D){
         if(cellArray2D.length == 0) throw new IllegalArgumentException("Cannot have a boundX of 0!");
      this.cellArray2D = cloneArray(cellArray2D);
-     this.boundX = cellArray2D.length;
-     this.boundY = cellArray2D[0].length;
 //     this.changeSupport = new PropertyChangeSupport(this);
 //     changeSupport.addPropertyChangeListener(pCL);
      entityCellMap = new HashMap<>();
@@ -41,19 +37,20 @@ public class GameMap {
 
     public GameMap copy(){
         GameMap cloneMap = new GameMap(cellArray2D);
+        cloneMap.changedCellPoints = new SimpleSet<>(changedCellPoints);
 //         cloneMap.entityCellMap = new HashMap<>(this.entityCellMap);
          return cloneMap;
     }
 
     public int getBoundX(){
-        return boundX;
+        return cellArray2D.length;
     }
     public int getBoundY(){
-        return boundY;
+        return cellArray2D[0].length;
     }
 
     public CellContent getContentAtXY(int x, int y){
-        if(x >= boundX || y >= boundY || x < 0 || y < 0)throw  new IllegalArgumentException("Illegal input: x = " + x+", y = " +y+". Must be within 0 and " + (boundX-1) +" and within 0 and " + (boundY-1) +"!");
+        if(x >= getBoundX() || y >= getBoundY() || x < 0 || y < 0)throw  new IllegalArgumentException("Illegal input: x = " + x+", y = " +y+". Must be within 0 and " + (getBoundX()-1) +" and within 0 and " + (getBoundY()-1) +"!");
         return cellArray2D[x][y].getContent();
     }
 
@@ -362,8 +359,8 @@ public class GameMap {
         return getEntity(entityCellMap.getOrDefault(name, null));
     }
 
-    public int getAmountOfKnights() {
-        return (int)entityCellMap.keySet().stream().filter(entity -> getEntity(entity).getEntityType() == EntityType.KNIGHT).count();
+    public int getAmountOfEntities(EntityType entityType) {
+        return (int)entityCellMap.keySet().stream().filter(entity -> getEntity(entity).getEntityType() == entityType).count();
     }
 
     public void clearFlags(int x, int y) {
@@ -473,5 +470,18 @@ public class GameMap {
         this.cellArray2D = newMapArray;
     }
 
-
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof GameMap){
+            GameMap map = (GameMap)obj;
+            boolean equal = true;
+            if(map.getBoundX() != getBoundX() || map.getBoundY() != getBoundY())return false;
+            for(int i = 0; i < cellArray2D.length;i++)
+                for(int j = 0; j < cellArray2D[0].length;j++){
+                    equal = equal && cellArray2D[i][j].equals(map.cellArray2D[i][j]);
+                }
+            return equal;
+        }
+        return super.equals(obj);
+    }
 }

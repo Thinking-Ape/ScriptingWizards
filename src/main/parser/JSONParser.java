@@ -7,12 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javafx.util.Pair;
 import main.model.LevelChange;
 import main.model.LevelDataType;
+import main.model.Model;
 import main.model.gamemap.Cell;
 import main.model.enums.CellContent;
 import main.model.enums.ItemType;
@@ -32,76 +34,101 @@ public abstract class JSONParser {
     public static final String JSON_OBJECT_REGEX = "^\\{.*\\}$";
     public static final String JSON_ARRAY_REGEX = "^\\[.*\\]$";
 
-//    private static void saveLevel(Level level) {
-//        JSONObject levelJSONObject = new JSONObject();
-//        JSONArray mapLines = new JSONArray();
-//        GameMap map = level.getOriginalMapCopy();
-//
-//        for(int y = 0; y < map.getBoundY(); y++){
-//
-//            JSONArray mapRow = new JSONArray();
-//            for(int x = 0; x < map.getBoundX(); x++){
-//                final Cell cell = map.getCellAtXYClone(x,y);
-//                JSONObject cellJSONObject = new JSONObject();
-//                JSONArray flagArray = new JSONArray();
-//                for(CFlag cFlag : CFlag.values()){
-//                    if(cell.hasFlag(cFlag)) flagArray.put(cFlag.name().toLowerCase());
-//                }
-//                if(flagArray.length()>0){cellJSONObject.put("flags",flagArray);}
-//                if(cell.getCellId() !=-1){cellJSONObject.put("id",cell.getCellId());}
-//                if(cell.getItem()!=ItemType.NONE)cellJSONObject.put("item", cell.getItem().name().toLowerCase());
-//                if(cell.getLinkedCellsSize()>0){
-//                    JSONArray linkedIdsJSONArray = new JSONArray();
-//                    for(int i = 0; i < cell.getLinkedCellsSize();i++){
-//                        linkedIdsJSONArray.put(cell.getLinkedCellId(i));
-//                    }
-//                    cellJSONObject.put("linkedIds",linkedIdsJSONArray);
-//                }
-//                if(cellJSONObject.isEmpty())mapRow.put(cell.getContent().name().toLowerCase());
-//                else {
-//                    cellJSONObject.put("content",cell.getContent().name().toLowerCase());
-//                    mapRow.put(cellJSONObject);
-//                }
-//            }
-//            mapLines.put(mapRow);
-//        }
-//
-//        JSONArray requiredLevelsArray = new JSONArray();
-//        fillJSONArrayWithObjects(requiredLevelsArray,level.getRequiredLevelNamesCopy().toArray());
-//        JSONArray locToStarsArray = new JSONArray();
-//        fillJSONArrayWithObjects(locToStarsArray,level.getLocToStarsCopy());
-//        JSONArray turnsToStarsArray = new JSONArray();
-//        fillJSONArrayWithObjects(turnsToStarsArray,level.getTurnsToStarsCopy());
-////        levelJSONObject.put("name",level.getDisplayName());
-//        if(requiredLevelsArray.length() > 0)
-//        levelJSONObject.put("requiredLevels",requiredLevelsArray);
-//        levelJSONObject.put("locToStars",locToStarsArray);
-//        levelJSONObject.put("turnsToStars",turnsToStarsArray);
-//        levelJSONObject.put("map",mapLines);
-//        levelJSONObject.put("maxKnights",level.getMaxKnights());
-//        levelJSONObject.put("index",level.getIndex());
-//        levelJSONObject.put("isTutorial",level.isTutorial());
-//        if(level.isTutorial()){
-//            JSONArray tutorialJSONArray = new JSONArray();
-//            for(String entry : level.getTutorialEntryListCopy()){
-//                tutorialJSONArray.put(entry);
-//            }
-//            levelJSONObject.put("tutorialEntries", tutorialJSONArray);
-//        }
-//        JSONArray aiJSONArray = new JSONArray();
-//        if(level.getAIBehaviourCopy()!=null){
-//            for(String s : level.getAIBehaviourCopy().print().split("\\n")){
-//                if(s.equals(""))continue;
-//                aiJSONArray.put(s);
-//            }
-//            levelJSONObject.put("ai",aiJSONArray);
-//            }
-//        try (FileWriter file = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+level.getName()+".json")) {
-//            file.write(levelJSONObject.toString());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+
+    final private static Path dataFilePath = Path.of(GameConstants.ROOT_PATH,JSONConstants.DATA+".json");
+    private static String dataJSONString;
+    private static JSONObject dataJSONObject;
+    private static JSONArray unlocksArray;
+    private static File levelFolder;
+    private static File[] levelFileList;
+
+    public static void init() throws IOException {
+
+        dataJSONString = String.join("", Files.readAllLines(dataFilePath));
+        dataJSONObject = new JSONObject(dataJSONString);
+        unlocksArray = dataJSONObject.getJSONArray(JSONConstants.UNLOCKED_LEVELS,null);
+        levelFolder = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString());
+        levelFileList = levelFolder.listFiles();
+    }
+
+    public static void saveCurrentLevel() {
+        JSONObject levelJSONObject = new JSONObject();
+        JSONArray mapLines = new JSONArray();
+        GameMap map = (GameMap) Model.getDataFromCurrentLevel(MAP_DATA);
+
+        for(int y = 0; y < map.getBoundY(); y++){
+
+            JSONArray mapRow = new JSONArray();
+            for(int x = 0; x < map.getBoundX(); x++){
+                final Cell cell = map.getCellAtXYClone(x,y);
+                JSONObject cellJSONObject = new JSONObject();
+                JSONArray flagArray = new JSONArray();
+                for(CFlag cFlag : CFlag.values()){
+                    if(cell.hasFlag(cFlag)) flagArray.put(cFlag.name().toLowerCase());
+                }
+                if(flagArray.length()>0){cellJSONObject.put("flags",flagArray);}
+                if(cell.getCellId() !=-1){cellJSONObject.put("id",cell.getCellId());}
+                if(cell.getItem()!=ItemType.NONE)cellJSONObject.put("item", cell.getItem().name().toLowerCase());
+                if(cell.getLinkedCellsSize()>0){
+                    JSONArray linkedIdsJSONArray = new JSONArray();
+                    for(int i = 0; i < cell.getLinkedCellsSize();i++){
+                        linkedIdsJSONArray.put(cell.getLinkedCellId(i));
+                    }
+                    cellJSONObject.put("linkedIds",linkedIdsJSONArray);
+                }
+                if(cellJSONObject.isEmpty())mapRow.put(cell.getContent().name().toLowerCase());
+                else {
+                    cellJSONObject.put("content",cell.getContent().name().toLowerCase());
+                    mapRow.put(cellJSONObject);
+                }
+            }
+            mapLines.put(mapRow);
+        }
+
+        JSONArray requiredLevelsArray = new JSONArray();
+        Object[] requiredLevelNamesArray = ((List<String>) Model.getDataFromCurrentLevel(REQUIRED_LEVELS)).toArray();
+        List<String> tutorialEntries = (List<String>) Model.getDataFromCurrentLevel(TUTORIAL_LINES);
+        Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LOC_TO_STARS);
+        Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(TURNS_TO_STARS);
+        int maxKnights = (int) Model.getDataFromCurrentLevel(MAX_KNIGHTS);
+        boolean isTutorial = (boolean) Model.getDataFromCurrentLevel(IS_TUTORIAL);
+        ComplexStatement aiBehaviour = (ComplexStatement) Model.getDataFromCurrentLevel(AI_CODE);
+
+        fillJSONArrayWithObjects(requiredLevelsArray,requiredLevelNamesArray);
+        JSONArray locToStarsArray = new JSONArray();
+        fillJSONArrayWithObjects(locToStarsArray,locToStars);
+        JSONArray turnsToStarsArray = new JSONArray();
+        fillJSONArrayWithObjects(turnsToStarsArray,turnsToStars);
+//        levelJSONObject.put("name",level.getDisplayName());
+        if(requiredLevelsArray.length() > 0)
+        levelJSONObject.put(JSONConstants.REQUIRED_LEVELS,requiredLevelsArray);
+        levelJSONObject.put(JSONConstants.LOC_TO_STARS,locToStarsArray);
+        levelJSONObject.put(JSONConstants.TURNS_TO_STARS,turnsToStarsArray);
+        levelJSONObject.put(JSONConstants.MAP_DATA,mapLines);
+        levelJSONObject.put(JSONConstants.MAX_KNIGHTS,maxKnights);
+        levelJSONObject.put(JSONConstants.INDEX,Model.getCurrentIndex());
+        levelJSONObject.put(JSONConstants.IS_TUTORIAL,isTutorial);
+        if(isTutorial){
+            JSONArray tutorialJSONArray = new JSONArray();
+            for(String entry : tutorialEntries){
+                tutorialJSONArray.put(entry);
+            }
+            levelJSONObject.put(JSONConstants.TUTORIAL_LINES, tutorialJSONArray);
+        }
+        JSONArray aiJSONArray = new JSONArray();
+        if((boolean)Model.getDataFromCurrentLevel(HAS_AI)){
+            for(String s : aiBehaviour.print().split("\\n")){
+                if(s.equals(""))continue;
+                aiJSONArray.put(s);
+            }
+            levelJSONObject.put(JSONConstants.AI_CODE,aiJSONArray);
+            }
+        try (FileWriter dataFileWriter = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+Model.getNameOfLevelWithIndex(Model.getCurrentIndex())+".json")) {
+            dataFileWriter.write(levelJSONObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private static void fillJSONArrayWithObjects(JSONArray requiredLevelsArray, Object[] requiredLevels) {
         for(Object o : requiredLevels){
@@ -115,11 +142,11 @@ public abstract class JSONParser {
         if(GameConstants.DEBUG)System.out.println(filePathString);
         String jsonString = String.join("", Files.readAllLines(filePath));
         JSONObject jsonObject = new JSONObject(jsonString);
-        int index = jsonObject.getInt("index");
-        boolean isTutorial = jsonObject.getBoolean("isTutorial");
+        int index = jsonObject.getInt(JSONConstants.INDEX);
+        boolean isTutorial = jsonObject.getBoolean(JSONConstants.IS_TUTORIAL);
         Point spawn = new Point(-1,-1);
 
-        JSONArray mapLines = jsonObject.getJSONArray("map",null);
+        JSONArray mapLines = jsonObject.getJSONArray(JSONConstants.MAP_DATA,null);
 
         Cell[][] originalState = new Cell[mapLines.getJSONArray(0).length()][mapLines.length()];
         List<Point> enemySpawnList = new ArrayList<>();
@@ -144,7 +171,7 @@ public abstract class JSONParser {
         }
         String name = filePathString;
         name = name.replaceAll(".json","");
-        JSONArray aiLineArray = jsonObject.getJSONArray("ai",null);
+        JSONArray aiLineArray = jsonObject.getJSONArray(JSONConstants.AI_CODE,null);
         List<String> aiLines = new ArrayList<>();
         ComplexStatement complexStatement = new ComplexStatement();
         if(aiLineArray!=null){
@@ -154,16 +181,16 @@ public abstract class JSONParser {
             complexStatement =  CodeParser.parseProgramCode(aiLines,false);
         }
         assert spawn.getX()!=-1;
-        JSONArray turnsToStarsArray = jsonObject.getJSONArray("turnsToStars",new JSONArray());
+        JSONArray turnsToStarsArray = jsonObject.getJSONArray(JSONConstants.TURNS_TO_STARS,new JSONArray());
         Integer[] turnsToStars = new Integer[turnsToStarsArray.length()];
         fillArrayFromJSON(turnsToStars,turnsToStarsArray,true);
-        JSONArray locToStarsArray = jsonObject.getJSONArray("locToStars", new JSONArray());
+        JSONArray locToStarsArray = jsonObject.getJSONArray(JSONConstants.LOC_TO_STARS, new JSONArray());
         Integer[] locToStars = new Integer[locToStarsArray.length()];
         fillArrayFromJSON(locToStars,locToStarsArray,true);
-        JSONArray requiredLevelsArray = jsonObject.getJSONArray("requiredLevels",null);
+        JSONArray requiredLevelsArray = jsonObject.getJSONArray(JSONConstants.REQUIRED_LEVELS,null);
         List<String> tutorialEntryList = new ArrayList<>();
         if(isTutorial){
-            JSONArray tutorialJSONArray = jsonObject.getJSONArray("tutorialEntries",null);
+            JSONArray tutorialJSONArray = jsonObject.getJSONArray(JSONConstants.TUTORIAL_LINES,null);
             if(tutorialJSONArray!=null)
             for(int i = 0; i < tutorialJSONArray.length(); i++){
                 tutorialEntryList.add((""+tutorialJSONArray.getString(i)));
@@ -174,7 +201,7 @@ public abstract class JSONParser {
             requiredLevels = new String[requiredLevelsArray.length()];
             fillArrayFromJSON(requiredLevels,requiredLevelsArray,false);
         }else requiredLevels= new String[0];
-        int maxKnights = jsonObject.getInt("maxKnights");
+        int maxKnights = jsonObject.getInt(JSONConstants.MAX_KNIGHTS);
         if(maxKnights == 0)maxKnights = 3;
         Level level = new Level(name,originalState,complexStatement,turnsToStars,locToStars,requiredLevels,maxKnights,isTutorial,tutorialEntryList);
         return new Pair<>(index,level);
@@ -195,11 +222,11 @@ public abstract class JSONParser {
         return new Cell(content);
     }
     private static Cell parseCell(JSONObject jsonObject) {
-        JSONArray flagsArray = jsonObject.getJSONArray("flags",null);
-        String contentString = jsonObject.getString("content","");
-        int id = jsonObject.getInt("id",-1);
-        String itemString = jsonObject.getString("item","");
-        JSONArray linkedCellsArray = jsonObject.getJSONArray("linkedIds",null);
+        JSONArray flagsArray = jsonObject.getJSONArray(JSONConstants.CELL_FLAGS,null);
+        String contentString = jsonObject.getString(JSONConstants.CELL_CONTENT,"");
+        int id = jsonObject.getInt(JSONConstants.CELL_ID,-1);
+        String itemString = jsonObject.getString(JSONConstants.CELL_ITEM,"");
+        JSONArray linkedCellsArray = jsonObject.getJSONArray(JSONConstants.LINKED_CELL_IDS,null);
         if(flagsArray == null && id == -1 && linkedCellsArray == null && contentString == null) throw new IllegalArgumentException("Cant create a Cell from JSONArray without flags and content");
         List<CFlag> flags = new ArrayList<>();
         if(flagsArray != null)for(int i = 0; i < flagsArray.length(); i++) {
@@ -208,8 +235,6 @@ public abstract class JSONParser {
         }
         CellContent content = CellContent.EMPTY;
         if(Util.stringInEnum(CellContent.class,contentString))content= CellContent.valueOf(contentString.toUpperCase());
-
-
         List<Integer> idList = new ArrayList<>();
         if(linkedCellsArray != null) for(int i = 0; i < linkedCellsArray.length(); i++) {
             int linkedCellId = linkedCellsArray.getInt(i,-1);
@@ -221,25 +246,14 @@ public abstract class JSONParser {
         return new Cell(content,item,NO_ENTITY,flags,idList,id);
     }
 
-    public static List<Level> parseAllResourceLevels() throws IOException, IllegalAccessException {
-
-        File folder = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString());
-        File[] listOfFiles = folder.listFiles();
-        assert listOfFiles != null;
-        List<Level> outputList = new ArrayList<>(listOfFiles.length);
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = null;
-        try {
-            jsonString = String.join("", Files.readAllLines(filePath));
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static List<Level> parseAllResourceLevels() throws IOException {
+        assert levelFileList != null;
+        List<Level> outputList = new ArrayList<>(levelFileList.length);
+        for(int i = 0; i< levelFileList.length;i++){
+            outputList.add(null);
         }
-        JSONObject jsonObject = new JSONObject(jsonString);
         //TODO:
-        JSONArray unlocksArray = jsonObject.getJSONArray(JSONConstants.UNLOCKED_LEVELS, new JSONArray());
-
-
-        for(File file : listOfFiles){
+        for(File file : levelFileList){
             Pair<Integer,Level> levelAndIndex = parseLevelJSON(file.getName());
             Level l = levelAndIndex.getValue();
             int index = levelAndIndex.getKey();
@@ -259,154 +273,87 @@ public abstract class JSONParser {
         return outputList;
     }
 
-    public static String[] getUnlockedLevelNames(){
-        String[] output;
-
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = null;
-        try {
-            jsonString = String.join("", Files.readAllLines(filePath));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks", new JSONArray());
-        output = new String[unlocksArray.length()];
+    public static List<String> getUnlockedLevelNames(){
+        List<String> output = new ArrayList<>();
         for(int i = 0; i < unlocksArray.length();i++){
-            output[i]=unlocksArray.getJSONObject(i).getString("name");
+            output.add(unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME));
         }
         return output;
     }
 
-    public static void storeProgressIfBetter(String name, int turns, int loc, ComplexStatement playerBehaviour) throws IOException {
 
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
 
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks", new JSONArray());
-        String s;
-        int oldLoc;
-        int oldTurns;
-        JSONArray behaviourJArray = new JSONArray();
-        boolean found = false;
-        for(int i = 0; i<unlocksArray.length();i++){
-            if(found)break;
-            s=unlocksArray.getJSONObject(i).getString("name");
-            oldLoc = unlocksArray.getJSONObject(i).getInt("loc");
-            oldTurns = unlocksArray.getJSONObject(i).getInt("turns");
-//            behaviourJArray = unlocksArray.getJSONObject(i).getJSONArray("code");
-            if(s.equals(name)){
-                JSONObject levelJSONO  = new JSONObject();
-                levelJSONO.put("name",name);
-                if((loc <= oldLoc ||oldLoc==-1) && (turns <= oldTurns ||oldTurns==-1)){
-                    levelJSONO.put("loc",loc);
-                    levelJSONO.put("turns",turns);
-                    for(String codeLine : playerBehaviour.print().split("\\n")){
-                        if(codeLine.equals(""))continue;
-                        behaviourJArray.put(codeLine);
-                    }
-                    levelJSONO.put("code",behaviourJArray);
-                }
-                else{
-                    levelJSONO.put("loc",oldLoc);
-                    levelJSONO.put("turns",oldTurns);
-                    if(unlocksArray.getJSONObject(i).has("code"))levelJSONO.put("code",unlocksArray.getJSONObject(i).getJSONArray("code", new JSONArray()));
-                }
-                unlocksArray.put(i,levelJSONO);
-                found =true;
-            }
-        }
-        if(!found)return;
-        jsonObject.put("unlocks",unlocksArray);
-        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-            file.write(jsonObject.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//    //TODO: rewrite
+//    public static void updateUnlocks(String levelName) {
+//        //TODO: outsource to method!
+////        String[] unlockedLevels = getUnlockedLevelNames();
+//        boolean found;
+//        for(int i = 0; i < unlockedLevel.getRequiredLevelNamesCopy().size(); i++){
+//            found = false;
+//            for(int j = 0; j < unlocksArray.length();j++){
+//                if(unlocksArray.getJSONObject(j).getString(JSONConstants.LEVEL_NAME).equals(unlockedLevel.getRequiredLevelNamesCopy().get(i))){
+//                    found = true;
+//                    //TODO: default -1 correct?
+//                    if(unlocksArray.getJSONObject(j).getInt(JSONConstants.BEST_LOC,-1) == -1 ||unlocksArray.getJSONObject(j).getInt(JSONConstants.BEST_TURNS,-1) == -1 ){
+//                        for(int k = 0; k < unlocksArray.length();k++){
+//                            if(unlocksArray.getJSONObject(k).getString(JSONConstants.LEVEL_NAME).equals(unlockedLevel.getName())){
+//                                unlocksArray.remove(k);
+//                            }
+//                        }
+//                        dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);
+//                        try  {
+//                            dataFileWriter.write(dataJSONObject.toString());
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//                        return;
+//                    }
+//                }
+//            }
+//            //TODO: remove code double!!
+//            if(!found){
+//                for(int k = 0; k < unlocksArray.length();k++){
+//                    if(unlocksArray.getJSONObject(k).getString(JSONConstants.LEVEL_NAME).equals(unlockedLevel.getName())){
+//                        unlocksArray.remove(k);
+//                    }
+//                }
+//                dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);
+//                try  {
+//                    dataFileWriter.write(dataJSONObject.toString());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                return;
+//            }
+//        }
+//        for(int i = 0; i < unlocksArray.length();i++){
+//            if(unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME).equals(unlockedLevel.getName()))return;
+//        }
+//        JSONObject jsonObject2 = new JSONObject();
+//        jsonObject2.put(JSONConstants.LEVEL_NAME,unlockedLevel.getName());
+//        jsonObject2.put(JSONConstants.BEST_LOC,-1);
+//        jsonObject2.put(JSONConstants.BEST_TURNS,-1);
+//        jsonObject2.put(JSONConstants.BEST_CODE,"");
+//        unlocksArray.put(jsonObject2);
+//        dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);
+//        try {
+//            dataFileWriter.write(dataJSONObject.toString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
-    public static void updateUnlocks(Level unlockedLevel) throws IOException {
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks",new JSONArray());
-        //TODO: outsource to method!
-//        String[] unlockedLevels = getUnlockedLevelNames();
-        boolean found;
-        for(int i = 0; i < unlockedLevel.getRequiredLevelNamesCopy().size(); i++){
-            found = false;
-            for(int j = 0; j < unlocksArray.length();j++){
-                if(unlocksArray.getJSONObject(j).getString("name").equals(unlockedLevel.getRequiredLevelNamesCopy().get(i))){
-                    found = true;
-                    //TODO: default -1 correct?
-                    if(unlocksArray.getJSONObject(j).getInt("loc",-1) == -1 ||unlocksArray.getJSONObject(j).getInt("turns",-1) == -1 ){
-                        for(int k = 0; k < unlocksArray.length();k++){
-                            if(unlocksArray.getJSONObject(k).getString("name").equals(unlockedLevel.getName())){
-                                unlocksArray.remove(k);
-                            }
-                        }
-                        jsonObject.put("unlocks",unlocksArray);
-                        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-                            file.write(jsonObject.toString());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return;
-                    }
-                }
-            }
-            //TODO: remove code double!!
-            if(!found){
-                for(int k = 0; k < unlocksArray.length();k++){
-                    if(unlocksArray.getJSONObject(k).getString("name").equals(unlockedLevel.getName())){
-                        unlocksArray.remove(k);
-                    }
-                }
-                jsonObject.put("unlocks",unlocksArray);
-                try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-                    file.write(jsonObject.toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-            }
-        }
-        for(int i = 0; i < unlocksArray.length();i++){
-            if(unlocksArray.getJSONObject(i).getString("name").equals(unlockedLevel.getName()))return;
-        }
-        JSONObject jsonObject2 = new JSONObject();
-        jsonObject2.put("name",unlockedLevel.getName());
-        jsonObject2.put("loc",-1);
-        jsonObject2.put("turns",-1);
-        jsonObject2.put("code","");
-        unlocksArray.put(jsonObject2);
-        jsonObject.put("unlocks",unlocksArray);
-        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-            file.write(jsonObject.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    //TODO: replace with other DATASTRUCTURE!!
-    public static void removeLevelFromData(String name) throws IOException {
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks",new JSONArray());
-        for(int i = 0; i < unlocksArray.length();i++){
-            if(unlocksArray.getJSONObject(i).getString("name").equals(name))unlocksArray.remove(i);
-        }
-        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-            file.write(jsonObject.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//    //TODO: replace with other DATASTRUCTURE!!
+//    public static void removeLevelFromData(String name) {
+//        for(int i = 0; i < unlocksArray.length();i++){
+//            if(unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME).equals(name))unlocksArray.remove(i);
+//        }
+//        try {
+//            dataFileWriter.write(dataJSONObject.toString());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     public static String[] getAllLevelNames() {
         File folder = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString());
@@ -422,47 +369,42 @@ public abstract class JSONParser {
     }
 
     //TODO: DELETE
-    public static boolean resetScoreForLevel(String name) throws IOException {
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-
-        JSONObject jsonObject = new JSONObject(jsonString);
-        jsonObject.put("tutorialProgress", -1);
-        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks",new JSONArray());
-        String s;
-        for(int i = 0; i<unlocksArray.length();i++){
-            s=unlocksArray.getJSONObject(i).getString("name");
-            if(s.equals(name)){
-                JSONObject levelJSONO  = new JSONObject();
-                levelJSONO.put("name",name);
-                levelJSONO.put("loc",-1);
-                levelJSONO.put("turns",-1);
-                levelJSONO.put("code","");
-                unlocksArray.put(i,levelJSONO);
-                try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-                    file.write(jsonObject.toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return true;
-            }
-        }
-        return false;
-    }
+//    public static boolean resetScoreForLevel(String name) {
+//        dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, -1);
+//        String s;
+//        for(int i = 0; i<unlocksArray.length();i++){
+//            s=unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME);
+//            if(s.equals(name)){
+//                JSONObject levelJSONO  = new JSONObject();
+//                levelJSONO.put(JSONConstants.LEVEL_NAME,name);
+//                levelJSONO.put(JSONConstants.BEST_LOC,-1);
+//                levelJSONO.put(JSONConstants.BEST_TURNS,-1);
+//                levelJSONO.put(JSONConstants.BEST_CODE,"");
+//                unlocksArray.put(i,levelJSONO);
+//                try {
+//                    dataFileWriter.write(dataJSONObject.toString());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
 //    public static void saveIndexAndRequiredLevels(List<Level> levelList) throws IOException {
 //        for(Level level : levelList){
-//            Path filePath = Path.of(GameConstants.LEVEL_ROOT_PATH,level.getName()+".json");
-//            String jsonString = String.join("", Files.readAllLines(filePath));
+//            Path dataFilePath = Path.of(GameConstants.LEVEL_ROOT_PATH,level.getName()+".json");
+//            String dataJSONString = String.join("", Files.readAllLines(dataFilePath));
 //
-//            JSONObject levelJSONObject = new JSONObject(jsonString);
+//            JSONObject levelJSONObject = new JSONObject(dataJSONString);
 //            JSONArray requiredLevelsArray = new JSONArray();
 //            fillJSONArrayWithObjects(requiredLevelsArray,level.getRequiredLevelNamesCopy().toArray());
 //            levelJSONObject.put("index", level.getIndex());
 //            if(requiredLevelsArray.length() > 0)  levelJSONObject.put("requiredLevels", requiredLevelsArray);
 //            else levelJSONObject.put("requiredLevels", new JSONArray());
-//            try (FileWriter file = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+level.getName()+".json")) {
-//                file.write(levelJSONObject.toString());
+//            try (FileWriter dataFileWriter = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+level.getName()+".json")) {
+//                dataFileWriter.write(levelJSONObject.toString());
 //            } catch (IOException e) {
 //                e.printStackTrace();
 //            }
@@ -470,16 +412,16 @@ public abstract class JSONParser {
 //    }
 
 //    public static void saveRequiredLevels(Level level) throws IOException {
-//        Path filePath = Path.of(GameConstants.LEVEL_ROOT_PATH,level.getName()+".json");
-//        String jsonString = String.join("", Files.readAllLines(filePath));
+//        Path dataFilePath = Path.of(GameConstants.LEVEL_ROOT_PATH,level.getName()+".json");
+//        String dataJSONString = String.join("", Files.readAllLines(dataFilePath));
 //
-//        JSONObject levelJSONObject = new JSONObject(jsonString);
+//        JSONObject levelJSONObject = new JSONObject(dataJSONString);
 //        JSONArray requiredLevelsArray = new JSONArray();
 //        fillJSONArrayWithObjects(requiredLevelsArray,level.getRequiredLevelNamesCopy().toArray());
 //        if(requiredLevelsArray.length() > 0)  levelJSONObject.put("requiredLevels", requiredLevelsArray);
 //        else levelJSONObject.put("requiredLevels", new JSONArray());
-//        try (FileWriter file = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+level.getName()+".json")) {
-//            file.write(levelJSONObject.toString());
+//        try (FileWriter dataFileWriter = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+level.getName()+".json")) {
+//            dataFileWriter.write(levelJSONObject.toString());
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
@@ -494,37 +436,19 @@ public abstract class JSONParser {
         return true;
     }
 
-    public static void saveTutorialProgress(int index) throws IOException {
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
-        jsonObject.put("tutorialProgress", index);
-        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-            file.write(jsonObject.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+    public static int getTutorialProgressIndex() {
+        return dataJSONObject.getInt(JSONConstants.TUTORIAL_PROGRESS,-1);
     }
 
-    public static int getTutorialProgressIndex() throws IOException {
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
-        return jsonObject.getInt("tutorialProgress",-1);
-    }
-
-    public static List<String> getBestCode(String levelName) throws IOException {
+    public static List<String> getBestCode(String levelName) {
         List<String> output = new ArrayList<>();
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks",null);
         if(unlocksArray == null)return output;
         String s;
         for(int i = 0; i<unlocksArray.length();i++){
-            s=unlocksArray.getJSONObject(i).getString("name","");
+            s=unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME,"");
             if(s.equals(levelName)){
-                JSONArray codeArray = unlocksArray.getJSONObject(i).getJSONArray("code",null);
+                JSONArray codeArray = unlocksArray.getJSONObject(i).getJSONArray(JSONConstants.BEST_CODE,null);
                 if(codeArray == null)return new ArrayList<>();
                 for(int j = 0; j<codeArray.length();j++){
                     output.add(codeArray.getString(j,""));
@@ -535,12 +459,9 @@ public abstract class JSONParser {
         return output;
     }
 
-    public static List<String> getUnlockedStatementList() throws IOException {
+    public static List<String> getUnlockedStatementList() {
         List<String> output = new ArrayList<>();
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray unlocksArray = jsonObject.getJSONArray("statements",null);
+        JSONArray unlocksArray = dataJSONObject.getJSONArray(JSONConstants.UNLOCKED_STATEMENTS,null);
         if(unlocksArray == null)return new ArrayList<>();
         String s;
         for(int i = 0; i<unlocksArray.length();i++){
@@ -550,112 +471,59 @@ public abstract class JSONParser {
         return output;
     }
 
-    public static void saveStatementProgress(List<String> unlockedStatementList) throws IOException {
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray jsonArray = new JSONArray();
-        for(String s : unlockedStatementList){
-            jsonArray.put(s);
-        }
-        jsonObject.put("statements",jsonArray);
-        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-            file.write(jsonObject.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public static List<String> splitValues(String text) {
-        List<String> output = new ArrayList<>();
-        int depth =0;
-        int index = 0;
-        boolean inQuote = false;
-        int i =0;
-        int lastIndex = 0;
-        int bSCount = 0;
-        for(char c : text.toCharArray()){
-            i++;
-            if(c=='\\'){
-                bSCount++;
-            }
-            if(c=='"'){
-                if(bSCount%2==1)
-                    inQuote = true;
-                else inQuote = !inQuote;
-            }
-            if(c != '\\')bSCount = 0;
-            if(c == '{'||c == '['||c=='(')if(!inQuote)depth++;
-            if(c == '}'||c == ']'||c==')')if(!inQuote)depth--;
-            if(depth == -1)throw new IllegalArgumentException("String " +text.substring(0,i)+" has unbalanced brackets!");
-            if(c==',' && depth==0)if(!inQuote){
-                if(output.size() <= index)output.add("");
-                output.set(index, text.substring(lastIndex, i-1));
-                lastIndex = i;
-                index++;
-            }
-        }
-        output.add(text.substring(lastIndex ));
-        return output;
-    }
 
-    public static int[] getBestResults(String levelName) throws IOException {
-        int[] output = new int[2];
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray unlocksArray = jsonObject.getJSONArray("unlocks",null);
+
+    private static int getBestLOC(String levelName) {
+        int output = -1;
         if(unlocksArray == null)return output;
         String s;
         for(int i = 0; i<unlocksArray.length();i++){
-            s=unlocksArray.getJSONObject(i).getString("name","");
+            s=unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME,"");
             if(s.equals(levelName)){
-                int loc  = unlocksArray.getJSONObject(i).getInt("loc");
-                int turns = unlocksArray.getJSONObject(i).getInt("turns");
-                output[0]=loc;
-                output[1]=turns;
-                return output;
+                output  = unlocksArray.getJSONObject(i).getInt(JSONConstants.BEST_LOC);
+            }
+        }
+        return output;
+    }
+    private static int getBestTurns(String levelName) {
+        int output = -1;
+        if(unlocksArray == null)return output;
+        String s;
+        for(int i = 0; i<unlocksArray.length();i++){
+            s=unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME,"");
+            if(s.equals(levelName)){
+                output = unlocksArray.getJSONObject(i).getInt(JSONConstants.BEST_TURNS);
             }
         }
         return output;
     }
 
-    public static void storeCode(List<String> allCode) throws IOException {
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
+    public static void storeCode(List<String> allCode) {
         JSONArray jsonArray = new JSONArray();
         for(String s : allCode){
             jsonArray.put(s.trim());
         }
-        jsonObject.put("storedCode",jsonArray);
-        try (FileWriter file = new FileWriter(GameConstants.ROOT_PATH +"/data.json")) {
-            file.write(jsonObject.toString());
+        dataJSONObject.put(JSONConstants.STORED_CODE,jsonArray);
+        try (FileWriter dataFileWriter = new FileWriter(dataFilePath.toString())){
+            dataFileWriter.write(dataJSONObject.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public static List<String> getStoredCode() throws IOException {
-        Path filePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
-        JSONArray jsonArray = jsonObject.getJSONArray("storedCode", new JSONArray());
+    public static List<String> getStoredCode() {
+        JSONArray jsonArray = dataJSONObject.getJSONArray(JSONConstants.STORED_CODE, new JSONArray());
         List<String> output = new ArrayList<>();
         for(int i = 0; i <jsonArray.length();i++){
             output.add(jsonArray.getString(i ));
-        }return output;
+        }
+        return output;
     }
 
     //TODO: not complete yet and should be divided into mltiple methods!
     public static void saveLevelChanges(Map<LevelDataType,LevelChange> changes, String levelName) throws IOException {
-        Path dataFilePath = Path.of(GameConstants.ROOT_PATH,"data.json");
-        String dataJsonString = String.join("", Files.readAllLines(dataFilePath));
-        JSONObject dataJSONObject = new JSONObject(dataJsonString);
-
         // All Levelfiles
-        File folder = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString());
-        File[] listOfFiles = folder.listFiles();
-        assert listOfFiles != null;
+        assert levelFileList != null;
         List<Integer> indexChangeList = new ArrayList<>();
         int newIndex = -1;
         int oldIndex = -1;
@@ -664,10 +532,9 @@ public abstract class JSONParser {
         Path levelFilePath = Path.of(GameConstants.LEVEL_ROOT_PATH,levelName+".json");
 
         String jsonString = "";
-        boolean isCreation = changes.containsKey(LEVEL_CREATION);
-        if(!isCreation)jsonString = String.join("", Files.readAllLines(levelFilePath));
+        jsonString = String.join("", Files.readAllLines(levelFilePath));
         JSONObject currentLevelJSONObject = new JSONObject(jsonString);
-        if(changes.containsKey(LEVEL_INDEX)||isCreation) {
+        if(changes.containsKey(LEVEL_INDEX)) {
             newIndex = (int)changes.get(LEVEL_INDEX).getNewValue();
             oldIndex = (int)changes.get(LEVEL_INDEX).getOldValue();
                     //currentLevelJSONObject.getInt(JSONConstants.INDEX,listOfFiles.length);
@@ -677,7 +544,7 @@ public abstract class JSONParser {
             }
         }
         //TODO:
-        for(File file : listOfFiles) {
+        for(File file : levelFileList) {
             levelFilePath = Path.of(GameConstants.LEVEL_ROOT_PATH,file.getName());
             jsonString = String.join("", Files.readAllLines(levelFilePath));
             JSONObject jsonObject = new JSONObject(jsonString);
@@ -695,15 +562,15 @@ public abstract class JSONParser {
                 jsonObject.put(JSONConstants.INDEX, newIndex);
         }
 
-        if(changes.containsKey(MAX_KNIGHTS)||isCreation) {
+        if(changes.containsKey(MAX_KNIGHTS)) {
             int maxKnights = (int)changes.get(MAX_KNIGHTS).getNewValue();
             currentLevelJSONObject.put(JSONConstants.MAX_KNIGHTS, maxKnights);
         }
-        if(changes.containsKey(IS_TUTORIAL)||isCreation) {
+        if(changes.containsKey(IS_TUTORIAL)) {
             boolean isTutorial = (boolean)changes.get(IS_TUTORIAL).getNewValue();
             currentLevelJSONObject.put(JSONConstants.IS_TUTORIAL, isTutorial);
         }
-        if(changes.containsKey(TURNS_TO_STARS)||isCreation) {
+        if(changes.containsKey(TURNS_TO_STARS)) {
             Integer[] turnsToStars = (Integer[])changes.get(TURNS_TO_STARS).getNewValue();
             JSONArray turnsToStarsArray = new JSONArray();
             for(int i : turnsToStars){
@@ -711,7 +578,7 @@ public abstract class JSONParser {
             }
             currentLevelJSONObject.put(JSONConstants.TURNS_TO_STARS, turnsToStarsArray);
         }
-        if(changes.containsKey(LOC_TO_STARS)||isCreation) {
+        if(changes.containsKey(LOC_TO_STARS)) {
             Integer[] locToStars = (Integer[])changes.get(LOC_TO_STARS).getNewValue();
             JSONArray locToStarsArray = new JSONArray();
             for(int i : locToStars){
@@ -719,7 +586,7 @@ public abstract class JSONParser {
             }
             currentLevelJSONObject.put(JSONConstants.LOC_TO_STARS, locToStarsArray);
         }
-        if(changes.containsKey(AI_CODE)||isCreation) {
+        if(changes.containsKey(AI_CODE)) {
             ComplexStatement behaviour = (ComplexStatement) changes.get(AI_CODE).getNewValue();
             List<String> aiCodeLines = behaviour.getCodeLines();
             JSONArray aiJSONArray = new JSONArray();
@@ -728,7 +595,7 @@ public abstract class JSONParser {
             }
             currentLevelJSONObject.put(JSONConstants.AI_CODE, aiJSONArray);
         }
-        if(changes.containsKey(REQUIRED_LEVELS)||isCreation) {
+        if(changes.containsKey(REQUIRED_LEVELS)) {
             List<String> reqLevelsLines = (List<String>)changes.get(REQUIRED_LEVELS).getNewValue();
             JSONArray requiredJSONArray = new JSONArray();
             for(String s : reqLevelsLines){
@@ -736,7 +603,7 @@ public abstract class JSONParser {
             }
             currentLevelJSONObject.put(JSONConstants.REQUIRED_LEVELS, requiredJSONArray);
         }
-        if(changes.containsKey(TUTORIAL_LINES)||isCreation) {
+        if(changes.containsKey(TUTORIAL_LINES)) {
             List<String> tutorialLines = (List<String>)changes.get(TUTORIAL_LINES).getNewValue();
             JSONArray tutorialJSONArray = new JSONArray();
             for(String s : tutorialLines){
@@ -744,7 +611,7 @@ public abstract class JSONParser {
             }
             currentLevelJSONObject.put(JSONConstants.TUTORIAL_LINES, tutorialJSONArray);
         }
-        if(changes.containsKey(MAP_DATA)||isCreation) {
+        if(changes.containsKey(MAP_DATA)) {
             GameMap gameMap = (GameMap)changes.get(MAP_DATA).getNewValue();
             //TODO: more Methods
             JSONArray mapLines = new JSONArray();
@@ -758,19 +625,19 @@ public abstract class JSONParser {
                     for(CFlag cFlag : CFlag.values()){
                         if(cell.hasFlag(cFlag)) flagArray.put(cFlag.name().toLowerCase());
                     }
-                    if(flagArray.length()>0){cellJSONObject.put("flags",flagArray);}
-                    if(cell.getCellId() !=-1){cellJSONObject.put("id",cell.getCellId());}
-                    if(cell.getItem()!=ItemType.NONE)cellJSONObject.put("item", cell.getItem().name().toLowerCase());
+                    if(flagArray.length()>0){cellJSONObject.put(JSONConstants.CELL_FLAGS,flagArray);}
+                    if(cell.getCellId() !=-1){cellJSONObject.put(JSONConstants.CELL_ID,cell.getCellId());}
+                    if(cell.getItem()!=ItemType.NONE)cellJSONObject.put(JSONConstants.CELL_ITEM, cell.getItem().name().toLowerCase());
                     if(cell.getLinkedCellsSize()>0){
                         JSONArray linkedIdsJSONArray = new JSONArray();
                         for(int i = 0; i < cell.getLinkedCellsSize();i++){
                             linkedIdsJSONArray.put(cell.getLinkedCellId(i));
                         }
-                        cellJSONObject.put("linkedIds",linkedIdsJSONArray);
+                        cellJSONObject.put(JSONConstants.LINKED_CELL_IDS,linkedIdsJSONArray);
                     }
                     if(cellJSONObject.isEmpty())mapRow.put(cell.getContent().name().toLowerCase());
                     else {
-                        cellJSONObject.put("content",cell.getContent().name().toLowerCase());
+                        cellJSONObject.put(JSONConstants.CELL_CONTENT,cell.getContent().name().toLowerCase());
                         mapRow.put(cellJSONObject);
                     }
                 }
@@ -829,19 +696,86 @@ public abstract class JSONParser {
 //            unlockedLevelsArray.put(indexOfLevel,levelJSONObject);
 //        }
 
-        if(changes.containsKey(LEVEL_NAME)&&!isCreation) {
+        if(changes.containsKey(LEVEL_NAME)) {
             String oldName = currentLevelJSONObject.getString(JSONConstants.LEVEL_NAME);
             currentLevelJSONObject.put(JSONConstants.LEVEL_NAME,levelName);
             unlockedLevelsArray.put(indexOfLevel,currentLevelJSONObject);
             changeLevelFileName(oldName,levelName);
         }
         dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS, unlockedLevelsArray);
-        try (FileWriter fileWriter = new FileWriter(GameConstants.ROOT_PATH +"/"+"data"+".json")) {
-            fileWriter.write(dataJSONObject.toString());
+        try (FileWriter dataFileWriter =new FileWriter(dataFilePath.toString())){
+            dataFileWriter.write(dataJSONObject.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
 //        }
+    }
+
+    public static Map<Level, List<String>> getBestCodeForLevels(List<Level> levels) {
+        Map<Level,List<String>> output = new HashMap<>();
+        for(Level l : levels){
+            output.put(l,getBestCode(l.getName()));
+        }
+        return output;
+    }
+
+    public static Map<Level, Integer> getBestLOCForLevels(List<Level> levels) {
+        Map<Level,Integer> output = new HashMap<>();
+        for(Level l : levels){
+            output.put(l,getBestLOC(l.getName()));
+        }
+        return output;
+    }
+    public static Map<Level, Integer> getBestTurnsForLevels(List<Level> levels) {
+        Map<Level,Integer> output = new HashMap<>();
+        for(Level l : levels){
+            output.put(l,getBestTurns(l.getName()));
+        }
+        return output;
+    }
+
+    public static void storeAllData() {
+        JSONArray jsonArray = new JSONArray();
+        for(String s : Model.getUnlockedStatementList()){
+            jsonArray.put(s);
+        }
+        dataJSONObject.put(JSONConstants.UNLOCKED_STATEMENTS,jsonArray);
+        dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, Model.getTutorialProgress());
+        int skips = 0;
+        for(int i = 0; i < Model.getUnlockedLevelNames().size()+skips; i++){
+            String name = Model.getUnlockedLevelNames().get(i);
+            int index = Model.getIndexOfLevelInList(name);
+            int loc = Model.getBestLocOfLevel(index);
+            int turns = Model.getBestTurnsOfLevel(index);
+            List<String> code  = Model.getBestCodeOfLevel(index);
+            JSONArray behaviourJArray = new JSONArray();
+            for(String codeLine : code){
+                if(codeLine.equals(""))continue;
+                behaviourJArray.put(codeLine);
+            }
+            boolean found = false;
+            JSONObject levelJSONO = new JSONObject();
+            for(int j = 0; j<unlocksArray.length();j++){
+                if(found)break;
+                String levelName = unlocksArray.getJSONObject(j).getString(JSONConstants.LEVEL_NAME);
+                if(levelName.equals(name)){
+                    levelJSONO.put(JSONConstants.BEST_LOC,loc);
+                    levelJSONO.put(JSONConstants.BEST_TURNS,turns);
+                    levelJSONO.put(JSONConstants.BEST_CODE,behaviourJArray);
+                    levelJSONO.put(JSONConstants.LEVEL_NAME,name);
+                    unlocksArray.put(j,levelJSONO);
+                    found =true;
+                }
+            }
+            if(!found)
+                unlocksArray.put(i,levelJSONO);
+            dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);
+        }
+        try (FileWriter dataFileWriter = new FileWriter(dataFilePath.toString())){
+            dataFileWriter.write(dataJSONObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

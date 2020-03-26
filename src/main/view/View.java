@@ -43,12 +43,9 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.GenericArrayType;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -164,7 +161,6 @@ public class View implements LevelChangeListener {
             stage.setFullScreen(true);
         }
         stage.setFullScreenExitHint("");
-        Model.initLevelChangeListener(this);
         actualMapGPane = new GridPane();
         actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
         actualMapGPane.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/Background_test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
@@ -276,7 +272,7 @@ public class View implements LevelChangeListener {
 
 
     public void drawAllChangedCells() {
-        GameMap map = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        GameMap map = Model.getCurrentMap();
         StackPane[][] stackpaneField = getStackPaneFieldFromMap(map,map.getAndResetChangedPointList());
         //x+1 and y+1 should not be a problem, as the outer rim never changes -> no out of bounds
         for(int x = 0; x < map.getBoundX(); x++)
@@ -434,7 +430,7 @@ public class View implements LevelChangeListener {
         int knightCount = 0;
         int skeletonCount = 0;
         for(String s : entityColorMap.keySet()){
-            if(Model.getEntity(s).getEntityType()== EntityType.KNIGHT)knightCount++;
+            if(Model.getCurrentMap().getEntity(s).getEntityType()== EntityType.KNIGHT)knightCount++;
         }
         if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
             switch (knightCount){
@@ -516,7 +512,7 @@ public class View implements LevelChangeListener {
             }
         if(cell.getContent()== CellContent.ENEMY_SPAWN){
             //switch (entityColorMap.size() -Model.getCurrentLevel().getUsedKnights()){
-            int skelCount = Model.getSkeletonCount();
+            int skelCount = Model.getAmountOfSkeletons();
             switch (skelCount){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                     break;
@@ -750,13 +746,28 @@ public class View implements LevelChangeListener {
     private void updateLevelEditorModule() {
         GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         levelEditorModule.getWidthValueLbl().setText("" + gameMap.getBoundX());
+        levelEditorModule.getLevelNameValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
+        Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
+        Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
+        levelEditorModule.getMaxLoc2StarsVLbl().setText(locToStars[0]+"");
+        levelEditorModule.getMaxLoc3StarsVLbl().setText(locToStars[1]+"");
+        levelEditorModule.getMaxTurns2StarsVLbl().setText(turnsToStars[0]+"");
+        levelEditorModule.getMaxTurns3StarsVLbl().setText(turnsToStars[1]+"");
+        levelEditorModule.getLevelNameValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
+        levelEditorModule.getIndexValueLbl().setText("" + Model.getCurrentIndex());
+        levelEditorModule.getMaxKnightsValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
+        levelEditorModule.getIsTutorialValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
         levelEditorModule.getHeightValueLbl().setText("" + gameMap.getBoundY());
         levelEditorModule.setRequiredLevels((List<String>)Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS));
-        levelEditorModule.getTutorialVBox().setVisible((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
+        boolean isTutorial = (boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
+        levelEditorModule.getTutorialVBox().setVisible(isTutorial);
+        List<String> tutorialLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
+        if(isTutorial)levelEditorModule.getTutorialTextArea().setText(tutorialLines.get(Model.getCurrentTutorialIndex()));
         levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
         if(Model.getCurrentTutorialSize()== 0)levelEditorModule.getNextTutorialTextBtn().setDisable(true);
 //        levelEditorModule.updateTutorialSection(Model.getCurrentLevel());
         levelEditorModule.getHasAiValueLbl().setText(Model.getDataFromCurrentLevel(LevelDataType.HAS_AI)+"");
+        updateTutorialMessage();
     }
 
     @Override
@@ -781,6 +792,8 @@ public class View implements LevelChangeListener {
             updateLevelEditorModule();
         }
         spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
+        drawMap(Model.getCurrentMap());
+        highlightInMap(selectedPointList);
     }
 
     @Override
@@ -804,6 +817,9 @@ public class View implements LevelChangeListener {
             case LEVEL_INDEX:
             case MAX_KNIGHTS:
                 levelEditorModule.update(levelChange);
+                if(levelChange.getLevelDataType().equals(LevelDataType.MAX_KNIGHTS)){
+                    redrawKnightsLeftVBox();
+                }
                 break;
             case AI_CODE:
                 ComplexStatement aiBehaviour = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
@@ -833,6 +849,7 @@ public class View implements LevelChangeListener {
                 break;
         }
         levelEditorModule.toggleLevelIsSaved(!Model.currentLevelHasChanged());
+        updateLevelEditorModule();
     }
 
     @Override
@@ -858,6 +875,7 @@ public class View implements LevelChangeListener {
 
 
     public void setSceneState(SceneState sceneState) {
+        Model.resetTutorialIndex();
         this.sceneState = sceneState;
         switch (sceneState) {
             case START_SCREEN:
@@ -958,6 +976,7 @@ public class View implements LevelChangeListener {
 //                editorScene = new Scene(rootPane);
                 baseContentVBox.getChildren().add(levelEditorModule.getTopHBox());
                 levelEditorModule.getTutorialVBox().setVisible((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
+                updateAll();
                 break;
             case LEVEL_SELECT:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
@@ -983,23 +1002,21 @@ public class View implements LevelChangeListener {
                 centerHBox.setAlignment(Pos.TOP_CENTER);
                 centerVBox.getChildren().addAll(levelNameLabel,centerHBox);
 //                tutorialScene = new Scene(rootPane);
-                try {
-                    if(JSONParser.getTutorialProgressIndex()==-1){
-                        isIntroduction = true;
-                        tutorialGroup.activateIntroduction();
-                        btnExecute.setMouseTransparent(true);
-                        codeArea.setDisable(true);
-                        speedSlider.setMouseTransparent(true);
-                        showSpellBookBtn.setMouseTransparent(true);
+
+                if(JSONParser.getTutorialProgressIndex()==-1){
+                    isIntroduction = true;
+                    tutorialGroup.activateIntroduction();
+                    btnExecute.setMouseTransparent(true);
+                    codeArea.setDisable(true);
+                    speedSlider.setMouseTransparent(true);
+                    showSpellBookBtn.setMouseTransparent(true);
 //                        stage.getScene().setRoot(introductionPane);
 //                        introductionPane.getTutorialGroup().getNextBtn().requestFocus();
-                    }
+                }
 //                    else {
 //                        stage.getScene().setRoot(rootPane);
 //                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
                 //TODO: move to controller?
                 if(isIntroduction){
                     tutorialGroup.setEntries(Util.StringListFromArray(TUTORIAL_LINES));
@@ -1293,6 +1310,16 @@ public class View implements LevelChangeListener {
         codeArea.setEffect(null);
     }
 
+    public void updateTutorialMessage() {
+        if(getCurrentSceneState()==SceneState.LEVEL_EDITOR){
+            levelEditorModule.getTutorialTextArea().setText(Model.getCurrentTutorialMessage());
+            levelEditorModule.getTutorialNumberValueLbl().setText(Model.getCurrentTutorialIndex()+"");
+            if(Model.getCurrentTutorialSize()>Model.getCurrentTutorialIndex()+1)levelEditorModule.getNextTutorialTextBtn().setDisable(false);
+        }else {
+            tutorialGroup.getCurrentTutorialMessage().setText(Model.getCurrentTutorialMessage());
+            if(Model.getCurrentTutorialSize()>Model.getCurrentTutorialIndex()+1)tutorialGroup.getNextBtn().setDisable(false);
+        }
+    }
 }
 //KEYTHIEF: "Knight knight = new Knight(EAST);","int turns = 0;","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetContains(SKELETON) || knight.targetCellIs(EXIT)) {","knight.useItem();","}","else if (knight.targetsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetContains(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"
 //COLLECTANDDROP: "Knight knight = new Knight(NORTH);","knight.move();","knight.turn(RIGHT);","knight.move();","knight.collect();","knight.turn(AROUND);","knight.move();","knight.turn(RIGHT);","knight.collect();","knight.turn(AROUND);","knight.dropItem();","knight.turn(AROUND);","knight.collect();","knight.move();","knight.move();","knight.dropItem();","knight.turn(AROUND);","knight.move();","knight.move();","knight.collect();","knight.turn(AROUND);","knight.move();","knight.move();","knight.turn(AROUND);","knight.dropItem();","knight.turn(AROUND);","knight.collect();","knight.move();","knight.turn(RIGHT);","knight.move();","knight.useItem();"

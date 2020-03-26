@@ -21,26 +21,19 @@ import main.model.statement.Condition.*;
 import static main.utility.GameConstants.NO_ENTITY;
 
 public abstract class CodeExecutor {
-    private static int noStackOverflow; //TODO: evaluate
     private static GameMap currentGameMap;
     private static boolean hasWon=false;
     private static boolean hasLost = false;
 
-    private static List<String> unlocks;
     private static boolean skeletonWasSpawned;
 
-    public static void setUnlockedStatementList(List<String> unlockedStatementList){
-        unlocks  = unlockedStatementList;
-    }
 
     static boolean executeBehaviour(Statement statement, GameMap gameMap, boolean isPlayer, boolean canSpawnKnights) {
         skeletonWasSpawned = false;
         currentGameMap  = gameMap;
         boolean method_Called = false;
-        noStackOverflow++;
         if(isPlayer)updateUnlocks(statement);
         if(statement.getStatementType()== StatementType.METHOD_CALL) {
-            noStackOverflow = 0;
             MethodCall evaluatedMethodCall = (MethodCall)statement;
             method_Called = true;
             executeMethodCall(evaluatedMethodCall,isPlayer);
@@ -123,9 +116,9 @@ public abstract class CodeExecutor {
                 if(GameConstants.DEBUG)System.out.println("You have unlocked the following: "+statement.getText());
                 return;
         }
-        if(!unlocks.contains(unlock))unlocks.add(unlock);
+        Model.addUnlockedStatement(unlock);
         for(String s : unlock2){
-            if(!unlocks.contains(s))unlocks.add(s);
+            Model.addUnlockedStatement(s);
         }
     }
 
@@ -301,7 +294,7 @@ public abstract class CodeExecutor {
 //            if(!isPlayer) System.out.println(methodCall.getText()+" "+name);
         Point position = currentGameMap.getEntityPosition(name);
         if(position == null ){
-            if(isPlayer&& currentGameMap.getAmountOfKnights() == 0)hasLost=true;
+            if(isPlayer&& currentGameMap.getAmountOfEntities(EntityType.KNIGHT) == 0)hasLost=true;
             continue;
         }
         switch (methodCall.getMethodType()){
@@ -316,9 +309,8 @@ public abstract class CodeExecutor {
                     if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name),CFlag.ACTION,true);
                 }
 //                if(gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY ||gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY)break;
-                if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)break;
-                if(currentGameMap.getItem(currentGameMap.getTargetPoint(name)) == ItemType.BOULDER)break;
-                currentGameMap.setFlag(position , CFlag.ACTION,true );
+                if(!(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)&&!(currentGameMap.getItem(currentGameMap.getTargetPoint(name)) == ItemType.BOULDER))
+                    currentGameMap.setFlag(position , CFlag.ACTION,true );
                 currentGameMap.kill(currentGameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
                 break;
 
@@ -360,16 +352,8 @@ public abstract class CodeExecutor {
     static void reset(){
         hasWon = false;
         hasLost = false;
-        noStackOverflow = 0;
     }
 
-    public int getNoStackOverflow() {
-        return noStackOverflow;
-    }
-
-    public static List<String> getUnlockedStatementList() {
-        return unlocks;
-    }
 
     public static boolean skeletonWasSpawned() {
         return skeletonWasSpawned;

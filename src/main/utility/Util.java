@@ -14,6 +14,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import main.model.LevelDataType;
 import main.model.gamemap.Cell;
 import main.model.Model;
 import main.model.enums.CFlag;
@@ -58,6 +59,40 @@ public abstract class Util {
             if(list.get(i).equals(item))return true;
         }
         return false;
+    }
+
+
+    public static List<String> splitValues(String text) {
+        List<String> output = new ArrayList<>();
+        int depth =0;
+        int index = 0;
+        boolean inQuote = false;
+        int i =0;
+        int lastIndex = 0;
+        int bSCount = 0;
+        for(char c : text.toCharArray()){
+            i++;
+            if(c=='\\'){
+                bSCount++;
+            }
+            if(c=='"'){
+                if(bSCount%2==1)
+                    inQuote = true;
+                else inQuote = !inQuote;
+            }
+            if(c != '\\')bSCount = 0;
+            if(c == '{'||c == '['||c=='(')if(!inQuote)depth++;
+            if(c == '}'||c == ']'||c==')')if(!inQuote)depth--;
+            if(depth == -1)throw new IllegalArgumentException("String " +text.substring(0,i)+" has unbalanced brackets!");
+            if(c==',' && depth==0)if(!inQuote){
+                if(output.size() <= index)output.add("");
+                output.set(index, text.substring(lastIndex, i-1));
+                lastIndex = i;
+                index++;
+            }
+        }
+        output.add(text.substring(lastIndex ));
+        return output;
     }
 
     public static String stripCode(String substring) {
@@ -328,7 +363,7 @@ public abstract class Util {
         else return allText;
     }
 
-    public static StackPane getStackPane(Cell cell, Model model, Map<String,Image> contentImageMap, Shape shape, double cell_size, Map<String,Effect> entityColorMap) {
+    public static StackPane getStackPane(Cell cell, Map<String,Image> contentImageMap, Shape shape, double cell_size, Map<String,Effect> entityColorMap) {
         String contentString = cell.getContent().getDisplayName();
         StackPane stackPane = new StackPane();
 
@@ -352,7 +387,7 @@ public abstract class Util {
                     else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
                     continue;
                 }
-                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && model.getCurrentLevel().getTurnsTaken()==0){
+                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && Model.getTurnsTaken()==0){
                     isInverted = true;
                     contentString += "_"+CFlag.INVERTED.getDisplayName()+ "_" + CFlag.TRIGGERED.getDisplayName();
                     continue;
@@ -364,8 +399,8 @@ public abstract class Util {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         if(isTurned)imageView.setRotate(270);
-        int amountOfKnights = model.getCurrentLevel().getCurrentMapCopy().getAmountOfKnights();
-        if(amountOfKnights < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN)
+        int amountOfKnights = Model.getAmountOfKnights();
+        if(amountOfKnights < (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS)&&cell.getContent()== CellContent.SPAWN)
             switch (amountOfKnights){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                     break;

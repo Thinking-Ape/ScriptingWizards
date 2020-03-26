@@ -76,38 +76,32 @@ public class LevelOverviewPane extends VBox {
 //        String[] sortedLevelNames = new String[levelNames.length];
         for(int i = 0; i < Model.getAmountOfLevels(); i++){
 
-            int[] bestResults = new int[0];
-            try {
-                bestResults = JSONParser.getBestResults(Model.getNameOfLevelWithIndex(i));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            int loc =Model.getBestLocOfLevel(i);
+            int turns =Model.getBestTurnsOfLevel(i);
+
             Integer[] turnsToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
             Integer[] locToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
-            double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars);
+            double nStars = Util.calculateStars(turns,loc,turnsToStars,locToStars);
             //TODO: improve -> see make view static
             GameMap gameMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
             String levelName = (String)Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i);
             boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
             int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
             LevelEntry le = new LevelEntry(view.getImageFromMap(gameMap),levelName,"Has AI: "+hasAI+", Max Knights: " +maxKnights+"\nMax Turns for ***: "+turnsToStars[1]+", Max Turns for **: "
-                    +turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+", Max LOC for **: "+locToStars[0],"Best Turns: "+bestResults[1]+"\nBest LOC: "+bestResults[0]+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : ""),nStars);
+                    +turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+", Max LOC for **: "+locToStars[0],"Best Turns: "+turns+"\nBest LOC: "+loc+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : ""),nStars);
             le.autosize();
-            try {
-                boolean isTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i);
-                if(isTutorial && isTut && Model.getCurrentIndex() <= JSONParser.getTutorialProgressIndex()+1){
-                    levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
-                    levelListView.getItems().add(le);
-                    width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
-                }
-                else if(!isTutorial && (GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!isTut)){
-                    levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
-                    levelListView.getItems().add(le);
-                    width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            boolean isTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i);
+            if(isTutorial && isTut && Model.getCurrentIndex() <= JSONParser.getTutorialProgressIndex()+1){
+                levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
+                levelListView.getItems().add(le);
+                width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
             }
+            else if(!isTutorial && (GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!isTut)){
+                levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
+                levelListView.getItems().add(le);
+                width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
+            }
+
         }
         levelListView.setMaxWidth(width+GameConstants.TEXTFIELD_HEIGHT*2);
     }

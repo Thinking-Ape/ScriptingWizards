@@ -6,6 +6,7 @@ package main.model.gamemap;
 import main.model.enums.Direction;
 import main.model.enums.EntityType;
 import main.model.enums.ItemType;
+import main.utility.GameConstants;
 
 //maybe no use at all?? -> instead behavior map in level
 public class Entity {
@@ -43,5 +44,15 @@ public class Entity {
 
     public void deleteIdentity() {
         name = "";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Entity){
+            Entity entity = (Entity)obj;
+            if(this == GameConstants.NO_ENTITY && entity == this)return true;
+            return name.equals(entity.name) && direction.equals(entity.direction) && entityType.equals(entity.entityType) && item.equals(entity.item) ;
+        }
+        return super.equals(obj);
     }
 }

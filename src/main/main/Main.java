@@ -6,44 +6,58 @@ import javafx.stage.Stage;
 import main.model.Level;
 import main.model.Model;
 import main.parser.CodeParser;
+import main.parser.JSONConstants;
 import main.parser.JSONParser;
 import main.utility.GameConstants;
 import main.utility.Util;
 import main.view.View;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        String[] levelNameList = JSONParser.getUnlockedLevelNames();
+        JSONParser.init();
+        List<String> unlockedLevelNameList = JSONParser.getUnlockedLevelNames();
         List<Level> levelList = JSONParser.parseAllResourceLevels();
 //        levelList.sort((l1, l2) -> l1.getIndex() > l2.getIndex() ? 1 : -1);
+        List<Level> unlockedLevelList = new ArrayList<>();
         for(Level l : levelList){
              Model.addLevel(l,false);
+             if(unlockedLevelNameList.contains(l.getName()))unlockedLevelList.add(l);
 //         }
         }
-        Model.selectLevel(levelNameList[levelNameList.length-1]);
 
-      //TODO  if(GameConstants.DEBUG)
+
+        //TODO: select different Level? //levelNameList[levelNameList.length-1]
+        Map<Level,List<String>> bestCodeLinesMap = JSONParser.getBestCodeForLevels(levelList);
+        Map<Level,Integer> bestLOCMap = JSONParser.getBestLOCForLevels(levelList);
+        Map<Level,Integer> bestTurnsMap = JSONParser.getBestTurnsForLevels(levelList);
+
+        List<String> unlockedStatementList = JSONParser.getUnlockedStatementList();
+        Model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelList,unlockedStatementList);
+    if(GameConstants.DEBUG)
         Tester.runTests();
         View view = View.getInstance(primaryStage);
+        Model.initLevelChangeListener(view);
+        Model.selectLevel(0);
+        Controller controller = Controller.instantiate(view);
         primaryStage.setOnCloseRequest(we -> {
-            try {
+            if(Model.currentLevelHasChanged())controller.getEditorController().showSavingDialog();
+            JSONParser.storeAllData();
+            try{
                 CodeParser.parseProgramCode(view.getCodeArea().getAllText());
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllText()));
-            } catch (IOException e) {
+            }catch (Exception e){
                 e.printStackTrace();
-            } catch (Exception e) {
-                if(GameConstants.DEBUG){
-                    System.out.println("Code wasnt saved because of error: \n"+e.getMessage());
-                }
             }
-        });
-        Controller.instantiate(view);
 
+
+        });
         /*Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Hello World");
         primaryStage.setSceneState(new Scene(root, 300, 275));*/

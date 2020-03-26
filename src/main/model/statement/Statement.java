@@ -16,7 +16,6 @@ public interface Statement {
     String getText();
 
     List<String> getCodeLines();
-    Statement copy();
     //TODO: maybe move methods to complex statements?
     //TODO: eventuell eine parse Methode, die die Methoden in CodeParser ersetzt.
 }

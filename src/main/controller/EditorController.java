@@ -19,6 +19,7 @@ import main.model.enums.CFlag;
 import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.model.statement.SimpleStatement;
+import main.parser.JSONConstants;
 import main.utility.GameConstants;
 import main.parser.JSONParser;
 import main.utility.Point;
@@ -188,6 +189,7 @@ public class EditorController implements PropertyChangeListener {
         view.getLevelEditorModule().getPrevTutorialTextBtn().setOnAction(evt -> {
             Model.prevTutorialMessage();
             int index = Model.getCurrentTutorialIndex();
+            view.updateTutorialMessage();
             view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(false);
             if(index == 0){
                 view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
@@ -196,6 +198,7 @@ public class EditorController implements PropertyChangeListener {
         view.getLevelEditorModule().getNextTutorialTextBtn().setOnAction(evt -> {
             Model.nextTutorialMessage();
             int index = Model.getCurrentTutorialIndex();
+            view.updateTutorialMessage();
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
             if(index+1 == ((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES)).size()){
                 view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
@@ -205,39 +208,23 @@ public class EditorController implements PropertyChangeListener {
         view.getLevelEditorModule().getOpenLevelBtn().setOnAction(event -> {
             if(Model.currentLevelHasChanged())
                 showSavingDialog();
-            try {
-                ChoiceDialog<String> levelsToOpenDialog = new ChoiceDialog<>();
-                File folder = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString());
-                String[] levelNames = JSONParser.getAllLevelNames();
-                // wrong! //TODO: read data.json
-//                File[] listOfFiles = folder.listFiles();
-//                assert listOfFiles != null;
-                int index = 0;
-                for (int i = 0; i < levelNames.length; i++) {
-                    levelsToOpenDialog.getItems().add(null);
-                }
-                for (String levelName : levelNames) {
 
-                    if (index == -1) throw new IllegalStateException("This Level shouldnt exist!");
-                    index++;
-                    levelsToOpenDialog.getItems().set(Model.getIndexOfLevelInList(levelName), levelName);
-                }
-                String levelName = (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
-                levelsToOpenDialog.setSelectedItem(levelName);
-                Optional<String> s = levelsToOpenDialog.showAndWait();
-                if (s.isPresent()) {
-                    Model.selectLevel(s.get());
-                }
+            ChoiceDialog<String> levelsToOpenDialog = new ChoiceDialog<>();
+            List<String> levelNames = Model.getUnlockedLevelNames();
+            int index = 0;
+            for (int i = 0; i < levelNames.size(); i++) {
+                levelsToOpenDialog.getItems().add(null);
             }
-            catch (Exception e){
-                //TODO delete
-                throw e;
+            for (String levelName : levelNames) {
+
+                if (index == -1) throw new IllegalStateException("This Level shouldnt exist!");
+                index++;
+                levelsToOpenDialog.getItems().set(Model.getIndexOfLevelInList(levelName), levelName);
             }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
+            String levelName = (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
+            levelsToOpenDialog.setSelectedItem(levelName);
+            Optional<String> s = levelsToOpenDialog.showAndWait();
+            s.ifPresent(Model::selectLevel);
         });
         view.getLevelEditorModule().getDeleteLevelBtn().setOnAction(event -> {
 
@@ -259,17 +246,11 @@ public class EditorController implements PropertyChangeListener {
             Alert deleteAlert = new Alert(Alert.AlertType.NONE, "You are about to reset the score for this level!", ButtonType.OK,ButtonType.CANCEL);
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
-                try {
-                    Alert infoAlert;
-                    if(JSONParser.resetScoreForLevel((String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME))){
-                        infoAlert = new Alert(Alert.AlertType.NONE, "Score was reset!", ButtonType.OK);
+                Alert infoAlert;
+                Model.resetScoreOfCurrentLevel();
+                infoAlert = new Alert(Alert.AlertType.NONE, "Score was reset!", ButtonType.OK);
+                infoAlert.showAndWait();
 
-                    }
-                    else infoAlert = new Alert(Alert.AlertType.NONE, "No score found!", ButtonType.OK);
-                        infoAlert.showAndWait();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
         });
 
@@ -441,7 +422,6 @@ public class EditorController implements PropertyChangeListener {
                 currentMapClone.changeHeight(height);
                 currentMapClone.changeWidth(width);
                 Model.changeCurrentLevel(LevelDataType.MAP_DATA,currentMapClone);
-
                 Model.changeCurrentLevel(LevelDataType.MAX_KNIGHTS,(int)maxKnightsSlider.getValue());
                 Model.changeCurrentLevel(LevelDataType.LOC_TO_STARS,new Integer[]{Integer.valueOf(loc2StarsTField.getText()),Integer.valueOf(loc3StarsTField.getText())});
                 Model.changeCurrentLevel(LevelDataType.TURNS_TO_STARS,new Integer[]{Integer.valueOf(turns2StarsTField.getText()),Integer.valueOf(turns3StarsTField.getText())});
@@ -491,9 +471,10 @@ public class EditorController implements PropertyChangeListener {
         }
         try {
 //            JSONParser.saveLevel(level);
-            JSONParser.saveLevelChanges(changes, (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
+            if(Model.isCurrentLevelNew()) JSONParser.saveCurrentLevel( );
+            else JSONParser.saveLevelChanges(changes, (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
 //            JSONParser.saveIndexAndRequiredLevels(Model.getLevelListCopy());
-            Model.updateFinishedList();
+            Model.updateUnlockedLevelsList();
             Alert alert = new Alert(Alert.AlertType.NONE,"Level was saved!",ButtonType.OK);
             alert.setTitle("Success!");
             alert.setHeaderText("");
@@ -503,13 +484,15 @@ public class EditorController implements PropertyChangeListener {
         }
     }
 
-    void showSavingDialog() {
-        Alert savingAlert = new Alert(Alert.AlertType.NONE, "This level has unsaved changes! Do you want to save or discard them?", ButtonType.YES,ButtonType.NO);
+    public void showSavingDialog() {
+        Alert savingAlert = new Alert(Alert.AlertType.NONE, "This level has unsaved changes! Do you want to save them?", ButtonType.YES,ButtonType.NO);
         Optional<ButtonType> btnType =savingAlert.showAndWait();
         if(btnType.isPresent() && btnType.get() == ButtonType.YES){
             saveChanges(Model.getAndConfirmCurrentChanges());
         }
-
+        else if(btnType.isPresent()){
+            Model.reloadCurrentLevel();
+        }
     }
 
     private void formatSlider(Slider slider,int min, int max) {
@@ -889,10 +872,10 @@ public class EditorController implements PropertyChangeListener {
         Dialog<ButtonType> chooseRequiredLvlsDialog = new Dialog<>();
         ListView<String> requiredLevelsListView = new ListView<>();
         requiredLevelsListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        String[] levelNameList = JSONParser.getAllLevelNames();
-        for (int i = 0; i < levelNameList.length; i++) {
-            if (Model.getIndexOfLevelInList(levelNameList[i]) < Model.getCurrentIndex())
-            requiredLevelsListView.getItems().add(levelNameList[i]);
+        List<String> levelNameList = Model.getUnlockedLevelNames();
+        for (int i = 0; i < levelNameList.size(); i++) {
+            if (Model.getIndexOfLevelInList(levelNameList.get(i)) < Model.getCurrentIndex())
+            requiredLevelsListView.getItems().add(levelNameList.get(i));
         }
         for (String requiredLevelName : (List<String>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS)) {
             int i = 0;
@@ -915,12 +898,6 @@ public class EditorController implements PropertyChangeListener {
                     requiredLevelNames.add(requiredLevelsListView.getItems().get(i));
             }
             Model.changeCurrentLevel(LevelDataType.REQUIRED_LEVELS,requiredLevelNames);
-            try {
-                //TODO
-                JSONParser.updateUnlocks(Model.getCurrentLevel());
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
         }
 
         view.getLevelEditorModule().getRequiredLevelsLView().getItems().clear();

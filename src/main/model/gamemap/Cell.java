@@ -159,4 +159,13 @@ public class Cell {
         mutatedCell.content = content;
         return mutatedCell;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Cell){
+            Cell cell = (Cell)obj;
+            return cellId == cell.cellId && content.equals(cell.content) && flagList.equals(cell.flagList) && entity.equals(cell.entity) && item.equals(cell.item) && linkedCellIdList.equals(cell.linkedCellIdList);
+        }
+        return super.equals(obj);
+    }
 }

@@ -3,6 +3,7 @@ package main.model;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
+import main.parser.CodeParser;
 
 import java.util.*;
 
@@ -75,14 +76,6 @@ public class Level {
 
 
 
-   //TODO:MOVE TO MODEL!
-    public void reset()  {
-        if(aiBehaviour != null) aiBehaviour.resetVariables(true);
-        CodeExecutor.reset();
-        //notifyListener(Event.MAP_CHANGED);
-//        changeSupport.firePropertyChange("level", null,null);
-    }
-
 
 
    /* //TODO:MOVE TO MODEL!
@@ -97,7 +90,7 @@ public class Level {
     }*/
 
     public ComplexStatement getAIBehaviourCopy() {
-        return aiBehaviour.copy();
+        return aiBehaviour.copy(true);
     }
 
     public void setAiBehaviour(ComplexStatement aiBehaviour) {
@@ -250,6 +243,10 @@ public class Level {
 
     public void setTutorialMessages(List<String> tutorialMessages) {
         this.tutorialMessages = tutorialMessages;
+    }
+
+    public void resetVariables() {
+        aiBehaviour.resetVariables(true);
     }
 /*
     public int getCurrentTutorialIndex() {

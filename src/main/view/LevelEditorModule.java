@@ -65,7 +65,7 @@ public class LevelEditorModule {
     private Label cellIdLbl = new Label("Cell Id:");
     private Button addLinkedCellBtn = new Button("+ Linked Cell");
     private Button removeLinkedCellBtn = new Button("- Linked Cell");
-    private Button changeCellIdBtn = new Button("Change Cell ID");
+    private Button changeCellIdBtn = new Button("Change Cell CELL_ID");
     private ListView<Integer> linkedCellListView = new ListView<>();
     private ChoiceBox<String> trapChoiceBox = new ChoiceBox<>();
     private VBox cellTypeVBox = new VBox(new Label("Cell Content:"),cellTypeSelectionGPane);
@@ -512,6 +512,24 @@ public class LevelEditorModule {
     public void toggleLevelIsSaved(boolean confirmed){
         if(confirmed)levelNameValueLbl.setStyle(LEVEL_IS_SAVED_STYLE);
         else levelNameValueLbl.setStyle(LEVEL_NOT_SAVED_STYLE);
+    }
+    public Label getLevelNameValueLbl(){
+        return levelNameValueLbl;
+    }
 
+    public Label getMaxLoc3StarsVLbl() {
+        return maxLoc3StarsVLbl;
+    }
+
+    public Label getMaxLoc2StarsVLbl() {
+        return maxLoc2StarsVLbl;
+    }
+
+    public Label getMaxTurns3StarsVLbl() {
+        return maxTurns3StarsVLbl;
+    }
+
+    public Label getMaxTurns2StarsVLbl() {
+        return maxTurns2StarsVLbl;
     }
 }

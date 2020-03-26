@@ -2,12 +2,14 @@ package main.model;
 
 import main.model.enums.CFlag;
 import main.model.enums.CellContent;
+import main.model.enums.EntityType;
 import main.model.enums.ItemType;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.utility.GameConstants;
+import main.utility.Util;
 
 import java.util.*;
 
@@ -19,31 +21,30 @@ public abstract class Model {
     private static LevelChangeSender levelChangeSender;
 
     //TODO:!!!!!
-    private static List<Level> finishedLevelsList = new ArrayList<>();
+    private static List<Level> unlockedLevelList = new ArrayList<>();
     private static List<String> unlockedStatementsList = new ArrayList<>();
-    private static Map<Level,Integer> levelStarMap = new HashMap<>();
+//    private static Map<Level,Integer> levelStarMap = new HashMap<>();
     private static GameMap currentMap;
     private static ComplexStatement currentAiBehaviour;
-    private static int turnsTaken = 0;
     private static ComplexStatement playerBehaviour;
+
+    private static int turnsTaken = 0;
     private static boolean isLost = false;
     private static boolean isWon = false;
     private static boolean aiFinished = false;
-    private static boolean isStackOverflow;
-    private static int skeletonCount = 0;
+    private static boolean isStackOverflow = false;
     //TODO:!!!!!
-    private static Map<Level,List<String>> levelToAIMap;
+    private static Map<Level,List<String>> bestCodeMap;
     private static Map<Level,Integer> bestTurnsMap;
     private static Map<Level,Integer> bestLOCMap;
     private static int tutorialProgress = -1;
 
 //    private static Model single_Instance = null;
     private static int currentTutorialIndex = 0;
-    private static int amountOfKnights;
 
 //    private Model(){
 //        levelList = new ArrayList<>();
-//        finishedLevelsList = new ArrayList<>();
+//        unlockedLevelList = new ArrayList<>();
 //        levelStarMap = new HashMap<>();
 //    }
 
@@ -51,6 +52,16 @@ public abstract class Model {
 //        if(single_Instance == null)single_Instance = new Model();
 //        return single_Instance;
 //    }
+    //needs to be run AFTER Levels have been added!
+    public static void init(Map<Level,List<String>> bestCodeMap, Map<Level,Integer> bestTurnsMap, Map<Level,Integer> bestLOCMap, int tutorialProgress,
+                            List<Level> unlockedLevelsList, List<String> unlockedStatementsList ){
+        Model.bestCodeMap = bestCodeMap;
+        Model.bestLOCMap = bestLOCMap;
+        Model.bestTurnsMap = bestTurnsMap;
+        Model.tutorialProgress = tutorialProgress;
+        Model.unlockedLevelList = unlockedLevelsList;
+        Model.unlockedStatementsList = unlockedStatementsList;
+    }
 
     private static Level getCurrentLevel() {
         return levelList.get(currentLevelIndex);
@@ -102,16 +113,7 @@ public abstract class Model {
     }
 
     //TODO: WRONG PLACE!
-    /*public void updateFinishedList() throws IOException {
-        finishedLevelsList.add(getCurrentLevel());
-        for(Level l : levelList){
-            int foundLevels = 0;
-            for(String requiredLevelName : l.getRequiredLevelNamesCopy()){
-                for(Level fL : finishedLevelsList)if(fL.getName().equals(requiredLevelName))foundLevels++;
-            }
-            if(foundLevels == l.getRequiredLevelNamesCopy().size())JSONParser.updateUnlocks(l);
-        }
-    }*/
+    /**/
 
 
    /* @Override
@@ -138,7 +140,8 @@ public abstract class Model {
 //    }
 
     public static void reloadCurrentLevel() {
-        levelChangeSender.resetChanges();
+        List<LevelChange> resets = levelChangeSender.resetChanges();
+        for(LevelChange l : resets)updateLevelValues(l.getLevelDataType(),l.getOldValue());
     }
 
     private static void updateLevelValues(LevelDataType levelDataType, Object value) {
@@ -396,18 +399,28 @@ public abstract class Model {
         return false;
     }
 
-    public static void fillTursnAndLOCMap(Map<String,Integer> locMap,Map<String,Integer> turnsMap){
-        //TODO
-        Model.bestTurns = bestTurns;
-        Model.bestLOC = bestLOC;
+//    public static void fillTurnsAndLOCMap(Map<String,Integer> locMap, Map<String,Integer> turnsMap){
+//        for(String s : locMap.keySet()){
+//            bestLOCMap.put(getLevelWithName(s),locMap.get(s));
+//        }
+//        for(String s : turnsMap.keySet()){
+//            bestTurnsMap.put(getLevelWithName(s),turnsMap.get(s));
+//        }
+//    }
+
+    private static Level getLevelWithName(String name) {
+        for(Level l : levelList){
+            if(l.getName().equals(name))return l;
+        }
+        return null;
     }
-    
+
     public static Statement[] executeTurn() {
         turnsTaken++;
         int noStackOverflow = 0;
         removeTemporaryFlags();
         boolean method_Called_1 = false, method_Called_2 = false;
-        Statement statement=playerBehaviour;
+        Statement statement = playerBehaviour;
         Statement statement2 = currentAiBehaviour;
         isStackOverflow = false;
         while(!method_Called_1 && !isWon){ //&&!isLost()) {
@@ -423,10 +436,11 @@ public abstract class Model {
                 isLost = true;
                 break;
             }
-            boolean canSpawnKnights = currentMap.getAmountOfKnights() < getCurrentLevel().getMaxKnights();
+            boolean canSpawnKnights = getAmountOfKnights() < getCurrentLevel().getMaxKnights();
             method_Called_1 = CodeExecutor.executeBehaviour(statement,currentMap, true, canSpawnKnights);
-
-            if(currentMap.getAmountOfKnights() == getCurrentLevel().getMaxKnights() && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))
+            isWon = CodeExecutor.hasWon();
+            isLost = CodeExecutor.hasLost();
+            if(getAmountOfKnights() == getCurrentLevel().getMaxKnights() && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))
                 currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
         }
 
@@ -460,7 +474,6 @@ public abstract class Model {
 
 
     private static void applyGameLogicToCells() {
-        if(CodeExecutor.skeletonWasSpawned())skeletonCount++;
         for(int x = 0; x < currentMap.getBoundX(); x++)
             for(int y = 0; y < currentMap.getBoundY(); y++) {
                 final Cell cell = currentMap.getCellAtXYClone(x,y);
@@ -541,10 +554,10 @@ public abstract class Model {
     }
 
     public static int getCurrentBestTurns() {
-        return bestTurnsMap.get(getCurrentLevel());
+        return getBestTurnsOfLevel(currentLevelIndex);
     }
     public static int getCurrentBestLOC() {
-        return bestLOCMap.get(getCurrentLevel());
+        return getBestLocOfLevel(currentLevelIndex);
     }
 
     public static boolean isStackOverflow() {
@@ -552,6 +565,127 @@ public abstract class Model {
     }
 
     public static int getAmountOfKnights() {
-        return amountOfKnights;
+        if(currentMap == null)return 0;
+        return currentMap.getAmountOfEntities(EntityType.KNIGHT);
+    }
+
+    public static void reset() {
+        turnsTaken = 0;
+        isLost = false;
+        isWon = false;
+        aiFinished = false;
+        isStackOverflow = false;
+        currentMap = getCurrentLevel().getOriginalMapCopy();
+        levelChangeSender.resetChanges();
+//        if(getCurrentLevel().hasAi())
+//        if(currentAiBehaviour!=null)
+//            currentAiBehaviour.resetVariables(true);
+
+        CodeExecutor.reset();
+    }
+
+    public static int getAmountOfSkeletons() {
+        if(currentMap==null)return 0;
+        return currentMap.getAmountOfEntities(EntityType.SKELETON);
+    }
+
+    public static void updateUnlockedLevelsList() {
+        unlockedLevelList.add(getCurrentLevel());
+        for(Level l : levelList){
+            int foundLevels = 0;
+            for(String requiredLevelName : l.getRequiredLevelNamesCopy()){
+                for(Level fLName : unlockedLevelList)if(fLName.getName().equals(requiredLevelName))foundLevels++;
+            }
+            if(foundLevels == l.getRequiredLevelNamesCopy().size()) unlockedLevelList.add(l);
+        }
+    }
+
+    public static void putStatsIfBetter(int loc, int turns, double nStars) {
+        int bestLoc = bestLOCMap.get(getCurrentLevel());
+        int bestTurns = bestTurnsMap.get(getCurrentLevel());
+        // new result not better than existing one
+        if(nStars < Util.calculateStars(bestTurns,bestLoc,getCurrentLevel().getTurnsToStarsCopy() , getCurrentLevel().getLocToStarsCopy()) )return;
+
+        if(bestLOCMap.containsKey(getCurrentLevel())){
+            bestLOCMap.replace(getCurrentLevel(),loc);
+        } else bestLOCMap.put(getCurrentLevel(),loc);
+
+        if(bestTurnsMap.containsKey(getCurrentLevel())){
+            bestTurnsMap.replace(getCurrentLevel(),turns);
+        } else bestTurnsMap.put(getCurrentLevel(),turns);
+
+        if(bestCodeMap.containsKey(getCurrentLevel())){
+            bestCodeMap.replace(getCurrentLevel(),playerBehaviour.getCodeLines());
+        } else bestCodeMap.put(getCurrentLevel(),playerBehaviour.getCodeLines());
+    }
+
+    public static void nextTutorial() {
+        tutorialProgress++;
+    }
+
+    public static int getTutorialProgress() {
+        return tutorialProgress;
+    }
+
+    public static List<String> getCurrentlyBestCode() {
+        return getBestCodeOfLevel(currentLevelIndex);
+    }
+
+    public static List<String> getUnlockedLevelNames() {
+        List<String> unlockedLevelNames = new ArrayList<>();
+        for(Level l: unlockedLevelList){
+            unlockedLevelNames.add(l.getName());
+        }
+        return unlockedLevelNames;
+    }
+
+    public static void resetScoreOfCurrentLevel() {
+        if(bestLOCMap.containsKey(getCurrentLevel())){
+            bestLOCMap.replace(getCurrentLevel(),-1);
+        } else bestLOCMap.put(getCurrentLevel(),-1);
+
+        if(bestTurnsMap.containsKey(getCurrentLevel())){
+            bestTurnsMap.replace(getCurrentLevel(),-1);
+        } else bestTurnsMap.put(getCurrentLevel(),-1);
+
+        if(bestCodeMap.containsKey(getCurrentLevel())){
+            bestCodeMap.replace(getCurrentLevel(),new ArrayList<>());
+        } else bestCodeMap.put(getCurrentLevel(),new ArrayList<>());
+    }
+
+    public static int getBestLocOfLevel(int i) {
+        return bestLOCMap.get(levelList.get(i));
+    }
+
+    public static int getBestTurnsOfLevel(int i) {
+        return bestTurnsMap.get(levelList.get(i));
+    }
+
+    public static GameMap getCurrentMap(){
+        return currentMap.copy();
+    }
+
+    public static void addUnlockedStatement(String unlock) {
+        if(!unlockedStatementsList.contains(unlock))unlockedStatementsList.add(unlock);
+    }
+
+    public static List<String> getBestCodeOfLevel(int i) {
+        return bestCodeMap.get(levelList.get(i));
+    }
+
+    public static boolean isCurrentLevelNew() {
+        return levelChangeSender.isLevelNew();
+    }
+
+    public static String getCurrentTutorialMessage() {
+        return getCurrentLevel().getTutorialEntryListCopy().get(currentTutorialIndex);
+    }
+
+    public static void resetTutorialIndex() {
+        currentTutorialIndex = 0;
+    }
+
+    public static void setCurrentAIBehaviour(ComplexStatement aiBehaviour) {
+        currentAiBehaviour = aiBehaviour;
     }
 }

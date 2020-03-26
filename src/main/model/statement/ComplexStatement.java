@@ -111,9 +111,8 @@ public class ComplexStatement implements Statement {
         return output;
     }
 
-    @Override
-    public ComplexStatement copy() {
-        return CodeParser.parseProgramCode(getCodeLines());
+    public ComplexStatement copy(boolean isAI) {
+        return CodeParser.parseProgramCode(getCodeLines(),!isAI);
     }
 
     @Override
@@ -183,6 +182,12 @@ public class ComplexStatement implements Statement {
             i++;
         }
         return -1;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof ComplexStatement)return this.getCodeLines().equals(((ComplexStatement)obj).getCodeLines());
+        return super.equals(obj);
     }
 
     public StatementIterator iterator(){
