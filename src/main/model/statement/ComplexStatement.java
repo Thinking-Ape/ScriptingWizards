@@ -1,6 +1,7 @@
 package main.model.statement;
 
 import main.model.statement.Condition.Condition;
+import main.parser.CodeParser;
 import main.utility.SimpleSet;
 import main.utility.Variable;
 
@@ -22,10 +23,10 @@ public class ComplexStatement implements Statement {
         this.parentStatement = parentStatement;
     }
 
-    public void updateVariable(Variable variable) throws IllegalAccessException {
+    public void updateVariable(Variable variable) {
         Variable var = getVariable(variable.getName());
         if(var == null){
-            if(parentStatement == null || (var = parentStatement.getVariable(variable.getName())) == null)throw new IllegalAccessException("Variable "+ variable.getName() + " does not exist!");
+            if(parentStatement == null || (var = parentStatement.getVariable(variable.getName())) == null)throw new IllegalStateException("Variable "+ variable.getName() + " does not exist!");
         }
         var.update(variable.getValue());
     }
@@ -87,7 +88,7 @@ public class ComplexStatement implements Statement {
     }
 
     @Override
-    public String print() throws IllegalAccessException {
+    public String print() {
         String output="";
         output +=getText()+"\n";
         for (int i = 0; i < getStatementListSize(); i++){
@@ -103,6 +104,17 @@ public class ComplexStatement implements Statement {
         return output;
     }
 
+    public List<String> getCodeLines(){
+        List<String> output = new ArrayList<>();
+        if(parentStatement != null)output.add(getText());
+        for(Statement s : statementList)output.addAll(s.getCodeLines());
+        return output;
+    }
+
+    @Override
+    public ComplexStatement copy() {
+        return CodeParser.parseProgramCode(getCodeLines());
+    }
 
     @Override
     public String getText() {

@@ -12,7 +12,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import main.model.gamemap.Cell;
@@ -365,7 +364,7 @@ public abstract class Util {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         if(isTurned)imageView.setRotate(270);
-        int amountOfKnights = model.getCurrentLevel().getCurrentMap().getAmountOfKnights();
+        int amountOfKnights = model.getCurrentLevel().getCurrentMapCopy().getAmountOfKnights();
         if(amountOfKnights < model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN)
             switch (amountOfKnights){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
@@ -450,6 +449,16 @@ public abstract class Util {
             System.out.println(s);
         }
     }
+
+    public static <T> boolean listsEqual(List<T> list1, List<T> list2) {
+        if(list1.size()!=list2.size())return false;
+        boolean same = true;
+        for(int i = 0; i < list1.size();i++){
+            same = same && list1.get(i).equals(list2.get(i));
+        }
+        return same;
+    }
+
 
 //    public static ImageView getEntityImageView(int number, Cell cell, Model model,List<Entity> entityActionList, Map<String,Image> contentImageMap, double cell_size, Map<String,Effect> entityColorMap, String entityName) {
 //

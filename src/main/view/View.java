@@ -48,19 +48,20 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.GenericArrayType;
 import java.nio.file.Paths;
 import java.util.*;
 
 import static main.utility.GameConstants.*;
+import static main.utility.GameConstants.TUTORIAL_LINES;
 
-public class View implements PropertyChangeListener {
+public class View implements LevelChangeListener {
 
     private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/project_background.png", SCREEN_WIDTH,SCREEN_HEIGHT,true,true ), BackgroundRepeat.NO_REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT ));
     private final BackgroundImage backgroundImage = new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
     private final LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
-    private Model model;
     private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
     //Testing
 
@@ -70,8 +71,8 @@ public class View implements PropertyChangeListener {
     private Button btnExecute;
     private Button btnReset;
     //    TextArea codeTextArea;
-    private CodeArea codeArea = new CodeArea(false) ;
-    private CodeArea aiCodeArea;
+    private CodeArea codeArea = new CodeArea(false);
+    private CodeArea aiCodeArea = new CodeArea(true);
     private VBox vBox;
     private Slider speedSlider;
     private Label errorLabel = new Label();
@@ -108,6 +109,7 @@ public class View implements PropertyChangeListener {
 
     private Button loadBestCodeBtn = new Button("Load Best Code");
     private Button clearCodeBtn = new Button("Clear Code");
+    private Button clearAICodeBtn = new Button("Clear Code");
     private Button storeCodeBtn = new Button("Store Code");
 
     //TODO: for visual purposes:
@@ -117,12 +119,12 @@ public class View implements PropertyChangeListener {
 
     private static View instance = null;
 
-    public static View getInstance(Model model, Stage stage){
-        if(instance == null)instance = new View(model, stage);
+    public static View getInstance(Stage stage){
+        if(instance == null)instance = new View(stage);
         return instance;
     }
 
-    private View(Model model, Stage stage) {
+    private View( Stage stage) {
         errorLabel.setStyle("-fx-text-fill: red;-fx-background-color: white");
         errorLabel.setFont(GameConstants.BIG_FONT);
         errorLabel.setMaxWidth(GameConstants.TEXTFIELD_WIDTH);
@@ -131,26 +133,26 @@ public class View implements PropertyChangeListener {
         errorLabelAI.setFont(GameConstants.BIG_FONT);
         errorLabelAI.setMaxWidth(GameConstants.TEXTFIELD_WIDTH);
         errorLabelAI.setVisible(false);
-        spellBookPane.updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
+        spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
         selectedPointList = new ArrayList<>();
         selectedPointList.add(new Point(0, 0));
-        this.levelEditorModule = new LevelEditorModule(model.getCurrentLevel());
+        this.levelEditorModule = new LevelEditorModule();
         this.stage = stage;
-        this.model = model;
         this.startScreen = new StartScreen();
         tutorialGroup = new TutorialGroup();
 
         startScene = new Scene(startScreen);
         startScreen.setBackground(startBackground);
-        cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
+        GameMap gameMap = (GameMap) Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        cell_size = gameMap.getBoundY() > gameMap.getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundX());
         cell_size = Math.round(cell_size);
         tutorialTextArea.setEditable(false);
         knightsLeftVBox = new VBox();
 //        knightsLeftVBox.setStyle("-fx-background-color: lightgrey");
         knightsLeftVBox.setSpacing(cell_size / 4);
         knightsLeftVBox.setMinWidth(cell_size/1.5);
-        levelOverviewPane = new LevelOverviewPane(model, this,false);
-        tutorialLevelOverviewPane = new LevelOverviewPane(model, this,true);
+        levelOverviewPane = new LevelOverviewPane(this,false);
+        tutorialLevelOverviewPane = new LevelOverviewPane( this,true);
 //        levelSelectScene = new Scene(levelOverviewPane);
         //TODO: model.getCurrentLevel().addListener(this);
         //Testing
@@ -162,20 +164,7 @@ public class View implements PropertyChangeListener {
             stage.setFullScreen(true);
         }
         stage.setFullScreenExitHint("");
-        List<String> storedCode;
-        try {
-            storedCode = JSONParser.getStoredCode();
-            if(storedCode.size()>0)
-                codeArea = new CodeArea(CodeParser.parseProgramCode(storedCode),true,false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if(codeArea.getSize()==0){
-            codeArea = new CodeArea(false);
-//            codeArea.addNewCodeFieldAtIndex(0, new CodeField("", 1, true));
-        }
-        codeArea.select(0, Selection.START);
-        model.addChangeListener(this);
+        Model.initLevelChangeListener(this);
         actualMapGPane = new GridPane();
         actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
         actualMapGPane.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/Background_test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
@@ -186,7 +175,6 @@ public class View implements PropertyChangeListener {
 //        hBoxRoot.setSpacing(4);
         stage.setScene(startScene);
         vBox = new VBox();
-        HBox hBox = new HBox();
         btnExecute = new Button();
 
         ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
@@ -240,7 +228,8 @@ public class View implements PropertyChangeListener {
         speedSlider.setStyle("-fx-base: rgba(0,0,0,0)");
         speedVBox.setAlignment(Pos.BOTTOM_CENTER);
         speedVBox.getChildren().addAll(speedLbl, speedSlider);
-        //TODO: delete
+
+        HBox hBox = new HBox();
         Button debugBtn = new Button("Clipboard");
 
         debugBtn.setOnAction(event -> {
@@ -253,36 +242,17 @@ public class View implements PropertyChangeListener {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             clipboard.setContents(selection, selection);
         });
-        //TODO: delete
         if(DEBUG)hBox.getChildren().add(debugBtn );
         hBox.setTranslateY(-SMALL_BUTTON_SIZE/2);
         hBox.setPickOnBounds(false);
         hBox.getChildren().addAll(loadBestCodeBtn, clearCodeBtn);
-        if (model.getCurrentLevel().getAIBehaviour().getStatementListSize() > 0)
-            aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true, true);
-        else aiCodeArea = new CodeArea(true);
-        //"Knight knight = new Knight(WEST);","int turns = 0;","while(true){","if(knight.targetIsUnarmed() && knight.canMove()){","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)){","knight.wait();","}","else if (knight.targetCellIs(EXIT)){","knight.useItem();","}","else if (knight.targetCellIs(KEY)){","knight.collect();","}","else if (turns < 2){","turns = turns + 1;","knight.turn(EAST);","}","else {","knight.turn(WEST);","}","}"
-//        if (GameConstants.DEBUG) {
-//            try {
-//                codeArea = Tester.evaluateCodeBox(
-//                        //"Knight knight = new Knight(EAST);","TurnDirection d = LEFT;","TurnDirection dd = d;","knight.collect();","knight.move();","int turns = 0;","boolean b = knight.canMove();","boolean a = b && true;","if (a) {","knight.turn(dd);","}","while(true) {","if ((!knight.targetIsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetCellIs(GATE)) {","knight.wait();","}","else if (knight.targetsEntity(SKELETON)) {","knight.useItem();","}","else if (knight.targetsItem(KEY)) {","knight.collect();","}","else if (turns < 2) {","turns = turns + 1;","}","else {","knight.turn(LEFT);","}","}");
-//          //              "Knight k1 = new Knight();","k1.move();","Knight k2 = new Knight(EAST);","k2.move();","Knight k3 = new Knight(WEST);","Army army = new Army(k1,k2,k3);","boolean b = army.isLooking(EAST);","TurnDirection dir = RIGHT;","Command cc = executeIf(b,turn(LEFT),turn(dir));","boolean bb = true;","while(bb) {","army.executeIf(army.canMove(),move(),cc);","if (army.targetCellIs(PRESSURE_PLATE)) {","bb = false;","}","}");
-//                        "");
-////                        "Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","for(int i = 0;i <= 6;i = i + 1;) {","for(int j = 0;j < 12;j = j + 1;) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","if (dir == RIGHT) {","dir = LEFT;","}","else {","dir = RIGHT;","}","}");
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
-//        }
+
+        leftVBox.getChildren().addAll( aiCodeArea,clearAICodeBtn, errorLabelAI);
+        leftVBox.setAlignment(Pos.TOP_CENTER);
+
         vBox.getChildren().addAll(codeArea, hBox, errorLabel);
-        VBox leftVBox = new VBox();
-        leftVBox.getChildren().addAll(aiCodeArea,errorLabelAI);
 
-
-        aiCodeArea.draw();
-
-        Level l = model.getCurrentLevel();
-
-        if (l != null) drawMap(l.getCurrentMap());
+        drawMap(gameMap);
 
         btnExecute.setTooltip(new Tooltip("Will start or pause the game"));
         btnReset.setTooltip(new Tooltip("Will reset the game"));
@@ -306,7 +276,7 @@ public class View implements PropertyChangeListener {
 
 
     public void drawAllChangedCells() {
-        GameMap map = model.getCurrentLevel().getCurrentMap();
+        GameMap map = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         StackPane[][] stackpaneField = getStackPaneFieldFromMap(map,map.getAndResetChangedPointList());
         //x+1 and y+1 should not be a problem, as the outer rim never changes -> no out of bounds
         for(int x = 0; x < map.getBoundX(); x++)
@@ -327,18 +297,19 @@ public class View implements PropertyChangeListener {
         knightsLeftVBox.getChildren().clear();
         knightsLeftVBox.setSpacing(cell_size/4);
         knightsLeftVBox.setMinWidth(cell_size/1.5);
-        for (int i = 0; i < model.getCurrentLevel().getMaxKnights(); i++) {
+        int maxKnights = (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
+        for (int i = 0; i < maxKnights; i++) {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
-            int amountOfKnights = model.getCurrentLevel().getCurrentMap().getAmountOfKnights();
+            int amountOfKnights = Model.getAmountOfKnights();
             if(i+ amountOfKnights == 1)tokenIView.setEffect(GREEN_ADJUST);
             if(i+amountOfKnights == 2)tokenIView.setEffect(VIOLET_ADJUST);
             if(i+amountOfKnights == 3)tokenIView.setEffect(LAST_ADJUST);
-            if(i >= model.getCurrentLevel().getMaxKnights()-amountOfKnights)
+            if(i >= maxKnights - amountOfKnights)
                 tokenIView.setImage(new  Image(GameConstants.EMPTY_TOKEN_PATH));
             tokenIView.setFitHeight(cell_size/1.5);
             tokenIView.setFitWidth(cell_size/1.5);
             knightsLeftVBox.getChildren().add(tokenIView);
-//            System.out.println(model.getCurrentLevel().getName()+", " +getCurrentSceneState().name()+": " +cell_size);
+//            System.out.println(Model.getCurrentLevel().getName()+", " +getCurrentSceneState().name()+": " +cell_size);
         }
     }
 
@@ -463,7 +434,7 @@ public class View implements PropertyChangeListener {
         int knightCount = 0;
         int skeletonCount = 0;
         for(String s : entityColorMap.keySet()){
-            if(model.getCurrentLevel().getCurrentMap().getEntity(s).getEntityType()== EntityType.KNIGHT)knightCount++;
+            if(Model.getEntity(s).getEntityType()== EntityType.KNIGHT)knightCount++;
         }
         if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
             switch (knightCount){
@@ -498,7 +469,7 @@ public class View implements PropertyChangeListener {
     }
 
     private ImageView getContentImageView(Cell cell){
-        String contentString = cell.getContent().getDisplayName();
+        StringBuilder contentString = new StringBuilder(cell.getContent().getDisplayName());
 
         boolean isTurned = false;
         boolean isInverted = false;
@@ -510,30 +481,31 @@ public class View implements PropertyChangeListener {
                 if(flag == CFlag.TURNED && (isTurned = true))continue;
                 if(flag == CFlag.INVERTED && cell.getContent()== CellContent.GATE){
                     isInverted = true;
-                    if(!isOpen)contentString += "_" + CFlag.OPEN.getDisplayName();
-                    else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
+                    if(!isOpen) contentString.append("_").append(CFlag.OPEN.getDisplayName());
+                    else contentString = new StringBuilder(contentString.toString().replace("_" + CFlag.OPEN.getDisplayName(), ""));
                     continue;
                 }
                 if(flag == CFlag.OPEN ){
                     isOpen = true;
-                    if(!isInverted)contentString += "_" + CFlag.OPEN.getDisplayName();
-                    else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
+                    if(!isInverted) contentString.append("_").append(CFlag.OPEN.getDisplayName());
+                    else contentString = new StringBuilder(contentString.toString().replace("_" + CFlag.OPEN.getDisplayName(), ""));
                     continue;
                 }
-                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && model.getCurrentLevel().getTurnsTaken()==0){
+                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && Model.getTurnsTaken()==0){
                     isInverted = true;
-                    contentString += "_"+CFlag.INVERTED.getDisplayName()+ "_" + CFlag.TRIGGERED.getDisplayName();
+                    contentString.append("_").append(CFlag.INVERTED.getDisplayName()).append("_").append(CFlag.TRIGGERED.getDisplayName());
                     continue;
                 }
-                contentString += "_" + flag.getDisplayName();
+                contentString.append("_").append(flag.getDisplayName());
             }
         }
-        ImageView imageView = new ImageView(contentImageMap.get(contentString));
+        ImageView imageView = new ImageView(contentImageMap.get(contentString.toString()));
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         if(isTurned)imageView.setRotate(270);
-        int amountOfKnights = model.getCurrentLevel().getCurrentMap().getAmountOfKnights();
-        if((amountOfKnights< model.getCurrentLevel().getMaxKnights()&&cell.getContent()== CellContent.SPAWN))
+        int amountOfKnights = Model.getAmountOfKnights();
+        int maxKnights = (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
+        if((amountOfKnights< maxKnights &&cell.getContent()== CellContent.SPAWN))
             switch (amountOfKnights){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                     break;
@@ -543,8 +515,8 @@ public class View implements PropertyChangeListener {
                     break;
             }
         if(cell.getContent()== CellContent.ENEMY_SPAWN){
-            //switch (entityColorMap.size() -model.getCurrentLevel().getUsedKnights()){
-            int skelCount = model.getCurrentLevel().getSkeletonCount();
+            //switch (entityColorMap.size() -Model.getCurrentLevel().getUsedKnights()){
+            int skelCount = Model.getSkeletonCount();
             switch (skelCount){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                     break;
@@ -558,7 +530,9 @@ public class View implements PropertyChangeListener {
     }
 
     private void calculateCellSize() {
-        cell_size = model.getCurrentLevel().getOriginalMap().getBoundY() > model.getCurrentLevel().getOriginalMap().getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) model.getCurrentLevel().getOriginalMap().getBoundX());
+        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        cell_size = gameMap.getBoundY() > gameMap.getBoundX() ?
+                GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundX());
 
         if(getCurrentSceneState() == SceneState.PLAY ||getCurrentSceneState() == SceneState.TUTORIAL)
             cell_size = cell_size*GameConstants.PLAY_CELL_SIZE_FACTOR;
@@ -671,28 +645,6 @@ public class View implements PropertyChangeListener {
         return shape;
     }
 
-
-//    @Contract("null -> fail")
-    public void setCodeArea(CodeArea codeArea,boolean isAi) {
-        if(isAi){
-            if (codeArea == null)
-                throw new IllegalArgumentException("null is no longer allowed as AiCodeArea! Please use an empty CodeArea instead!");
-            this.aiCodeArea = codeArea;
-            leftVBox.getChildren().clear();
-            if(codeArea.getSize()>0)
-            {
-                leftVBox.getChildren().addAll( aiCodeArea, errorLabelAI);
-            }
-            leftVBox.setAlignment(Pos.TOP_CENTER);
-        }
-        else {
-            this.codeArea = codeArea;
-            vBox.getChildren().set(0, codeArea);
-        }
-        codeArea.draw();
-        changeSupport.firePropertyChange("codeArea", null, codeArea);
-    }
-
     public CodeArea getAICodeArea() {
         return aiCodeArea;
     }
@@ -702,6 +654,7 @@ public class View implements PropertyChangeListener {
     }
 
     public void highlightInMap(List<Point> points) {
+        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         this.selectedPointList = new ArrayList<>(points);
         for (Polyline highlight: highlights) {
             rootPane.getChildren().remove(highlight);
@@ -709,17 +662,17 @@ public class View implements PropertyChangeListener {
         highlights = new ArrayList<>();
         Polyline highlight;
         List<Line> edgeList = new ArrayList<>();
-        for(int x = 0; x < model.getCurrentLevel().getOriginalMap().getBoundX(); x++)
-        for(int y = 0; y < model.getCurrentLevel().getOriginalMap().getBoundY(); y++){
+        for(int x = 0; x < gameMap.getBoundX(); x++)
+        for(int y = 0; y < gameMap.getBoundY(); y++){
             if (!points.contains(new Point(x, y))) continue;
 //            System.out.println("X: " +x + ", Y:" +y);
             double dx = x * cell_size;
             double dy = y * cell_size;
             if (y == 0 || !points.contains(new Point(x, y - 1))) edgeList.add(new Line(dx, dy, dx + cell_size, dy));
             if (x == 0 || !points.contains(new Point(x - 1, y))) edgeList.add(new Line(dx, dy + cell_size, dx, dy));
-            if (x == model.getCurrentLevel().getOriginalMap().getBoundX() - 1 || !points.contains(new Point(x + 1, y)))
+            if (x == gameMap.getBoundX() - 1 || !points.contains(new Point(x + 1, y)))
                 edgeList.add(new Line(dx + cell_size, dy, dx + cell_size, dy + cell_size));
-            if (y == model.getCurrentLevel().getOriginalMap().getBoundY() - 1 || !points.contains(new Point(x, y + 1)))
+            if (y == gameMap.getBoundY() - 1 || !points.contains(new Point(x, y + 1)))
                 edgeList.add(new Line(dx + cell_size, dy + cell_size, dx, dy + cell_size));
         }
 
@@ -795,96 +748,105 @@ public class View implements PropertyChangeListener {
     }
 
     private void updateLevelEditorModule() {
-        levelEditorModule.getWidthValueLbl().setText("" + model.getCurrentLevel().getOriginalMap().getBoundX());
-        levelEditorModule.getHeightValueLbl().setText("" + model.getCurrentLevel().getOriginalMap().getBoundY());
-        levelEditorModule.setRequiredLevels(model.getCurrentLevel().getRequiredLevels());
-        levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
+        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        levelEditorModule.getWidthValueLbl().setText("" + gameMap.getBoundX());
+        levelEditorModule.getHeightValueLbl().setText("" + gameMap.getBoundY());
+        levelEditorModule.setRequiredLevels((List<String>)Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS));
+        levelEditorModule.getTutorialVBox().setVisible((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
         levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
-        if(model.getCurrentLevel().getTutorialEntryList().size()== 0)levelEditorModule.getNextTutorialTextBtn().setDisable(true);
-//        levelEditorModule.updateTutorialSection(model.getCurrentLevel());
-        levelEditorModule.getHasAiValueLbl().setText(model.getCurrentLevel().hasAi()+"");
+        if(Model.getCurrentTutorialSize()== 0)levelEditorModule.getNextTutorialTextBtn().setDisable(true);
+//        levelEditorModule.updateTutorialSection(Model.getCurrentLevel());
+        levelEditorModule.getHasAiValueLbl().setText(Model.getDataFromCurrentLevel(LevelDataType.HAS_AI)+"");
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        switch (evt.getPropertyName()) {
-//            default:
-            case "level":
-                entityColorMap = new HashMap<>();
-                selectedPointList = new ArrayList<>();
-                selectedPointList.add(new Point(0, 0));
-                if (model.getCurrentLevel().hasAi()) {
-                    aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true);
-                    setCodeArea(aiCodeArea,true);
-                    aiCodeArea.scroll(0);
-                } else {
-                    setCodeArea(new CodeArea(new ComplexStatement(), false),true);
-                }
-                codeArea.scroll(0);
-                if (sceneState == SceneState.LEVEL_EDITOR) {
-                    updateLevelEditorModule();
-                    levelEditorModule.bindProperties(model.getCurrentLevel().getAllProperties());
-                }
-                spellBookPane.updateSpellbookEntries(model.getCurrentLevel().getUnlockedStatementList());
+    public void updateAll() {
+        entityColorMap = new HashMap<>();
+        selectedPointList = new ArrayList<>();
+        selectedPointList.add(new Point(0, 0));
+        boolean hasAi =(boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
+        ComplexStatement aiBehaviour = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
+        if (hasAi) {
+            aiCodeArea.setVisible(true);
+            if(sceneState == SceneState.LEVEL_EDITOR)clearAICodeBtn.setVisible(true);
+            aiCodeArea.updateCodeFields(aiBehaviour);
+            aiCodeArea.scroll(0);
+        }
+        else {
+            aiCodeArea.setVisible(false);
+            clearAICodeBtn.setVisible(false);
+        }
+        codeArea.scroll(0);
+        if (sceneState == SceneState.LEVEL_EDITOR) {
+            updateLevelEditorModule();
+        }
+        spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
+    }
 
-            case "map":
-                drawMap(model.getCurrentLevel().getOriginalMap());
+    @Override
+    public void updateAccordingToChanges(LevelChange levelChange) {
+
+        switch (levelChange.getLevelDataType()){
+            case MAP_DATA:
+                GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                drawMap(gameMap);
                 if(sceneState == SceneState.LEVEL_EDITOR)
-                Platform.runLater(()->highlightInMap(selectedPointList));
-                break;
-            case "width":
-                levelEditorModule.getWidthValueLbl().setText(model.getCurrentLevel().getOriginalMap().getBoundX() + "");
-
+                    Platform.runLater(()->highlightInMap(selectedPointList));
                 selectedPointList = pointListOutOfBounds();
-                drawMap(model.getCurrentLevel().getOriginalMap());
                 Platform.runLater(()->highlightInMap(selectedPointList));
+            case LOC_TO_STARS:
+            case TURNS_TO_STARS:
+            case REQUIRED_LEVELS:
+            case IS_TUTORIAL:
+            case TUTORIAL_LINES:
+            case LEVEL_NAME:
+            case HAS_AI:
+            case LEVEL_INDEX:
+            case MAX_KNIGHTS:
+                levelEditorModule.update(levelChange);
                 break;
-            case "height":
-                levelEditorModule.getHeightValueLbl().setText(model.getCurrentLevel().getOriginalMap().getBoundY() + "");
-
-                selectedPointList = pointListOutOfBounds();
-                drawMap(model.getCurrentLevel().getOriginalMap());
-                Platform.runLater(()->highlightInMap(selectedPointList));
-                break;
-            case "aiBehaviour":
-//                System.out.println("First");
-                ComplexStatement aiBehaviour = (ComplexStatement) evt.getNewValue();
-                if (aiBehaviour.getStatementListSize() > 0) levelEditorModule.getHasAiValueLbl().setText("" + true);
-                else levelEditorModule.getHasAiValueLbl().setText("" + false);
-                if (model.getCurrentLevel().hasAi() && ((ComplexStatement) evt.getOldValue()).getStatementListSize() == 0) {
-                    aiCodeArea = new CodeArea(model.getCurrentLevel().getAIBehaviour(),true);
+            case AI_CODE:
+                ComplexStatement aiBehaviour = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
+                boolean hasAI = (boolean)Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
+                levelEditorModule.getHasAiValueLbl().setText("" + hasAI);
+                if (hasAI && aiBehaviour.getStatementListSize() == 0) {
+                    aiCodeArea.updateCodeFields(aiBehaviour);
                     //THIS IS THE ONLY WORKING SOLUTION I FOUND FOR FINDING OUT POSITIONS OF NODES IN SCENE!!
                     double d = getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX();
-                    setCodeArea(aiCodeArea,true);
                     Platform.runLater(() -> {
                         for(Polyline p: highlights){
                             p.setTranslateX(p.getTranslateX()-d+getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX());
                         }});
-                } else if (!model.getCurrentLevel().hasAi()) {
+                    aiCodeArea.setVisible(true);
+                    clearAICodeBtn.setVisible(true);
+                } else if (!hasAI) {
                     //THIS IS THE ONLY WORKING SOLUTION I FOUND FOR FINDING OUT POSITIONS OF NODES IN SCENE!!
                     double d = getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX();
-                    setCodeArea(new CodeArea(new ComplexStatement(), false),true);
+                    aiCodeArea.updateCodeFields(new ComplexStatement());
                     Platform.runLater(() -> {
-                    for(Polyline p: highlights){
-                        p.setTranslateX(p.getTranslateX()-d+getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX());
-                    }});
+                        for(Polyline p: highlights){
+                            p.setTranslateX(p.getTranslateX()-d+getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX());
+                        }});
+                    aiCodeArea.setVisible(false);
+                    clearAICodeBtn.setVisible(false);
                 }
                 break;
-            case "requiredLevels":
-                List<String> requiredLevelsList = model.getCurrentLevel().getRequiredLevels();
-                levelEditorModule.setRequiredLevels(requiredLevelsList);
-                break;
-            case "linkedCellId":
-            case "cellId":
-                changeSupport.firePropertyChange("map", null, null);
-                break;
         }
+        levelEditorModule.toggleLevelIsSaved(!Model.currentLevelHasChanged());
+    }
+
+    @Override
+    public void changesUndone() {
+        //TODO:
+        updateAll(); //????
+        levelEditorModule.toggleLevelIsSaved(true);
     }
 
     private List<Point> pointListOutOfBounds() {
         List<Point> output = new ArrayList<>();
         for(Point p : selectedPointList){
-            if(p.getX() >= model.getCurrentLevel().getOriginalMap().getBoundX()||p.getY() >= model.getCurrentLevel().getOriginalMap().getBoundY())continue;
+            GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+            if(p.getX() >= gameMap.getBoundX()||p.getY() >= gameMap.getBoundY())continue;
             output.add(p);
         }
         return output;
@@ -903,10 +865,10 @@ public class View implements PropertyChangeListener {
                 break;
             case LEVEL_EDITOR:
                 prepareRootPane();
-                drawMap(model.getCurrentLevel().getOriginalMap());
+                drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
                 aiCodeArea.setEditable(true);
-                aiCodeArea.deselectAll();
-                codeArea.deselectAll();
+//                aiCodeArea.deselectAll();
+//                codeArea.deselectAll();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
                 stage.getScene().setRoot(rootPane);
                 break;
@@ -922,7 +884,7 @@ public class View implements PropertyChangeListener {
                 tutorialLevelOverviewPane.setBackground(brickBackground);
                 break;
             case PLAY:
-                drawMap(model.getCurrentLevel().getOriginalMap());
+                drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
                 prepareRootPane();
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
@@ -930,12 +892,12 @@ public class View implements PropertyChangeListener {
                 stage.getScene().setRoot(rootPane);
                 break;
             case TUTORIAL:
-                drawMap(model.getCurrentLevel().getOriginalMap());
+                drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
                 prepareRootPane();
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
-//                levelOverviewPane.updateUnlockedLevels(model, this);
+//                levelOverviewPane.updateUnlockedLevels(Model, this);
 
                 stage.getScene().setRoot(rootPane);
                 break;
@@ -946,18 +908,37 @@ public class View implements PropertyChangeListener {
     private void prepareRootPane() {
         rootPane = new StackPane();
         rootPane.setPrefSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
-        levelNameLabel.setText(model.getCurrentLevel().getName());
+        levelNameLabel.setText((String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
         levelNameLabel.setFont(GameConstants.BIGGEST_FONT);
         levelNameLabel.setStyle("-fx-background-color: lightgray");
         HBox contentHBox = new HBox();
-        setCodeArea(aiCodeArea,true);
-        setCodeArea(codeArea,false);
         rightVBox = new VBox();
         centerVBox = new VBox();
         rightVBox.setAlignment(Pos.TOP_RIGHT);
         knightsLeftVBox.setAlignment(Pos.TOP_RIGHT);
         //TODO
+        if(sceneState != SceneState.LEVEL_EDITOR)
+            clearAICodeBtn.setVisible(false);
+        if ((boolean)Model.getDataFromCurrentLevel(LevelDataType.HAS_AI)){
+            aiCodeArea.updateCodeFields((ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE));
+            if(sceneState == SceneState.LEVEL_EDITOR)clearAICodeBtn.setVisible(true);
+        }
+        else {
+            aiCodeArea.setVisible(false);
+            clearAICodeBtn.setVisible(false);
+        }
+        List<String> storedCode;
+        try {
+            storedCode = JSONParser.getStoredCode();
+            if(storedCode.size()>0)
+                codeArea.updateCodeFields(CodeParser.parseProgramCode(storedCode));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        codeArea.select(0, Selection.START);
 
+        aiCodeArea.draw();
+        codeArea.draw();
 
         rightVBox.setAlignment(Pos.TOP_CENTER);
         rightVBox.getChildren().addAll(vBox);
@@ -968,7 +949,6 @@ public class View implements PropertyChangeListener {
         bottomHBox.setAlignment(Pos.BOTTOM_CENTER);
         switch (sceneState) {
             case LEVEL_EDITOR:
-                levelEditorModule.setLevel(model.getCurrentLevel());
                 HBox editorCenterHBox = new HBox(knightsLeftVBox, new VBox(actualMapGPane), new VBox(levelEditorModule.getRightVBox()));
                 editorCenterHBox.autosize();
                 editorCenterHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
@@ -977,7 +957,7 @@ public class View implements PropertyChangeListener {
                 centerVBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/2);
 //                editorScene = new Scene(rootPane);
                 baseContentVBox.getChildren().add(levelEditorModule.getTopHBox());
-                levelEditorModule.getTutorialVBox().setVisible(model.getCurrentLevel().isTutorial());
+                levelEditorModule.getTutorialVBox().setVisible((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
                 break;
             case LEVEL_SELECT:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
@@ -1024,7 +1004,7 @@ public class View implements PropertyChangeListener {
                 if(isIntroduction){
                     tutorialGroup.setEntries(Util.StringListFromArray(TUTORIAL_LINES));
                 }
-                else tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
+                else tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
                 break;
         }
         contentHBox.getChildren().addAll(leftVBox, centerVBox, rightVBox);
@@ -1213,6 +1193,9 @@ public class View implements PropertyChangeListener {
     public Button getClearCodeBtn() {
         return clearCodeBtn;
     }
+    public Button getClearAICodeBtn() {
+        return clearAICodeBtn;
+    }
     public Button getStoreCodeBtn() {
         return storeCodeBtn;
     }
@@ -1241,7 +1224,7 @@ public class View implements PropertyChangeListener {
 
     public void leaveIntroductions() {
         tutorialGroup.leaveIntroduction();
-        tutorialGroup.setEntries(model.getCurrentLevel().getTutorialEntryList());
+        tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
         isIntroduction = false;
 

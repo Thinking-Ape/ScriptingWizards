@@ -18,7 +18,7 @@ public abstract class CodeEvaluator {
     private static Statement currentStatement;
     private static GameMap currentGameMap;
 
-    public static Statement evaluateNext(ComplexStatement behaviour, GameMap gameMap) throws IllegalAccessException {
+    public static Statement evaluateNext(ComplexStatement behaviour, GameMap gameMap) {
         currentGameMap = gameMap;
         currentStatement = behaviour.nextStatement();
         if(currentStatement==null)return null;

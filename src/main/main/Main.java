@@ -18,20 +18,18 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Model model = Model.getInstance();
         String[] levelNameList = JSONParser.getUnlockedLevelNames();
         List<Level> levelList = JSONParser.parseAllResourceLevels();
-        levelList.sort((l1, l2) -> l1.getIndex() > l2.getIndex() ? 1 : -1);
+//        levelList.sort((l1, l2) -> l1.getIndex() > l2.getIndex() ? 1 : -1);
         for(Level l : levelList){
-//         if(GameConstants.arrayContains(levelNameList,l.getDisplayName())){
-//             System.out.println("ok");
-             model.addLevel(l);
+             Model.addLevel(l,false);
 //         }
         }
-        model.selectLevel(levelNameList[levelNameList.length-1]);
+        Model.selectLevel(levelNameList[levelNameList.length-1]);
 
-        Tester.runTests(model);
-        View view = View.getInstance(model, primaryStage);
+      //TODO  if(GameConstants.DEBUG)
+        Tester.runTests();
+        View view = View.getInstance(primaryStage);
         primaryStage.setOnCloseRequest(we -> {
             try {
                 CodeParser.parseProgramCode(view.getCodeArea().getAllText());
@@ -44,7 +42,7 @@ public class Main extends Application {
                 }
             }
         });
-        Controller.instantiate(view,model);
+        Controller.instantiate(view);
 
         /*Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Hello World");

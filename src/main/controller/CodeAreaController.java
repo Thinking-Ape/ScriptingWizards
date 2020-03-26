@@ -5,6 +5,7 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
+import main.model.LevelDataType;
 import main.model.Model;
 import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
@@ -25,7 +26,6 @@ import java.util.regex.Pattern;
 public class CodeAreaController implements PropertyChangeListener {
 
     private View view;
-    private Model model;
     private int currentIndex = 0;
     private boolean addBefore;
     private boolean isError = false;
@@ -36,10 +36,10 @@ public class CodeAreaController implements PropertyChangeListener {
     private boolean showError;
 //    private List<String> codeLines
 
-    public CodeAreaController(View view, Model model) {
-        this.model =model;
+    public CodeAreaController(View view) {
         this.view = view;
-        view.addPropertyChangeListener(this);
+        view.getCodeArea().addPropertyChangeListener(this);
+        view.getAICodeArea().addPropertyChangeListener(this);
     }
     private void setAllHandlersForCodeArea(CodeArea currentCodeArea) {
 //        boolean isError = currentCodeArea.isAi() ? isErrorAI : isErrorPlayer;
@@ -82,14 +82,14 @@ public class CodeAreaController implements PropertyChangeListener {
     }
     private void setHandlerForCodeField(CodeField currentCodeField, CodeArea currentCodeArea) {
         currentCodeField.setOnMousePressed(event -> {
-            if(gameRunning)return;
+            if(gameRunning || !currentCodeArea.isEditable())return;
             needsRecreation = false;
 //            boolean isError = currentCodeArea.isAi() ? isErrorAI : isErrorPlayer;
 
             if(currentCodeArea.getSelectedCodeField() == currentCodeField) return;
             currentCodeArea.deselectAll();
             showError = true;
-            handleCodefieldEvent(currentCodeArea.getAllText(),currentCodeArea);
+            handleCodeFieldEvent(currentCodeArea.getAllText(),currentCodeArea);
             if(!isError){
                 currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
                 currentCodeArea.deselectAll();
@@ -98,18 +98,25 @@ public class CodeAreaController implements PropertyChangeListener {
         });
 
         currentCodeField.addListener((observableValue, s, t1) -> {
+            // without this ctrl-backspace will delete a lot of stuff
+            if(!s.equals(t1) &&!currentCodeField.isEditable()){
+                currentCodeField.setText(s);
+                return;
+            }
             //TODO: is this necessary?
             Platform.runLater(()->currentCodeField.setEmptyFlag(t1.equals("")));
             currentCodeField.autosize();
             Text text = new Text(t1);
             text.setFont(GameConstants.CODE_FONT);
             if(text.getLayoutBounds().getWidth() > currentCodeField.getMaxWidth()-GameConstants.SCREEN_WIDTH/110)currentCodeField.setText(s);
-            // without this ctrl-backspace will delete "}" (dont know why though)
-            if(s.equals("}")&&!t1.equals("}"))currentCodeField.setText("}");
+
         });
 
         currentCodeField.setOnKeyPressed(event -> {
-            if (gameRunning) return;
+            if (gameRunning || !currentCodeField.isEditable()){
+                currentCodeArea.requestFocus();
+                return;
+            }
             needsRecreation = false;
             if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
             else view.getAICodeArea().deselectAll();
@@ -330,20 +337,28 @@ public class CodeAreaController implements PropertyChangeListener {
 //                    else view.getBtnExecute().setDisable(false);
 //                    codeArea.select(currentIndex+1,true);
             }
-            handleCodefieldEvent(codeLines,currentCodeArea);
+            handleCodeFieldEvent(codeLines,currentCodeArea);
         });
     }
 
-    private void handleCodefieldEvent(List<String> codeLines, CodeArea currentCodeArea) {
+    private void handleCodeFieldEvent(List<String> codeLines, CodeArea currentCodeArea) {
         needsRecreation = needsRecreation || (codeLines.size() != currentCodeArea.getSize());
         Label errorLabel = currentCodeArea.isAi() ? view.getErrorLabelAI() : view.getErrorLabel();
         errorLabel.setVisible(false);
+        if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
+        else view.getAICodeArea().deselectAll();
         try {
             ComplexStatement behaviour = CodeParser.parseProgramCode(codeLines,!currentCodeArea.isAi());
             disableControlElements(false, currentCodeArea);
-            if(isError)currentCodeArea.resetStyle(currentIndex);
+            if(isError){
+                currentCodeArea.resetStyle(currentIndex);
+            }
             isError = false;
             currentCodeArea.setEditable(true);
+            // this will ensure that the current status of the AI is always tracked as a LevelChange
+            // not necessary for PlayerCode
+            if(currentCodeArea.isAi())
+                Model.changeCurrentLevel(LevelDataType.AI_CODE,behaviour);
             if(needsRecreation) {
                 currentCodeArea.updateCodeFields(behaviour);
                 setAllHandlersForCodeArea(currentCodeArea);
@@ -377,7 +392,7 @@ public class CodeAreaController implements PropertyChangeListener {
     public void setGameRunning(boolean gameRunning) {
         this.gameRunning = gameRunning;
         if(gameRunning)view.getCodeArea().deselectAll();
-        if(gameRunning&&model.getCurrentLevel().hasAi())view.getAICodeArea().deselectAll();
+        if(gameRunning&&(boolean)Model.getDataFromCurrentLevel(LevelDataType.HAS_AI))view.getAICodeArea().deselectAll();
     }
 
     public boolean isGameRunning() {
@@ -386,7 +401,6 @@ public class CodeAreaController implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if(!evt.getPropertyName().equals("codeArea"))return;
         CodeArea codeArea = (CodeArea) evt.getNewValue();
 //        if(codeArea.isEditable())
         setAllHandlersForCodeArea(codeArea);

@@ -1,5 +1,8 @@
 package main.model.statement;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SimpleStatement implements Statement {
 
 //    int depth;
@@ -56,6 +59,11 @@ public class SimpleStatement implements Statement {
     @Override
     public String getText() {
         return "";
+    }
+
+    @Override
+    public List<String> getCodeLines() {
+        return List.of(getText());
     }
 
 

@@ -1,23 +1,12 @@
 package main.view;
 
 
-//import javafx.scene.control.TextArea;
-
-import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
 import javafx.scene.control.Button;
-import javafx.scene.effect.Bloom;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Effect;
-import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.paint.Color;
 import main.controller.Selection;
-import javafx.beans.value.ChangeListener;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.control.ScrollBar;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -29,17 +18,16 @@ import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.utility.Util;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.*;
 
-import static main.utility.GameConstants.BUTTON_SIZE;
 import static main.utility.GameConstants.SMALL_BUTTON_SIZE;
 
 public class CodeArea extends VBox {
 
     private VBox rectVBox = new VBox();
-//    private VBox rectVBox2 = new VBox();
     private VBox codeVBox = new VBox();
-//    private VBox codeVBox2 = new VBox(); is supposed to be scrollable now!
     private List<CodeField> codeFieldList = new ArrayList<>();
     private List<StackPane> rectStackList = new ArrayList<>();
     private boolean isEditable;
@@ -54,8 +42,10 @@ public class CodeArea extends VBox {
     private  Button upBtn = new Button();
     private Button downBtn = new Button();
 
+    private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+
     public CodeArea (boolean isAi){
-        this(new ComplexStatement(),true,isAi);
+        this(new ComplexStatement(),!isAi,isAi);
     }
 
     public CodeArea (ComplexStatement behaviour,boolean isEditable, boolean isAi) {
@@ -64,7 +54,7 @@ public class CodeArea extends VBox {
         this.MAX_CODE_LINES = isAi ? GameConstants.MAX_CODE_LINES+1 : GameConstants.MAX_CODE_LINES;
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
-        if(behaviour.getStatementListSize() == 0 && !isAi)behaviour.addSubStatement(new SimpleStatement());
+        if(behaviour.getStatementListSize() == 0)behaviour.addSubStatement(new SimpleStatement());
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
         ImageView iconIView;
         ImageView upBtnIV = new ImageView(new Image(GameConstants.UP_BTN_IMAGE_PATH));
@@ -113,17 +103,10 @@ public class CodeArea extends VBox {
         downBtn.setDisable(true);
 
     }
-    public CodeArea (ComplexStatement behaviour, boolean isAi) {
-        this(behaviour,true,isAi);
-    }
 
     private List<CodeField> getCodeFieldsFromStatement(ComplexStatement complexStatement) throws IllegalArgumentException {
         Statement statement;
         List<CodeField> output = new ArrayList<>();
-//        if(complexStatement.getStatementListSize() == 0 && !isAi){
-//            output.add(new CodeField("",0,true));
-//            return output;
-//        }
         for(int i = 0; i < complexStatement.getStatementListSize(); i++){
 //            if(complexStatement.getStatementType() == StatementType.FOR)statement = ((ComplexStatement)complexStatement.getSubStatement(0)).getSubStatement(i);
 //            else
@@ -158,9 +141,6 @@ public class CodeArea extends VBox {
         return output;
     }
 
-//    public void addNewCodeFieldAtIndex(int index, CodeField codeField) {
-//        codeFieldList.add(index,codeField);
-//    }
     void draw(){
         rectStackList = getRectanglesFromList(codeFieldList);
         codeVBox.getChildren().clear();
@@ -174,12 +154,9 @@ public class CodeArea extends VBox {
         firstStackPane.getChildren().clear();
         firstStackPane.getChildren().addAll(rectVBox,codeVBox);
         this.getChildren().set(1,firstStackPane);
-//        this.getChildren().add(scrollBar);
-        //ALL COMMENTS BELOW WITHIN THIS METHOD ARE TO BE REMOVED!
         rectVBox.autosize();
-//        if(codeFieldList.size() == 1)scrollBar.setVisible(false);
-//        else scrollBar.setVisible(true);
         updateScrollButtons(bound);
+        propertyChangeSupport.firePropertyChange("", null, this);
     }
 
     private void updateScrollButtons(int bound) {
@@ -294,15 +271,6 @@ public class CodeArea extends VBox {
         codeFieldList.get(currentLine).setStyle("-fx-background-color: rgba(255,150,150,0.6);");
     }
 
-    public CodeArea createClone(){
-        CodeArea codeAreaClone = new CodeArea(isAi);
-        codeAreaClone.isEditable = isEditable;
-        codeAreaClone.rectStackList = rectStackList;
-        int i = 0;
-        //            if(i != codeFieldList.size()){
-        codeAreaClone.codeFieldList.addAll(codeFieldList);
-        return codeAreaClone;
-    }
     public void setEditable(boolean isEditable){
         this.isEditable = isEditable;
         for(CodeField codeField : codeFieldList){
@@ -322,13 +290,21 @@ public class CodeArea extends VBox {
         else scrollAmount = t1;
 //        if(t1+MAX_CODE_LINES > codeFieldList.size())t1 = 0;
         draw();
-        if(indexOfCodeField(selectedCodeField)>=MAX_CODE_LINES+t1){
-            deselectAll();
-            select(MAX_CODE_LINES-1+t1, Selection.END);
+        if(selectedCodeField != null){
+            if(indexOfCodeField(selectedCodeField)>=MAX_CODE_LINES+t1){
+                deselectAll();
+                select(MAX_CODE_LINES-1+t1, Selection.END);
+            }
+            else if(indexOfCodeField(selectedCodeField)<t1){
+                deselectAll();
+                select(t1, Selection.END);
+            }
+            else {
+                select(selectedCodeField, Selection.END);
+            }
         }
-        else if(indexOfCodeField(selectedCodeField)<t1){
-            deselectAll();
-            select(t1, Selection.END);
+        else {
+            this.requestFocus();
         }
         updateScrollButtons(t1);
     }
@@ -392,5 +368,15 @@ public class CodeArea extends VBox {
 
     public void setEditable(int currentIndex, boolean b) {
         codeFieldList.get(currentIndex).setEditable(b);
+    }
+
+    public void clear() {
+        codeFieldList.clear();
+        codeFieldList.add(new CodeField("", 1, true));
+        draw();
+    }
+    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener){
+        propertyChangeSupport = new PropertyChangeSupport(this);
+        propertyChangeSupport.addPropertyChangeListener(propertyChangeListener);
     }
 }

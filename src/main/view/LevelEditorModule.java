@@ -10,14 +10,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Translate;
 import main.model.Level;
+import main.model.LevelChange;
 import main.model.enums.CellContent;
 import main.model.enums.ItemType;
+import main.model.gamemap.GameMap;
 import main.utility.GameConstants;
 import main.utility.Util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static main.utility.GameConstants.*;
+import static main.utility.GameConstants.TUTORIAL_LINES;
 
 
 public class LevelEditorModule {
@@ -98,10 +102,11 @@ public class LevelEditorModule {
     private Label cellDetailLbl = new Label("Cell Details:");
 //    private HBox checkBoxHbox = new HBox(isTurnedCBox,isInvertedCBox);
 
-    public LevelEditorModule(Level level){
-//        if(level.getAIBehaviour().getStatementListSize()==0) hasAICheckBox.setSelected(false);
+    public LevelEditorModule(){
+//        if(level.getAIBehaviourCopy().getStatementListSize()==0) hasAICheckBox.setSelected(false);
 //        else hasAICheckBox.setSelected(true);
         Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
+        levelNameValueLbl.setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
         Util.applyFontFormatRecursively(topHBox);
         isTurnedCBox.setStyle("-fx-background-color: white");
         isInvertedCBox.setStyle("-fx-background-color: white");
@@ -154,8 +159,9 @@ public class LevelEditorModule {
 //        indexValueLbl.setText(""+(level.getIndex()+1));
 //        isTutorialValueLbl.setText(""+level.isTutorial());
         requiredLVBOX.getTransforms().add(new Translate(0,-20,0));
-        topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevels().length*25+25);
-        adjustToLevel(level);
+        topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevelNamesCopy().length*25+25);
+        //TODO!
+//        update(level);
         int i = 0;
         int j = 0;
         for (CellContent content : CellContent.values()){
@@ -187,15 +193,53 @@ public class LevelEditorModule {
         topHBox.setAlignment(Pos.BASELINE_CENTER);
     }
 
-    private void adjustToLevel(Level level) {
-        if(level.getTutorialEntryList().size()== 0)nextTutorialTextBtn.setDisable(true);
-        bindProperties(level.getAllProperties());
-
-        heightValueLbl.setText(""+level.getOriginalMap().getBoundY());
-        widthValueLbl.setText(""+level.getOriginalMap().getBoundX());
-        for(int i = 0; i < level.getRequiredLevels().size();i++){
-            requiredLevelsLView.getItems().add(level.getRequiredLevels().get(i));
+    void update(LevelChange change) {
+        switch (change.getLevelDataType()){
+            case LEVEL_INDEX:
+                indexValueLbl.setText(change.getNewValue()+"");
+                break;
+            case MAX_KNIGHTS:
+                maxKnightsValueLbl.setText(change.getNewValue()+"");
+                break;
+            case MAP_DATA:
+                GameMap gameMap = (GameMap) change.getNewValue();
+                heightValueLbl.setText(""+gameMap.getBoundY());
+                widthValueLbl.setText(""+gameMap.getBoundX());
+                break;
+            case AI_CODE:
+                throw new IllegalStateException("This module doesnt change when the AI changes!");
+            case HAS_AI:
+                hasAiValueLbl.setText(change.getNewValue()+"");
+                break;
+            case LOC_TO_STARS:
+                Integer[] locToStars = (Integer[])change.getNewValue();
+                maxLoc2StarsVLbl.setText(locToStars[0]+"");
+                maxLoc3StarsVLbl.setText(locToStars[1]+"");
+                break;
+            case TURNS_TO_STARS:
+                Integer[] turnsToStars = (Integer[])change.getNewValue();
+                maxTurns2StarsVLbl.setText(turnsToStars[0]+"");
+                maxTurns3StarsVLbl.setText(turnsToStars[1]+"");
+                break;
+            case REQUIRED_LEVELS:
+                List<String> requiredLevels = (List<String>)change.getNewValue();
+                for(int i = 0; i < requiredLevels.size(); i++){
+                    requiredLevelsLView.getItems().add(requiredLevels.get(i));
+                }
+                break;
+            case IS_TUTORIAL:
+                isTutorialValueLbl.setText(change.getNewValue()+"");
+                break;
+            case TUTORIAL_LINES:
+                List<String> tutorialLines = (List<String>)change.getNewValue();
+                if(tutorialLines.size()== 0)nextTutorialTextBtn.setDisable(true);
+                //TODO
+                break;
+            case LEVEL_NAME:
+                levelNameValueLbl.setText(change.getNewValue()+"");
+                break;
         }
+
     }
 
     public VBox getRightVBox(){
@@ -229,7 +273,7 @@ public class LevelEditorModule {
         return saveLevelBtn;
     }
 
-    public void bindProperties(StringProperty[] properties) {
+   /* public void bindProperties(StringProperty[] properties) {
         for(StringProperty stringProperty : properties)
         switch (stringProperty.getName()){
             case GameConstants.LEVEL_NAME_PROPERTY_NAME:
@@ -274,7 +318,7 @@ public class LevelEditorModule {
                 tutorialNumberValueLbl.textProperty().bind(stringProperty);
                 break;
         }
-    }
+    }*/
 
     public Button getOpenLevelBtn() {
         return openLevelBtn;
@@ -465,7 +509,9 @@ public class LevelEditorModule {
         return isInvertedCBox;
     }
 
-    public void setLevel(Level currentLevel) {
+    public void toggleLevelIsSaved(boolean confirmed){
+        if(confirmed)levelNameValueLbl.setStyle(LEVEL_IS_SAVED_STYLE);
+        else levelNameValueLbl.setStyle(LEVEL_NOT_SAVED_STYLE);
 
     }
 }

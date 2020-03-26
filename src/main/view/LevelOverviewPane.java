@@ -9,7 +9,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import main.model.Level;
+import main.model.LevelDataType;
 import main.model.Model;
+import main.model.gamemap.GameMap;
 import main.utility.GameConstants;
 import main.parser.JSONParser;
 import main.utility.Util;
@@ -26,9 +28,9 @@ public class LevelOverviewPane extends VBox {
     private Button backBtn = new Button();
     private boolean isTutorial = false;
 
-    public LevelOverviewPane(Model model, View view,boolean isTutorial){
+    public LevelOverviewPane( View view,boolean isTutorial){
         this.isTutorial = isTutorial;
-        updateUnlockedLevels(model, view);
+        updateUnlockedLevels( view);
         backBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE*0.75);
         playBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE);
         ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
@@ -65,34 +67,40 @@ public class LevelOverviewPane extends VBox {
     public Button getBackBtn() {
         return backBtn;
     }
-    public void updateUnlockedLevels(Model model, View view) {
+
+
+    public void updateUnlockedLevels( View view) {
         levelListView.getItems().clear();
         double width=0;
-        String[] levelNames =JSONParser.getUnlockedLevelNames();
-        String[] sortedLevelNames = new String[levelNames.length];
-        for(int i = 0; i < sortedLevelNames.length; i++)
-            for(String s : levelNames){
-            if(model.getLevelWithIndex(i).getName().equals(s))sortedLevelNames[i]=s;
-        }
+//        String[] levelNames =JSONParser.getUnlockedLevelNames();
+//        String[] sortedLevelNames = new String[levelNames.length];
+        for(int i = 0; i < Model.getAmountOfLevels(); i++){
 
-        for(String s : sortedLevelNames){
-            Level l = model.getLevelWithName(s);
             int[] bestResults = new int[0];
             try {
-                bestResults = JSONParser.getBestResults(l.getName());
+                bestResults = JSONParser.getBestResults(Model.getNameOfLevelWithIndex(i));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            double nStars = Util.calculateStars(bestResults[1],bestResults[0],l.getTurnsToStars(),l.getLocToStars());
-            LevelEntry le = new LevelEntry(view.getImageFromMap(l.getOriginalMap()),s,"Has AI: "+l.hasAi()+", Max Knights: " + l.getMaxKnights()+"\nMax Turns for ***: "+l.getTurnsToStars()[1]+", Max Turns for **: "+l.getTurnsToStars()[0]+"\nMax LOC for ***: "+l.getLocToStars()[1]+", Max LOC for **: "+l.getLocToStars()[0],"Best Turns: "+bestResults[1]+"\nBest LOC: "+bestResults[0]+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : ""),nStars);
+            Integer[] turnsToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
+            Integer[] locToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
+            double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars);
+            //TODO: improve -> see make view static
+            GameMap gameMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
+            String levelName = (String)Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i);
+            boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
+            int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
+            LevelEntry le = new LevelEntry(view.getImageFromMap(gameMap),levelName,"Has AI: "+hasAI+", Max Knights: " +maxKnights+"\nMax Turns for ***: "+turnsToStars[1]+", Max Turns for **: "
+                    +turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+", Max LOC for **: "+locToStars[0],"Best Turns: "+bestResults[1]+"\nBest LOC: "+bestResults[0]+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : ""),nStars);
             le.autosize();
             try {
-                if(isTutorial && l.isTutorial() && l.getIndex() <= JSONParser.getTutorialProgressIndex()+1){
+                boolean isTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i);
+                if(isTutorial && isTut && Model.getCurrentIndex() <= JSONParser.getTutorialProgressIndex()+1){
                     levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
                     levelListView.getItems().add(le);
                     width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
                 }
-                else if(!isTutorial && (GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!l.isTutorial())){
+                else if(!isTutorial && (GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!isTut)){
                     levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
                     levelListView.getItems().add(le);
                     width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
@@ -103,21 +111,27 @@ public class LevelOverviewPane extends VBox {
         }
         levelListView.setMaxWidth(width+GameConstants.TEXTFIELD_HEIGHT*2);
     }
-    public void addLevel(Level l, Image image){
-        LevelEntry le = new LevelEntry(image,l.getName(),"Has AI: "+l.hasAi()+", Max Knights: " + l.getMaxKnights()+
-                "\nMax Turns for ***: "+l.getTurnsToStars()[1]+", Max Turns for **: "+l.getTurnsToStars()[0]+"\nMax LOC for ***: "+l.getLocToStars()[1]+
-                ", Max LOC for **: "+l.getLocToStars()[0],"Best Turns: "+-1+"\nBest LOC: "+-1+"\nEarned Stars: "+ 0,0);
+    public void addLevel(int i, Image image){
+        Integer[] turnsToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
+        Integer[] locToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
+//        double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars)
+        String levelName = (String)Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i);
+        boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
+        int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
+        LevelEntry le = new LevelEntry(image,levelName,"Has AI: "+hasAI+", Max Knights: " + maxKnights+
+                "\nMax Turns for ***: "+turnsToStars[1]+", Max Turns for **: "+turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+
+                ", Max LOC for **: "+locToStars[0],"Best Turns: "+-1+"\nBest LOC: "+-1+"\nEarned Stars: "+ 0,0);
         levelListView.getItems().add(le);
     }
 
-    public void updateLevel(Level currentLevel, int amountOfTuts, Image starImage) {
-        int index = isTutorial ? currentLevel.getIndex() : currentLevel.getIndex() - amountOfTuts;
+    public void updateCurrentLevel(int amountOfTuts, Image starImage) {
+        int index = isTutorial ? Model.getCurrentIndex() : Model.getCurrentIndex() - amountOfTuts;
         levelListView.getItems().get(index).updateImage(starImage);
     }
 
-    public boolean containsLevel(Level nextLevel) {
+    public boolean containsLevel(String nextLevelName) {
         for(LevelEntry levelEntry : levelListView.getItems()){
-            if(levelEntry.getLevelName().equals(nextLevel.getName())) return true;
+            if(levelEntry.getLevelName().equals(nextLevelName)) return true;
         }
         return false;
     }

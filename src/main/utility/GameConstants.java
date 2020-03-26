@@ -121,6 +121,8 @@ public abstract class GameConstants {
     public static final String CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME = "CurrentTutorialMessage";
     public static final String CURRENT_TUTORIAL_INDEX_PROPERTY_NAME = "CurrentTutorialIndex";
     public static final String COMPLEX_STATEMENT_REGEX = "^([ a-z]+ *\\( *[^{]+?\\)|else) *\\{(.*)$";
+    public static final String LEVEL_IS_SAVED_STYLE = "-fx-background-color: rgba(150,255,150,0.75)";
+    public static final String LEVEL_NOT_SAVED_STYLE = "-fx-background-color: rgba(255,150,150,0.75)";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

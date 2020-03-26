@@ -3,17 +3,17 @@ package main.model;
 public class LevelChange {
 
     private final Object oldValue;
-    private final ChangeType changeType;
+    private final LevelDataType levelDataType;
     private final Object newValue;
 
-    public LevelChange(ChangeType changeType, Object oldValue, Object newValue){
-        this.changeType = changeType;
+    public LevelChange(LevelDataType levelDataType, Object oldValue, Object newValue){
+        this.levelDataType = levelDataType;
         this.newValue = newValue;
         this.oldValue = oldValue;
     }
 
-    public ChangeType getChangeType() {
-        return changeType;
+    public LevelDataType getLevelDataType() {
+        return levelDataType;
     }
 
     public Object getNewValue() {

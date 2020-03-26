@@ -33,7 +33,7 @@ public abstract class CodeExecutor {
         unlocks  = unlockedStatementList;
     }
 
-    static boolean executeBehaviour(Statement statement, GameMap gameMap, boolean isPlayer, boolean canSpawnKnights) throws IllegalAccessException {
+    static boolean executeBehaviour(Statement statement, GameMap gameMap, boolean isPlayer, boolean canSpawnKnights) {
         skeletonWasSpawned = false;
         currentGameMap  = gameMap;
         boolean method_Called = false;
@@ -290,7 +290,7 @@ public abstract class CodeExecutor {
 //        return output;
     }
 
-    private static void executeMethodCall(MethodCall methodCall, boolean isPlayer) throws IllegalAccessException {
+    private static void executeMethodCall(MethodCall methodCall, boolean isPlayer) {
         List<String> nameList = new ArrayList<>();
         nameList.add(methodCall.getObjectName());
         if(methodCall.getParentStatement().getVariable(nameList.get(0)).getVariableType()==VariableType.ARMY){
@@ -306,7 +306,7 @@ public abstract class CodeExecutor {
         }
         switch (methodCall.getMethodType()){
             case ATTACK:
-                if(isPlayer)throw new IllegalAccessException("You cannot attack as Player!");
+                if(isPlayer)throw new IllegalStateException("You cannot attack as Player!");
 
                 // Can't attack with an item in hand
                 if(currentGameMap.getEntity(name).getItem()!=ItemType.NONE)break;

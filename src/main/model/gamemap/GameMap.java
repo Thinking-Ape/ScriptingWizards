@@ -1,33 +1,30 @@
 package main.model.gamemap;
 
-import javafx.util.Pair;
 import main.model.enums.*;
 import main.utility.GameConstants;
 import main.utility.Point;
 import main.utility.SimpleSet;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.*;
 
 import static main.utility.GameConstants.NO_ENTITY;
 
 public class GameMap {
 
-    private PropertyChangeSupport changeSupport;
+//    private PropertyChangeSupport changeSupport;
     private int boundX;
     private int boundY;
     private Cell[][] cellArray2D;
     private Map<String,Point> entityCellMap;
     private Set<Point> changedCellPoints;
 
-    public GameMap(Cell[][] cellArray2D, PropertyChangeListener pCL){
+    public GameMap(Cell[][] cellArray2D){
         if(cellArray2D.length == 0) throw new IllegalArgumentException("Cannot have a boundX of 0!");
      this.cellArray2D = cloneArray(cellArray2D);
      this.boundX = cellArray2D.length;
      this.boundY = cellArray2D[0].length;
-     this.changeSupport = new PropertyChangeSupport(this);
-     changeSupport.addPropertyChangeListener(pCL);
+//     this.changeSupport = new PropertyChangeSupport(this);
+//     changeSupport.addPropertyChangeListener(pCL);
      entityCellMap = new HashMap<>();
      changedCellPoints = new SimpleSet<>();
     }
@@ -42,8 +39,8 @@ public class GameMap {
         return output;
     }
 
-    public GameMap clone(){
-         GameMap cloneMap = new GameMap(cellArray2D,null);
+    public GameMap copy(){
+        GameMap cloneMap = new GameMap(cellArray2D);
 //         cloneMap.entityCellMap = new HashMap<>(this.entityCellMap);
          return cloneMap;
     }
@@ -135,28 +132,29 @@ public class GameMap {
     }
 
     public void addLinkedCellId(int x, int y, int integer) {
+
+        GameMap oldMap = this.copy();
         Cell oldCell = cellArray2D[x][y].copy();
         cellArray2D[x][y].addLinkedCellId(integer);
         Cell newCell = cellArray2D[x][y].copy();
         Point p = new Point(x, y);
-        changeSupport.firePropertyChange("linkedCellId", new Pair<>(p,oldCell),new Pair<>(p,newCell));
     }
 
     public void setCellId(int x, int y, int id) {
+        GameMap oldMap = this.copy();
 //        changeSupport.firePropertyChange("cellId", cellArray2D[x][y].getCellId(),id);
         Cell oldCell = cellArray2D[x][y].copy();
         cellArray2D[x][y].setCellId(id);
         Cell newCell = cellArray2D[x][y].copy();
         Point p = new Point(x, y);
-        changeSupport.firePropertyChange("cellId",null,null);
     }
 
     public void removeCellLinkedId(int x, int y, Integer s) {
+        GameMap oldMap = this.copy();
         Cell oldCell = cellArray2D[x][y].copy();
         cellArray2D[x][y].removeLinkedCellId(s);
         Cell newCell = cellArray2D[x][y].copy();
         Point p = new Point(x, y);
-        changeSupport.firePropertyChange("linkedCellId", null,null);
     }
 
     public void setFlag(int x, int y, CFlag flag, boolean t1) {
@@ -252,33 +250,33 @@ public class GameMap {
     }
 
     public void setMultipleItems(List<Point> targetPosList, ItemType item) {
+        GameMap oldMap = this.copy();
         for(Point p : targetPosList){
             cellArray2D[p.getX()][p.getY()] = cellArray2D[p.getX()][p.getY()].getMutation(item);
         }
-        changeSupport.firePropertyChange("item",null,null);
     }
     public void setItem(Point targetPos, ItemType item) {
+        GameMap oldMap = this.copy();
         if(item == null)throw new IllegalArgumentException("Item cannot be null!");
         if(cellArray2D[targetPos.getX()][targetPos.getY()].getItem()==item)return;
         cellArray2D[targetPos.getX()][targetPos.getY()] = cellArray2D[targetPos.getX()][targetPos.getY()].getMutation(item);
         changedCellPoints.add(targetPos);
-        changeSupport.firePropertyChange("cell",null,targetPos);
     }
 
     public void setContent(Point targetPos, CellContent content) {
+        GameMap oldMap = this.copy();
         if(cellArray2D[targetPos.getX()][targetPos.getY()].getContent()==content)return;
         cellArray2D[targetPos.getX()][targetPos.getY()] = cellArray2D[targetPos.getX()][targetPos.getY()].getMutation(content);
         changedCellPoints.add(targetPos);
-        changeSupport.firePropertyChange("cell",null,targetPos);
     }
     public void setMultipleContents(List<Point> targetPosList, CellContent content) {
+        GameMap oldMap = this.copy();
         for(Point p : targetPosList){
             cellArray2D[p.getX()][p.getY()] = cellArray2D[p.getX()][p.getY()].getMutation(content);
         }
 //        Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
 //
 //        Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
-        changeSupport.firePropertyChange("content",null,null);
     }
 
     public boolean cellHasFlag(Point targetPoint, CFlag open) {
@@ -290,6 +288,7 @@ public class GameMap {
     }
 
     public void setEntity(Point targetPos, Entity actorEntity) {
+        GameMap oldMap = this.copy();
         if(actorEntity == null)throw new IllegalArgumentException("Entity shall not be null! Use NO_ENTITY instead");
         if(cellArray2D[targetPos.getX()][targetPos.getY()].getEntity()==actorEntity)return;
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
@@ -297,15 +296,14 @@ public class GameMap {
         if(entityCellMap.containsKey(actorEntity.getName()))entityCellMap.replace(actorEntity.getName(),targetPos);
         else entityCellMap.put(actorEntity.getName(), targetPos);
         changedCellPoints.add(targetPos);
-        changeSupport.firePropertyChange("cell",null,targetPos);
     }
 
     public void setFlag(Point targetPos, CFlag flag, boolean b) {
+        GameMap oldMap = this.copy();
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()];
         if(oldCell.hasFlag(flag) == b)return;
         cellArray2D[targetPos.getX()][targetPos.getY()] = oldCell.getMutation(flag, b);
         changedCellPoints.add(targetPos);
-        changeSupport.firePropertyChange("cell",null,targetPos);
     }
 
     public int getCellID(Point spawnPoint) {
@@ -319,7 +317,7 @@ public class GameMap {
         cellArray2D[pair.getKey().getX()][pair.getKey().getY()] = pair.getValue();
     }*/
 
-//    public void addChangeListener(PropertyChangeListener listener) {
+//    public void initLevelChangeListener(PropertyChangeListener listener) {
 //        this.changeSupport.addPropertyChangeListener(listener);
 //    }
 
@@ -348,7 +346,7 @@ public class GameMap {
 
 //    public gamemap getSwappedEntityMap(String name, String beaconName) {
 //        //TODO: set Entity -> map
-//        gamemap output = this.clone();
+//        gamemap output = this.copy();
 //        Point p1 = output.entityCellMap.get(name);
 //        Point p2 = output.entityCellMap.get(beaconName);
 //        output.entityCellMap.replace(beaconName, p1);
@@ -390,11 +388,12 @@ public class GameMap {
         return cellHasFlag(targetPos, CFlag.OPEN)^cellHasFlag(targetPos, CFlag.INVERTED);
     }
 
-    public void removeAllListeners() {
-        changeSupport = new PropertyChangeSupport(this);
-    }
+//    public void removeAllListeners() {
+//        changeSupport = new PropertyChangeSupport(this);
+//    }
 
     public void changeEntityDirection(Point actorPoint, String direction) {
+        GameMap oldMap = this.copy();
         Entity entity = getEntity(actorPoint);
         switch (entity.getDirection()){
             case NORTH:
@@ -431,14 +430,13 @@ public class GameMap {
                 break;
         }
         changedCellPoints.add(actorPoint);
-        changeSupport.firePropertyChange("cell",null,actorPoint);
     }
 
     public void setEntityItem(Point actorPoint, ItemType item) {
+        GameMap oldMap = this.copy();
         Entity entity = getEntity(actorPoint);
         entity.setItem(item);
         changedCellPoints.add(actorPoint);
-        changeSupport.firePropertyChange("cell",null,actorPoint);
     }
 
     public Set<Point> getAndResetChangedPointList(){
@@ -446,5 +444,34 @@ public class GameMap {
         changedCellPoints = new SimpleSet<>();
         return output;
     }
+
+    public void changeHeight(int newHeight) {
+        Cell[][] newMapArray = new Cell[this.getBoundX()][newHeight];
+        for(int y = 0; y < newHeight; y++ ){
+            for(int x = 0; x < this.getBoundX(); x++){
+
+                if(y < this.getBoundY()){
+                    if(y == newHeight-1 && this.getContentAtXY(x,y) != CellContent.EMPTY)newMapArray[x][y]=  new Cell(CellContent.WALL);
+                    else newMapArray[x][y]=this.getCellAtXYClone(x,y);
+                }
+                else newMapArray[x][y] = new Cell(CellContent.WALL);
+            }
+        }
+        this.cellArray2D = newMapArray;
+    }
+    public void changeWidth(int newWidth) {
+        Cell[][] newMapArray = new Cell[newWidth][this.getBoundY()];
+        for(int y = 0; y < this.getBoundY(); y++ ){
+            for(int x = 0; x < newWidth; x++){
+                if(x < this.getBoundX()){
+                    if(x == newWidth-1 && this.getContentAtXY(x,y) != CellContent.EMPTY)newMapArray[x][y]=  new Cell(CellContent.WALL);
+                    else newMapArray[x][y] = this.getCellAtXYClone(x,y);
+                }
+                else newMapArray[x][y] = new Cell(CellContent.WALL);
+            }
+        }
+        this.cellArray2D = newMapArray;
+    }
+
 
 }
