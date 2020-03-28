@@ -6,13 +6,11 @@ import javafx.stage.Stage;
 import main.model.Level;
 import main.model.Model;
 import main.parser.CodeParser;
-import main.parser.JSONConstants;
 import main.parser.JSONParser;
 import main.utility.GameConstants;
 import main.utility.Util;
 import main.view.View;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +26,13 @@ public class Main extends Application {
         List<Level> unlockedLevelList = new ArrayList<>();
         for(Level l : levelList){
              Model.addLevel(l,false);
-             if(unlockedLevelNameList.contains(l.getName()))unlockedLevelList.add(l);
+            if(GameConstants.DEBUG)System.out.println("UNLOCKED LEVELS:");
+            if(GameConstants.DEBUG)System.out.println("==================");
+             if(unlockedLevelNameList.contains(l.getName())){
+                 unlockedLevelList.add(l);
+                 if(GameConstants.DEBUG)System.out.println(l.getName());
+             }
+            if(GameConstants.DEBUG)System.out.println("==================");
 //         }
         }
 
@@ -40,6 +44,7 @@ public class Main extends Application {
 
         List<String> unlockedStatementList = JSONParser.getUnlockedStatementList();
         Model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelList,unlockedStatementList);
+
     if(GameConstants.DEBUG)
         Tester.runTests();
         View view = View.getInstance(primaryStage);
@@ -53,7 +58,6 @@ public class Main extends Application {
                 CodeParser.parseProgramCode(view.getCodeArea().getAllText());
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllText()));
             }catch (Exception e){
-                e.printStackTrace();
             }
 
 

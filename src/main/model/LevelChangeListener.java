@@ -2,7 +2,7 @@ package main.model;
 
 public interface LevelChangeListener {
 
-    void updateAccordingToChanges(LevelChange levelChange);
+    void updateTemporaryChanges(LevelChange levelChange);
     void changesUndone();
     void updateAll();
 }

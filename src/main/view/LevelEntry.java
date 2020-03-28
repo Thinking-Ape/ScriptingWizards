@@ -60,4 +60,8 @@ public class LevelEntry extends HBox {
     public void updateImage(Image starImage) {
         bestStars.setImage(starImage);
     }
+
+    public Image getLevelImage() {
+        return imageView.getImage();
+    }
 }

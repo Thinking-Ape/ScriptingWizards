@@ -10,7 +10,7 @@ public abstract class EventSender {
         this.eventListeners.add(eventListener);
     }
 //    public void removeListener(EventListener eventListener){
-//        this.eventListeners.remove(eventListener);
+//        this.eventListeners.removeCurrentLevel(eventListener);
 //    }
     protected void notifyListener(Event event){
         for(EventListener eventListener : eventListeners){

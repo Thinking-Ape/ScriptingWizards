@@ -36,7 +36,7 @@ public class LevelChangeSender {
         else {
             levelChangeMap.put(levelDataType, change);
         }
-        levelChangeListener.updateAccordingToChanges(change);
+        levelChangeListener.updateTemporaryChanges(change);
     }
 
     public Map<LevelDataType,LevelChange> getAndConfirmChanges(){
@@ -53,7 +53,7 @@ public class LevelChangeSender {
         for(LevelChange change : levelChangeMap.values()){
             LevelChange levelChange = new LevelChange(change.getLevelDataType(), change.getOldValue(), change.getOldValue());
             output.add(levelChange);
-            levelChangeListener.updateAccordingToChanges(levelChange);
+            levelChangeListener.updateTemporaryChanges(levelChange);
         }
         levelChangeMap.clear();
         levelChangeListener.changesUndone();

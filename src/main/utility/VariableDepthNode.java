@@ -45,7 +45,7 @@ public class VariableDepthNode {
             for (Variable var : variableList) {
                 if (var.getName().equals(variableName)) {
                     variableList.remove(index);
-//                    valueList.remove(index);
+//                    valueList.removeCurrentLevel(index);
                     return true;
                 }
                 index++;

@@ -105,7 +105,8 @@ IMPORTANT:
  - EDITOR CONTROLLER 472
  - Current Map von Level nach Model? und in Model datenstrukturen wie Map<Level,BestCode> ...
  - make view static
- - color of skeletons wrong an knight tokens respawn <- needs usedKnights and countSkeletons!!  
+ - color of skeletons wrong an knight tokens respawn <- needs usedKnights and countSkeletons!!
+ - tutorial text lsöchen geht nicht
 ---------------------------------------------
 
 

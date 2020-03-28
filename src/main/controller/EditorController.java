@@ -19,7 +19,6 @@ import main.model.enums.CFlag;
 import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.model.statement.SimpleStatement;
-import main.parser.JSONConstants;
 import main.utility.GameConstants;
 import main.parser.JSONParser;
 import main.utility.Point;
@@ -86,7 +85,6 @@ public class EditorController implements PropertyChangeListener {
         }
 
         view.getLevelEditorModule().getSaveLevelBtn().setOnAction(event -> {
-
             saveChanges(Model.getAndConfirmCurrentChanges());
         });
 
@@ -95,50 +93,22 @@ public class EditorController implements PropertyChangeListener {
             String text = "";
 
             List<String> tutLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
-            if(Model.getCurrentTutorialSize() > 0) text = tutLines.get(Model.getCurrentTutorialIndex());
-            TextArea tutorialTextArea = new TextArea(text);
+            if(Model.getCurrentTutorialSize() > 0) text = tutLines.get(Model.getCurrentTutorialMessageIndex());
+            TextArea tutorialTextArea = new TextArea();
+            tutorialTextArea.setMaxSize(GameConstants.TEXTFIELD_WIDTH, GameConstants.TEXTFIELD_WIDTH/2.0);
+            tutorialTextArea.setFont(GameConstants.BIG_FONT);
             tutorialTextArea.setWrapText(true);
-            tutorialTextArea.setPromptText("Type your tutorial text here!");
+            tutorialTextArea.setText(text);
             editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
             editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
             editTutorialDialog.getDialogPane().setContent(tutorialTextArea);
+            editTutorialDialog.getDialogPane().setMaxWidth(GameConstants.TEXTFIELD_WIDTH*1.05);
             Platform.runLater(tutorialTextArea::requestFocus);
-            tutorialTextArea.textProperty().addListener((observableValue, s, t1) ->{tutorialTextArea.autosize();
-                String[] words = t1.split(" ");
-                double width =  0;
-                int lines = Util.countChars(t1,'\n');
-                double maxWidth = view.getLevelEditorModule().getTutorialTextArea().getMaxWidth()-GameConstants.SCREEN_WIDTH/110;
-                int spaces = 1;
-                int i = 1;
-
-                Text text3 = new Text(" ");
-                text3.setFont(GameConstants.MEDIUM_FONT);
-                for (String word : words){
-                    Text text2 = new Text(word);
-                    text2.setFont(GameConstants.MEDIUM_FONT);
-                    width += text2.getLayoutBounds().getWidth();
-                    if(i < words.length && spaces > 1&& maxWidth > text2.getLayoutBounds().getWidth()){
-                        if(width +text3.getLayoutBounds().getWidth() < maxWidth*lines)
-                        width += text3.getLayoutBounds().getWidth();
-                    }
-                    spaces++;
-                    if(width > maxWidth*lines){
-                        lines++;
-                        width = maxWidth*(lines-1)+text2.getLayoutBounds().getWidth();
-                        spaces = 1;
-                        while(lines*maxWidth < text2.getLayoutBounds().getWidth()){
-                            lines++;
-                        }
-                    }
-                    i++;
-                }
-                Text text1 = new Text(t1);
-                while(width < text1.getLayoutBounds().getWidth()-lines*text3.getLayoutBounds().getWidth()){
-                    lines++;
-                }
+            tutorialTextArea.textProperty().addListener((observableValue, s, t1) ->{
 //                Text text2 = new Text(t1);
 //                text2.setFont(GameConstants.MEDIUM_FONT);
-                if(lines > 6)tutorialTextArea.setText(s);}
+                if(Util.getRowCount(tutorialTextArea) > GameConstants.MAX_TUTORIAL_LINES)tutorialTextArea.setText(s);
+            }
 
             );
 
@@ -147,7 +117,7 @@ public class EditorController implements PropertyChangeListener {
             if(o.isPresent()&& o.get() == ButtonType.OK){
                 tutLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
                 String tutorialText = tutorialTextArea.getText();
-                tutLines.set(Model.getCurrentTutorialIndex(),tutorialText.trim());
+                tutLines.set(Model.getCurrentTutorialMessageIndex(),tutorialText.trim());
                 Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
                 //TODO: evaluate necessity
 //                setEditorHandlers();
@@ -158,16 +128,18 @@ public class EditorController implements PropertyChangeListener {
             Optional<ButtonType> o  = new Alert(Alert.AlertType.NONE,"Do you really want to delete this tutorial text?",ButtonType.OK, ButtonType.CANCEL).showAndWait();
             if(o.isPresent()&& o.get() == ButtonType.OK){
                 List<String> tutLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
-                tutLines.remove(Model.getCurrentTutorialIndex());
-                if(Model.getCurrentTutorialSize()<=2){
-                    if(Model.getCurrentTutorialSize()==1){
-                        view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(true);
-                        view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
-                        view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
-                    }
-                    else if(Model.getCurrentTutorialIndex() == 1)view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
-                    else view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
-                }
+                tutLines.remove(Model.getCurrentTutorialMessageIndex());
+                Model.decreaseTutorialMessageIndex();
+                Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
+//                if(Model.getCurrentTutorialSize()<=2){
+//                    if(Model.getCurrentTutorialSize()==1){
+//                        view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(true);
+//                        view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
+//                        view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
+//                    }
+//                    else if(Model.getCurrentTutorialMessageIndex() == 1)view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
+//                    else view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
+//                }
                 //TODO: evaluate necessity
 //                setEditorHandlers();
             }
@@ -180,7 +152,8 @@ public class EditorController implements PropertyChangeListener {
             }
 
             List<String> tutLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
-            tutLines.add("");
+            tutLines.add(Model.getCurrentTutorialMessageIndex()+1,"");
+            Model.increaseTutorialMessageIndex();
             Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
             view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(false);
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
@@ -188,7 +161,7 @@ public class EditorController implements PropertyChangeListener {
 
         view.getLevelEditorModule().getPrevTutorialTextBtn().setOnAction(evt -> {
             Model.prevTutorialMessage();
-            int index = Model.getCurrentTutorialIndex();
+            int index = Model.getCurrentTutorialMessageIndex();
             view.updateTutorialMessage();
             view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(false);
             if(index == 0){
@@ -197,7 +170,7 @@ public class EditorController implements PropertyChangeListener {
         });
         view.getLevelEditorModule().getNextTutorialTextBtn().setOnAction(evt -> {
             Model.nextTutorialMessage();
-            int index = Model.getCurrentTutorialIndex();
+            int index = Model.getCurrentTutorialMessageIndex();
             view.updateTutorialMessage();
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
             if(index+1 == ((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES)).size()){
@@ -210,16 +183,8 @@ public class EditorController implements PropertyChangeListener {
                 showSavingDialog();
 
             ChoiceDialog<String> levelsToOpenDialog = new ChoiceDialog<>();
-            List<String> levelNames = Model.getUnlockedLevelNames();
-            int index = 0;
-            for (int i = 0; i < levelNames.size(); i++) {
-                levelsToOpenDialog.getItems().add(null);
-            }
-            for (String levelName : levelNames) {
-
-                if (index == -1) throw new IllegalStateException("This Level shouldnt exist!");
-                index++;
-                levelsToOpenDialog.getItems().set(Model.getIndexOfLevelInList(levelName), levelName);
+            for (int i = 0; i < Model.getAmountOfLevels(); i++) {
+                levelsToOpenDialog.getItems().add(Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i)+"");
             }
             String levelName = (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
             levelsToOpenDialog.setSelectedItem(levelName);
@@ -405,9 +370,10 @@ public class EditorController implements PropertyChangeListener {
             hasAiCheckBox.setSelected(currentLevelHasAI);
             boolean currentLevelIsTut = (boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
             isTutorialCheckBox.setSelected(currentLevelIsTut);
-            boolean prevLevelIsTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex() > 0 ? Model.getCurrentIndex()-1 : 0);
+            boolean prevLevelIsTut = Model.getCurrentIndex() ==0 || (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex()-1);
+            boolean nextLevelIsTut = Model.getCurrentIndex() != Model.getAmountOfLevels()-1 && (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex() +1);
             // allow only those levels to be a tutorial whose predecessor is a tutorial to avoid weird required level dependencies!
-            if(Model.getCurrentIndex()!= 0 && !prevLevelIsTut)isTutorialCheckBox.setDisable(true);
+            if(!prevLevelIsTut||nextLevelIsTut)isTutorialCheckBox.setDisable(true);
             changeLvlDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
             changeLvlDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
             changeLvlDialog.getDialogPane().setContent(hBox);
@@ -872,10 +838,8 @@ public class EditorController implements PropertyChangeListener {
         Dialog<ButtonType> chooseRequiredLvlsDialog = new Dialog<>();
         ListView<String> requiredLevelsListView = new ListView<>();
         requiredLevelsListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        List<String> levelNameList = Model.getUnlockedLevelNames();
-        for (int i = 0; i < levelNameList.size(); i++) {
-            if (Model.getIndexOfLevelInList(levelNameList.get(i)) < Model.getCurrentIndex())
-            requiredLevelsListView.getItems().add(levelNameList.get(i));
+        for (int i = 0; i < Model.getCurrentIndex(); i++) {
+            requiredLevelsListView.getItems().add(Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, i)+"");
         }
         for (String requiredLevelName : (List<String>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS)) {
             int i = 0;

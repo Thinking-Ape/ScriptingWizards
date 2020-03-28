@@ -72,13 +72,13 @@ public class TutorialGroup extends Group {
 //        currentTutorialMessage.setTranslateX(30);
 //        currentTutorialMessage.setTranslateY(90);
         currentTutorialMessage.setMaxSize(GameConstants.TEXTFIELD_WIDTH, GameConstants.TEXTFIELD_WIDTH/2.0);
-        currentTutorialMessage.setTranslateX(-GameConstants.SCREEN_WIDTH/100.0);
-        currentTutorialMessage.setTranslateY(-GameConstants.SCREEN_HEIGHT/50.0);
+        currentTutorialMessage.setFont(GameConstants.BIG_FONT);
         ImageView bubble_IView = new ImageView(new Image("file:resources/images/Speech_Bubble.png"));
         bubble_IView.setScaleX(GameConstants.WIDTH_RATIO);
         bubble_IView.setScaleY(GameConstants.HEIGHT_RATIO);
+        currentTutorialMessage.setTranslateX(-bubble_IView.getBoundsInLocal().getWidth()/20.0);
+        currentTutorialMessage.setTranslateY(-bubble_IView.getBoundsInLocal().getHeight()/15.0);
         // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
-        currentTutorialMessage.setFont(GameConstants.BIG_FONT);
         currentTutorialMessage.setCache(false);
 //        String tabString = "\t";
 //        Rectangle wizard = new Rectangle(50,50,Color.BLUE);
@@ -90,6 +90,8 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setMouseTransparent(true);
         sp = new StackPane(bubble_IView, currentTutorialMessage);
         sp.setMouseTransparent(true);
+        StackPane.setAlignment(bubble_IView, Pos.TOP_RIGHT);
+        StackPane.setAlignment(currentTutorialMessage, Pos.TOP_RIGHT);
         sp.setAlignment(Pos.CENTER);
         sp.layout();
         sp.autosize();

@@ -2,7 +2,6 @@ package main.model;
 
 import main.model.enums.CFlag;
 import main.model.enums.CellContent;
-import main.model.enums.EntityType;
 import main.model.enums.ItemType;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
@@ -29,6 +28,8 @@ public abstract class Model {
     private static ComplexStatement playerBehaviour;
 
     private static int turnsTaken = 0;
+    private static int skeletonsSpawned = 0;
+    private static int knightsSpawned = 0;
     private static boolean isLost = false;
     private static boolean isWon = false;
     private static boolean aiFinished = false;
@@ -40,7 +41,7 @@ public abstract class Model {
     private static int tutorialProgress = -1;
 
 //    private static Model single_Instance = null;
-    private static int currentTutorialIndex = 0;
+    private static int currentTutorialMessageIndex = 0;
 
 //    private Model(){
 //        levelList = new ArrayList<>();
@@ -60,6 +61,7 @@ public abstract class Model {
         Model.bestTurnsMap = bestTurnsMap;
         Model.tutorialProgress = tutorialProgress;
         Model.unlockedLevelList = unlockedLevelsList;
+        if(unlockedLevelsList.size()==0)unlockedLevelsList.add(levelList.get(0));
         Model.unlockedStatementsList = unlockedStatementsList;
     }
 
@@ -77,7 +79,7 @@ public abstract class Model {
 
     public static void selectLevel(int index) {
         currentLevelIndex = index;
-        currentTutorialIndex = 0;
+        currentTutorialMessageIndex = 0;
         currentMap = getCurrentLevel().getOriginalMapCopy();
         currentAiBehaviour = getCurrentLevel().getAIBehaviourCopy();
         //TODO: dafuqqqqq??!
@@ -155,6 +157,7 @@ public abstract class Model {
                 break;
             case MAP_DATA:
                 getCurrentLevel().setGameMap((GameMap)value);
+                currentMap = getCurrentLevel().getOriginalMapCopy();
                 break;
 //            case MAP_HEIGHT:
 //                getCurrentLevel().changeHeight((int)value);
@@ -318,7 +321,8 @@ public abstract class Model {
             }
         }
         if(output.containsKey(LevelDataType.IS_TUTORIAL)){
-            //TODO!
+            if((boolean)output.get(LevelDataType.IS_TUTORIAL).getNewValue())
+                output.put(LevelDataType.REQUIRED_LEVELS,new LevelChange(LevelDataType.REQUIRED_LEVELS,getCurrentLevel().getRequiredLevelNamesCopy(),new ArrayList<>()));
         }
 //        levelChangeMap.clear();
 //        changeSupport.firePropertyChange("confirmed", null, null);
@@ -367,17 +371,17 @@ public abstract class Model {
     }
 
     public static void nextTutorialMessage() {
-        if(currentTutorialIndex < getCurrentLevel().getTutorialEntryListCopy().size()-1)
-            currentTutorialIndex++;
+        if(currentTutorialMessageIndex < getCurrentLevel().getTutorialEntryListCopy().size()-1)
+            currentTutorialMessageIndex++;
     }
 
-    public static int getCurrentTutorialIndex() {
-        return currentTutorialIndex;
+    public static int getCurrentTutorialMessageIndex() {
+        return currentTutorialMessageIndex;
     }
 
     public static void prevTutorialMessage() {
-        if(currentTutorialIndex>0)
-            currentTutorialIndex--;
+        if(currentTutorialMessageIndex >0)
+            currentTutorialMessageIndex--;
     }
 
     public static int getCurrentTutorialSize() {
@@ -436,11 +440,11 @@ public abstract class Model {
                 isLost = true;
                 break;
             }
-            boolean canSpawnKnights = getAmountOfKnights() < getCurrentLevel().getMaxKnights();
+            boolean canSpawnKnights = getAmountOfKnightsSpawned() < getCurrentLevel().getMaxKnights();
             method_Called_1 = CodeExecutor.executeBehaviour(statement,currentMap, true, canSpawnKnights);
             isWon = CodeExecutor.hasWon();
             isLost = CodeExecutor.hasLost();
-            if(getAmountOfKnights() == getCurrentLevel().getMaxKnights() && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))
+            if(getAmountOfKnightsSpawned() == getCurrentLevel().getMaxKnights() && currentMap.findSpawn().getX() != -1 && !currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))
                 currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
         }
 
@@ -474,6 +478,8 @@ public abstract class Model {
 
 
     private static void applyGameLogicToCells() {
+        if(CodeExecutor.knightWasSpawned())knightsSpawned++;
+        if(CodeExecutor.skeletonWasSpawned())skeletonsSpawned++;
         for(int x = 0; x < currentMap.getBoundX(); x++)
             for(int y = 0; y < currentMap.getBoundY(); y++) {
                 final Cell cell = currentMap.getCellAtXYClone(x,y);
@@ -564,13 +570,14 @@ public abstract class Model {
         return isStackOverflow;
     }
 
-    public static int getAmountOfKnights() {
-        if(currentMap == null)return 0;
-        return currentMap.getAmountOfEntities(EntityType.KNIGHT);
+    public static int getAmountOfKnightsSpawned() {
+        return knightsSpawned;
     }
 
     public static void reset() {
         turnsTaken = 0;
+        knightsSpawned = 0;
+        skeletonsSpawned = 0;
         isLost = false;
         isWon = false;
         aiFinished = false;
@@ -584,19 +591,23 @@ public abstract class Model {
         CodeExecutor.reset();
     }
 
-    public static int getAmountOfSkeletons() {
-        if(currentMap==null)return 0;
-        return currentMap.getAmountOfEntities(EntityType.SKELETON);
+    public static int getAmountOfSkeletonsSpawned() {
+        return skeletonsSpawned;
     }
 
     public static void updateUnlockedLevelsList() {
-        unlockedLevelList.add(getCurrentLevel());
+        if(bestLOCMap.get(Model.getCurrentLevel()).equals(-1))return;
+        if(!unlockedLevelList.contains(getCurrentLevel()))unlockedLevelList.add(getCurrentLevel());
+        int i = 0;
         for(Level l : levelList){
             int foundLevels = 0;
             for(String requiredLevelName : l.getRequiredLevelNamesCopy()){
-                for(Level fLName : unlockedLevelList)if(fLName.getName().equals(requiredLevelName))foundLevels++;
+                for(Level unlockedLevel : unlockedLevelList)if(unlockedLevel.getName().equals(requiredLevelName))foundLevels++;
             }
-            if(foundLevels == l.getRequiredLevelNamesCopy().size()) unlockedLevelList.add(l);
+            if(foundLevels == l.getRequiredLevelNamesCopy().size() && !l.isTutorial())
+                if(!unlockedLevelList.contains(l))unlockedLevelList.add(l);
+            if(!unlockedLevelList.contains(l)&&(l.isTutorial()&&Model.getNextTutorialIndex()==i) )unlockedLevelList.add(l);
+            i++;
         }
     }
 
@@ -678,14 +689,54 @@ public abstract class Model {
     }
 
     public static String getCurrentTutorialMessage() {
-        return getCurrentLevel().getTutorialEntryListCopy().get(currentTutorialIndex);
+        return getCurrentLevel().getTutorialEntryListCopy().get(currentTutorialMessageIndex);
     }
 
     public static void resetTutorialIndex() {
-        currentTutorialIndex = 0;
+        currentTutorialMessageIndex = 0;
     }
 
     public static void setCurrentAIBehaviour(ComplexStatement aiBehaviour) {
         currentAiBehaviour = aiBehaviour;
     }
+
+    public static int getAmountOfTutorials() {
+        int output = 0;
+        for(Level l : levelList){
+            if(l.isTutorial())output++;
+        }
+        return output;
+    }
+
+    public static int getTutorialSlot(String levelName) {
+        int output = 0;
+        for(Level l : levelList){
+            if(levelName.equals(l.getName())){
+                if(!l.isTutorial())return -1;
+                return output;
+            }
+            if(l.isTutorial())output++;
+        }
+        return -1;
+    }
+    public static int getNextTutorialIndex() {
+        int output = 0;
+        for(Level l : levelList){
+                if(l.isTutorial()&&output>currentLevelIndex)return output;
+                output++;
+            }
+        return -1;
+    }
+
+    public static void increaseTutorialMessageIndex() {
+        currentTutorialMessageIndex++;
+    }
+    public static void decreaseTutorialMessageIndex() {
+        currentTutorialMessageIndex--;
+    }
+
+//    public static void updateSpawnedEntities() {
+//        if(CodeExecutor.knightWasSpawned())knightsSpawned++;
+//        if(CodeExecutor.skeletonWasSpawned())skeletonsSpawned++;
+//    }
 }

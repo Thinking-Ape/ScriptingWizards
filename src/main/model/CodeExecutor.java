@@ -26,10 +26,12 @@ public abstract class CodeExecutor {
     private static boolean hasLost = false;
 
     private static boolean skeletonWasSpawned;
+    private static boolean knightWasSpawned;
 
 
     static boolean executeBehaviour(Statement statement, GameMap gameMap, boolean isPlayer, boolean canSpawnKnights) {
-        skeletonWasSpawned = false;
+        if(!isPlayer)skeletonWasSpawned = false;
+        else knightWasSpawned = false;
         currentGameMap  = gameMap;
         boolean method_Called = false;
         if(isPlayer)updateUnlocks(statement);
@@ -50,6 +52,7 @@ public abstract class CodeExecutor {
                 if(statement.getStatementType() == StatementType.ASSIGNMENT) currentGameMap.getEntity(name).deleteIdentity();
                 if(spawn.getX() != -1&&currentGameMap.isCellFree(spawn) && canSpawnKnights){
                     currentGameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
+                    knightWasSpawned = true;
                 }
 
             }else if(assignment.getVariable().getVariableType() == VariableType.SKELETON){ //TODO: stattdessen ENEMY?
@@ -335,11 +338,8 @@ public abstract class CodeExecutor {
         }}
     }
 
-    private ExpressionTree evaluateCommand(String parameter, MethodCall methodCall) {
-        if(methodCall.getParentStatement().getVariable(parameter)!=null){
-            return evaluateCommand(methodCall.getParentStatement().getVariable(parameter).getValue().getText(), methodCall);
-        }
-        else return ExpressionTree.expressionTreeFromString(parameter);
+    public static boolean knightWasSpawned() {
+        return knightWasSpawned;
     }
 
     static boolean hasWon() {

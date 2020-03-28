@@ -105,7 +105,7 @@ public abstract class CodeEvaluator {
      *  the current map
      * @throws IllegalAccessException This will only occur if there are incompatible types of Variables
      */
-    //TODO: remove IllegalAccessException
+    //TODO: removeCurrentLevel IllegalAccessException
     public static boolean testCondition(Condition condition) {
         if(condition == null)return true;
         if(condition.getConditionType() == ConditionType.SINGLE){

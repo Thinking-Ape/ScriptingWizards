@@ -67,6 +67,13 @@ public class Controller {
         view.getSpellBookPane().getCloseBtn().setOnAction(evt ->{
             view.toggleShowSpellBook();
         });
+
+        view.getSpellBookPane().getShowShortcutsBtn().setOnAction(evt ->{
+            Alert a = new Alert(Alert.AlertType.NONE,GameConstants.SHORTCUT_INFORMATION, ButtonType.CLOSE);
+            a.setWidth(GameConstants.TEXTFIELD_WIDTH*1.75);
+            a.getDialogPane().setMinWidth(GameConstants.TEXTFIELD_WIDTH*1.75);
+            a.showAndWait();
+        });
         view.getSpellBookPane().getMoveBtn().setOnMouseDragged(evt ->{
             Button moveBtn =  view.getSpellBookPane().getMoveBtn();
             view.getSpellBookPane().setTranslateX(view.getSpellBookPane().getTranslateX()+evt.getX()-mouse_PositionX-moveBtn.getWidth()/2);
@@ -143,7 +150,6 @@ public class Controller {
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllText()));
             }
             catch (Exception e){
-                e.printStackTrace();
             }
             System.exit(0);
         });
@@ -170,7 +176,7 @@ public class Controller {
                 Model.selectLevel(levelName);
                 view.setSceneState(SceneState.TUTORIAL);
             });
-            if(minIndex != -1){
+            if(Model.getTutorialProgress() != -1){
                 view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
 
             }
@@ -277,7 +283,7 @@ public class Controller {
         Dialog<ButtonType> deleteDialog = new Dialog<>();
 //            deleteDialog.getDialogPane().setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT )));
 
-        Label deleteLabel = new Label("You are going to remove all code! Are you sure?");
+        Label deleteLabel = new Label("You are going to removeCurrentLevel all code! Are you sure?");
         deleteLabel.setAlignment(Pos.CENTER);
         deleteLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
 //            deleteLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
@@ -341,6 +347,7 @@ public class Controller {
             timeline.getKeyFrames().addAll(new KeyFrame(Duration.seconds(0.8), event ->
             {
                 Statement[] executedStatements = Model.executeTurn();
+//                Model.updateSpawnedEntities();
                 int index = behaviour.findIndexOf(executedStatements[0],0);
                 //sadly with the current implementation, executeIfs cannot be detected as they are changed inside the CodeEvaluator
 //                    if(index == -1) index = behaviour.findIndexOf(currentLevel.getExecuteIfStatementWorkaround(),0);
@@ -377,28 +384,32 @@ public class Controller {
                     timeline.stop();
                     String winString = "You have won!"+"\nYou earned "  + (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (")+turns + " Turns, " + loc + " Lines of Code)";
 //                            Platform.runLater(() ->new Alert(Alert.AlertType.NONE,winString, ButtonType.OK).showAndWait());
-                    int amountOfTuts = Model.getCurrentTutorialSize();
+                    int amountOfTuts = Model.getAmountOfTutorials();
                     boolean isTutorial = (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
-                    int nextIndex = Model.getCurrentIndex()+1;
-                    String nextLevelName = (String) Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, nextIndex);
-                    GameMap nextLevelMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA, nextIndex);
-                    if(isTutorial&&view.getCurrentSceneState()==SceneState.TUTORIAL){
+                    int nextIndex = Model.getNextTutorialIndex();
 
-                        Model.nextTutorial();
+                    String nextLevelName;
+                    GameMap nextLevelMap;
+                    if(isTutorial&&view.getCurrentSceneState()==SceneState.TUTORIAL){
                         if(nStars >= Util.calculateStars(Model.getCurrentBestTurns(),Model.getCurrentBestLOC(),turnsToStars,locToStars))
-                            view.getTutorialLevelOverviewPane().updateCurrentLevel(amountOfTuts,Util.getStarImageFromDouble(nStars));
+                            view.getTutorialLevelOverviewPane().updateCurrentLevel();
 //                            minIndex = (minIndex > currentLevel.getIndex()) ? minIndex : currentLevel.getIndex();
                         minIndex = nextIndex-1 > minIndex ? nextIndex-1 : minIndex;
-                        if(nextIndex < amountOfTuts-1){
+                        if(nextIndex !=-1){
+                            Model.nextTutorial();
+                            nextLevelName = (String) Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, nextIndex);
+                            nextLevelMap  = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA, nextIndex);
                             if(!view.getTutorialLevelOverviewPane().containsLevel(nextLevelName))
                                 view.getTutorialLevelOverviewPane().addLevel(nextIndex, view.getImageFromMap(nextLevelMap));
                         }
                     }
                     else if(view.getCurrentSceneState()==SceneState.PLAY){
                         if(nStars >= Util.calculateStars(Model.getCurrentBestTurns(),Model.getCurrentBestLOC(),turnsToStars,locToStars))
-                            view.getLevelOverviewPane().updateCurrentLevel(amountOfTuts,Util.getStarImageFromDouble(nStars));
+                            view.getLevelOverviewPane().updateCurrentLevel();
 
-                        if(nextIndex < Model.getAmountOfLevels()-1){
+                        if(nextIndex !=-1){
+                            nextLevelName = (String) Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, nextIndex);
+                            nextLevelMap  = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA, nextIndex);
                             if(!view.getLevelOverviewPane().containsLevel(nextLevelName))
                             view.getLevelOverviewPane().addLevel(nextIndex, view.getImageFromMap(nextLevelMap));
                         }
@@ -493,8 +504,9 @@ public class Controller {
 
 //        winDialog.setContentText(winString);
         winDialog.getDialogPane().getButtonTypes().addAll(backBtn,replayBtn);
-        boolean nextLvlIsTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex()+1);
-        if(Model.getCurrentIndex() == Model.getAmountOfLevels()-1 &&(sceneState != SceneState.TUTORIAL || nextLvlIsTut) && sceneState != SceneState.LEVEL_EDITOR) {
+        boolean nextLvlIsTut = false;
+        if(Model.getCurrentIndex()+1<Model.getAmountOfLevels())nextLvlIsTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex()+1);
+        if(Model.getCurrentIndex() < Model.getAmountOfLevels()-1 &&(sceneState != SceneState.TUTORIAL || nextLvlIsTut) && sceneState != SceneState.LEVEL_EDITOR) {
             winDialog.getDialogPane().getButtonTypes().add(2, nextBtn);
         }
 //        if(sceneState == SceneState.TUTORIAL)

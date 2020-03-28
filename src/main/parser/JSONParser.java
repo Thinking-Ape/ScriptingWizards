@@ -66,19 +66,19 @@ public abstract class JSONParser {
                 for(CFlag cFlag : CFlag.values()){
                     if(cell.hasFlag(cFlag)) flagArray.put(cFlag.name().toLowerCase());
                 }
-                if(flagArray.length()>0){cellJSONObject.put("flags",flagArray);}
-                if(cell.getCellId() !=-1){cellJSONObject.put("id",cell.getCellId());}
-                if(cell.getItem()!=ItemType.NONE)cellJSONObject.put("item", cell.getItem().name().toLowerCase());
+                if(flagArray.length()>0){cellJSONObject.put(JSONConstants.CELL_FLAGS,flagArray);}
+                if(cell.getCellId() !=-1){cellJSONObject.put(JSONConstants.CELL_ID,cell.getCellId());}
+                if(cell.getItem()!=ItemType.NONE)cellJSONObject.put(JSONConstants.CELL_ITEM, cell.getItem().name().toLowerCase());
                 if(cell.getLinkedCellsSize()>0){
                     JSONArray linkedIdsJSONArray = new JSONArray();
                     for(int i = 0; i < cell.getLinkedCellsSize();i++){
                         linkedIdsJSONArray.put(cell.getLinkedCellId(i));
                     }
-                    cellJSONObject.put("linkedIds",linkedIdsJSONArray);
+                    cellJSONObject.put(JSONConstants.LINKED_CELL_IDS,linkedIdsJSONArray);
                 }
                 if(cellJSONObject.isEmpty())mapRow.put(cell.getContent().name().toLowerCase());
                 else {
-                    cellJSONObject.put("content",cell.getContent().name().toLowerCase());
+                    cellJSONObject.put(JSONConstants.CELL_CONTENT,cell.getContent().name().toLowerCase());
                     mapRow.put(cellJSONObject);
                 }
             }
@@ -94,7 +94,7 @@ public abstract class JSONParser {
         boolean isTutorial = (boolean) Model.getDataFromCurrentLevel(IS_TUTORIAL);
         ComplexStatement aiBehaviour = (ComplexStatement) Model.getDataFromCurrentLevel(AI_CODE);
 
-        fillJSONArrayWithObjects(requiredLevelsArray,requiredLevelNamesArray);
+        if(!isTutorial)fillJSONArrayWithObjects(requiredLevelsArray,requiredLevelNamesArray);
         JSONArray locToStarsArray = new JSONArray();
         fillJSONArrayWithObjects(locToStarsArray,locToStars);
         JSONArray turnsToStarsArray = new JSONArray();
@@ -297,7 +297,7 @@ public abstract class JSONParser {
 //                    if(unlocksArray.getJSONObject(j).getInt(JSONConstants.BEST_LOC,-1) == -1 ||unlocksArray.getJSONObject(j).getInt(JSONConstants.BEST_TURNS,-1) == -1 ){
 //                        for(int k = 0; k < unlocksArray.length();k++){
 //                            if(unlocksArray.getJSONObject(k).getString(JSONConstants.LEVEL_NAME).equals(unlockedLevel.getName())){
-//                                unlocksArray.remove(k);
+//                                unlocksArray.removeCurrentLevel(k);
 //                            }
 //                        }
 //                        dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);
@@ -310,11 +310,11 @@ public abstract class JSONParser {
 //                    }
 //                }
 //            }
-//            //TODO: remove code double!!
+//            //TODO: removeCurrentLevel code double!!
 //            if(!found){
 //                for(int k = 0; k < unlocksArray.length();k++){
 //                    if(unlocksArray.getJSONObject(k).getString(JSONConstants.LEVEL_NAME).equals(unlockedLevel.getName())){
-//                        unlocksArray.remove(k);
+//                        unlocksArray.removeCurrentLevel(k);
 //                    }
 //                }
 //                dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);
@@ -346,7 +346,7 @@ public abstract class JSONParser {
 //    //TODO: replace with other DATASTRUCTURE!!
 //    public static void removeLevelFromData(String name) {
 //        for(int i = 0; i < unlocksArray.length();i++){
-//            if(unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME).equals(name))unlocksArray.remove(i);
+//            if(unlocksArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME).equals(name))unlocksArray.removeCurrentLevel(i);
 //        }
 //        try {
 //            dataFileWriter.write(dataJSONObject.toString());
@@ -532,6 +532,13 @@ public abstract class JSONParser {
         Path levelFilePath = Path.of(GameConstants.LEVEL_ROOT_PATH,levelName+".json");
 
         String jsonString = "";
+
+        String oldName = levelName;
+        if(changes.containsKey(LEVEL_NAME)) {
+            oldName = (String)changes.get(LEVEL_NAME).getOldValue();
+            changeLevelFileName(oldName,levelName);
+            levelFileList = levelFolder.listFiles();
+        }
         jsonString = String.join("", Files.readAllLines(levelFilePath));
         JSONObject currentLevelJSONObject = new JSONObject(jsonString);
         if(changes.containsKey(LEVEL_INDEX)) {
@@ -655,10 +662,20 @@ public abstract class JSONParser {
 
         // Array of all Levels currently in data
         JSONArray unlockedLevelsArray = dataJSONObject.getJSONArray(JSONConstants.UNLOCKED_LEVELS, null);
+
         // Current Level in data as JSONObject
+        JSONObject currentLevelJSONObjectInData = null;
         int indexOfLevel = currentLevelJSONObject.getInt(JSONConstants.INDEX);
-
-
+        for(int i = 0; i< unlockedLevelsArray.length();i++){
+            if(unlockedLevelsArray.getJSONObject(i).getString(JSONConstants.LEVEL_NAME, "").equals(oldName))
+                currentLevelJSONObjectInData = unlockedLevelsArray.getJSONObject(i);
+        }
+        if(changes.containsKey(LEVEL_NAME)) {
+            if(currentLevelJSONObjectInData != null){
+                currentLevelJSONObjectInData.put(JSONConstants.LEVEL_NAME,levelName);
+                unlockedLevelsArray.put(indexOfLevel,currentLevelJSONObjectInData);
+            }
+        }
 //        if(changes.containsKey(UNLOCKED_STATEMENTS)) {
 //            levelChange =  changes.get(UNLOCKED_STATEMENTS);
 //            List<String> unlockedStatementList = (List<String>) (levelChange.getNewValue());
@@ -696,12 +713,6 @@ public abstract class JSONParser {
 //            unlockedLevelsArray.put(indexOfLevel,levelJSONObject);
 //        }
 
-        if(changes.containsKey(LEVEL_NAME)) {
-            String oldName = currentLevelJSONObject.getString(JSONConstants.LEVEL_NAME);
-            currentLevelJSONObject.put(JSONConstants.LEVEL_NAME,levelName);
-            unlockedLevelsArray.put(indexOfLevel,currentLevelJSONObject);
-            changeLevelFileName(oldName,levelName);
-        }
         dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS, unlockedLevelsArray);
         try (FileWriter dataFileWriter =new FileWriter(dataFilePath.toString())){
             dataFileWriter.write(dataJSONObject.toString());
@@ -742,9 +753,11 @@ public abstract class JSONParser {
         dataJSONObject.put(JSONConstants.UNLOCKED_STATEMENTS,jsonArray);
         dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, Model.getTutorialProgress());
         int skips = 0;
-        for(int i = 0; i < Model.getUnlockedLevelNames().size()+skips; i++){
-            String name = Model.getUnlockedLevelNames().get(i);
+        List<String> unlockedLevelNames =Model.getUnlockedLevelNames();
+        for(int i = 0; i < unlockedLevelNames.size()+skips; i++){
+            String name = Model.getNameOfLevelWithIndex(i+skips);
             int index = Model.getIndexOfLevelInList(name);
+            if(index > i)skips += index -i;
             int loc = Model.getBestLocOfLevel(index);
             int turns = Model.getBestTurnsOfLevel(index);
             List<String> code  = Model.getBestCodeOfLevel(index);
@@ -757,20 +770,25 @@ public abstract class JSONParser {
             JSONObject levelJSONO = new JSONObject();
             for(int j = 0; j<unlocksArray.length();j++){
                 if(found)break;
-                String levelName = unlocksArray.getJSONObject(j).getString(JSONConstants.LEVEL_NAME);
+                String levelName = unlocksArray.getJSONObject(j).getString(JSONConstants.LEVEL_NAME,"");
                 if(levelName.equals(name)){
+                    found =true;
                     levelJSONO.put(JSONConstants.BEST_LOC,loc);
                     levelJSONO.put(JSONConstants.BEST_TURNS,turns);
                     levelJSONO.put(JSONConstants.BEST_CODE,behaviourJArray);
                     levelJSONO.put(JSONConstants.LEVEL_NAME,name);
                     unlocksArray.put(j,levelJSONO);
-                    found =true;
                 }
             }
-            if(!found)
+            if(!found){
+                levelJSONO.put(JSONConstants.BEST_LOC,loc);
+                levelJSONO.put(JSONConstants.BEST_TURNS,turns);
+                levelJSONO.put(JSONConstants.BEST_CODE,behaviourJArray);
+                levelJSONO.put(JSONConstants.LEVEL_NAME,name);
                 unlocksArray.put(i,levelJSONO);
-            dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);
+            }
         }
+        dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);
         try (FileWriter dataFileWriter = new FileWriter(dataFilePath.toString())){
             dataFileWriter.write(dataJSONObject.toString());
         } catch (IOException e) {

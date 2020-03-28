@@ -69,7 +69,7 @@ public class Level {
 //            if(tutorialEntryList.size() > 0){
 //                tutorialMessages.addAll(tutorialEntryList);
 //                currentTutorialMessageProperty =
-//                        new SimpleStringProperty(null,GameConstants.CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME, tutorialMessages.get(getCurrentTutorialIndex()));
+//                        new SimpleStringProperty(null,GameConstants.CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME, tutorialMessages.get(getCurrentTutorialMessageIndex()));
 //            }
 //        }
 //    }
@@ -205,8 +205,8 @@ public class Level {
         List<String> old = new ArrayList<>(tutorialMessages);
         if(tutorialMessages.size()==0)
             tutorialMessages.add(entry);
-        else tutorialMessages.add(getCurrentTutorialIndex()+1,entry);
-//        currentTutorialIndexProperty.setValue(getCurrentTutorialIndex()+1+"");
+        else tutorialMessages.add(getCurrentTutorialMessageIndex()+1,entry);
+//        currentTutorialIndexProperty.setValue(getCurrentTutorialMessageIndex()+1+"");
 //        currentTutorialMessageProperty.setValue(entry);
 
 //        changeSupport.firePropertyChange(LevelDataType.TUTORIAL_LINES.name(),old ,tutorialMessages);
@@ -214,7 +214,7 @@ public class Level {
     /*public void setTutorialLine(String entry){
         List<String> old = new ArrayList<>(tutorialMessages);
         if(tutorialMessages.size() == 0) tutorialMessages.add(entry);
-        else tutorialMessages.set(getCurrentTutorialIndex(),entry);
+        else tutorialMessages.set(getCurrentTutorialMessageIndex(),entry);
         currentTutorialMessageProperty.setValue(entry);
 
 //        changeSupport.firePropertyChange(LevelDataType.TUTORIAL_LINES.name(),old ,tutorialMessages);
@@ -222,10 +222,10 @@ public class Level {
 
     /*public void deleteCurrentTutorialLine() {
         List<String> old = new ArrayList<>(tutorialMessages);
-        tutorialMessages.remove(getCurrentTutorialIndex());
+        tutorialMessages.removeCurrentLevel(getCurrentTutorialMessageIndex());
 
-        if(getCurrentTutorialIndex() == tutorialMessages.size() )currentTutorialIndexProperty.setValue(getCurrentTutorialIndex()-1+"");
-        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialIndex()));
+        if(getCurrentTutorialMessageIndex() == tutorialMessages.size() )currentTutorialIndexProperty.setValue(getCurrentTutorialMessageIndex()-1+"");
+        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialMessageIndex()));
 
 //        changeSupport.firePropertyChange(LevelDataType.TUTORIAL_LINES.name(),old ,tutorialMessages);
     }*/
@@ -249,7 +249,7 @@ public class Level {
         aiBehaviour.resetVariables(true);
     }
 /*
-    public int getCurrentTutorialIndex() {
+    public int getCurrentTutorialMessageIndex() {
         return Integer.valueOf(currentTutorialIndexProperty.get());
     }
 */
@@ -262,11 +262,11 @@ public class Level {
 
 //    public void prevTutorialMessage() {
 //        currentTutorialIndexProperty.setValue(Integer.valueOf(currentTutorialIndexProperty.get())-1+"");
-//        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialIndex()));
+//        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialMessageIndex()));
 //    }
 //    public void nextTutorialMessage() {
 //        currentTutorialIndexProperty.setValue(Integer.valueOf(currentTutorialIndexProperty.get())+1+"");
-//        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialIndex()));
+//        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialMessageIndex()));
 //    }
 
 //    public String getCurrentTutorialMsg() {

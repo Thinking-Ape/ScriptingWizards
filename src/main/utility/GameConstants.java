@@ -123,6 +123,14 @@ public abstract class GameConstants {
     public static final String COMPLEX_STATEMENT_REGEX = "^([ a-z]+ *\\( *[^{]+?\\)|else) *\\{(.*)$";
     public static final String LEVEL_IS_SAVED_STYLE = "-fx-background-color: rgba(150,255,150,0.75)";
     public static final String LEVEL_NOT_SAVED_STYLE = "-fx-background-color: rgba(255,150,150,0.75)";
+    public static final int MAX_TUTORIAL_LINES = 6;
+    public static final String SHORTCUT_INFORMATION = "Enter:\t\tCreate a new codefield\n" +
+            "Alt+Up:\t\tMove the current Codefield up, if this doesnt lead to an error\n"+
+            "Alt+Down:\tMove the current Codefield down, if this doesnt lead to an error\n"+
+            "Alt+Right:\tShow next tutorial message\n"+
+            "Alt+Left:\t\tShow previous tutorial message\n"+
+            "F5:\t\t\tActivate or deactivate the compiler in order to edit the whole CodeArea even if there are errors\n"+
+            "Ctrl+R:\t\tIf the current Codefield contains a declaration, you may rename that variable";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

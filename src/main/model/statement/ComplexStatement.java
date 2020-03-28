@@ -108,6 +108,7 @@ public class ComplexStatement implements Statement {
         List<String> output = new ArrayList<>();
         if(parentStatement != null)output.add(getText());
         for(Statement s : statementList)output.addAll(s.getCodeLines());
+        if(isComplex() && parentStatement != null )output.add("}");
         return output;
     }
 

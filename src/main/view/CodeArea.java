@@ -2,6 +2,7 @@ package main.view;
 
 
 import javafx.scene.control.Button;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -38,9 +39,10 @@ public class CodeArea extends VBox {
     private static int scrollAmount = 0;
     private static int aiScrollAmount = 0;
 
-    public final int MAX_CODE_LINES;
+    private final int MAX_CODE_LINES;
     private  Button upBtn = new Button();
     private Button downBtn = new Button();
+    private ImageView iconIView;
 
     private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
@@ -56,7 +58,7 @@ public class CodeArea extends VBox {
         codeVBox.setAlignment(Pos.TOP_LEFT);
         if(behaviour.getStatementListSize() == 0)behaviour.addSubStatement(new SimpleStatement());
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
-        ImageView iconIView;
+
         ImageView upBtnIV = new ImageView(new Image(GameConstants.UP_BTN_IMAGE_PATH));
         ImageView downBtnIV = new ImageView(new Image(GameConstants.DOWN_BTN_IMAGE_PATH));
         upBtnIV.setFitHeight(SMALL_BUTTON_SIZE/2);
@@ -378,5 +380,9 @@ public class CodeArea extends VBox {
     public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener){
         propertyChangeSupport = new PropertyChangeSupport(this);
         propertyChangeSupport.addPropertyChangeListener(propertyChangeListener);
+    }
+    public void setIconActive(boolean active){
+        if(!active)iconIView.setEffect(new ColorAdjust(0.1,0.1,0.1,-0.5));
+        else iconIView.setEffect(null);
     }
 }

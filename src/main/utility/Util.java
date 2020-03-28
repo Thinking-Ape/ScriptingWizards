@@ -1,9 +1,11 @@
 package main.utility;
 
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -309,6 +311,42 @@ public abstract class Util {
 
     }
 
+    public static int getRowCount(TextArea textArea) {
+        int currentRowCount = 0;
+        Text helper = new Text();
+
+        if(textArea.isWrapText()) {
+            // text needs to be on the scene
+            Text text = (Text) textArea.lookup(".text");
+            if(text == null) {
+                return currentRowCount;
+            }
+            helper.setFont(textArea.getFont());
+            for (CharSequence paragraph : textArea.getParagraphs()) {
+                helper.setText(paragraph.toString());
+                Bounds localBounds = helper.getBoundsInLocal();
+
+                double paragraphWidth = localBounds.getWidth();
+                if(paragraphWidth > text.getWrappingWidth()) {
+                    double oldHeight = localBounds.getHeight();
+                    // this actually sets the automatic size adjustment into motion...
+                    helper.setWrappingWidth(text.getWrappingWidth());
+                    double newHeight = helper.getBoundsInLocal().getHeight();
+                    // ...and we reset it after computation
+                    helper.setWrappingWidth(0.0D);
+
+                    int paragraphLineCount = Double.valueOf(newHeight / oldHeight).intValue();
+                    currentRowCount += paragraphLineCount;
+                } else {
+                    currentRowCount += 1;
+                }
+            }
+        } else {
+            currentRowCount = textArea.getParagraphs().size();
+        }
+        return currentRowCount;
+    }
+
     public static double calculateStars(int turns, int loc, Integer[] bestTurns, Integer[] bestLocs) {
         if(loc == -1 && turns == -1)return 0;
         int turnStars = 1;
@@ -399,7 +437,7 @@ public abstract class Util {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         if(isTurned)imageView.setRotate(270);
-        int amountOfKnights = Model.getAmountOfKnights();
+        int amountOfKnights = Model.getAmountOfKnightsSpawned();
         if(amountOfKnights < (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS)&&cell.getContent()== CellContent.SPAWN)
             switch (amountOfKnights){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
@@ -492,6 +530,13 @@ public abstract class Util {
             same = same && list1.get(i).equals(list2.get(i));
         }
         return same;
+    }
+
+    public static boolean isTooLongForCodefield(String code, int depth) {
+        Text text = new Text(code);
+        text.setFont(GameConstants.CODE_FONT);
+        if(text.getLayoutBounds().getWidth() > GameConstants.TEXTFIELD_WIDTH-GameConstants.CODE_OFFSET*depth-GameConstants.SCREEN_WIDTH/110)return true;
+        else return false;
     }
 
 

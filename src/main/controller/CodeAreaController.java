@@ -1,7 +1,9 @@
 package main.controller;
 
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
@@ -20,6 +22,7 @@ import main.view.View;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,13 +30,15 @@ public class CodeAreaController implements PropertyChangeListener {
 
     private View view;
     private int currentIndex = 0;
-    private boolean addBefore;
+    private boolean addBefore = false;
     private boolean isError = false;
 //    private boolean isErrorAI = false;
     private boolean gameRunning = false;
     private SimpleSet<Integer> selectedIndexSet = new SimpleSet<>();
     private boolean needsRecreation = false;
     private boolean showError;
+    private boolean codeLineAdded;
+    private boolean compilerActive = true;
 //    private List<String> codeLines
 
     public CodeAreaController(View view) {
@@ -84,12 +89,13 @@ public class CodeAreaController implements PropertyChangeListener {
         currentCodeField.setOnMousePressed(event -> {
             if(gameRunning || !currentCodeArea.isEditable())return;
             needsRecreation = false;
+            codeLineAdded = false;
 //            boolean isError = currentCodeArea.isAi() ? isErrorAI : isErrorPlayer;
 
             if(currentCodeArea.getSelectedCodeField() == currentCodeField) return;
             currentCodeArea.deselectAll();
             showError = true;
-            handleCodeFieldEvent(currentCodeArea.getAllText(),currentCodeArea);
+            if(compilerActive)handleCodeFieldEvent(currentCodeArea.getAllText(),currentCodeArea);
             if(!isError){
                 currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
                 currentCodeArea.deselectAll();
@@ -106,15 +112,14 @@ public class CodeAreaController implements PropertyChangeListener {
             //TODO: is this necessary?
             Platform.runLater(()->currentCodeField.setEmptyFlag(t1.equals("")));
             currentCodeField.autosize();
-            Text text = new Text(t1);
-            text.setFont(GameConstants.CODE_FONT);
-            if(text.getLayoutBounds().getWidth() > currentCodeField.getMaxWidth()-GameConstants.SCREEN_WIDTH/110)currentCodeField.setText(s);
+            if(Util.isTooLongForCodefield(t1,currentCodeField.getDepth()))currentCodeField.setText(s);
 
         });
 
         currentCodeField.setOnKeyPressed(event -> {
-            if (gameRunning || !currentCodeField.isEditable()){
+            if (gameRunning || (!currentCodeField.isEditable()&&event.isControlDown())){
                 currentCodeArea.requestFocus();
+                currentCodeField.requestFocus();
                 return;
             }
             needsRecreation = false;
@@ -124,8 +129,48 @@ public class CodeAreaController implements PropertyChangeListener {
             //TODO: needed?
             addBefore = false;
             showError = false;
+            codeLineAdded = false;
             currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
+            if(compilerActive && !isError && event.isControlDown() && event.getCode() == KeyCode.R){
+                Matcher variableMatcher = Pattern.compile("^[a-zA-Z]+ +("+GameConstants.VARIABLE_NAME_REGEX+")( *;| +=.*;)$").matcher(currentCodeField.getText());
+                if(variableMatcher.matches()){
+                    String varName = variableMatcher.group(1);
+                    TextInputDialog textInput = new TextInputDialog(varName);
+                    textInput.setContentText("Rename variable:");
+                    textInput.getEditor().textProperty().addListener((observableValue, s, t1) -> {
+                       if(!t1.matches(GameConstants.VARIABLE_NAME_REGEX))textInput.getEditor().setText(s);
+                        Text text = new Text(t1);
+                        text.setFont(textInput.getEditor().getFont());
+                        if(text.getLayoutBounds().getWidth() > textInput.getEditor().getLayoutBounds().getWidth())textInput.getEditor().setText(s);
+                    });
+                    Optional<String> result = textInput.showAndWait();
+                    if(result.isPresent()){
+                        String newName = result.get();
+                        for(int i = currentIndex; i< codeLines.size(); i++){
+                            String oldString = codeLines.get(i);
+                            String newString = codeLines.get(i).replaceAll("^(.*[^a-zA-Z0-9]+|)"+varName+"([^a-zA-Z0-9]+.*)$","$1"+newName+"$2");
+                            while(!oldString.equals(newString)){
+                                oldString = newString;
+                                newString = oldString.replaceAll("^(.*[^a-zA-Z0-9]+|)"+varName+"([^a-zA-Z0-9]+.*)$","$1"+newName+"$2");
+                            }
+                            if(i == currentIndex)if(Util.isTooLongForCodefield(newString, currentCodeField.getDepth())) {
+                                new Alert(Alert.AlertType.ERROR, "The resulting code field is too long!").showAndWait();
+                                return;
+                            }
+                            codeLines.set(i, newString);
+                        }
+                    }
+                }
+                needsRecreation = true;
+                handleCodeFieldEvent(codeLines, currentCodeArea);
+                return;
+            }
             switch (event.getCode()) {
+                case F5:
+                    compilerActive = !compilerActive;
+                    currentCodeArea.setIconActive(compilerActive);
+                    disableControlElements(!compilerActive,currentCodeArea);
+                    break;
                 case ENTER:
                     showError = true;
 //                    if(!currentCodeField.isEditable())return;
@@ -162,12 +207,13 @@ public class CodeAreaController implements PropertyChangeListener {
                     if (textAfterBracket.matches(complexStatementRegex)) // && currentCodeArea.getBracketBalance() >= 0)
                         codeLines.add(currentIndex + 1, "}");
 
-                    codeLines.add(currentIndex+1, textAfterBracket);
-                    if (!addBefore && !isError) currentIndex++;
+                    codeLines.add(addBefore ? currentIndex : currentIndex+1, textAfterBracket);
+                    if (!addBefore)
+                        codeLineAdded = true;
                     if (currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
                         currentCodeArea.scroll(scrollAmount);
                     break;
-
+                //TODO: bad code!
                 case BACK_SPACE:
                     if (!currentCodeField.isEditable()) {
                         currentCodeArea.deselectAll();
@@ -201,11 +247,11 @@ public class CodeAreaController implements PropertyChangeListener {
                             codeLines.remove(currentIndex);
                         }
                         currentIndex = (currentIndex > 0) ? currentIndex-1 : currentIndex;
-
+                        if(codeLines.size()==0)codeLines.add("");
                         break;
                     }
                     if (currentIndex == 0) break;
-                    if(!currentCodeField.getText().equals("") && codeLines.get(currentIndex-1).matches(" *")){ //TODO: vereinheitlicht " *" anstelle von ""?
+                    if(!currentCodeField.getText().equals("") && codeLines.get(currentIndex-1).matches(" *")&&currentCodeField.getCaretPosition() == 0){ //TODO: vereinheitlicht " *" anstelle von ""?
                         codeLines.remove(currentIndex-1);
                         scrollAmount = currentCodeArea.getScrollAmount()-1 > 0 ? currentCodeArea.getScrollAmount()-1 : 0;
                         if(currentIndex<= currentCodeArea.getScrollAmount())
@@ -258,7 +304,7 @@ public class CodeAreaController implements PropertyChangeListener {
                     scrollAmount = currentCodeArea.getScrollAmount() - 1 > 0 ? currentCodeArea.getScrollAmount() - 1 : 0;
                     if (currentIndex <= currentCodeArea.getScrollAmount())
                         currentCodeArea.scroll(scrollAmount);
-                    if(event.isControlDown()){
+                    if(event.isAltDown()){
                         int startIndex = currentIndex;
                         int endIndex = startIndex;
                         boolean isBalanced = currentCodeArea.getBracketBalance() == 0;
@@ -294,7 +340,7 @@ public class CodeAreaController implements PropertyChangeListener {
                     scrollAmount = currentCodeArea.getScrollAmount() + 1 < currentCodeArea.getSize() ? currentCodeArea.getScrollAmount() + 1 : currentCodeArea.getSize() - 1 - GameConstants.MAX_CODE_LINES;
                     if (currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
                         currentCodeArea.scroll(scrollAmount);
-                    if(event.isControlDown()){
+                    if(event.isAltDown()){
                         int startIndex = currentIndex;
                         int endIndex = startIndex;
                         boolean isBalanced = currentCodeArea.getBracketBalance() == 0;
@@ -337,7 +383,7 @@ public class CodeAreaController implements PropertyChangeListener {
 //                    else view.getBtnExecute().setDisable(false);
 //                    codeArea.select(currentIndex+1,true);
             }
-            handleCodeFieldEvent(codeLines,currentCodeArea);
+            if(compilerActive)handleCodeFieldEvent(codeLines,currentCodeArea);
         });
     }
 
@@ -362,11 +408,12 @@ public class CodeAreaController implements PropertyChangeListener {
             if(needsRecreation) {
                 currentCodeArea.updateCodeFields(behaviour);
                 setAllHandlersForCodeArea(currentCodeArea);
+                if(codeLineAdded)
+                    currentIndex++;
                 currentCodeArea.select(currentIndex, Selection.END);
             }
         }catch (Exception e){
             isError = true;
-
             disableControlElements(true,currentCodeArea);
             currentCodeArea.setEditable(false);
             currentCodeArea.setEditable(currentIndex,true);

@@ -47,6 +47,7 @@ public abstract class CodeParser {
         depthStatementMap = new HashMap<>();
         depthStatementMap.put(0,behaviour);
         for ( String code : codeLines){
+            if(Util.isTooLongForCodefield(code,depth))throw new IllegalArgumentException("This codeLine is too long: "+code);
             // empty lines are added but ignored when evaluating how many lines of code where used to complete the level
             if(code.matches(" *")){
                 depthStatementMap.get(depth - 1).addSubStatement(new SimpleStatement());

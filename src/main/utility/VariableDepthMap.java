@@ -3,7 +3,7 @@ package main.utility;
 import main.model.enums.VariableType;
 import main.model.statement.Expression.ExpressionTree;
 
-//TODO: remove?
+//TODO: removeCurrentLevel?
 public class VariableDepthMap {
 
     private VariableDepthNode  variableDepthNode;

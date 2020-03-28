@@ -158,7 +158,7 @@ public class LevelEditorModule {
         requiredLevelsLabel.setFont(new Font(requiredLevelsLabel.getFont().getName(),GameConstants.FONT_SIZE));
 //        indexValueLbl.setText(""+(level.getIndex()+1));
 //        isTutorialValueLbl.setText(""+level.isTutorial());
-        requiredLVBOX.getTransforms().add(new Translate(0,-20,0));
+        requiredLVBOX.getTransforms().add(new Translate(0,-TEXTFIELD_HEIGHT*0.8,0));
         topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevelNamesCopy().length*25+25);
         //TODO!
 //        update(level);
@@ -531,5 +531,14 @@ public class LevelEditorModule {
 
     public Label getMaxTurns2StarsVLbl() {
         return maxTurns2StarsVLbl;
+    }
+
+    public void showRequiredLevelsHBox(boolean b) {
+//        if(b && !topHBox.getChildren().contains(requiredLevelsHBox)){
+//            topHBox.getChildren().add(12,requiredLevelsHBox);
+//        }
+//        else topHBox.getChildren().remove(requiredLevelsHBox );
+        requiredLVBOX.setVisible(b);
+        editRequiredLevelsBtn.setVisible(b);
     }
 }

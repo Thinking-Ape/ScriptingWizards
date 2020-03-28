@@ -1,6 +1,7 @@
 package main.view;
 
 import javafx.scene.effect.DropShadow;
+import javafx.scene.text.Text;
 import main.controller.Selection;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -255,6 +256,16 @@ public class View implements LevelChangeListener {
         backBtn.setTooltip(new Tooltip("Return to Menu"));
         speedSlider.setTooltip(new Tooltip("Control the speed of the game"));
         showSpellBookBtn.setTooltip(new Tooltip("Show/Hide the Spellbook"));
+
+
+        List<String> storedCode;
+        try {
+            storedCode = JSONParser.getStoredCode();
+            if(storedCode.size()>0)
+                codeArea.updateCodeFields(CodeParser.parseProgramCode(storedCode));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -296,7 +307,7 @@ public class View implements LevelChangeListener {
         int maxKnights = (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
         for (int i = 0; i < maxKnights; i++) {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
-            int amountOfKnights = Model.getAmountOfKnights();
+            int amountOfKnights = Model.getAmountOfKnightsSpawned();
             if(i+ amountOfKnights == 1)tokenIView.setEffect(GREEN_ADJUST);
             if(i+amountOfKnights == 2)tokenIView.setEffect(VIOLET_ADJUST);
             if(i+amountOfKnights == 3)tokenIView.setEffect(LAST_ADJUST);
@@ -427,33 +438,29 @@ public class View implements LevelChangeListener {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         //COLOR EXPERIMENT:
-        int knightCount = 0;
-        int skeletonCount = 0;
-        for(String s : entityColorMap.keySet()){
-            if(Model.getCurrentMap().getEntity(s).getEntityType()== EntityType.KNIGHT)knightCount++;
-        }
+        int knightCount = Model.getAmountOfKnightsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
             switch (knightCount){
-                case 0: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
+                case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
                     break;
-                case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
+                case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
                     break;
-                case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
+                case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
                     break;
-                case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
+                case 4: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
                     break;
             }
         }
-        skeletonCount = entityColorMap.size()-knightCount;
+        int skeletonCount = Model.getAmountOfSkeletonsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.SKELETON){
             switch (skeletonCount){
-                case 0: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
+                case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
                     break;
-                case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
+                case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
                     break;
-                case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
+                case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
                     break;
-                case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
+                case 4: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
                     break;
             }
         }
@@ -499,7 +506,7 @@ public class View implements LevelChangeListener {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         if(isTurned)imageView.setRotate(270);
-        int amountOfKnights = Model.getAmountOfKnights();
+        int amountOfKnights = Model.getAmountOfKnightsSpawned();
         int maxKnights = (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
         if((amountOfKnights< maxKnights &&cell.getContent()== CellContent.SPAWN))
             switch (amountOfKnights){
@@ -512,7 +519,7 @@ public class View implements LevelChangeListener {
             }
         if(cell.getContent()== CellContent.ENEMY_SPAWN){
             //switch (entityColorMap.size() -Model.getCurrentLevel().getUsedKnights()){
-            int skelCount = Model.getAmountOfSkeletons();
+            int skelCount = Model.getAmountOfSkeletonsSpawned();
             switch (skelCount){
                 case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
                     break;
@@ -758,16 +765,37 @@ public class View implements LevelChangeListener {
         levelEditorModule.getMaxKnightsValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
         levelEditorModule.getIsTutorialValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
         levelEditorModule.getHeightValueLbl().setText("" + gameMap.getBoundY());
-        levelEditorModule.setRequiredLevels((List<String>)Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS));
+
         boolean isTutorial = (boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
+        if(isTutorial){
+            levelEditorModule.showRequiredLevelsHBox(false);
+        }
+        else{
+            levelEditorModule.showRequiredLevelsHBox(true);
+            levelEditorModule.setRequiredLevels((List<String>)Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS));
+        }
         levelEditorModule.getTutorialVBox().setVisible(isTutorial);
         List<String> tutorialLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
-        if(isTutorial)levelEditorModule.getTutorialTextArea().setText(tutorialLines.get(Model.getCurrentTutorialIndex()));
+        if(isTutorial){
+            levelEditorModule.getTutorialTextArea().setText(tutorialLines.get(Model.getCurrentTutorialMessageIndex()));
+            updateTutorialMessage();
+        }
         levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
-        if(Model.getCurrentTutorialSize()== 0)levelEditorModule.getNextTutorialTextBtn().setDisable(true);
+        if(Model.getCurrentTutorialSize()<= 1){
+            levelEditorModule.getNextTutorialTextBtn().setDisable(true);
+            levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
+        }
+        else if(Model.getCurrentTutorialMessageIndex()==0)
+            levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
+        else if(Model.getCurrentTutorialSize()== Model.getCurrentTutorialMessageIndex()-1)
+            levelEditorModule.getNextTutorialTextBtn().setDisable(true);
+        else {
+            levelEditorModule.getNextTutorialTextBtn().setDisable(false);
+            levelEditorModule.getPrevTutorialTextBtn().setDisable(false);
+        }
 //        levelEditorModule.updateTutorialSection(Model.getCurrentLevel());
         levelEditorModule.getHasAiValueLbl().setText(Model.getDataFromCurrentLevel(LevelDataType.HAS_AI)+"");
-        updateTutorialMessage();
+
     }
 
     @Override
@@ -776,6 +804,7 @@ public class View implements LevelChangeListener {
         selectedPointList = new ArrayList<>();
         selectedPointList.add(new Point(0, 0));
         boolean hasAi =(boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
+        levelNameLabel.setText(Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"");
         ComplexStatement aiBehaviour = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
         if (hasAi) {
             aiCodeArea.setVisible(true);
@@ -791,13 +820,16 @@ public class View implements LevelChangeListener {
         if (sceneState == SceneState.LEVEL_EDITOR) {
             updateLevelEditorModule();
         }
+        if (sceneState == SceneState.TUTORIAL) {
+            tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
+        }
         spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
         drawMap(Model.getCurrentMap());
-        highlightInMap(selectedPointList);
+        Platform.runLater(()->highlightInMap(selectedPointList));
     }
 
     @Override
-    public void updateAccordingToChanges(LevelChange levelChange) {
+    public void updateTemporaryChanges(LevelChange levelChange) {
 
         switch (levelChange.getLevelDataType()){
             case MAP_DATA:
@@ -811,6 +843,11 @@ public class View implements LevelChangeListener {
             case TURNS_TO_STARS:
             case REQUIRED_LEVELS:
             case IS_TUTORIAL:
+                if(levelChange.getLevelDataType().equals(LevelDataType.IS_TUTORIAL)){
+                    if((boolean)levelChange.getNewValue())
+                        Platform.runLater(()->tutorialLevelOverviewPane.addLevel(Model.getCurrentIndex(), getImageFromMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA))));
+                    else tutorialLevelOverviewPane.removeCurrentLevel();
+                }
             case TUTORIAL_LINES:
             case LEVEL_NAME:
             case HAS_AI:
@@ -849,6 +886,10 @@ public class View implements LevelChangeListener {
                 break;
         }
         levelEditorModule.toggleLevelIsSaved(!Model.currentLevelHasChanged());
+        String levelName = Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"";
+        if(levelChange.getLevelDataType()==LevelDataType.LEVEL_NAME)levelName = levelChange.getOldValue()+"";
+        if(tutorialLevelOverviewPane.containsLevel(levelName))tutorialLevelOverviewPane.updateLevel(levelName);
+        if(levelOverviewPane.containsLevel(levelName))levelOverviewPane.updateLevel(levelName);
         updateLevelEditorModule();
     }
 
@@ -945,14 +986,6 @@ public class View implements LevelChangeListener {
             aiCodeArea.setVisible(false);
             clearAICodeBtn.setVisible(false);
         }
-        List<String> storedCode;
-        try {
-            storedCode = JSONParser.getStoredCode();
-            if(storedCode.size()>0)
-                codeArea.updateCodeFields(CodeParser.parseProgramCode(storedCode));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         codeArea.select(0, Selection.START);
 
         aiCodeArea.draw();
@@ -1003,7 +1036,7 @@ public class View implements LevelChangeListener {
                 centerVBox.getChildren().addAll(levelNameLabel,centerHBox);
 //                tutorialScene = new Scene(rootPane);
 
-                if(JSONParser.getTutorialProgressIndex()==-1){
+                if(Model.getTutorialProgress()==-1){
                     isIntroduction = true;
                     tutorialGroup.activateIntroduction();
                     btnExecute.setMouseTransparent(true);
@@ -1313,11 +1346,11 @@ public class View implements LevelChangeListener {
     public void updateTutorialMessage() {
         if(getCurrentSceneState()==SceneState.LEVEL_EDITOR){
             levelEditorModule.getTutorialTextArea().setText(Model.getCurrentTutorialMessage());
-            levelEditorModule.getTutorialNumberValueLbl().setText(Model.getCurrentTutorialIndex()+"");
-            if(Model.getCurrentTutorialSize()>Model.getCurrentTutorialIndex()+1)levelEditorModule.getNextTutorialTextBtn().setDisable(false);
+            levelEditorModule.getTutorialNumberValueLbl().setText(Model.getCurrentTutorialMessageIndex()+"");
+            if(Model.getCurrentTutorialSize()>Model.getCurrentTutorialMessageIndex()+1)levelEditorModule.getNextTutorialTextBtn().setDisable(false);
         }else {
             tutorialGroup.getCurrentTutorialMessage().setText(Model.getCurrentTutorialMessage());
-            if(Model.getCurrentTutorialSize()>Model.getCurrentTutorialIndex()+1)tutorialGroup.getNextBtn().setDisable(false);
+            if(Model.getCurrentTutorialSize()>Model.getCurrentTutorialMessageIndex()+1)tutorialGroup.getNextBtn().setDisable(false);
         }
     }
 }

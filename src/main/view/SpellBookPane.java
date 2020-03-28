@@ -24,6 +24,7 @@ public class SpellBookPane extends VBox {
 
     private Button closeBtn = new Button("x");
     private Button moveBtn = new Button("<+>");
+    private Button showShortcutsBtn = new Button("Show Shortcuts");
 
 
     public SpellBookPane(){
@@ -38,9 +39,9 @@ public class SpellBookPane extends VBox {
 //        Rectangle rect = new Rectangle(spellListView.getPrefWidth()+10,spellListView.getPrefHeight()+25,Color.BLACK);//spellListView.getItems().size()*20,Color.WHITE);
 //        this.setMouseTransparent(true);
 //        closeBtn.setAlignment(Pos.TOP_RIGHT);
-        HBox hBox = new HBox(new SpellBookLabel(SpellBookLabelType.HEADING,"Spell Book","Contains all spells you've unlocked!"),moveBtn,closeBtn);
+        HBox hBox = new HBox(new SpellBookLabel(SpellBookLabelType.HEADING,"Spell Book","Contains all spells you've unlocked!"), showShortcutsBtn,moveBtn,closeBtn);
 
-        hBox.setSpacing(SPELLBOOK_WIDTH/3);
+        hBox.setSpacing(SPELLBOOK_WIDTH/6);
         hBox.setAlignment(Pos.TOP_RIGHT);
         this.getChildren().addAll(hBox,spellListView);
         this.setAlignment(Pos.CENTER);
@@ -280,6 +281,9 @@ public class SpellBookPane extends VBox {
     }
     public Button getMoveBtn() {
         return moveBtn;
+    }
+    public Button getShowShortcutsBtn() {
+        return showShortcutsBtn;
     }
 
 }
