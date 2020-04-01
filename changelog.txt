@@ -5,6 +5,8 @@ Version 1.4c:
     - Fixed a bug where newly created levels could not be removed!
     - Removed unnecessary calls to draw the map
     - Fixed a bug where within the tutorial the wrong messages would be shown
+    - Fixed a bug where solving a level would always give -1 loc and -1 turns
+    - Fixed a bug where levels would be unlocked because of unlocking other levels (without completing them)
 Version 1.4b:
     - You will now receive a warning once when pressing F5
     - Bug fixes concerning Background Image in startscreen
