@@ -25,6 +25,7 @@ import main.model.enums.CFlag;
 import main.model.statement.ComplexStatement;
 import main.utility.Point;
 import main.utility.Util;
+import main.view.CodeAreaType;
 
 import static main.model.LevelDataType.*;
 import static main.utility.GameConstants.NO_ENTITY;
@@ -178,7 +179,7 @@ public abstract class JSONParser {
         for (int i = 0; i < aiLineArray.length(); i++){
             aiLines.add(aiLineArray.getString(i));
         }
-            complexStatement =  CodeParser.parseProgramCode(aiLines,false);
+            complexStatement =  CodeParser.parseProgramCode(aiLines, CodeAreaType.AI);
         }
         assert spawn.getX()!=-1;
         JSONArray turnsToStarsArray = jsonObject.getJSONArray(JSONConstants.TURNS_TO_STARS,new JSONArray());

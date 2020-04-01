@@ -77,36 +77,26 @@ IMPORTANT:
  - Wenn möglich, die Zeilen etwas größer machen. Größere Fontsize für Code.
  - Buttons für das Entfernen und Hinzufügen von Zeilen an bestimmten Stellen wären super. ZB. ein rotes Kreuz bei allen Zeilen, die man gerade löschen kann.
  - Cursor ist bei Zeilen mit "}" nicht vorhanden, dh man sieht nicht, ob man gerade in dieser Zeile ist
- - Es wäre cool, wenn man irgendwie mehrere zusammenhängende Zeilen löschen könnte, zB. durch Pausieren des Syntax-Checkers.
  - Allgemein mehr Features für den Editor wie zB. Markieren oder Drag & Drop von Code-Zeilen wären sehr hilfreich.
- - Zhu: Spiral In hat diesen schwarzen scrollbar bug!
- - Text nicht zentriert in Sprechblase
- - f5 für kompilieren?
  ==========================
- - Visitor Pattern zum ablaufen der statements?
  - allow XOR (^)?
  - EIGENE METHODEN
- - SPEICHERN IM LEVEL EDITOR BESSER IMPLEMENTIEREN!
  - (Level, das randInt verwendet!)
- - Levelname green background in LevelEditor -> saved else red and warning upon leaving level
- - View should no longer "observe" Level!
  - Better Understand and clean up CodeParser
- - you can just put ; wherever nd it will be removed
+ - you can just put ; wherever and it will be removed
  - make controlElements ignore keyboard input?
- - copy level button
  - back() Method?
- - JSON-Parser rework + saveChanges Method!!!
  - Visitor-pattern to walk through complexstatements
- - Implement Level Changes finishing <- keine Map<ChangeType,LevelChange> sondern Set<ChangeType>??
- - Level Changes <- AI_CODE and LOC_TO_STARS ARE ALWAYS THERE!
- - MAP CANNOT BE CHANGED ANYMORE OMG!"!111
- - save all data just once when leaving the game
  - jan: Wechsel auf FastAndFurious geht nicht (NEXT) und da geht auch LoadBestCode nicht!
  - EDITOR CONTROLLER 472
- - Current Map von Level nach Model? und in Model datenstrukturen wie Map<Level,BestCode> ...
  - make view static
- - color of skeletons wrong an knight tokens respawn <- needs usedKnights and countSkeletons!!
- - tutorial text lsöchen geht nicht
+ - improve error message by e.g.: "for *(.*) *{" and "int [] = .+;.+;.+"
+ - make CodeArea only 3 times avaiable!! and then store the scroll amounts respectively
+ - decide what to do with custom methods!
+ - rework how regexes are implemented + also question Enums like Direction! + make TestForCorrectParameters() in CodeParser obsolete -> TestForcorrectValueType
+ - allow _ in variable Names?? HMMM
+ - if compiler not active -> make all codefields editable? disable isError?
+ - for(int i=0;i<5;int i) { is valid!! makie not valid!!!!
 ---------------------------------------------
 
 

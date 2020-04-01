@@ -5,17 +5,16 @@ import main.utility.Util;
 
 public enum VariableType {
     INT("int","[-+]?\\d+"),
-    ACTION(".*",""),
-    KNIGHT("Knight","new Knight\\((EAST|WEST|NORTH|SOUTH)?\\)"),       // oder auch alles zu Entity zusammenfassen?? und dann aber EntityType abprüfen?
-    SKELETON("Skeleton","(new Skeleton\\((EAST|WEST|NORTH|SOUTH)?\\)|new Skeleton\\((EAST|WEST|NORTH|SOUTH),-?\\d+\\))"),
-    DIRECTION ("Direction","(NORTH|SOUTH|EAST|WEST)"), // NORTH SOUTH EAST WEST
+    VOID("void",""),
+    KNIGHT("Knight","new Knight\\(("+GameConstants.DIRECTION_REGEX+"|"+GameConstants.VARIABLE_NAME_REGEX+")?\\)"),       // oder auch alles zu Entity zusammenfassen?? und dann aber EntityType abprüfen?
+    SKELETON("Skeleton","(new Skeleton\\(("+GameConstants.DIRECTION_REGEX+"|"+GameConstants.VARIABLE_NAME_REGEX+")?\\)|new Skeleton\\(("+GameConstants.DIRECTION_REGEX+"|"+GameConstants.VARIABLE_NAME_REGEX+"),-?\\d+\\))"),
+    DIRECTION ("Direction",GameConstants.DIRECTION_REGEX), // NORTH SOUTH EAST WEST
     TURN_DIRECTION ("TurnDirection","(LEFT|RIGHT|AROUND)"), // LEFT RIGHT AROUND
     CELL_CONTENT("CellContent", Util.getRegEx(CellContent.values())),
     ITEM_TYPE("ItemType", Util.getRegEx(ItemType.values())),
     ENTITY_TYPE("EntityType", Util.getRegEx(EntityType.values())),
     ARMY("Army","new Army\\(( *"+ GameConstants.VARIABLE_NAME_REGEX+" *, *)*"+GameConstants.VARIABLE_NAME_REGEX+" *\\)"),
     BOOLEAN("boolean","(true|false)"),
-
     //THIS MUST BE THE LAST ENTRY BECAUSE OF A CIRCULAR REFERENCE TO METHODTYPE!!!!
 //    COMMAND("Command",MethodType.getAllActionRegex()),
 
@@ -27,7 +26,7 @@ public enum VariableType {
         for(VariableType vt : values()){
             if(text.matches(vt.allowedValues))return vt;
         }
-        return ACTION;
+        return VOID;
     }
 
     public String getAllowedRegex() {
@@ -46,7 +45,7 @@ public enum VariableType {
         for(VariableType variableType : values()){
             if(variableTypeString.equals(variableType.name))return variableType;
         }
-        if (variableTypeString.equals(""))return ACTION;
+        if (variableTypeString.equals(""))return VOID;
         throw new IllegalArgumentException("VariableType "+ variableTypeString +" doesnt exist!");
     }
     public String getName(){

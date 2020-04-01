@@ -13,7 +13,7 @@ public class MethodCall extends SimpleStatement {
     public MethodCall(MethodType methodType,String objectName,String parameters){
         super(StatementType.METHOD_CALL);
         this.methodType = methodType;
-        this.expressionTree = new ExpressionTree(new ExpressionLeaf(objectName), ExpressionType.SIMPLE,new ExpressionLeaf(parameters)); //1,1,0 wen bisher vergesssen immer 0
+        this.expressionTree = new ExpressionTree(new ExpressionLeaf(objectName), ExpressionType.SIMPLE,ExpressionTree.expressionTreeFromString(parameters)); //1,1,0 wen bisher vergesssen immer 0
     }
 
     public ExpressionTree getExpressionTree(){
@@ -24,7 +24,12 @@ public class MethodCall extends SimpleStatement {
 
     @Override
     public String getText(){
-        return getExpressionTree().getLeftNode().getText()+"."+methodType.getName()+"("+getExpressionTree().getRightNode().getText()+");";
+        String methodString = "";
+        String objectName = getExpressionTree().getLeftNode().getText();
+        if(!objectName.equals(""))methodString = getExpressionTree().getLeftNode().getText()+"."+methodType.getName()+"("+getExpressionTree().getRightNode().getText()+");";
+        else methodString = methodType.getName()+"("+getExpressionTree().getRightNode().getText()+");";
+
+        return methodString;
     }
 
     public String getObjectName() {

@@ -10,6 +10,8 @@ import main.utility.GameConstants;
 public class CodeField extends TextField {
 
     private int depth;
+    // this is needed, because if isEmpty() would return .equals("") the current line would be deleted when there is
+    // only 1 char left and backspace is pressed -> unwanted behaviour
     private boolean isEmpty;
     private boolean hasListener = false;
 //    Text text;
@@ -17,7 +19,7 @@ public class CodeField extends TextField {
     public CodeField(String code, int depth, boolean isEditable){
         this.setEditable(isEditable);
         this.depth = depth;
-        isEmpty = code.equals("");
+//        isEmpty = code.equals("");
         if(code.equals("}"))this.setEditable(false);
         setText(code);
         this.setFont(GameConstants.CODE_FONT);

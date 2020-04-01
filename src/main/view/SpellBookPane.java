@@ -25,6 +25,7 @@ public class SpellBookPane extends VBox {
     private Button closeBtn = new Button("x");
     private Button moveBtn = new Button("<+>");
     private Button showShortcutsBtn = new Button("Show Shortcuts");
+    private Button createMethodBtn = new Button("Create Method");
 
 
     public SpellBookPane(){
@@ -51,6 +52,8 @@ public class SpellBookPane extends VBox {
         this.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
 //        this.setPickOnBounds(false);
 //        this.getChildren().addAll();//rect,vBox);
+        //TODO: decide what to do with this
+//        this.getChildren().add(createMethodBtn );
     }
 
     public void updateSpellbookEntries(List<String> unlockedSpells){
@@ -281,6 +284,9 @@ public class SpellBookPane extends VBox {
     }
     public Button getMoveBtn() {
         return moveBtn;
+    }
+    public Button getCreateMethodBtn() {
+        return createMethodBtn;
     }
     public Button getShowShortcutsBtn() {
         return showShortcutsBtn;

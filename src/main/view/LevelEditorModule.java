@@ -11,6 +11,7 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Translate;
 import main.model.Level;
 import main.model.LevelChange;
+import main.model.Model;
 import main.model.enums.CellContent;
 import main.model.enums.ItemType;
 import main.model.gamemap.GameMap;
@@ -75,9 +76,10 @@ public class LevelEditorModule {
     private Button deleteLevelBtn = new Button("Delete Level");
     private Button openLevelBtn = new Button("Open Level");
     private Button newLevelBtn = new Button("New Level");
+    private Button copyLevelBtn = new Button("Copy Level");
     private Button resetLevelScoresBtn = new Button("Reset Level Score");
     private Button reloadLevelBtn = new Button("Reload Level");
-    private HBox bottomHBox = new HBox(newLevelBtn, openLevelBtn, saveLevelBtn, deleteLevelBtn, reloadLevelBtn, resetLevelScoresBtn);
+    private HBox bottomHBox = new HBox(newLevelBtn, copyLevelBtn, openLevelBtn, saveLevelBtn, deleteLevelBtn, reloadLevelBtn, resetLevelScoresBtn);
     private VBox requiredLVBOX = new VBox(requiredLevelsLabel,requiredLevelsLView);
     private Button changeLvlNameBtn = new Button("Change Level Name");
     private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new HBox(maxKnightsLbl,maxKnightsValueLbl),new HBox(), new HBox(maxLocVbox,maxLocValueVbox), new HBox(maxTurnsVbox,maxTurnsValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
@@ -191,6 +193,7 @@ public class LevelEditorModule {
 //        cellItemSelectionGPane.add(button,j,i);
         bottomHBox.setAlignment(Pos.TOP_CENTER);
         topHBox.setAlignment(Pos.BASELINE_CENTER);
+        if(Model.getAmountOfLevels()==1)deleteLevelBtn.setDisable(true);
     }
 
     void update(LevelChange change) {
@@ -431,6 +434,7 @@ public class LevelEditorModule {
         deleteLevelBtn.setDisable(b);
         openLevelBtn.setDisable(b);
         newLevelBtn.setDisable(b);
+        copyLevelBtn.setDisable(b);
         saveLevelBtn.setDisable(b);
         reloadLevelBtn.setDisable(b);
         resetLevelScoresBtn.setDisable(b);
@@ -452,6 +456,9 @@ public class LevelEditorModule {
 
     public Button getReloadLevelBtn() {
         return reloadLevelBtn;
+    }
+    public Button getCopyLevelBtn() {
+        return copyLevelBtn;
     }
 
     public Label getIndexValueLbl() {

@@ -1,3 +1,24 @@
+Version 1.4c:
+    - Reworked behaviour of pressing backspace or delete whilst on '}' Codefields
+    - Fixed a bug where the current Index of a level would not change
+    - Also Challenge Levels can longer be moved in between Tutorial levels!
+    - Fixed a bug where newly created levels could not be removed!
+Version 1.4b:
+    - You will now receive a warning once when pressing F5
+    - Bug fixes concerning Background Image in startscreen
+    - Bug fixes concerning pressing Keys after selecting a codefield that should not be editable
+Version 1.4a:
+    - new shortcuts and shortcut changes:
+        - Ctrl-Arrow Keys -> Alt-Arrow Keys
+        - Ctrl-R: rename variable, if current codefield contains declaration
+        - F5: Toggle Syntax-Checker, if off: can edit codefields even if there is an error
+        - can be viewed in spellbook
+    - Improved runtime performance
+    - Level Editor will now show whenever a Level has been changed and must be saved or reset before leaving
+    - Added the a CopyLevel Button to the Level-Editor
+    - AI-CodeArea now has their own bug textarea
+    - improved centering of Tutorial-Text
+    - temporarily removed best codes, as the version is closing in on the version that will be presented to the students
 Version 1.3c:
     - Code Font is no longer MonoSpaced as it restricted the amount of possible code massively!
     - Removed VariableType Command as it can no longer be used (since 1.3a)
@@ -11,7 +32,7 @@ Version 1.3c:
     - Fixed a bug where you could save broken levels by leaving and reentering the editor
 Version 1.3b:
     - Fixed clicking on Scroll Buttons not working
-    - Now only redrawes images that are different instead of redrawing the whole map
+    - Now only redraws images that are different instead of redrawing the whole map
     - Fixed a bug where after an empty line in an if-Statement the wrong line would be marked as currently executed
     - Now no code will be marked upon finishing
     - Fixed a bug where HashSets would contain identical Elements (o1.equals(o2) = true)

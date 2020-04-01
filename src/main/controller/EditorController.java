@@ -7,7 +7,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import main.model.LevelChange;
 import main.model.LevelDataType;
 import main.model.gamemap.Cell;
@@ -63,9 +62,7 @@ public class EditorController implements PropertyChangeListener {
     }
 
     public void setEditorHandlers() {
-//        CodeAreaController codeAreaController2 = new CodeAreaController(view,Model);
         if((boolean)Model.getDataFromCurrentLevel(LevelDataType.HAS_AI))view.getLevelEditorModule().getHasAiValueLbl().setText(""+true);
-//            codeAreaController.setAllHandlersForCodeArea(true);
         else view.getLevelEditorModule().getHasAiValueLbl().setText(""+false);
         setHandlersForMapCells();
         setHandlersForCellTypeButtons();
@@ -74,8 +71,6 @@ public class EditorController implements PropertyChangeListener {
             int k = p.getX();
             int h = p.getY();
             GameMap gameMapClone = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
-            CellContent content = gameMapClone.getContentAtXY(k, h);
-//            view.setCContentButtonDisabled(content,true);
             //END OF TODO
 
             int cellId  = gameMapClone.getCellID(k,h);
@@ -84,9 +79,6 @@ public class EditorController implements PropertyChangeListener {
             changeEditorModuleDependingOnCellContent(view.getSelectedPointList());
         }
 
-        view.getLevelEditorModule().getSaveLevelBtn().setOnAction(event -> {
-            saveChanges(Model.getAndConfirmCurrentChanges());
-        });
 
         view.getLevelEditorModule().getEditTutorialTextBtn().setOnAction(evt -> {
             Dialog<ButtonType> editTutorialDialog = new Dialog<>();
@@ -105,12 +97,9 @@ public class EditorController implements PropertyChangeListener {
             editTutorialDialog.getDialogPane().setMaxWidth(GameConstants.TEXTFIELD_WIDTH*1.05);
             Platform.runLater(tutorialTextArea::requestFocus);
             tutorialTextArea.textProperty().addListener((observableValue, s, t1) ->{
-//                Text text2 = new Text(t1);
-//                text2.setFont(GameConstants.MEDIUM_FONT);
+                // Cant have more than MAX_TUTORIAL_LINES lines of tutorial
                 if(Util.getRowCount(tutorialTextArea) > GameConstants.MAX_TUTORIAL_LINES)tutorialTextArea.setText(s);
-            }
-
-            );
+            });
 
             Optional<ButtonType> o  = editTutorialDialog.showAndWait();
             tutorialTextArea.requestFocus();
@@ -119,8 +108,6 @@ public class EditorController implements PropertyChangeListener {
                 String tutorialText = tutorialTextArea.getText();
                 tutLines.set(Model.getCurrentTutorialMessageIndex(),tutorialText.trim());
                 Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
-                //TODO: evaluate necessity
-//                setEditorHandlers();
             }
         });
 
@@ -131,17 +118,6 @@ public class EditorController implements PropertyChangeListener {
                 tutLines.remove(Model.getCurrentTutorialMessageIndex());
                 Model.decreaseTutorialMessageIndex();
                 Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
-//                if(Model.getCurrentTutorialSize()<=2){
-//                    if(Model.getCurrentTutorialSize()==1){
-//                        view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(true);
-//                        view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
-//                        view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
-//                    }
-//                    else if(Model.getCurrentTutorialMessageIndex() == 1)view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(true);
-//                    else view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
-//                }
-                //TODO: evaluate necessity
-//                setEditorHandlers();
             }
         });
 
@@ -157,6 +133,7 @@ public class EditorController implements PropertyChangeListener {
             Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
             view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(false);
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
+
         });
 
         view.getLevelEditorModule().getPrevTutorialTextBtn().setOnAction(evt -> {
@@ -178,6 +155,9 @@ public class EditorController implements PropertyChangeListener {
             }
         });
 
+        view.getLevelEditorModule().getSaveLevelBtn().setOnAction(event -> {
+            saveChanges(Model.getAndConfirmCurrentChanges());
+        });
         view.getLevelEditorModule().getOpenLevelBtn().setOnAction(event -> {
             if(Model.currentLevelHasChanged())
                 showSavingDialog();
@@ -198,13 +178,10 @@ public class EditorController implements PropertyChangeListener {
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
                 String levelName = (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
                 File file = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString()+"/"+levelName+".json");
-                if(file.delete()){
-                    Model.removeCurrentLevel();
-                    //TODO: Model.getCurrentLevel().addListener(view);
-//                    view.notify(Event.LEVEL_CHANGED);
-//                    setEditorHandlers();
-                }
+                file.delete();
+                Model.removeCurrentLevel();
             }
+            if(Model.getAmountOfLevels()==1)view.getLevelEditorModule().getDeleteLevelBtn().setDisable(true);
         });
         view.getLevelEditorModule().getResetLevelScoresBtn().setOnAction(event -> {
 
@@ -225,15 +202,6 @@ public class EditorController implements PropertyChangeListener {
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
                     Model.reloadCurrentLevel();
-//                if(!Util.arrayContains(JSONParser.getAllLevelNames(),Model.getCurrentLevel().getName())){
-//                    new Alert(Alert.AlertType.NONE, "This Level has not been saved yet!", ButtonType.OK).showAndWait();
-//                    return;
-//                }
-//                try {
-//                    Model.reloadCurrentLevel(Model.getCurrentLevel().getName(),JSONParser.parseLevelJSON(Model.getCurrentLevel().getName()+".json"));
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
             }
         });
         view.getLevelEditorModule().getNewLevelBtn().setOnAction(event -> {
@@ -266,52 +234,91 @@ public class EditorController implements PropertyChangeListener {
             newLevelDialog.getDialogPane().setContent(new HBox(new Label("Name:"),nameTField,new Label("Width"),widthTField,new Label("Height"),heightTField,new Label("Has AI"),hasAiCheckBox));
 
             Optional<ButtonType> o  = newLevelDialog.showAndWait();
-            if(o.isPresent()){
-                if (o.get() == ButtonType.OK) {
-                    //TODO: unify and correctify!
-                    if(heightTField.getText().equals("") || widthTField.getText().equals("")){
-                        new Alert(Alert.AlertType.NONE,"Level could not be created due to a lack of width or height parameters!");
-                    }
-                    int height = Integer.valueOf(heightTField.getText());
-                    int width = Integer.valueOf(widthTField.getText());
-                    width = width > GameConstants.MAX_LEVEL_SIZE ? GameConstants.MAX_LEVEL_SIZE : width < GameConstants.MIN_LEVEL_SIZE ? GameConstants.MIN_LEVEL_SIZE:width;
-                    height = height > GameConstants.MAX_LEVEL_SIZE ? GameConstants.MAX_LEVEL_SIZE : height < GameConstants.MIN_LEVEL_SIZE ? GameConstants.MIN_LEVEL_SIZE:height;
-                    Cell[][] map = new Cell[width][height];
-                    for(int i = 0; i < width;i++){
-                        for(int j = 0; j < height;j++){
-                            map[i][j] = new Cell(CellContent.WALL);
-                        }
-                    }
-//                    ComplexStatement aiCode = new ComplexStatement();
-//                    aiCode.addSubStatement(new SimpleStatement());
-                    ComplexStatement complexStatement = new ComplexStatement();
-                    if(hasAiCheckBox.isSelected())complexStatement.addSubStatement(new SimpleStatement());
-                    Integer[] turnsToStars = new Integer[2];
-                    turnsToStars[0] = 0;
-                    turnsToStars[1] = 0;
-                    Integer[] locToStars = new Integer[2];
-                    locToStars[0] = 0;
-                    locToStars[1] = 0;
-//                    int index = Model.getCurrentLevel().getIndex()+1;
-//                    for(int i = index; i <Model.getAmountOfLevels();i++){
-//                        Model.getLevelWithIndex(i).setIndexProperty(i+1,true);
-//                    }
-                    //TODO: adapt indexes!
-                    Model.addLevel(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new String[0],3,false,null),true); //TODO!
+            if(o.isPresent()&& o.get() == ButtonType.OK) {
+                if(heightTField.getText().equals("") || widthTField.getText().equals("")){
+                    new Alert(Alert.AlertType.NONE,"Level could not be created due to a lack of width or height parameters!");
+                }
+                int height = Integer.valueOf(heightTField.getText());
+                int width = Integer.valueOf(widthTField.getText());
+                width = width > GameConstants.MAX_LEVEL_SIZE ? GameConstants.MAX_LEVEL_SIZE : width < GameConstants.MIN_LEVEL_SIZE ? GameConstants.MIN_LEVEL_SIZE:width;
+                height = height > GameConstants.MAX_LEVEL_SIZE ? GameConstants.MAX_LEVEL_SIZE : height < GameConstants.MIN_LEVEL_SIZE ? GameConstants.MIN_LEVEL_SIZE:height;
 
-                    view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());
+                Cell[][] map = new Cell[width][height];
+                for(int i = 0; i < width;i++){
+                    for(int j = 0; j < height;j++){
+                        map[i][j] = new Cell(CellContent.WALL);
+                    }
+                }
+
+                ComplexStatement complexStatement = new ComplexStatement();
+                if(hasAiCheckBox.isSelected())complexStatement.addSubStatement(new SimpleStatement());
+                Integer[] turnsToStars = new Integer[2];
+                turnsToStars[0] = 0;
+                turnsToStars[1] = 0;
+                Integer[] locToStars = new Integer[2];
+                locToStars[0] = 0;
+                locToStars[1] = 0;
+                Model.addLevelAtCurrentPos(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new String[0],1,false,null),true); //TODO!
+                // There ain't no spawn when creating a new Level!
+                view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
+                view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());
+                view.getLevelEditorModule().getDeleteLevelBtn().setDisable(false);
+            }
+
+        });
+
+        view.getLevelEditorModule().getCopyLevelBtn().setOnAction(event -> {
+            if(Model.currentLevelHasChanged())showSavingDialog();
+            String name = Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"_Copy";
+            if(Model.hasLevelWithName(name)){
+                new Alert(Alert.AlertType.INFORMATION,"This level already exists!").showAndWait();
+                return;
+            }
+            GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+
+            int height = gameMap.getBoundY();
+            int width = gameMap.getBoundX();
+            Cell[][] map = new Cell[width][height];
+            for(int i = 0; i < width;i++){
+                for(int j = 0; j < height;j++){
+                    map[i][j] = gameMap.getCellAtXYClone(i, j);
                 }
             }
+            ComplexStatement complexStatement = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
+            Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
+            Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
+            List<String> requiredLevelsList = (List<String>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS);
+            String[] requiredLevelsArray = new String[requiredLevelsList.size()];
+            int i = 0;
+            for(String s : requiredLevelsList){
+                requiredLevelsArray[i] = s;
+                i++;
+            }
+            List<String> tutorialEntries = (List<String>) Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
+            int maxKnights = (int) Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
+            boolean isTutorial = (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
+            boolean hasAI = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
+            Model.addLevelAtCurrentPos(new Level(name,map,complexStatement,turnsToStars,locToStars,requiredLevelsArray,maxKnights,isTutorial,tutorialEntries),true);
+
+            view.getLevelEditorModule().getDeleteLevelBtn().setDisable(false);
+            if(((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
+                view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
+            }
+            else view.getLevelEditorModule().getSaveLevelBtn().setDisable(false);
+            view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAI);
         });
+
+
         view.getLevelEditorModule().getEditRequiredLevelsBtn().setOnAction(this::handleEditRequiredLevelsBtn);
         view.getLevelEditorModule().getMoveIndexDownBtn().setOnAction(actionEvent -> {
             int currentLevelIndex = Model.getCurrentIndex();
             if(currentLevelIndex == 0){
-//                setEditorHandlers();
                 return;
             }
-            Model.moveCurrentLevelDown();
-//            setEditorHandlers();
+            if((boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,currentLevelIndex-1) &&
+                    !(boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
+                new Alert(Alert.AlertType.NONE,"Can't move Level down, as Challenge Levels must not come in between Tutorial Levels",ButtonType.OK).showAndWait();
+            else Model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex-1);
         });
         view.getLevelEditorModule().getMoveIndexUpBtn().setOnAction(actionEvent -> {
             int currentLevelIndex = Model.getCurrentIndex();
@@ -319,15 +326,12 @@ public class EditorController implements PropertyChangeListener {
                 return;
             }
 
-            Model.moveCurrentLevelUp();
-
-//            setEditorHandlers();
+            if(Model.getNextTutorialIndex()==-1 && (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
+                new Alert(Alert.AlertType.NONE,"Can't move Level up, as Tutorial Levels must not come after a Challenge Level",ButtonType.OK).showAndWait();
+            else Model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex+1);
         });
         view.getLevelEditorModule().getEditLvlBtn().setOnAction(event -> {
             Dialog<ButtonType> changeLvlDialog = new Dialog<>();
-//            TextField nameTField = new TextField(Model.getCurrentLevel().getName());
-//            TextField heightTField = new TextField(Model.getCurrentLevel().getOriginalMapCopy().getBoundY()+"");
-//            TextField widthTField = new TextField(Model.getCurrentLevel().getOriginalMapCopy().getBoundX()+"");
             Slider heightSlider = new Slider();
             Label heightLbl = new Label();
             heightSlider.valueProperty().addListener((observableValue, number, t1) -> heightLbl.setText(t1.intValue()+""));
@@ -355,15 +359,9 @@ public class EditorController implements PropertyChangeListener {
             TextField turns2StarsTField = new TextField(turnsToStars[0]+"");
             TextField turns3StarsTField = new TextField(turnsToStars[1]+"");
 
-//            nameTField.textProperty().addListener((observableValue, s, t1) -> {
-//                if(t1.matches("(\\d+.*)+")){
-//                    nameTField.setText(s);
-//                }
-//            });
-            addChangeListenerForIntTFields(/*heightTField,widthTField,*/loc2StarsTField,loc3StarsTField,turns2StarsTField,turns3StarsTField);
+            addChangeListenerForIntTFields(loc2StarsTField,loc3StarsTField,turns2StarsTField,turns3StarsTField);
             CheckBox hasAiCheckBox = new CheckBox();
             CheckBox isTutorialCheckBox = new CheckBox();
-            //new Label("Name:"),nameTField,
             HBox hBox = new HBox(sizeVBox,maxKnightsVBox,new VBox(new Label("*** max. LoC: "),new Label("** max. LoC: ")),new VBox(loc3StarsTField,loc2StarsTField),new VBox(new Label("*** max. Turns: "),new Label("** max. Turns: ")),new VBox(turns3StarsTField,turns2StarsTField),
                     new Label("Has AI"),hasAiCheckBox,new Label("Is Tutorial"),isTutorialCheckBox);
             boolean currentLevelHasAI = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
@@ -428,19 +426,16 @@ public class EditorController implements PropertyChangeListener {
 
     private void saveChanges(Map<LevelDataType, LevelChange> changes) {
         //TODO: make it so this button cannot be clicked in this case!
-        if(((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
-            Alert alert = new Alert(Alert.AlertType.NONE,"You cannot save a level without a spawn!",ButtonType.OK);
-            alert.setTitle("Alert!");
-            alert.setHeaderText("");
-            alert.showAndWait();
-            return;
-        }
+
         try {
 //            JSONParser.saveLevel(level);
-            if(Model.isCurrentLevelNew()) JSONParser.saveCurrentLevel( );
+            if(Model.isCurrentLevelNew()){
+                JSONParser.saveCurrentLevel( );
+                Platform.runLater(()->Model.resetLevelNew());
+            }
             else JSONParser.saveLevelChanges(changes, (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
 //            JSONParser.saveIndexAndRequiredLevels(Model.getLevelListCopy());
-            Model.updateUnlockedLevelsList();
+            Model.updateUnlockedLevelsList(true);
             Alert alert = new Alert(Alert.AlertType.NONE,"Level was saved!",ButtonType.OK);
             alert.setTitle("Success!");
             alert.setHeaderText("");
@@ -454,7 +449,14 @@ public class EditorController implements PropertyChangeListener {
         Alert savingAlert = new Alert(Alert.AlertType.NONE, "This level has unsaved changes! Do you want to save them?", ButtonType.YES,ButtonType.NO);
         Optional<ButtonType> btnType =savingAlert.showAndWait();
         if(btnType.isPresent() && btnType.get() == ButtonType.YES){
-            saveChanges(Model.getAndConfirmCurrentChanges());
+            if(((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
+                Model.reloadCurrentLevel();
+                Alert alert = new Alert(Alert.AlertType.NONE,"You cannot save a level without a spawn!",ButtonType.OK);
+                alert.setTitle("Alert!");
+                alert.setHeaderText("");
+                alert.showAndWait();
+            }
+            else saveChanges(Model.getAndConfirmCurrentChanges());
         }
         else if(btnType.isPresent()){
             Model.reloadCurrentLevel();
@@ -800,6 +802,11 @@ public class EditorController implements PropertyChangeListener {
                 changeEditorModuleDependingOnCellContent(view.getSelectedPointList());}
                 gameMap.setMultipleContents(view.getSelectedPointList(),content);
                 Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                if(gameMap.findSpawn().getX()==-1){
+                    view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
+                } else {
+                    view.getLevelEditorModule().getSaveLevelBtn().setDisable(false);
+                }
                 setHandlersForMapCells();
                 });
         }
@@ -830,7 +837,7 @@ public class EditorController implements PropertyChangeListener {
     //TODO: reimplement!
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if(evt.getPropertyName().equals("map")&&view.getCurrentSceneState()== SceneState.LEVEL_EDITOR&&!codeAreaController.isGameRunning())
+        if(evt.getPropertyName().equals("map")&&view.getCurrentSceneState()== SceneState.LEVEL_EDITOR)
             setEditorHandlers();
     }
 

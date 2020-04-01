@@ -4,6 +4,7 @@ import main.model.statement.Condition.Condition;
 import main.parser.CodeParser;
 import main.utility.SimpleSet;
 import main.utility.Variable;
+import main.view.CodeAreaType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,8 +113,8 @@ public class ComplexStatement implements Statement {
         return output;
     }
 
-    public ComplexStatement copy(boolean isAI) {
-        return CodeParser.parseProgramCode(getCodeLines(),!isAI);
+    public ComplexStatement copy(CodeAreaType codeAreaType) {
+        return CodeParser.parseProgramCode(getCodeLines(),codeAreaType);
     }
 
     @Override

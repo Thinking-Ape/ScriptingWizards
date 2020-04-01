@@ -2,6 +2,7 @@ package main.controller;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
@@ -14,10 +15,7 @@ import main.parser.CodeParser;
 import main.utility.GameConstants;
 import main.utility.SimpleSet;
 import main.utility.Util;
-import main.view.CodeArea;
-import main.view.CodeField;
-import main.view.SceneState;
-import main.view.View;
+import main.view.*;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -32,70 +30,103 @@ public class CodeAreaController implements PropertyChangeListener {
     private int currentIndex = 0;
     private boolean addBefore = false;
     private boolean isError = false;
-//    private boolean isErrorAI = false;
-    private boolean gameRunning = false;
-    private SimpleSet<Integer> selectedIndexSet = new SimpleSet<>();
     private boolean needsRecreation = false;
     private boolean showError;
-    private boolean codeLineAdded;
+    private boolean needToIncreaseCurrentIndex;
     private boolean compilerActive = true;
-//    private List<String> codeLines
+    private boolean neverShown = true;
+    // Maybe a feature for future versions: Select Multiple CodeFields
+//    private SimpleSet<Integer> selectedIndexSet = new SimpleSet<>();
 
     public CodeAreaController(View view) {
         this.view = view;
-        view.getCodeArea().addPropertyChangeListener(this);
-        view.getAICodeArea().addPropertyChangeListener(this);
+
+        CodeArea.getInstance(CodeAreaType.PLAYER).addPropertyChangeListener(this);
+        CodeArea.getInstance(CodeAreaType.AI).addPropertyChangeListener(this);
+        CodeArea.getInstance(CodeAreaType.METHOD_CREATOR).addPropertyChangeListener(this);
+
+        setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.PLAYER));
+        setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.AI));
+        setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.METHOD_CREATOR));
     }
-    private void setAllHandlersForCodeArea(CodeArea currentCodeArea) {
-//        boolean isError = currentCodeArea.isAi() ? isErrorAI : isErrorPlayer;
+    public void setAllHandlersForCodeArea(CodeArea currentCodeArea) {
         for (CodeField codeField : currentCodeArea.getCodeFieldListClone()) {
             setHandlerForCodeField(codeField,currentCodeArea);
-
         }
+        // Clicking the Icon above any of the two(three) CodeAreas will toggle the Compiler for that CodeArea
+        currentCodeArea.getIcon().setOnMousePressed(keyEvent -> {
+            compilerActive = !compilerActive;
+            // if the compiler is inactive every code line may be edited
+            if(!compilerActive){
+                currentCodeArea.setEditable(true);
+            }
+            // upon reactivation the CodeArea will be recreated
+            else {
+                needsRecreation = true;
+                handleCodeFieldEvent(currentCodeArea.getAllText(), currentCodeArea);
+            }
+            currentCodeArea.setIconActive(compilerActive);
+            disableControlElements(!compilerActive,currentCodeArea);
+        });
+
+        // Make sure that the AI-CodeArea may only be edited within the Editor
         if(currentCodeArea.isAi() && view.getCurrentSceneState() != SceneState.LEVEL_EDITOR) currentCodeArea.setEditable(false);
+
+        // When scrolling with the mouse on a CodeArea will setScrollAmount through the codefields
         currentCodeArea.setOnScroll(evt -> {
             if(isError)return;
+            // scrolling up or down will return a negative / positive value for y
             double y = evt.getDeltaY();
-            int dy = currentCodeArea.getScrollAmount();
-            if(y < 0 && dy+1<= currentCodeArea.getSize()-GameConstants.MAX_CODE_LINES)dy ++;
-            if(y > 0 && dy-1 >= 0)dy--;
-            currentCodeArea.scroll(dy);
+            int scroll = currentCodeArea.getScrollAmount();
+            if(y < 0 && scroll+1<= currentCodeArea.getSize()-GameConstants.MAX_CODE_LINES)scroll ++;
+            if(y > 0 && scroll-1 >= 0)scroll--;
+            currentCodeArea.setScrollAmount(scroll);
 
         });
         currentCodeArea.getUpBtn().setOnAction(actionEvent -> {
             if(isError)return;
-            currentCodeArea.scroll(currentCodeArea.getScrollAmount() - 1);
+            // Only to be safe, as UpBtn should be disabled in this case
+            if(currentCodeArea.getScrollAmount() - 1<0)return;
+            currentCodeArea.setScrollAmount(currentCodeArea.getScrollAmount() - 1);
         });
         currentCodeArea.getDownBtn().setOnAction(actionEvent -> {
             if(isError)return;
-            currentCodeArea.scroll(currentCodeArea.getScrollAmount()+ 1);
+            // Only to be safe, as DownBtn should be disabled in this case
+            if(currentCodeArea.getScrollAmount() + 1 + GameConstants.MAX_CODE_LINES > currentCodeArea.getSize())return;
+            currentCodeArea.setScrollAmount(currentCodeArea.getScrollAmount()+ 1);
         });
-        currentCodeArea.getUpBtn().setOnMouseEntered(actionEvent -> {
-            currentCodeArea.getUpBtn().setEffect(GameConstants.HIGHLIGHT_BTN_EFFECT);
-        });
-        currentCodeArea.getDownBtn().setOnMouseEntered(actionEvent -> {
 
-            currentCodeArea.getDownBtn().setEffect(GameConstants.HIGHLIGHT_BTN_EFFECT);
-        });
-        currentCodeArea.getUpBtn().setOnMouseExited(actionEvent -> {
-            currentCodeArea.getUpBtn().setEffect(GameConstants.GLOW_BTN_EFFECT);
-        });
-        currentCodeArea.getDownBtn().setOnMouseExited(actionEvent -> {
+        // Only visual
+        currentCodeArea.getUpBtn().setOnMouseEntered(actionEvent -> currentCodeArea.getUpBtn().setEffect(GameConstants.HIGHLIGHT_BTN_EFFECT));
+        currentCodeArea.getDownBtn().setOnMouseEntered(actionEvent -> currentCodeArea.getDownBtn().setEffect(GameConstants.HIGHLIGHT_BTN_EFFECT));
+        currentCodeArea.getUpBtn().setOnMouseExited(actionEvent -> currentCodeArea.getUpBtn().setEffect(GameConstants.GLOW_BTN_EFFECT));
+        currentCodeArea.getDownBtn().setOnMouseExited(actionEvent -> currentCodeArea.getDownBtn().setEffect(GameConstants.GLOW_BTN_EFFECT));
 
-            currentCodeArea.getDownBtn().setEffect(GameConstants.GLOW_BTN_EFFECT);
+        // To prevent a bug where non-editable codefields can be edited by pressing Ctrl
+        currentCodeArea.setOnKeyPressed(evt -> {
+            if(currentCodeArea.isFocused() && !evt.isControlDown())
+                if(currentCodeArea.getSelectedCodeField()!=null)currentCodeArea.getSelectedCodeField().requestFocus();
         });
     }
+
+
     private void setHandlerForCodeField(CodeField currentCodeField, CodeArea currentCodeArea) {
         currentCodeField.setOnMousePressed(event -> {
-            if(gameRunning || !currentCodeArea.isEditable())return;
-            needsRecreation = false;
-            codeLineAdded = false;
-//            boolean isError = currentCodeArea.isAi() ? isErrorAI : isErrorPlayer;
+            if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
+            else view.getAICodeArea().deselectAll();
 
-            if(currentCodeArea.getSelectedCodeField() == currentCodeField) return;
+            needsRecreation = false;
+            needToIncreaseCurrentIndex = false;
+            if( /*gameRunning ||*/ !currentCodeArea.isEditable() )return;
+            // clicking the current CodeField will do nothing
+            if(currentCodeArea.getSelectedCodeField() == currentCodeField)return;
+
             currentCodeArea.deselectAll();
             showError = true;
-            if(compilerActive)handleCodeFieldEvent(currentCodeArea.getAllText(),currentCodeArea);
+
+            if(compilerActive)
+                handleCodeFieldEvent(currentCodeArea.getAllText(),currentCodeArea);
+
             if(!isError){
                 currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
                 currentCodeArea.deselectAll();
@@ -104,35 +135,32 @@ public class CodeAreaController implements PropertyChangeListener {
         });
 
         currentCodeField.addListener((observableValue, s, t1) -> {
-            // without this ctrl-backspace will delete a lot of stuff
-            if(!s.equals(t1) &&!currentCodeField.isEditable()){
-                currentCodeField.setText(s);
-                return;
-            }
-            //TODO: is this necessary?
-            Platform.runLater(()->currentCodeField.setEmptyFlag(t1.equals("")));
-            currentCodeField.autosize();
-            if(Util.isTooLongForCodefield(t1,currentCodeField.getDepth()))currentCodeField.setText(s);
 
+            //without this line the query currentCodeField.isEmpty() will return outdated values
+            Platform.runLater(()->currentCodeField.setEmptyFlag(t1.matches(" *")));
+            currentCodeField.autosize();
+            if(Util.textIsTooLongForCodefield(t1,currentCodeField.getDepth()))currentCodeField.setText(s);
         });
 
         currentCodeField.setOnKeyPressed(event -> {
-            if (gameRunning || (!currentCodeField.isEditable()&&event.isControlDown())){
+            // this is to circumvent a JavaFX Bug, which makes it possible to edit non-editable CodeFields by pressing Ctrl
+            if(compilerActive && event.isControlDown() && !currentCodeField.isEditable())
                 currentCodeArea.requestFocus();
-                currentCodeField.requestFocus();
-                return;
-            }
+//            if (gameRunning){
+//                return;
+//            }
             needsRecreation = false;
-            if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
-            else view.getAICodeArea().deselectAll();
-            List<String> codeLines = currentCodeArea.getAllText();
-            //TODO: needed?
             addBefore = false;
             showError = false;
-            codeLineAdded = false;
+            needToIncreaseCurrentIndex = false;
+            List<String> codeLines = currentCodeArea.getAllText();
+            String forVariablePatternString = " *for *\\( *int +("+GameConstants.VARIABLE_NAME_REGEX+")(.+\\{)$";
             currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
+
             if(compilerActive && !isError && event.isControlDown() && event.getCode() == KeyCode.R){
                 Matcher variableMatcher = Pattern.compile("^[a-zA-Z]+ +("+GameConstants.VARIABLE_NAME_REGEX+")( *;| +=.*;)$").matcher(currentCodeField.getText());
+                if(!variableMatcher.matches())
+                    variableMatcher = Pattern.compile(forVariablePatternString).matcher(currentCodeField.getText());
                 if(variableMatcher.matches()){
                     String varName = variableMatcher.group(1);
                     TextInputDialog textInput = new TextInputDialog(varName);
@@ -146,14 +174,19 @@ public class CodeAreaController implements PropertyChangeListener {
                     Optional<String> result = textInput.showAndWait();
                     if(result.isPresent()){
                         String newName = result.get();
+                        int depth = currentCodeArea.getSelectedCodeField().getDepth();
                         for(int i = currentIndex; i< codeLines.size(); i++){
+                            if(depth > currentCodeArea.getCodeFieldListClone().get(i).getDepth())break;
+                            // special case for-variable as it is declared at a higher depth than its visibility!
+                            if(i==currentIndex && variableMatcher.pattern().toString().equals(forVariablePatternString))depth++;
                             String oldString = codeLines.get(i);
                             String newString = codeLines.get(i).replaceAll("^(.*[^a-zA-Z0-9]+|)"+varName+"([^a-zA-Z0-9]+.*)$","$1"+newName+"$2");
+
                             while(!oldString.equals(newString)){
                                 oldString = newString;
                                 newString = oldString.replaceAll("^(.*[^a-zA-Z0-9]+|)"+varName+"([^a-zA-Z0-9]+.*)$","$1"+newName+"$2");
                             }
-                            if(i == currentIndex)if(Util.isTooLongForCodefield(newString, currentCodeField.getDepth())) {
+                            if(i == currentIndex)if(Util.textIsTooLongForCodefield(newString, currentCodeField.getDepth())) {
                                 new Alert(Alert.AlertType.ERROR, "The resulting code field is too long!").showAndWait();
                                 return;
                             }
@@ -162,31 +195,54 @@ public class CodeAreaController implements PropertyChangeListener {
                     }
                 }
                 needsRecreation = true;
+                showError = true;
                 handleCodeFieldEvent(codeLines, currentCodeArea);
                 return;
             }
+
             switch (event.getCode()) {
                 case F5:
                     compilerActive = !compilerActive;
+                    if(!compilerActive){
+                        if(neverShown){
+                            new Alert(Alert.AlertType.NONE,"Compiler has been deactivated!\nPress F5 or click the icon above the codearea to reactivate it!", ButtonType.OK).showAndWait();
+                            neverShown = false;
+                        }
+                        currentCodeArea.setEditable(true);
+                    }
+                    else {
+                        needsRecreation = true;
+                    }
                     currentCodeArea.setIconActive(compilerActive);
                     disableControlElements(!compilerActive,currentCodeArea);
                     break;
+
                 case ENTER:
                     showError = true;
-//                    if(!currentCodeField.isEditable())return;
                     int selectedIndex = currentCodeField.getCaretPosition();
                     if (selectedIndex == 0 && !currentCodeField.isEmpty()) {
                         addBefore = true;
                     }
-//                    boolean hasThoughtOfBrackets = textAfterCursor.matches(".*}");
                     String complexStatementRegex = GameConstants.COMPLEX_STATEMENT_REGEX;
                     // visit https://regex101.com/ for more info
-                    String simpleStatementRegex = "^([^{]+\\.[^{]+ *\\( *[^{]* *\\) *|[^{]+ *[^{]+? *= *[^{]+?|[^{]+ *[^{]+?);(.++)$";
+                    String simpleStatementRegex = GameConstants.SIMPLE_STATEMENT_REGEX;
 
                     currentCodeArea.deselectAll();
                     String textAfterBracket = "";
-                    Matcher matcherComplex = Pattern.compile(complexStatementRegex).matcher(currentCodeField.getText());
+
                     Matcher matcherSimple = Pattern.compile(simpleStatementRegex).matcher(currentCodeField.getText());
+                    Matcher matcherComplex = Pattern.compile(complexStatementRegex).matcher(currentCodeField.getText());
+
+                    /* The following code lines are comments, because MethodDeclarations have been postponed
+                     * until their usage or necessity is clear to me
+                     */
+
+//                    Matcher matcherMethodDec = Pattern.compile(GameConstants.METHOD_DECLARATION_REGEX).matcher(currentCodeField.getText());
+//                    if(matcherMethodDec.matches()){
+//                        textAfterBracket = matcherMethodDec.group(6);
+//                        codeLines.set(currentIndex, currentCodeField.getText().replaceAll("\\{.++", "{"));
+//                    }
+//                    else
                     if (matcherSimple.matches()) {
                         textAfterBracket = matcherSimple.group(2);
                         codeLines.set(currentIndex, currentCodeField.getText().replaceAll(";.++", ";"));
@@ -194,42 +250,51 @@ public class CodeAreaController implements PropertyChangeListener {
                         textAfterBracket = matcherComplex.group(2);
                         codeLines.set(currentIndex, currentCodeField.getText().replaceAll("\\{.++", "{"));
                     }
+
                     boolean needsBrackets = false;
-                    if (matcherComplex.matches()) {
+                    if (matcherComplex.matches() /*|| matcherMethodDec.matches()*/) {
                         if (currentCodeArea.getBracketBalance() > 0) needsBrackets = true;
                     }
-                    int scrollAmount = currentCodeArea.getScrollAmount() + 1 < currentCodeArea.getSize() ? currentCodeArea.getScrollAmount() + 1 : currentCodeArea.getSize() - 1 - GameConstants.MAX_CODE_LINES;
-                    //TODO:
+                    int scrollAmount = currentCodeArea.getScrollAmount() + 1;
+                    //TODO: dont understand this: < currentCodeArea.getSize() ? currentCodeArea.getScrollAmount() + 1 : currentCodeArea.getSize() - 1 - GameConstants.MAX_CODE_LINES;
 
                     if (needsBrackets) {
                         codeLines.add(currentIndex + 1, "}");
                     }
-                    if (textAfterBracket.matches(complexStatementRegex)) // && currentCodeArea.getBracketBalance() >= 0)
+                    // if the text after '{' is also complex add another '}'
+                    if (textAfterBracket.matches(complexStatementRegex))
                         codeLines.add(currentIndex + 1, "}");
 
-                    codeLines.add(addBefore ? currentIndex : currentIndex+1, textAfterBracket);
+                    if (!textAfterBracket.matches(" *} *"))
+                        codeLines.add(addBefore ? currentIndex : currentIndex+1, textAfterBracket);
+                    else
+                        codeLines.add(addBefore ? currentIndex : currentIndex+1, "");
+
+                    // If addBefore is true, we dont want to increase the currentIndex which will happen if needToIncreaseCurrentIndex is true
                     if (!addBefore)
-                        codeLineAdded = true;
-                    if (currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
-                        currentCodeArea.scroll(scrollAmount);
+                        needToIncreaseCurrentIndex = true;
+                    // If the added CodeField we want to edit is outside of our visible CodeArea we need to scroll!
+                    if (!addBefore && currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
+                        currentCodeArea.setScrollAmount(scrollAmount);
                     break;
-                //TODO: bad code!
                 case BACK_SPACE:
+                    if (currentIndex == 0) break;
                     if (!currentCodeField.isEditable()) {
-                        currentCodeArea.deselectAll();
-                        if (currentIndex > 0) currentIndex--;
-                        break;
-                    }
-                    //TODO: if Codefield isnt empty!
-//                    if((currentIndex == 0 || currentCodeField.getCaretPosition() != 0)&&!currentCodeField.isEmpty()){
-//                        silentError = true;
-//                        break;
-//                    }
-                    if (currentCodeField.getCaretPosition() == 0 && !currentCodeField.isEmpty()) {
-//                        System.out.println("dasfds");
+                        if(!compilerActive){
+                            currentCodeField.setText("");
+                            break;
+                        }
+                        CodeField prevCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex-1);
+                        if( prevCodeField != null && prevCodeField.isEmpty()) codeLines.remove(currentIndex-1);
+                        else if (currentIndex > 0){
+                            currentIndex--;
+                            currentCodeArea.select(currentIndex, Selection.END);
+                        }
                         break;
                     }
                     if(currentCodeField.isEmpty()){
+                        // The following lines are there to make sure that if you remove a complex statement,
+                        // the closing bracket will be removed as well
                         boolean isLastCodeFieldSelected = currentIndex >= currentCodeArea.getSize()-1;
                         if(!isLastCodeFieldSelected){
                             CodeField nextCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex+1);
@@ -242,35 +307,50 @@ public class CodeAreaController implements PropertyChangeListener {
                                 }
                             }
                         }
+                        // If there will be at least 1 CodeField left remove the current one
                         if(currentCodeArea.getCodeFieldListClone().size()>1){
                             showError = true;
                             codeLines.remove(currentIndex);
                         }
                         currentIndex = (currentIndex > 0) ? currentIndex-1 : currentIndex;
+                        // This should never happen but better be safe than sorry
                         if(codeLines.size()==0)codeLines.add("");
+                        // Deleting a line will put us into the CodeField above -> we need to scroll up
+                        scrollAmount = currentCodeArea.getScrollAmount();
+                        if(scrollAmount > 0)
+                            currentCodeArea.setScrollAmount(scrollAmount-1);
                         break;
                     }
-                    if (currentIndex == 0) break;
-                    if(!currentCodeField.getText().equals("") && codeLines.get(currentIndex-1).matches(" *")&&currentCodeField.getCaretPosition() == 0){ //TODO: vereinheitlicht " *" anstelle von ""?
+                    else if(codeLines.get(currentIndex-1).matches(" *")&&currentCodeField.getCaretPosition() == 0){
                         codeLines.remove(currentIndex-1);
                         scrollAmount = currentCodeArea.getScrollAmount()-1 > 0 ? currentCodeArea.getScrollAmount()-1 : 0;
                         if(currentIndex<= currentCodeArea.getScrollAmount())
-                            currentCodeArea.scroll(scrollAmount);
+                            currentCodeArea.setScrollAmount(scrollAmount);
                         currentIndex--;
                     }
                     break;
-
                 case DELETE:
+                    if(currentCodeArea.getSize()==1) {
+                        break;
+                    }
                     if (!currentCodeField.isEditable()) {
-                        if (currentIndex < currentCodeArea.getSize() - 1) currentIndex++;
-                        currentCodeArea.select(currentIndex, Selection.END);
+                        if(!compilerActive){
+                            currentCodeField.setText("");
+                            break;
+                        }
+                        CodeField nextCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex+1);
+                        if( nextCodeField!= null && nextCodeField.isEmpty()) codeLines.remove(currentIndex+1);
+                        else if (currentIndex < currentCodeArea.getSize() - 1){
+                            currentIndex++;
+                            currentCodeArea.select(currentIndex, Selection.END);
+                        }
                         break;
                     }
 
-                    if(currentIndex == currentCodeArea.getSize()-1) {
-                        break;
-                    }
-                    if (currentCodeField.isEmpty() || currentCodeField.getText().matches(" *")) {
+                    if (currentCodeField.isEmpty()) {
+                        if(currentIndex == currentCodeArea.getSize()-1) {
+                            break;
+                        }
                         showError = true;
                         codeLines.remove(currentIndex);
 
@@ -278,16 +358,13 @@ public class CodeAreaController implements PropertyChangeListener {
 
                             scrollAmount = currentCodeArea.getScrollAmount() - 1 > 0 ? currentCodeArea.getScrollAmount() - 1 : 0;
                             if (currentIndex <= currentCodeArea.getScrollAmount())
-                                currentCodeArea.scroll(scrollAmount);
+                                currentCodeArea.setScrollAmount(scrollAmount);
                             currentIndex--;
                         }
                     }
-
-                    //TODO: delete "nextCodeField.getText().matches(" *")"
-                    else if(currentCodeField.isEmpty()||currentCodeField.getText().matches(" *")||currentCodeField.getCaretPosition() == currentCodeField.getText().length() ){
+                    else if(currentCodeField.getCaretPosition() == currentCodeField.getText().length() ){
                         CodeField nextCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex+1);
-                        if ((nextCodeField.isEmpty()||nextCodeField.getText().matches(""))){
-                        //TODO: String oldText = nextCodeField.getText();
+                        if ((nextCodeField.isEmpty()||nextCodeField.getText().matches(" *"))){
                             showError = true;
                             codeLines.remove(currentIndex+1);
                         }
@@ -295,15 +372,17 @@ public class CodeAreaController implements PropertyChangeListener {
                     break;
                 case UP:
                     showError = true;
-                    if (isError) break;
+                    if (isError && compilerActive) break;
                     if (currentIndex <= 0) {
                         currentIndex = 0;
                         currentCodeArea.select(currentIndex,Selection.END);
                         return;
                     }
                     scrollAmount = currentCodeArea.getScrollAmount() - 1 > 0 ? currentCodeArea.getScrollAmount() - 1 : 0;
+
                     if (currentIndex <= currentCodeArea.getScrollAmount())
-                        currentCodeArea.scroll(scrollAmount);
+                        currentCodeArea.setScrollAmount(scrollAmount);
+                    // Pressing Alt enables moving the current CodeField
                     if(event.isAltDown()){
                         int startIndex = currentIndex;
                         int endIndex = startIndex;
@@ -312,26 +391,14 @@ public class CodeAreaController implements PropertyChangeListener {
                             endIndex = currentCodeArea.findNextBracketIndex(startIndex, currentCodeField.getDepth());
                         codeLines = Util.moveItems(codeLines,startIndex, endIndex,-1);
                         needsRecreation = true;
-//                        codeAreaClone.moveCodeField(currentIndex, true);
-//                        for(Integer i : selectedIndexSet)
-//                            codeAreaClone.moveCodeField(i,true);
                     }
-//                    else if(event.isShiftDown()){
-//                        selectedIndexSet.add(currentIndex);
-//                        int nextDepth = codeArea.getCodeFieldListClone().get(codeArea.indexOfCodeField(currentCodeField)-1).getDepth();
-//                        if(currentCodeField.getDepth() == nextDepth)selectedIndexSet.add(currentIndex-1);
-//                    }
-//                    else {
-//                        selectedIndexSet.clear();
-//                        selectedIndexSet.add(currentIndex-1);
-//                    }
                     currentIndex--;
-
                     currentCodeArea.select(currentIndex, Selection.END);
                     break;
                 case DOWN:
                     showError = true;
-                    if (isError) break;
+                    if (isError && compilerActive) break;
+
                     if (currentIndex >= currentCodeArea.getSize() - 1) {
                         currentIndex = currentCodeArea.getSize() - 1;
                         currentCodeArea.select(currentIndex, Selection.END);
@@ -339,7 +406,8 @@ public class CodeAreaController implements PropertyChangeListener {
                     }
                     scrollAmount = currentCodeArea.getScrollAmount() + 1 < currentCodeArea.getSize() ? currentCodeArea.getScrollAmount() + 1 : currentCodeArea.getSize() - 1 - GameConstants.MAX_CODE_LINES;
                     if (currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
-                        currentCodeArea.scroll(scrollAmount);
+                        currentCodeArea.setScrollAmount(scrollAmount);
+                    // Pressing Alt enables moving the current CodeField
                     if(event.isAltDown()){
                         int startIndex = currentIndex;
                         int endIndex = startIndex;
@@ -348,19 +416,7 @@ public class CodeAreaController implements PropertyChangeListener {
                             endIndex = currentCodeArea.findNextBracketIndex(startIndex, currentCodeField.getDepth());
                         codeLines = Util.moveItems(codeLines,startIndex, endIndex,1);
                         needsRecreation = true;
-//                        codeAreaClone.moveCodeField(currentIndex, false);
-//                        for(Integer i : selectedIndexSet)
-//                            codeAreaClone.moveCodeField(i,false);
                     }
-//                    else if(event.isShiftDown()){
-//                        selectedIndexSet.add(currentIndex);
-//                        int nextDepth = codeArea.getCodeFieldListClone().get(codeArea.indexOfCodeField(currentCodeField)+1).getDepth();
-//                        if(currentCodeField.getDepth() == nextDepth)selectedIndexSet.add(currentIndex+1);
-//                    }
-//                    else {
-//                        selectedIndexSet.clear();
-//                        selectedIndexSet.add(currentIndex+1);
-//                    }
                     currentIndex++;
                     currentCodeArea.select(currentIndex, Selection.END);
                     break;
@@ -371,19 +427,11 @@ public class CodeAreaController implements PropertyChangeListener {
                 case RECORD:
                     break;
                 default:
-//                    selectedIndexSet.clear();
-//                    selectedIndexSet.add(currentIndex);
                     if (!currentCodeField.isEditable()) return;
                     Platform.runLater(() -> currentCodeField.fireEvent(new KeyEvent(event.getEventType(), event.getCharacter(), event.getText(), KeyCode.RECORD, false, false, false, false)));
                     return;
-//
-//                    codeArea.deselectAll();
-
-//                    if(recompileCode() == null)view.getBtnExecute().setDisable(true);
-//                    else view.getBtnExecute().setDisable(false);
-//                    codeArea.select(currentIndex+1,true);
             }
-            if(compilerActive)handleCodeFieldEvent(codeLines,currentCodeArea);
+            if(compilerActive) handleCodeFieldEvent(codeLines,currentCodeArea);
         });
     }
 
@@ -394,7 +442,7 @@ public class CodeAreaController implements PropertyChangeListener {
         if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
         else view.getAICodeArea().deselectAll();
         try {
-            ComplexStatement behaviour = CodeParser.parseProgramCode(codeLines,!currentCodeArea.isAi());
+            ComplexStatement behaviour = CodeParser.parseProgramCode(codeLines,currentCodeArea.getCodeAreaType());
             disableControlElements(false, currentCodeArea);
             if(isError){
                 currentCodeArea.resetStyle(currentIndex);
@@ -408,7 +456,7 @@ public class CodeAreaController implements PropertyChangeListener {
             if(needsRecreation) {
                 currentCodeArea.updateCodeFields(behaviour);
                 setAllHandlersForCodeArea(currentCodeArea);
-                if(codeLineAdded)
+                if(needToIncreaseCurrentIndex)
                     currentIndex++;
                 currentCodeArea.select(currentIndex, Selection.END);
             }
@@ -417,7 +465,7 @@ public class CodeAreaController implements PropertyChangeListener {
             disableControlElements(true,currentCodeArea);
             currentCodeArea.setEditable(false);
             currentCodeArea.setEditable(currentIndex,true);
-
+            if(GameConstants.DEBUG)e.printStackTrace();
             errorLabel.setText(e.getMessage());
             if(showError){
                 currentCodeArea.highlightError(currentIndex);
@@ -432,24 +480,13 @@ public class CodeAreaController implements PropertyChangeListener {
         view.getStoreCodeBtn().setDisable(b);
         if(codeArea.isAi())view.getCodeArea().setDisable(b);
         else view.getAICodeArea().setDisable(b);
-        if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
+        if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR && codeArea.isAi())
             view.getLevelEditorModule().getSaveLevelBtn().setDisable(b);
-    }
-
-    public void setGameRunning(boolean gameRunning) {
-        this.gameRunning = gameRunning;
-        if(gameRunning)view.getCodeArea().deselectAll();
-        if(gameRunning&&(boolean)Model.getDataFromCurrentLevel(LevelDataType.HAS_AI))view.getAICodeArea().deselectAll();
-    }
-
-    public boolean isGameRunning() {
-        return gameRunning;
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         CodeArea codeArea = (CodeArea) evt.getNewValue();
-//        if(codeArea.isEditable())
         setAllHandlersForCodeArea(codeArea);
     }
 }

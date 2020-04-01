@@ -1,17 +1,19 @@
 package main.parser;
 
+import main.model.Model;
 import main.model.enums.*;
 import main.model.statement.*;
 import main.model.statement.Condition.Condition;
 import main.model.statement.Condition.ConditionLeaf;
 import main.model.statement.Condition.ConditionTree;
 import main.utility.*;
-import main.model.statement.Expression.ExpressionLeaf;
 import main.model.statement.Expression.ExpressionTree;
 import main.model.statement.Expression.ExpressionType;
+import main.view.CodeAreaType;
 
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static main.model.statement.Condition.ConditionType.NEGATION;
 import static main.model.statement.Condition.ConditionType.SINGLE;
@@ -22,32 +24,38 @@ public abstract class CodeParser {
     private static ComplexStatement behaviour;
     private static List<String> codeLines;
     private static Map<Integer,ComplexStatement> depthStatementMap;
-    private static boolean isPlayerCode = true;
+    private static CodeAreaType codeAreaType;
     private static Statement lastStatement;
     private static Variable currentForVariable;
 
     public static ComplexStatement parseProgramCode(List<String> lines) {
-        return parseProgramCode(lines, true);
+        return parseProgramCode(lines, CodeAreaType.PLAYER);
     }
 
     /** Will try to convert the first given Parameter into a ComplexStatement consisting of multiple Substatements
      *  (Statements) representing the respective line of code
      *
      * @param lines The given lines of code
-     * @param isPlayerCodeValue whether it is player code or code of the enemy. the first cannot spawn Skeletons, the latter
+     * @param codeAreaType whether it is player code or code of the enemy. the first cannot spawn Skeletons, the latter
      *                          cant spawn Knights
-     * @throws IllegalAccessException TODO
      * @throws IllegalArgumentException TODO
      */
-    public static ComplexStatement parseProgramCode(List<String> lines,boolean isPlayerCodeValue){
+    public static ComplexStatement parseProgramCode(List<String> lines, CodeAreaType codeAreaType){
         codeLines = lines;
-        isPlayerCode = isPlayerCodeValue;
+        CodeParser.codeAreaType = codeAreaType;
         behaviour = new ComplexStatement();
         int depth = 1;
         depthStatementMap = new HashMap<>();
         depthStatementMap.put(0,behaviour);
+        int index = 0;
         for ( String code : codeLines){
-            if(Util.isTooLongForCodefield(code,depth))throw new IllegalArgumentException("This codeLine is too long: "+code);
+            if(codeAreaType == CodeAreaType.METHOD_CREATOR){
+                if(!code.matches(GameConstants.METHOD_DECLARATION_REGEX)){
+                    if(index == 0)throw new IllegalArgumentException("The first line must be a method declaration!");
+                }
+                else if(index > 0)throw new IllegalArgumentException("Method declarations are not allowed to stand here!");
+            }
+            if(Util.textIsTooLongForCodefield(code,depth))throw new IllegalArgumentException("This codeLine is too long: "+code);
             // empty lines are added but ignored when evaluating how many lines of code where used to complete the level
             if(code.matches(" *")){
                 depthStatementMap.get(depth - 1).addSubStatement(new SimpleStatement());
@@ -85,6 +93,7 @@ public abstract class CodeParser {
                     boolean isSkeleton = variable.getVariableType() == VariableType.SKELETON;
                     //TODO: Implement GHOST or delete
 //                    boolean isGhost = variable.getVariableType() == VariableType.GHOST;
+                    boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
                     if(isPlayerCode && (/*isGhost||*/isSkeleton ))throw new IllegalArgumentException("You are not allowed to create Enemy Creatures as Player");
                     boolean isKnight = variable.getVariableType() == VariableType.KNIGHT;
                     if(!isPlayerCode && isKnight )throw new IllegalArgumentException("You are not allowed to create Player Creatures as Enemy");
@@ -103,6 +112,7 @@ public abstract class CodeParser {
                 }
             }
             lastStatement = statement;
+            index++;
         }
         behaviour.resetVariables(true);
         if(depth != 1)throw new IllegalStateException("Unbalanced amount of brackets!");
@@ -140,6 +150,7 @@ public abstract class CodeParser {
         Matcher elseMatcher = StatementType.getMatcher(StatementType.ELSE,code);
         Matcher asMatcher = StatementType.getMatcher(StatementType.ASSIGNMENT,code);
         Matcher mcMatcher = StatementType.getMatcher(StatementType.METHOD_CALL,code);
+        Matcher mcDeclMatcher = Pattern.compile(GameConstants.METHOD_DECLARATION_REGEX).matcher(code);
         Matcher decMatcher = StatementType.getMatcher(StatementType.DECLARATION,code);
         if(whileMatcher.matches()){
             code = whileMatcher.group(1);
@@ -185,9 +196,17 @@ public abstract class CodeParser {
             return parseAssignment(code,depth);
         }
         else if(mcMatcher.matches()){
-            code = mcMatcher.toMatchResult().group();
-            code = Util.stripCode(code);
-            return parseMethodCall(code,depth);
+            String objectName =  Util.stripCode(mcMatcher.group(2));
+            String methodNameString =  Util.stripCode(mcMatcher.group(3));
+            String parameterString =  Util.stripCode(mcMatcher.group(4));
+            return parseMethodCall(objectName,methodNameString,parameterString,depth);
+        }
+        else if(mcDeclMatcher.matches()){
+            if(codeAreaType!=CodeAreaType.METHOD_CREATOR)throw new IllegalArgumentException("You are not allowed to create a Method here!");
+            String returnTypeString =  Util.stripCode(mcDeclMatcher.group(1));
+            String methodNameString =  Util.stripCode(mcDeclMatcher.group(2));
+            String parameterString =  Util.stripCode(mcDeclMatcher.group(3));
+            return parseMethodDeclaration(returnTypeString,methodNameString,parameterString);
         }
 
         else {
@@ -204,15 +223,52 @@ public abstract class CodeParser {
 
     }
 
+    private static Statement parseMethodDeclaration(String returnTypeString,String methodNameString ,String parameterString) {
+
+        VariableType returnType = VariableType.getVariableTypeFromString(returnTypeString);
+        if(returnType == null)throw new IllegalArgumentException("Return type " + returnTypeString + " is not valid!");
+        if(returnType != VariableType.VOID)throw new IllegalArgumentException("Return type " + returnTypeString + " is not allowed! Only void is allowed!");
+//        ExpressionTree parameters = ExpressionTree.expressionTreeFromString(parameterString);
+        ExpressionTree tempParameters = ExpressionTree.expressionTreeFromString(parameterString);
+        List<Variable> parameterVarList = new ArrayList<>();
+
+        if(tempParameters.getLeftNode() == null&&!tempParameters.getText().equals("")){
+            String[] variableTypeAndName = tempParameters.getText().split(" ");
+            VariableType variableType = VariableType.getVariableTypeFromString(variableTypeAndName[0]);
+            String variableName = variableTypeAndName[1];
+            if(variableType == null || variableType == VariableType.VOID) throw new IllegalArgumentException("Variable type " + variableTypeAndName[0] + " is not valid!");
+            Variable variable = new Variable(variableType, variableName, null);
+            parameterVarList.add(variable);
+        }
+        else while(tempParameters.getLeftNode() != null && tempParameters.getRightNode() != null) {
+            String[] variableTypeAndName = tempParameters.getLeftNode().getText().split(" ");
+            VariableType variableType = VariableType.getVariableTypeFromString(variableTypeAndName[0]);
+            String variableName = variableTypeAndName[1];
+            if(variableType == null || variableType == VariableType.VOID) throw new IllegalArgumentException("Variable type " + variableTypeAndName[0] + " is not valid!");
+            Variable variable = new Variable(variableType, variableName, null);
+            parameterVarList.add(variable);
+            tempParameters = tempParameters.getRightNode();
+        }
+        if(Model.methodExists(methodNameString)) throw new IllegalArgumentException("Method " + methodNameString + " already exists!");
+        return new MethodDeclaration(returnType,methodNameString,parameterVarList);
+    }
+
     /** Will try to convert the given code into a MethodCall Object
      * @param depth is needed to grant access to the parent statement and its variables
      */
-    private static MethodCall parseMethodCall(String code,int depth) {
-        StringPair tempStatements = Util.splitAtChar(code,'.',false);
-        String objectName = tempStatements.first();
-        tempStatements = Util.splitAtChar(tempStatements.second(),'(',false);
-        String methodName = tempStatements.first();
-        String parameters = tempStatements.second().substring(0,tempStatements.second().length()-1);
+    private static MethodCall parseMethodCall(String objectName, String methodName, String parameterString,int depth) {
+        if(objectName.equals("")){
+            if(!Model.methodExists(methodName))throw new IllegalArgumentException("Method " + methodName+ " doesn't exist!");
+            String[] parameters = parameterString.split( ",");
+            List<Variable> variables = Model.getVariableListFromMethod(methodName);
+            int i =0;
+            if(variables!=null)
+            for(Variable v : variables){
+                testForCorrectValueType(v.getVariableType(), parameters[i],depth);
+                i++;
+            }
+            return new MethodCall(null,methodName,parameterString);
+        }
         Variable v = depthStatementMap.get(depth-1).getVariable(objectName);
         if(v==null)
             throw new IllegalArgumentException("Variable inside MethodCall " +objectName +" not in scope!");
@@ -223,14 +279,15 @@ public abstract class CodeParser {
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
         if(mType == null) throw new IllegalArgumentException("Method " + methodName + " is not a valid method!");
         // Makes lines such as: knight.targetsCell(EXIT); illegal (they need the condition context!)
-        if(mType.getOutputType() != VariableType.ACTION) throw new IllegalArgumentException("Method " + methodName + " cannot stand here!");
+        if(mType.getOutputType() != VariableType.VOID) throw new IllegalArgumentException("Method " + methodName + " cannot stand here!");
+        boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
         if(isPlayerCode && mType == MethodType.ATTACK) throw new IllegalArgumentException("Knights cannot attack! Collect a sword and refer to useItem()!");
         // TODO: Method below doesnt return a boolean and instead may throw errors <- bad handling?! <- create my own error handling system?
-        testForCorrectParameters(parameters,mType,depth);
-        if(!parameters.equals("")){
-           checkExpressionTreeForUnknownVars(new ExpressionLeaf(parameters),depth);
+        testForCorrectParameters(parameterString,mType,depth);
+        if(!parameterString.equals("")){
+           checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(parameterString),depth);
         }
-        return new MethodCall(MethodType.getMethodTypeFromCall(methodName+"("+parameters+")"),objectName,parameters);
+        return new MethodCall(MethodType.getMethodTypeFromName(methodName),objectName,parameterString);
     }
 
     /** Tests whether the given parameters are correct for the given MethodType. Possible MethodTypes are all Knight
@@ -385,6 +442,7 @@ public abstract class CodeParser {
 //                else testForCorrectValueType(variableType, value,depth-1);
 //            }
 //            else
+            if(depthStatementMap.get(depth-1).getStatementType()==StatementType.METHOD_DECLARATION)return;
             testForCorrectValueType(variableType, depthStatementMap.get(depth-1).getVariable(value).getValue().getText(),depth);
             return;
         }
@@ -544,6 +602,7 @@ public abstract class CodeParser {
                     if(depthStatementMap.get(depth-1).getVariable(parameter) == null)
                         throw new IllegalArgumentException(parameter + " is not a valid variable!");
                     else {
+                        boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
                         boolean isKnight = depthStatementMap.get(depth-1).getVariable(parameter).getVariableType() == VariableType.KNIGHT && isPlayerCode;
                         boolean isSkeleton = depthStatementMap.get(depth-1).getVariable(parameter).getVariableType() == VariableType.SKELETON && !isPlayerCode;
                         if(isKnight || isSkeleton)continue;
@@ -551,7 +610,7 @@ public abstract class CodeParser {
                     throw new IllegalArgumentException(value + " is not a valid Army constructor!");}
                 }
                 break;
-            case ACTION:
+            case VOID:
                 break;
         }
     }

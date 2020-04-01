@@ -1,7 +1,6 @@
 package main.view;
 
 import javafx.scene.effect.DropShadow;
-import javafx.scene.text.Text;
 import main.controller.Selection;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -55,7 +54,7 @@ import static main.utility.GameConstants.TUTORIAL_LINES;
 
 public class View implements LevelChangeListener {
 
-    private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/project_background.png", SCREEN_WIDTH,SCREEN_HEIGHT,true,true ), BackgroundRepeat.NO_REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT ));
+    private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/project_background.png", SCREEN_WIDTH,SCREEN_HEIGHT,true,true ), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER, BackgroundSize.DEFAULT ));
     private final BackgroundImage backgroundImage = new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
     private final LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
@@ -69,8 +68,8 @@ public class View implements LevelChangeListener {
     private Button btnExecute;
     private Button btnReset;
     //    TextArea codeTextArea;
-    private CodeArea codeArea = new CodeArea(false);
-    private CodeArea aiCodeArea = new CodeArea(true);
+    private CodeArea codeArea = CodeArea.getInstance(CodeAreaType.PLAYER);
+    private CodeArea aiCodeArea = CodeArea.getInstance(CodeAreaType.AI);
     private VBox vBox;
     private Slider speedSlider;
     private Label errorLabel = new Label();
@@ -131,7 +130,7 @@ public class View implements LevelChangeListener {
         errorLabelAI.setFont(GameConstants.BIG_FONT);
         errorLabelAI.setMaxWidth(GameConstants.TEXTFIELD_WIDTH);
         errorLabelAI.setVisible(false);
-        spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
+//        spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
         selectedPointList = new ArrayList<>();
         selectedPointList.add(new Point(0, 0));
         this.levelEditorModule = new LevelEditorModule();
@@ -140,6 +139,7 @@ public class View implements LevelChangeListener {
         tutorialGroup = new TutorialGroup();
 
         startScene = new Scene(startScreen);
+//        startScreen.setStyle("-fx-background-color: black");
         startScreen.setBackground(startBackground);
         GameMap gameMap = (GameMap) Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         cell_size = gameMap.getBoundY() > gameMap.getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundX());
@@ -796,6 +796,8 @@ public class View implements LevelChangeListener {
 //        levelEditorModule.updateTutorialSection(Model.getCurrentLevel());
         levelEditorModule.getHasAiValueLbl().setText(Model.getDataFromCurrentLevel(LevelDataType.HAS_AI)+"");
 
+        levelEditorModule.toggleLevelIsSaved(!Model.currentLevelHasChanged());
+
     }
 
     @Override
@@ -810,13 +812,13 @@ public class View implements LevelChangeListener {
             aiCodeArea.setVisible(true);
             if(sceneState == SceneState.LEVEL_EDITOR)clearAICodeBtn.setVisible(true);
             aiCodeArea.updateCodeFields(aiBehaviour);
-            aiCodeArea.scroll(0);
+            aiCodeArea.setScrollAmount(0);
         }
         else {
             aiCodeArea.setVisible(false);
             clearAICodeBtn.setVisible(false);
         }
-        codeArea.scroll(0);
+        codeArea.setScrollAmount(0);
         if (sceneState == SceneState.LEVEL_EDITOR) {
             updateLevelEditorModule();
         }
@@ -824,7 +826,7 @@ public class View implements LevelChangeListener {
             tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         }
         spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
-        drawMap(Model.getCurrentMap());
+        drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
         Platform.runLater(()->highlightInMap(selectedPointList));
     }
 
@@ -885,7 +887,6 @@ public class View implements LevelChangeListener {
                 }
                 break;
         }
-        levelEditorModule.toggleLevelIsSaved(!Model.currentLevelHasChanged());
         String levelName = Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"";
         if(levelChange.getLevelDataType()==LevelDataType.LEVEL_NAME)levelName = levelChange.getOldValue()+"";
         if(tutorialLevelOverviewPane.containsLevel(levelName))tutorialLevelOverviewPane.updateLevel(levelName);
@@ -893,12 +894,6 @@ public class View implements LevelChangeListener {
         updateLevelEditorModule();
     }
 
-    @Override
-    public void changesUndone() {
-        //TODO:
-        updateAll(); //????
-        levelEditorModule.toggleLevelIsSaved(true);
-    }
 
     private List<Point> pointListOutOfBounds() {
         List<Point> output = new ArrayList<>();
@@ -988,8 +983,8 @@ public class View implements LevelChangeListener {
         }
         codeArea.select(0, Selection.START);
 
-        aiCodeArea.draw();
-        codeArea.draw();
+//        aiCodeArea.draw();
+//        codeArea.draw();
 
         rightVBox.setAlignment(Pos.TOP_CENTER);
         rightVBox.getChildren().addAll(vBox);

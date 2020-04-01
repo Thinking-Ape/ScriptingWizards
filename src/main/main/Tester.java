@@ -49,8 +49,8 @@ public abstract class Tester {
 //        ComplexStatement behaviour = codeParser.parseProgramCode(codeList);
 //        return new CodeBoxCompound(behaviour);
 //    }
-    public static CodeArea evaluateCodeBox(String... codeList ) {
-        ComplexStatement behaviour = CodeParser.parseProgramCode(Arrays.asList(codeList));
-        return new CodeArea(behaviour,true,false);
-    }
+//    public static CodeArea evaluateCodeBox(String... codeList ) {
+//        ComplexStatement behaviour = CodeParser.parseProgramCode(Arrays.asList(codeList));
+//        return new CodeArea(behaviour,true,false);
+//    }
 }

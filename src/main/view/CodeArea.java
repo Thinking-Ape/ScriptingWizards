@@ -23,6 +23,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 
+import static main.utility.GameConstants.MAX_CODE_LINES;
 import static main.utility.GameConstants.SMALL_BUTTON_SIZE;
 
 public class CodeArea extends VBox {
@@ -34,29 +35,46 @@ public class CodeArea extends VBox {
     private boolean isEditable;
     private CodeField selectedCodeField = null;
     private StackPane firstStackPane = new StackPane();
-    private boolean isAi;
-    //TODO: have only 2 CodeAreas and dont copy them!
-    private static int scrollAmount = 0;
-    private static int aiScrollAmount = 0;
+    private CodeAreaType codeAreaType;
+    //TODO: have only 3 CodeAreas and dont copy them!
+    private int scrollAmount = 0;
 
-    private final int MAX_CODE_LINES;
+//    private final int MAX_CODE_LINES;
     private  Button upBtn = new Button();
     private Button downBtn = new Button();
     private ImageView iconIView;
 
+    private static CodeArea playerCodeArea;
+    private static CodeArea aiCodeArea;
+    private static CodeArea methodCodeArea;
+
     private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
-    public CodeArea (boolean isAi){
-        this(new ComplexStatement(),!isAi,isAi);
+    public static CodeArea getInstance(CodeAreaType codeAreaType){
+        switch (codeAreaType){
+            case PLAYER:
+                if(playerCodeArea == null)playerCodeArea = new CodeArea(CodeAreaType.PLAYER);
+                return playerCodeArea;
+            case AI:
+                if(aiCodeArea == null)aiCodeArea = new CodeArea( CodeAreaType.AI);
+                return aiCodeArea;
+            case METHOD_CREATOR:
+                if(methodCodeArea == null)methodCodeArea = new CodeArea( CodeAreaType.METHOD_CREATOR);
+                return methodCodeArea;
+        }
+        throw new IllegalStateException("CodeAreaType "+codeAreaType+" has not been implemented yet!");
     }
 
-    public CodeArea (ComplexStatement behaviour,boolean isEditable, boolean isAi) {
+    private CodeArea ( CodeAreaType codeAreaType){
+        this(new ComplexStatement(),!codeAreaType.equals(CodeAreaType.AI),codeAreaType);
+    }
+
+    private CodeArea (ComplexStatement behaviour,boolean isEditable,  CodeAreaType codeAreaType) {
         this.isEditable = isEditable;
-        this.isAi = isAi;
-        this.MAX_CODE_LINES = isAi ? GameConstants.MAX_CODE_LINES+1 : GameConstants.MAX_CODE_LINES;
+        this.codeAreaType = codeAreaType;
+//        this.MAX_CODE_LINES = codeAreaType != CodeAreaType.PLAYER ? GameConstants.MAX_CODE_LINES+1 : GameConstants.MAX_CODE_LINES;
         rectVBox.setAlignment(Pos.TOP_LEFT);
         codeVBox.setAlignment(Pos.TOP_LEFT);
-        if(behaviour.getStatementListSize() == 0)behaviour.addSubStatement(new SimpleStatement());
         codeFieldList.addAll(getCodeFieldsFromStatement(behaviour));
 
         ImageView upBtnIV = new ImageView(new Image(GameConstants.UP_BTN_IMAGE_PATH));
@@ -75,7 +93,7 @@ public class CodeArea extends VBox {
 
         HBox hb2 = new HBox(downBtn);
 
-        if(!isAi){
+        if( CodeAreaType.AI != codeAreaType){
             iconIView = new ImageView(new Image(GameConstants.BLUE_SCRIPT_ICON_PATH));
             hb1.setAlignment(Pos.BOTTOM_RIGHT);
             hb2.setAlignment(Pos.TOP_RIGHT);
@@ -103,10 +121,13 @@ public class CodeArea extends VBox {
 
         upBtn.setDisable(true);
         downBtn.setDisable(true);
+        draw();
 
     }
 
     private List<CodeField> getCodeFieldsFromStatement(ComplexStatement complexStatement) throws IllegalArgumentException {
+        if(complexStatement.getStatementListSize() == 0 && complexStatement.getParentStatement() == null)
+            complexStatement.addSubStatement(new SimpleStatement());
         Statement statement;
         List<CodeField> output = new ArrayList<>();
         for(int i = 0; i < complexStatement.getStatementListSize(); i++){
@@ -196,7 +217,7 @@ public class CodeArea extends VBox {
         codeFieldList.remove(codeField);
         int scrollAmount = getScrollAmount();
         if(scrollAmount+MAX_CODE_LINES > codeFieldList.size() && codeFieldList.size() >= MAX_CODE_LINES)
-            scroll(scrollAmount-1);
+            setScrollAmount(scrollAmount-1);
     }
 
     public int getSize() {
@@ -215,7 +236,8 @@ public class CodeArea extends VBox {
         }
         CodeField codeField = codeFieldList.get(index);
         if(codeField.getText().matches(GameConstants.COMPLEX_STATEMENT_REGEX) && this.getBracketBalance() == 0){
-            findNextBracket(index, codeField.getDepth()).setStyle("-fx-background-color: rgba(150,150,255,0.4);");
+            CodeField codeField1 = findNextBracket(index, codeField.getDepth());
+            if(codeField1!=null)codeField1.setStyle("-fx-background-color: rgba(150,150,255,0.4);");
         }
         if(codeField.isEditable())codeField.setStyle(null);
         else codeField.setStyle("-fx-background-color: rgba(150,150,255,1);");
@@ -281,15 +303,14 @@ public class CodeArea extends VBox {
         }
     }
 
-    public void scroll(int t1) {
+    public void setScrollAmount(int t1) {
         if(codeFieldList.size() < MAX_CODE_LINES){
             scrollAmount = 0;
             return;
         }
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
-        if(isAi)aiScrollAmount = t1;
-        else scrollAmount = t1;
+        scrollAmount = t1;
 //        if(t1+MAX_CODE_LINES > codeFieldList.size())t1 = 0;
         draw();
         if(selectedCodeField != null){
@@ -312,7 +333,7 @@ public class CodeArea extends VBox {
     }
 
     public boolean isAi() {
-        return isAi;
+        return  CodeAreaType.AI ==  codeAreaType;
     }
 
     public boolean isEditable() {
@@ -320,19 +341,19 @@ public class CodeArea extends VBox {
     }
 
     public void highlightCodeField(int index){
-        if(index == -1)scroll(0);
+        if(index == -1) setScrollAmount(0);
         int i = 0;
         for (CodeField cf : codeFieldList){
             if(cf.getText().equals("")&&cf.getDepth()>1){
                 index++;
             }
             else if(i == index){
-                if(!isAi)
+                if( CodeAreaType.AI != codeAreaType)
                     codeFieldList.get(index).setStyle("-fx-background-color: green");
                 else
                     codeFieldList.get(index).setStyle("-fx-background-color: violet");
                 if(index >= MAX_CODE_LINES){
-                    scroll(index-MAX_CODE_LINES+1);
+                    setScrollAmount(index-MAX_CODE_LINES+1);
                 }
             }
             else {
@@ -351,7 +372,7 @@ public class CodeArea extends VBox {
     }
 
     public int getScrollAmount() {
-        return isAi ? aiScrollAmount : scrollAmount;
+        return scrollAmount;
     }
 
     public void markCodeFields(Set<Integer> indexSet) {
@@ -382,7 +403,15 @@ public class CodeArea extends VBox {
         propertyChangeSupport.addPropertyChangeListener(propertyChangeListener);
     }
     public void setIconActive(boolean active){
-        if(!active)iconIView.setEffect(new ColorAdjust(0.1,0.1,0.1,-0.5));
+        if(!active)iconIView.setEffect(new ColorAdjust(-0.5,-0.5,-0.5,-0.5));
         else iconIView.setEffect(null);
+    }
+
+    public ImageView getIcon() {
+        return iconIView;
+    }
+
+    public CodeAreaType getCodeAreaType() {
+        return codeAreaType;
     }
 }

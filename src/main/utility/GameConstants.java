@@ -13,7 +13,7 @@ import java.util.Random;
 
 public abstract class GameConstants {
     public static final boolean DEBUG = false;
-    public static final String VERSION = "1.3c";
+    public static final String VERSION = "1.4c";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
@@ -105,9 +105,9 @@ public abstract class GameConstants {
     public static final Effect HIGHLIGHT_BTN_EFFECT = new Glow();
     public static final String PREV_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Prev_Btn.png";
     public static final String NEXT_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Next_Btn.png";
-    public static final String EMPTY_TOKEN_PATH = "file:"+IMAGES_PATH+"Knight_Token_Used.png";;
-    public static final String UP_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Up_Btn.png";;
-    public static final String DOWN_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Down_Btn.png";;
+    public static final String EMPTY_TOKEN_PATH = "file:"+IMAGES_PATH+"Knight_Token_Used.png";
+    public static final String UP_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Up_Btn.png";
+    public static final String DOWN_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Down_Btn.png";
     public static final Effect GLOW_BTN_EFFECT = new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.WHITE);
 
     public static final String LEVEL_NAME_PROPERTY_NAME = "LevelName";
@@ -120,7 +120,6 @@ public abstract class GameConstants {
     public static final String LOC_TO_STARS_3_PROPERTY_NAME = "LocToStars3";
     public static final String CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME = "CurrentTutorialMessage";
     public static final String CURRENT_TUTORIAL_INDEX_PROPERTY_NAME = "CurrentTutorialIndex";
-    public static final String COMPLEX_STATEMENT_REGEX = "^([ a-z]+ *\\( *[^{]+?\\)|else) *\\{(.*)$";
     public static final String LEVEL_IS_SAVED_STYLE = "-fx-background-color: rgba(150,255,150,0.75)";
     public static final String LEVEL_NOT_SAVED_STYLE = "-fx-background-color: rgba(255,150,150,0.75)";
     public static final int MAX_TUTORIAL_LINES = 6;
@@ -131,6 +130,11 @@ public abstract class GameConstants {
             "Alt+Left:\t\tShow previous tutorial message\n"+
             "F5:\t\t\tActivate or deactivate the compiler in order to edit the whole CodeArea even if there are errors\n"+
             "Ctrl+R:\t\tIf the current Codefield contains a declaration, you may rename that variable";
+    public static final String SIMPLE_STATEMENT_REGEX = "^([^{]+\\.[^{]+ *\\( *[^{]* *\\) *|[^{()]+ *[^{()]+? *= *[^{()]+?|[^{()]+ *[^{()]+?);(.++)$";
+    // only void? "^ *(void) +("+VARIABLE_NAME_REGEX+") *\\((|[a-zA-z]+ +"+VARIABLE_NAME_REGEX+"|([a-zA-z]+ +"+VARIABLE_NAME_REGEX+" *, *)+([a-zA-z]+ +"+VARIABLE_NAME_REGEX+"))\\) *\\{(.*)$";
+    public static final String METHOD_DECLARATION_REGEX = "^ *([a-zA-Z]+) +("+VARIABLE_NAME_REGEX+") *\\((|[a-zA-z]+ +"+VARIABLE_NAME_REGEX+"|([a-zA-z]+ +"+VARIABLE_NAME_REGEX+" *, *)+([a-zA-z]+ +"+VARIABLE_NAME_REGEX+"))\\) *\\{(.*)$";
+    public static final String COMPLEX_STATEMENT_REGEX = "^([ a-z]+ *\\( *[^{]+?\\) *\\{|else *\\{)(.*)$";
+    public static final String DIRECTION_REGEX = "(NORTH|SOUTH|EAST|WEST)";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;
 

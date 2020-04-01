@@ -91,7 +91,7 @@ public abstract class CodeEvaluator {
                         ExpressionTree varValue = assignment.getVariable().getValue();
                         variable2 = new Variable(variableType,varName,varValue);
                         break;
-                    case ACTION:
+                    case VOID:
                         break;
                 }
                 assert variable2 != null;
@@ -241,8 +241,8 @@ public abstract class CodeEvaluator {
                 boolean var2Found = var2!=null && var2.getVariableType() != VariableType.INT;
 
                 if(var1Found || var2Found)return evaluateBooleanExpression(new ConditionLeaf(var1Found ? var1.getValue() : leftTree, conditionLeaf.getSimpleConditionType(),var2Found ? var2.getValue() : rightTree));
-                boolean vt1Found = vt1 !=VariableType.ACTION && vt1 != VariableType.INT;
-                boolean vt2Found = vt2 !=VariableType.ACTION && vt2 != VariableType.INT;
+                boolean vt1Found = vt1 !=VariableType.VOID && vt1 != VariableType.INT;
+                boolean vt2Found = vt2 !=VariableType.VOID && vt2 != VariableType.INT;
                 if(vt1Found && vt2Found) return !leftTree.getText().equals(rightTree.getText());
 
                 leftEvaluated =  evaluateNumericalExpression(leftTree);
@@ -257,8 +257,8 @@ public abstract class CodeEvaluator {
                 var2Found = var2!=null && var2.getVariableType() != VariableType.INT;
 
                 if(var1Found || var2Found)return evaluateBooleanExpression(new ConditionLeaf(var1Found ? var1.getValue() : leftTree, conditionLeaf.getSimpleConditionType(),var2Found ? var2.getValue() : rightTree));
-                vt1Found = vt1 !=VariableType.ACTION && vt1 != VariableType.INT;
-                vt2Found = vt2 !=VariableType.ACTION && vt2 != VariableType.INT;
+                vt1Found = vt1 !=VariableType.VOID && vt1 != VariableType.INT;
+                vt2Found = vt2 !=VariableType.VOID && vt2 != VariableType.INT;
                 if(vt1Found && vt2Found) return leftTree.getText().equals(rightTree.getText());
 
                 leftEvaluated =  evaluateNumericalExpression(leftTree);

@@ -335,7 +335,8 @@ public abstract class CodeExecutor {
                 tryToDropItem(position);
                 break;
 
-        }}
+        }
+        }
     }
 
     public static boolean knightWasSpawned() {

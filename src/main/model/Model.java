@@ -6,9 +6,11 @@ import main.model.enums.ItemType;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
+import main.model.statement.MethodDeclaration;
 import main.model.statement.Statement;
 import main.utility.GameConstants;
 import main.utility.Util;
+import main.utility.Variable;
 
 import java.util.*;
 
@@ -22,6 +24,7 @@ public abstract class Model {
     //TODO:!!!!!
     private static List<Level> unlockedLevelList = new ArrayList<>();
     private static List<String> unlockedStatementsList = new ArrayList<>();
+    private static List<MethodDeclaration> createdMethodsList = new ArrayList<>();
 //    private static Map<Level,Integer> levelStarMap = new HashMap<>();
     private static GameMap currentMap;
     private static ComplexStatement currentAiBehaviour;
@@ -63,17 +66,23 @@ public abstract class Model {
         Model.unlockedLevelList = unlockedLevelsList;
         if(unlockedLevelsList.size()==0)unlockedLevelsList.add(levelList.get(0));
         Model.unlockedStatementsList = unlockedStatementsList;
+        //TODO:!!!
+        Model.createdMethodsList = new ArrayList<>();
     }
 
     private static Level getCurrentLevel() {
         return levelList.get(currentLevelIndex);
     }
 
-    public static void addLevel(Level level, boolean isNew) {
-        levelList.add(level);
+    public static void addLevelLast(Level level, boolean isNew) {
+        addLevel(levelList.size(),level,isNew);
+    }
+    private static  void addLevel(int i,Level level, boolean isNew){
+        if(i == levelList.size())levelList.add(level);
+        else levelList.add(i,level);
         if(isNew) {
-            levelChangeSender.wholeLevelChanged();
             selectLevel(level.getName());
+            levelChangeSender.levelChanged(true);
         }
     }
 
@@ -82,13 +91,13 @@ public abstract class Model {
         currentTutorialMessageIndex = 0;
         currentMap = getCurrentLevel().getOriginalMapCopy();
         currentAiBehaviour = getCurrentLevel().getAIBehaviourCopy();
+        levelChangeSender.levelChanged(false);
         //TODO: dafuqqqqq??!
 //        try {
 //            currentEditedLevel.setUnlockedStatementList(JSONParser.getUnlockedStatementList());
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        levelChangeSender.wholeLevelChanged();
     }
     public static void selectLevel(String name){
         selectLevel(getIndexOfLevelInList(name));
@@ -99,6 +108,7 @@ public abstract class Model {
         for(Level l : levelList){
             l.getRequiredLevelNamesCopy().remove(getCurrentLevel().getName());
         }
+        if(currentLevelIndex != 0)currentLevelIndex--;
         selectLevel(currentLevelIndex);
     }
 
@@ -142,8 +152,13 @@ public abstract class Model {
 //    }
 
     public static void reloadCurrentLevel() {
-        List<LevelChange> resets = levelChangeSender.resetChanges();
-        for(LevelChange l : resets)updateLevelValues(l.getLevelDataType(),l.getOldValue());
+        if(levelChangeSender.isLevelNew()){
+            removeCurrentLevel();
+        }
+        else {
+            List<LevelChange> resets = levelChangeSender.resetChanges();
+            for(LevelChange l : resets)updateLevelValues(l.getLevelDataType(),l.getOldValue());
+        }
     }
 
     private static void updateLevelValues(LevelDataType levelDataType, Object value) {
@@ -213,7 +228,7 @@ public abstract class Model {
 //        return levelList.get(i-1);
 //    }
 
-    public static void moveCurrentLevelDown() {
+    private static void moveCurrentLevelDown() {
         Level tempLevel = levelList.get(currentLevelIndex-1);
         getCurrentLevel().getRequiredLevelNamesCopy().remove(tempLevel.getName());
         levelList.set(currentLevelIndex-1, getCurrentLevel());
@@ -228,7 +243,7 @@ public abstract class Model {
 //        return null;
 //    }
 
-    public static void moveCurrentLevelUp() {
+    private static void moveCurrentLevelUp() {
         Level tempLevel = levelList.get(currentLevelIndex+1);
         tempLevel.getRequiredLevelNamesCopy().remove(getCurrentLevel().getName());
         levelList.set(currentLevelIndex+1, getCurrentLevel());
@@ -292,7 +307,7 @@ public abstract class Model {
     }
 
     public static boolean currentLevelHasChanged() {
-        return levelChangeSender.hasChanged();
+        return levelChangeSender.hasChanged() || levelChangeSender.isLevelNew();
     }
 
     public static Map<LevelDataType,LevelChange> getAndConfirmCurrentChanges() {
@@ -583,11 +598,9 @@ public abstract class Model {
         aiFinished = false;
         isStackOverflow = false;
         currentMap = getCurrentLevel().getOriginalMapCopy();
-        levelChangeSender.resetChanges();
 //        if(getCurrentLevel().hasAi())
 //        if(currentAiBehaviour!=null)
 //            currentAiBehaviour.resetVariables(true);
-
         CodeExecutor.reset();
     }
 
@@ -595,19 +608,34 @@ public abstract class Model {
         return skeletonsSpawned;
     }
 
-    public static void updateUnlockedLevelsList() {
-        if(bestLOCMap.get(Model.getCurrentLevel()).equals(-1))return;
-        if(!unlockedLevelList.contains(getCurrentLevel()))unlockedLevelList.add(getCurrentLevel());
-        int i = 0;
-        for(Level l : levelList){
-            int foundLevels = 0;
-            for(String requiredLevelName : l.getRequiredLevelNamesCopy()){
-                for(Level unlockedLevel : unlockedLevelList)if(unlockedLevel.getName().equals(requiredLevelName))foundLevels++;
+    public static void updateUnlockedLevelsList(boolean isEditor) {
+        if(!unlockedLevelList.contains(getCurrentLevel())&&!isEditor)unlockedLevelList.add(getCurrentLevel());
+        int foundLevels = 0;
+        if(isEditor) {
+            for (String s : getCurrentLevel().getRequiredLevelNamesCopy()) {
+                Level l = getLevelWithName(s);
+                if (bestLOCMap.get(l) != null && bestLOCMap.get(l) > -1) {
+                    foundLevels++;
+                }
             }
-            if(foundLevels == l.getRequiredLevelNamesCopy().size() && !l.isTutorial())
-                if(!unlockedLevelList.contains(l))unlockedLevelList.add(l);
-            if(!unlockedLevelList.contains(l)&&(l.isTutorial()&&Model.getNextTutorialIndex()==i) )unlockedLevelList.add(l);
-            i++;
+            if (foundLevels == getCurrentLevel().getRequiredLevelNamesCopy().size())
+                if (!unlockedLevelList.contains(getCurrentLevel())) unlockedLevelList.add(getCurrentLevel());
+        }
+        else {
+            if(!bestLOCMap.containsKey(Model.getCurrentLevel())||bestLOCMap.get(Model.getCurrentLevel()).equals(-1))return;
+            int i = 0;
+            for(Level l : levelList){
+                foundLevels = 0;
+                for(String requiredLevelName : l.getRequiredLevelNamesCopy()){
+                    for(Level unlockedLevel : unlockedLevelList)if(unlockedLevel.getName().equals(requiredLevelName) && bestLOCMap.get(l) != null && bestLOCMap.get(l) > -1)
+                        foundLevels++;
+                }
+                if(foundLevels == l.getRequiredLevelNamesCopy().size() && !l.isTutorial())
+                    if(!unlockedLevelList.contains(l))unlockedLevelList.add(l);
+                if(!unlockedLevelList.contains(l)&&(l.isTutorial()&&Model.getNextTutorialIndex()==i) && bestLOCMap.get(getCurrentLevel()) != null && bestLOCMap.get(getCurrentLevel()) > -1 )
+                    unlockedLevelList.add(l);
+                i++;
+            }
         }
     }
 
@@ -665,11 +693,15 @@ public abstract class Model {
     }
 
     public static int getBestLocOfLevel(int i) {
-        return bestLOCMap.get(levelList.get(i));
+        int output = -1;
+        if(bestLOCMap.get(levelList.get(i))==null)output = bestLOCMap.get(levelList.get(i));
+        return output;
     }
 
     public static int getBestTurnsOfLevel(int i) {
-        return bestTurnsMap.get(levelList.get(i));
+        int output = -1;
+        if(bestTurnsMap.get(levelList.get(i))==null)output = bestTurnsMap.get(levelList.get(i));
+        return output;
     }
 
     public static GameMap getCurrentMap(){
@@ -682,6 +714,16 @@ public abstract class Model {
 
     public static List<String> getBestCodeOfLevel(int i) {
         return bestCodeMap.get(levelList.get(i));
+    }
+
+    public static boolean methodExists(String methodName) {
+        for(MethodDeclaration mD : createdMethodsList){
+            if(mD.getMethodName().equals(methodName))return true;
+        }
+        return false;
+    }
+    public static void addMethod(MethodDeclaration mD) {
+        if(!methodExists(mD.getMethodName())) createdMethodsList.add(mD);
     }
 
     public static boolean isCurrentLevelNew() {
@@ -734,6 +776,25 @@ public abstract class Model {
     public static void decreaseTutorialMessageIndex() {
         currentTutorialMessageIndex--;
     }
+
+    public static void resetLevelNew() {
+        levelChangeSender.resetLevelNew();
+    }
+
+    public static void addLevelAtCurrentPos(Level level, boolean b) {
+        if(currentLevelIndex == levelList.size()-1)addLevelLast(level, b);
+        else addLevel(getCurrentIndex()+1, level, b);
+    }
+
+    public static List<Variable> getVariableListFromMethod(String methodName) {
+        for(MethodDeclaration mD : createdMethodsList){
+            if(mD.getMethodName().equals(methodName)){
+                return mD.getVariableList();
+            }
+        }
+        return null;
+    }
+
 
 //    public static void updateSpawnedEntities() {
 //        if(CodeExecutor.knightWasSpawned())knightsSpawned++;

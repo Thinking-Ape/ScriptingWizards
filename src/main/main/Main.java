@@ -25,7 +25,7 @@ public class Main extends Application {
 //        levelList.sort((l1, l2) -> l1.getIndex() > l2.getIndex() ? 1 : -1);
         List<Level> unlockedLevelList = new ArrayList<>();
         for(Level l : levelList){
-             Model.addLevel(l,false);
+             Model.addLevelLast(l,false);
             if(GameConstants.DEBUG)System.out.println("UNLOCKED LEVELS:");
             if(GameConstants.DEBUG)System.out.println("==================");
              if(unlockedLevelNameList.contains(l.getName())){

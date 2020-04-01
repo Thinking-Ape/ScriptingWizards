@@ -98,6 +98,7 @@ public abstract class Util {
     }
 
     public static String stripCode(String substring) {
+        if(substring == null)return "";
         substring = substring.trim();
         if(substring.equals("")) return substring;
         if(substring.charAt(substring.length()-1) == ';')
@@ -532,7 +533,7 @@ public abstract class Util {
         return same;
     }
 
-    public static boolean isTooLongForCodefield(String code, int depth) {
+    public static boolean textIsTooLongForCodefield(String code, int depth) {
         Text text = new Text(code);
         text.setFont(GameConstants.CODE_FONT);
         if(text.getLayoutBounds().getWidth() > GameConstants.TEXTFIELD_WIDTH-GameConstants.CODE_OFFSET*depth-GameConstants.SCREEN_WIDTH/110)return true;

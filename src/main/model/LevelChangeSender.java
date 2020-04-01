@@ -17,7 +17,6 @@ public class LevelChangeSender {
 
     public void addLevelChange(LevelChange change){
         LevelDataType levelDataType = change.getLevelDataType();
-//        Object oldValue = change.getOldValue();
         if(levelChangeMap.containsKey(levelDataType)){
             Object oldValue = levelChangeMap.get(levelDataType).getOldValue();
             boolean isEqual =oldValue.equals(change.getNewValue());
@@ -29,7 +28,7 @@ public class LevelChangeSender {
             if(isEqual){
                 levelChangeMap.remove(levelDataType);
                 if(levelChangeMap.size()==0)
-                    levelChangeListener.changesUndone();
+                    levelChangeListener.updateAll();
             }
             else levelChangeMap.put(levelDataType, new LevelChange(levelDataType,oldValue,change.getNewValue()));
         }
@@ -40,23 +39,21 @@ public class LevelChangeSender {
     }
 
     public Map<LevelDataType,LevelChange> getAndConfirmChanges(){
-        levelNew = false;
         Map<LevelDataType,LevelChange> output = new HashMap<>(levelChangeMap);
         levelChangeMap.clear();
-        levelChangeListener.changesUndone();
+        levelChangeListener.updateAll();
         return output;
     }
 
     public List<LevelChange> resetChanges(){
         List<LevelChange> output = new ArrayList<>();
-        levelNew = false;
         for(LevelChange change : levelChangeMap.values()){
             LevelChange levelChange = new LevelChange(change.getLevelDataType(), change.getOldValue(), change.getOldValue());
             output.add(levelChange);
             levelChangeListener.updateTemporaryChanges(levelChange);
         }
         levelChangeMap.clear();
-        levelChangeListener.changesUndone();
+        levelChangeListener.updateAll();
         return output;
     }
 
@@ -64,15 +61,18 @@ public class LevelChangeSender {
         return levelChangeMap.size()>0;
     }
 
-    public void wholeLevelChanged() {
-        levelNew = true;
+    public void levelChanged(boolean levelNew) {
+        this.levelNew = levelNew;
         levelChangeMap.clear();
         levelChangeListener.updateAll();
-        levelChangeListener.changesUndone();
     }
 
     public boolean isLevelNew(){
         return levelNew;
+    }
+
+    public void resetLevelNew(){
+        levelNew = false;
     }
 
 //    public void setListener(LevelChangeListener levelChangeListener){
