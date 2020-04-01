@@ -30,7 +30,6 @@ import java.util.Optional;
 public class Controller {
     private static Controller single_Instance = null;
     private boolean isGameRunning = false;
-    private double standardHeight;
     private double mouse_PositionX;
     private double mouse_PositionY;
     private View view;
@@ -42,7 +41,7 @@ public class Controller {
     private Controller(View view) {
         this.view = view;
         codeAreaController = new CodeAreaController(view);
-        editorController = new EditorController(view, codeAreaController);
+        editorController = new EditorController(view);
         int minIndex = Model.getTutorialProgress();
         view.getStage().getScene().setOnKeyPressed(event -> {
             if (!(view.getStage().getScene().getFocusOwner() instanceof CodeField)) {
@@ -191,8 +190,13 @@ public class Controller {
             }
         });
         view.getStartScreen().getTutorialBtn().setOnAction(actionEvent -> {
+            if (Model.getTutorialProgress() != -1) {
+                view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
 
-            int amountOfTuts = Model.getCurrentTutorialSize();
+            } else {
+                view.setSceneState(SceneState.TUTORIAL);
+                Model.selectLevel(0);
+            }
             view.getTutorialLevelOverviewPane().getBackBtn().setOnAction(actionEvent2 ->
                     view.setSceneState(SceneState.START_SCREEN)
             );
@@ -201,10 +205,6 @@ public class Controller {
                 Model.selectLevel(levelName);
                 view.setSceneState(SceneState.TUTORIAL);
             });
-            if (Model.getTutorialProgress() != -1) {
-                view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
-
-            } else view.setSceneState(SceneState.TUTORIAL);
 
             view.getTutorialGroup().getNextBtn().setOnAction(evt -> {
                 view.getTutorialGroup().next();

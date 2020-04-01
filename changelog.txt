@@ -3,6 +3,8 @@ Version 1.4c:
     - Fixed a bug where the current Index of a level would not change
     - Also Challenge Levels can longer be moved in between Tutorial levels!
     - Fixed a bug where newly created levels could not be removed!
+    - Removed unnecessary calls to draw the map
+    - Fixed a bug where within the tutorial the wrong messages would be shown
 Version 1.4b:
     - You will now receive a warning once when pressing F5
     - Bug fixes concerning Background Image in startscreen

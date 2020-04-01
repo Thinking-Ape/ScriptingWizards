@@ -34,17 +34,11 @@ import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
 import main.parser.JSONParser;
-import main.utility.GameConstants;
-//import org.jetbrains.annotations.Contract;
-import main.utility.Point;
-import main.utility.Util;
-
+import main.utility.*;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
@@ -59,7 +53,7 @@ public class View implements LevelChangeListener {
     private final LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
-    private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
+    private SimpleEventSender eventSender;
     //Testing
 
     //    private Canvas canvas;
@@ -249,7 +243,7 @@ public class View implements LevelChangeListener {
 
         vBox.getChildren().addAll(codeArea, hBox, errorLabel);
 
-        drawMap(gameMap);
+//        drawMap(gameMap);
 
         btnExecute.setTooltip(new Tooltip("Will start or pause the game"));
         btnReset.setTooltip(new Tooltip("Will reset the game"));
@@ -278,7 +272,9 @@ public class View implements LevelChangeListener {
             for(int y = 0; y < map.getBoundY(); y++)
                 actualMapGPane.add(stackpaneField[x][y],x,y);
         redrawKnightsLeftVBox();
-        changeSupport.firePropertyChange("map", null, null);
+        System.out.println("ok");
+        if(eventSender != null)
+            eventSender.notifyListeners(null);
     }
 
 
@@ -821,13 +817,13 @@ public class View implements LevelChangeListener {
         codeArea.setScrollAmount(0);
         if (sceneState == SceneState.LEVEL_EDITOR) {
             updateLevelEditorModule();
+            Platform.runLater(()->highlightInMap(selectedPointList));
         }
-        if (sceneState == SceneState.TUTORIAL) {
+        if (sceneState == SceneState.TUTORIAL && Model.getTutorialProgress()>-1) {
             tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         }
         spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
         drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
-        Platform.runLater(()->highlightInMap(selectedPointList));
     }
 
     @Override
@@ -919,7 +915,6 @@ public class View implements LevelChangeListener {
                 break;
             case LEVEL_EDITOR:
                 prepareRootPane();
-                drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
                 aiCodeArea.setEditable(true);
 //                aiCodeArea.deselectAll();
 //                codeArea.deselectAll();
@@ -938,7 +933,6 @@ public class View implements LevelChangeListener {
                 tutorialLevelOverviewPane.setBackground(brickBackground);
                 break;
             case PLAY:
-                drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
                 prepareRootPane();
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
@@ -946,7 +940,6 @@ public class View implements LevelChangeListener {
                 stage.getScene().setRoot(rootPane);
                 break;
             case TUTORIAL:
-                drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
                 prepareRootPane();
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
@@ -1004,7 +997,7 @@ public class View implements LevelChangeListener {
 //                editorScene = new Scene(rootPane);
                 baseContentVBox.getChildren().add(levelEditorModule.getTopHBox());
                 levelEditorModule.getTutorialVBox().setVisible((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
-                updateAll();
+                updateLevelEditorModule();
                 break;
             case LEVEL_SELECT:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
@@ -1012,7 +1005,7 @@ public class View implements LevelChangeListener {
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case PLAY:
 //                topCenterHBox = new HBox(levelNameLabel, );
-
+                removeHighlights();
                 HBox centerHBox = new HBox(knightsLeftVBox, actualMapGPane);
                 centerHBox.autosize();
                 centerHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
@@ -1024,6 +1017,7 @@ public class View implements LevelChangeListener {
             case START_SCREEN:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case TUTORIAL:
+                removeHighlights();
                 centerHBox = new HBox(knightsLeftVBox, actualMapGPane);
                 centerHBox.autosize();
                 centerHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
@@ -1041,10 +1035,6 @@ public class View implements LevelChangeListener {
 //                        stage.getScene().setRoot(introductionPane);
 //                        introductionPane.getTutorialGroup().getNextBtn().requestFocus();
                 }
-//                    else {
-//                        stage.getScene().setRoot(rootPane);
-//                    }
-
                 //TODO: move to controller?
                 if(isIntroduction){
                     tutorialGroup.setEntries(Util.StringListFromArray(TUTORIAL_LINES));
@@ -1088,6 +1078,10 @@ public class View implements LevelChangeListener {
         rootPane.getChildren().add(spellBookPane);
         spellBookPane.setVisible(false);
         rootPane.setBackground(brickBackground);
+    }
+
+    private void removeHighlights() {
+        highlightInMap(new ArrayList<>());
     }
 
     public Image getImageFromMap(GameMap originalMap) {
@@ -1169,11 +1163,6 @@ public class View implements LevelChangeListener {
         return errorLabelAI;
     }
 
-
-    public StackPane getRootPane() {
-        return rootPane;
-    }
-
     public Button getShowSpellBookBtn() {
         return showSpellBookBtn;
     }
@@ -1249,8 +1238,8 @@ public class View implements LevelChangeListener {
         return stage;
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener editorController) {
-        changeSupport.addPropertyChangeListener(editorController);
+    public void addListener(SimpleEventListener eventListener) {
+        eventSender = new SimpleEventSender(eventListener);
     }
 
     public List<Point> getSelectedPointList() {

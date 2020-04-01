@@ -17,10 +17,10 @@ import main.model.statement.SimpleStatement;
 import main.utility.GameConstants;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
+import main.utility.SimpleEventListener;
+import main.utility.SimpleEventSender;
 import main.utility.Util;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.*;
 
 import static main.utility.GameConstants.MAX_CODE_LINES;
@@ -48,7 +48,7 @@ public class CodeArea extends VBox {
     private static CodeArea aiCodeArea;
     private static CodeArea methodCodeArea;
 
-    private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    private SimpleEventSender eventSender;
 
     public static CodeArea getInstance(CodeAreaType codeAreaType){
         switch (codeAreaType){
@@ -121,7 +121,7 @@ public class CodeArea extends VBox {
 
         upBtn.setDisable(true);
         downBtn.setDisable(true);
-        draw();
+//        draw();
 
     }
 
@@ -164,7 +164,8 @@ public class CodeArea extends VBox {
         return output;
     }
 
-    void draw(){
+    private void draw(){
+        System.out.println("okk");
         rectStackList = getRectanglesFromList(codeFieldList);
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
@@ -179,7 +180,8 @@ public class CodeArea extends VBox {
         this.getChildren().set(1,firstStackPane);
         rectVBox.autosize();
         updateScrollButtons(bound);
-        propertyChangeSupport.firePropertyChange("", null, this);
+        if(eventSender != null)
+            eventSender.notifyListeners(this);
     }
 
     private void updateScrollButtons(int bound) {
@@ -398,9 +400,8 @@ public class CodeArea extends VBox {
         codeFieldList.add(new CodeField("", 1, true));
         draw();
     }
-    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener){
-        propertyChangeSupport = new PropertyChangeSupport(this);
-        propertyChangeSupport.addPropertyChangeListener(propertyChangeListener);
+    public void addListener(SimpleEventListener eventListener){
+        eventSender = new SimpleEventSender(eventListener);
     }
     public void setIconActive(boolean active){
         if(!active)iconIView.setEffect(new ColorAdjust(-0.5,-0.5,-0.5,-0.5));

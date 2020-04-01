@@ -13,18 +13,17 @@ import main.model.Model;
 import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
 import main.utility.GameConstants;
+import main.utility.SimpleEventListener;
 import main.utility.SimpleSet;
 import main.utility.Util;
 import main.view.*;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CodeAreaController implements PropertyChangeListener {
+public class CodeAreaController implements SimpleEventListener {
 
     private View view;
     private int currentIndex = 0;
@@ -41,9 +40,9 @@ public class CodeAreaController implements PropertyChangeListener {
     public CodeAreaController(View view) {
         this.view = view;
 
-        CodeArea.getInstance(CodeAreaType.PLAYER).addPropertyChangeListener(this);
-        CodeArea.getInstance(CodeAreaType.AI).addPropertyChangeListener(this);
-        CodeArea.getInstance(CodeAreaType.METHOD_CREATOR).addPropertyChangeListener(this);
+        CodeArea.getInstance(CodeAreaType.PLAYER).addListener(this);
+        CodeArea.getInstance(CodeAreaType.AI).addListener(this);
+        CodeArea.getInstance(CodeAreaType.METHOD_CREATOR).addListener(this);
 
         setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.PLAYER));
         setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.AI));
@@ -485,8 +484,8 @@ public class CodeAreaController implements PropertyChangeListener {
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        CodeArea codeArea = (CodeArea) evt.getNewValue();
+    public void update(Object o) {
+        CodeArea codeArea = (CodeArea) o;
         setAllHandlersForCodeArea(codeArea);
     }
 }

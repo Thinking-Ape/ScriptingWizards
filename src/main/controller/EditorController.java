@@ -21,31 +21,25 @@ import main.model.statement.SimpleStatement;
 import main.utility.GameConstants;
 import main.parser.JSONParser;
 import main.utility.Point;
+import main.utility.SimpleEventListener;
 import main.utility.Util;
 import main.view.SceneState;
 import main.view.View;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class EditorController implements PropertyChangeListener {
+public class EditorController implements SimpleEventListener {
 
-    View view;
-    CodeAreaController codeAreaController;
+    private View view;
 
     private boolean actionEventFiring = true;
 
-    //    gamemap map;
-    public EditorController(View view, CodeAreaController codeAreaController){
+    public EditorController(View view){
         this.view = view;
-        view.addPropertyChangeListener(this);
-        this.codeAreaController = codeAreaController;
-//        this.map = model.getCurrentLevel().getOriginalMapCopy();
-
+        view.addListener(this);
     }
 
     void setAllEditButtonsToDisable(boolean b) {
@@ -396,7 +390,7 @@ public class EditorController implements PropertyChangeListener {
                     complexStatement.addSubStatement(new SimpleStatement());
                     Model.changeCurrentLevel(LevelDataType.AI_CODE,complexStatement);
                 }
-//                view.notify(Event.LEVEL_CHANGED);
+//                view.inform(Event.LEVEL_CHANGED);
 //                view.setAiCodeArea(new CodeArea(Model.getCurrentLevel().getAIBehaviourCopy()));
 //                view.getAICodeArea().draw();
                 setEditorHandlers();
@@ -657,7 +651,6 @@ public class EditorController implements PropertyChangeListener {
     private void changeEditorModuleDependingOnCellContent(List<Point> points) {
         if(view.getSelectedPointList().size() == 0){
             view.setAllCellButtonsDisabled(true);
-//            view.setAllItemTypeButtonActive();
             return;
         }
         view.setAllCellButtonsDisabled(false);
@@ -834,13 +827,6 @@ public class EditorController implements PropertyChangeListener {
         }
     }
 
-    //TODO: reimplement!
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if(evt.getPropertyName().equals("map")&&view.getCurrentSceneState()== SceneState.LEVEL_EDITOR)
-            setEditorHandlers();
-    }
-
     private void handleEditRequiredLevelsBtn(ActionEvent e) {
         Dialog<ButtonType> chooseRequiredLvlsDialog = new Dialog<>();
         ListView<String> requiredLevelsListView = new ListView<>();
@@ -874,4 +860,11 @@ public class EditorController implements PropertyChangeListener {
         view.getLevelEditorModule().getRequiredLevelsLView().getItems().clear();
         view.getLevelEditorModule().getRequiredLevelsLView().getItems().addAll((List<String>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS));
     }
+
+    @Override
+    public void update(Object o) {
+        if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
+        setEditorHandlers();
+    }
+
 }
