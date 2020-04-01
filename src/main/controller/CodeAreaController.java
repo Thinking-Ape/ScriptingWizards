@@ -361,7 +361,7 @@ public class CodeAreaController implements SimpleEventListener {
                             currentIndex--;
                         }
                     }
-                    else if(currentCodeField.getCaretPosition() == currentCodeField.getText().length() ){
+                    else if(currentCodeField.getCaretPosition() == currentCodeField.getText().length() && currentIndex < currentCodeArea.getSize()-1){
                         CodeField nextCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex+1);
                         if ((nextCodeField.isEmpty()||nextCodeField.getText().matches(" *"))){
                             showError = true;

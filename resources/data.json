@@ -1,1 +1,1 @@
-{"tutorialProgress":-1,"storedCode":["Knight k = new Knight();","k.collect();","k.move();","k.useItem();"],"statements":["","Knight","collect","move","useItem"],"unlocks":[{"loc":-1,"code":[],"name":"HelloDungeon","turns":-1},{"loc":-1,"code":[],"name":"TurnRightToWin","turns":-1}]}
+{"tutorialProgress":-1,"storedCode":[],"statements":[],"unlocks":[{"loc":-1,"code":[],"name":"HelloDungeon","turns":-1}]}

@@ -251,12 +251,12 @@ public class View implements LevelChangeListener {
         speedSlider.setTooltip(new Tooltip("Control the speed of the game"));
         showSpellBookBtn.setTooltip(new Tooltip("Show/Hide the Spellbook"));
 
-
         List<String> storedCode;
         try {
             storedCode = JSONParser.getStoredCode();
             if(storedCode.size()>0)
                 codeArea.updateCodeFields(CodeParser.parseProgramCode(storedCode));
+            else codeArea.updateCodeFields(new ComplexStatement());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -272,7 +272,6 @@ public class View implements LevelChangeListener {
             for(int y = 0; y < map.getBoundY(); y++)
                 actualMapGPane.add(stackpaneField[x][y],x,y);
         redrawKnightsLeftVBox();
-        System.out.println("ok");
         if(eventSender != null)
             eventSender.notifyListeners(null);
     }

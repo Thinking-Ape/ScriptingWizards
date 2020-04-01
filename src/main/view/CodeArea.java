@@ -165,7 +165,6 @@ public class CodeArea extends VBox {
     }
 
     private void draw(){
-        System.out.println("okk");
         rectStackList = getRectanglesFromList(codeFieldList);
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();

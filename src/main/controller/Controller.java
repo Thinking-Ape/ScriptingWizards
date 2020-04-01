@@ -217,6 +217,7 @@ public class Controller {
                     view.getTutorialGroup().getEndIntroductionBtn().setVisible(true);
                 view.getTutorialGroup().getEndIntroductionBtn().setOnAction(event -> {
                     view.leaveIntroductions();
+                    view.getCodeArea().setEffect(null);
                 });
                 sp.setCache(false);
                 for (Node n : sp.getChildrenUnmodifiable()) {
@@ -392,8 +393,9 @@ public class Controller {
                     Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
                     String levelName = (String) Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
                     double nStars = Util.calculateStars(turns, loc, turnsToStars, locToStars);
+                    boolean isBetter = false;
                     if (view.getCurrentSceneState() == SceneState.PLAY || view.getCurrentSceneState() == SceneState.TUTORIAL) {
-                        Model.putStatsIfBetter(loc, turns, nStars);
+                        isBetter = Model.putStatsIfBetter(loc, turns, nStars);
                         Model.updateUnlockedLevelsList(false);
                     }
                     timeline.stop();
@@ -405,7 +407,7 @@ public class Controller {
                     String nextLevelName;
                     GameMap nextLevelMap;
                     if (isTutorial && view.getCurrentSceneState() == SceneState.TUTORIAL) {
-                        if (nStars >= Util.calculateStars(Model.getCurrentBestTurns(), Model.getCurrentBestLOC(), turnsToStars, locToStars))
+                        if (isBetter)
                             view.getTutorialLevelOverviewPane().updateCurrentLevel();
                         minIndex = nextIndex - 1 > minIndex ? nextIndex - 1 : minIndex;
                         if (nextIndex != -1) {
@@ -416,7 +418,7 @@ public class Controller {
                                 view.getTutorialLevelOverviewPane().addLevel(nextIndex, view.getImageFromMap(nextLevelMap));
                         }
                     } else if (view.getCurrentSceneState() == SceneState.PLAY) {
-                        if (nStars >= Util.calculateStars(Model.getCurrentBestTurns(), Model.getCurrentBestLOC(), turnsToStars, locToStars))
+                        if (isBetter)
                             view.getLevelOverviewPane().updateCurrentLevel();
 
                         if (nextIndex != -1) {

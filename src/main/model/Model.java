@@ -609,8 +609,10 @@ public abstract class Model {
     }
 
     public static void updateUnlockedLevelsList(boolean isEditor) {
-        if(!unlockedLevelList.contains(getCurrentLevel())&&!isEditor)unlockedLevelList.add(getCurrentLevel());
+
         int foundLevels = 0;
+        // If the current level was saved from within the LevelEditor -> Maybe Required Levels was changed
+        // -> Unlock non-Tutoriallevels whose requirements are met
         if(isEditor) {
             for (String s : getCurrentLevel().getRequiredLevelNamesCopy()) {
                 Level l = getLevelWithName(s);
@@ -618,32 +620,49 @@ public abstract class Model {
                     foundLevels++;
                 }
             }
-            if (foundLevels == getCurrentLevel().getRequiredLevelNamesCopy().size())
+            if (foundLevels == getCurrentLevel().getRequiredLevelNamesCopy().size() && !getCurrentLevel().isTutorial())
                 if (!unlockedLevelList.contains(getCurrentLevel())) unlockedLevelList.add(getCurrentLevel());
         }
+        // If the current Level was finished from outside of the LevelEditor -> unlock levels that required it
         else {
-            if(!bestLOCMap.containsKey(Model.getCurrentLevel())||bestLOCMap.get(Model.getCurrentLevel()).equals(-1))return;
+            // This should actually be impossible!
+            if(!unlockedLevelList.contains(getCurrentLevel())) throw new IllegalStateException("You just completed a level you hadnt even unlocked in the first place!");
+//                unlockedLevelList.add(getCurrentLevel());
+            // This also should be impossible!
+            if(!bestLOCMap.containsKey(getCurrentLevel())||bestLOCMap.get(getCurrentLevel()).equals(-1))
+                throw new IllegalStateException("Well this should not have happened! My sincerest apologies!");
+//                return;
             int i = 0;
             for(Level l : levelList){
                 foundLevels = 0;
+                // Count all unlocked levels that have a score > -1 (Have been solved already) and are required for a given level
+                // If the amount is equal to the amount of required levels -> unlock that level
                 for(String requiredLevelName : l.getRequiredLevelNamesCopy()){
-                    for(Level unlockedLevel : unlockedLevelList)if(unlockedLevel.getName().equals(requiredLevelName) && bestLOCMap.get(l) != null && bestLOCMap.get(l) > -1)
-                        foundLevels++;
+                    for(Level unlockedLevel : unlockedLevelList)
+                        if(unlockedLevel.getName().equals(requiredLevelName) && bestLOCMap.containsKey(unlockedLevel) && bestLOCMap.get(unlockedLevel)>-1)
+                            foundLevels++;
                 }
+                // Doesnt apply to tutorials
                 if(foundLevels == l.getRequiredLevelNamesCopy().size() && !l.isTutorial())
                     if(!unlockedLevelList.contains(l))unlockedLevelList.add(l);
-                if(!unlockedLevelList.contains(l)&&(l.isTutorial()&&Model.getNextTutorialIndex()==i) && bestLOCMap.get(getCurrentLevel()) != null && bestLOCMap.get(getCurrentLevel()) > -1 )
-                    unlockedLevelList.add(l);
+                // Unlock next tutorial if this level is a tutorial
+                // A check whether this level is a tutorial is not needed as in that case (getNextTutorialIndex()==i) is false
+                if((l.isTutorial() && getNextTutorialIndex()==i))
+                    if(!unlockedLevelList.contains(l))unlockedLevelList.add(l);
                 i++;
             }
         }
     }
 
-    public static void putStatsIfBetter(int loc, int turns, double nStars) {
-        int bestLoc = bestLOCMap.get(getCurrentLevel());
-        int bestTurns = bestTurnsMap.get(getCurrentLevel());
+    public static boolean putStatsIfBetter(int loc, int turns, double nStars) {
+        int bestLoc = -1;
+        int bestTurns = -1;
+        if(bestLOCMap.containsKey(getCurrentLevel())){
+            bestLoc =bestLOCMap.get(getCurrentLevel());
+            bestTurnsMap.get(getCurrentLevel());
+        }
         // new result not better than existing one
-        if(nStars < Util.calculateStars(bestTurns,bestLoc,getCurrentLevel().getTurnsToStarsCopy() , getCurrentLevel().getLocToStarsCopy()) )return;
+        if(nStars < Util.calculateStars(bestTurns,bestLoc,getCurrentLevel().getTurnsToStarsCopy() , getCurrentLevel().getLocToStarsCopy()) )return false;
 
         if(bestLOCMap.containsKey(getCurrentLevel())){
             bestLOCMap.replace(getCurrentLevel(),loc);
@@ -656,6 +675,7 @@ public abstract class Model {
         if(bestCodeMap.containsKey(getCurrentLevel())){
             bestCodeMap.replace(getCurrentLevel(),playerBehaviour.getCodeLines());
         } else bestCodeMap.put(getCurrentLevel(),playerBehaviour.getCodeLines());
+        return true;
     }
 
     public static void nextTutorial() {
@@ -694,13 +714,13 @@ public abstract class Model {
 
     public static int getBestLocOfLevel(int i) {
         int output = -1;
-        if(bestLOCMap.get(levelList.get(i))==null)output = bestLOCMap.get(levelList.get(i));
+        if(bestLOCMap.get(levelList.get(i))!=null)output = bestLOCMap.get(levelList.get(i));
         return output;
     }
 
     public static int getBestTurnsOfLevel(int i) {
         int output = -1;
-        if(bestTurnsMap.get(levelList.get(i))==null)output = bestTurnsMap.get(levelList.get(i));
+        if(bestTurnsMap.get(levelList.get(i))!=null)output = bestTurnsMap.get(levelList.get(i));
         return output;
     }
 
@@ -761,6 +781,7 @@ public abstract class Model {
         }
         return -1;
     }
+
     public static int getNextTutorialIndex() {
         int output = 0;
         for(Level l : levelList){
