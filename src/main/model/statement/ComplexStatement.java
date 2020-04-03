@@ -2,75 +2,74 @@ package main.model.statement;
 
 import main.model.statement.Condition.Condition;
 import main.parser.CodeParser;
-import main.utility.SimpleSet;
-import main.utility.Variable;
 import main.view.CodeAreaType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class ComplexStatement implements Statement {
 
     List<Statement> statementList = new ArrayList<>();
     StatementType statementType;
     int counter=-1;
-    Set<Variable> localVariableSet = new SimpleSet<>();
+//    Set<Variable> localVariableSet = new SimpleSet<>();
     ComplexStatement parentStatement = null;
     protected Condition condition;
+
+
 
     @Override
     public void setParentStatement(ComplexStatement parentStatement) {
         this.parentStatement = parentStatement;
     }
 
-    public void updateVariable(Variable variable) {
-        Variable var = getVariable(variable.getName());
-        if(var == null){
-            if(parentStatement == null || (var = parentStatement.getVariable(variable.getName())) == null)throw new IllegalStateException("Variable "+ variable.getName() + " does not exist!");
-        }
-        var.update(variable.getValue());
-    }
+//    public void updateVariable(Variable variable) {
+//        Variable var = getVariable(variable.getName());
+//        if(var == null){
+//            if(parentStatement == null || (var = parentStatement.getVariable(variable.getName())) == null)throw new IllegalStateException("Variable "+ variable.getName() + " does not exist!");
+//        }
+//        var.update(variable.getValue());
+//    }
 
     /** Will return a Variable that has the same name as the given parameter. If there are no local variables with that
      *  name, the search will be passed on to the parent statement
      *
      * @return The found Variable or null
      */
-    public Variable getVariable(String variableName) {
-        for(Variable var : localVariableSet){
-            if(var.getName().equals(variableName)){
-                return  var;
-            }
-        }
-        return parentStatement == null ? null : parentStatement.getVariable(variableName);
-    }
+//    public Variable getVariable(String variableName) {
+//        for(Variable var : localVariableSet){
+//            if(var.getName().equals(variableName)){
+//                return  var;
+//            }
+//        }
+//        return parentStatement == null ? null : parentStatement.getVariable(variableName);
+//    }
 
     public ComplexStatement(){
 //        this.depth = depth;
         this.statementType = StatementType.COMPLEX;
     }
-    public void resetVariables(boolean total) {
-        counter = -1;
-        localVariableSet = new SimpleSet<>();
-        for(Statement statement : statementList){
-            if(statement.isComplex()){
-                ((ComplexStatement)statement).resetVariables(true);
-            }
-        }
-    }
+//    public void resetVariables(boolean total) {
+//        counter = -1;
+//        localVariableSet = new SimpleSet<>();
+//        for(Statement statement : statementList){
+//            if(statement.isComplex()){
+//                ((ComplexStatement)statement).resetVariables(true);
+//            }
+//        }
+//    }
 
-    public void addLocalVariable(Variable variable) {
-        for(Variable variable1 : localVariableSet){
-            if(variable.getName().equals(variable1.getName())){
-                throw new IllegalStateException("Variable " + variable.getName()+" already in scope!");
-            }
-        }
-        if(parentStatement != null && parentStatement.getVariable(variable.getName())!=null){
-                throw new IllegalStateException("Variable " + variable.getName()+" already in scope!");
-        }
-        localVariableSet.add(variable);
-    }
+//    public void addLocalVariable(Variable variable) {
+//        for(Variable variable1 : localVariableSet){
+//            if(variable.getName().equals(variable1.getName())){
+//                throw new IllegalStateException("Variable " + variable.getName()+" already in scope!");
+//            }
+//        }
+//        if(parentStatement != null && parentStatement.getVariable(variable.getName())!=null){
+//                throw new IllegalStateException("Variable " + variable.getName()+" already in scope!");
+//        }
+//        localVariableSet.add(variable);
+//    }
 
     @Override
     public ComplexStatement getParentStatement() {
@@ -161,7 +160,7 @@ public class ComplexStatement implements Statement {
     }
 
     public int getDepth(){
-        return parentStatement == null ? 1 : parentStatement.getDepth() + 1;
+        return parentStatement == null ? 0 : parentStatement.getDepth() + 1;
     }
 
     public boolean isComplex(){
@@ -191,8 +190,8 @@ public class ComplexStatement implements Statement {
         if(obj instanceof ComplexStatement)return this.getCodeLines().equals(((ComplexStatement)obj).getCodeLines());
         return super.equals(obj);
     }
-
-    public StatementIterator iterator(){
-        return new StatementIterator(this);
+    public StatementIteratorOld iterator(){
+        return new StatementIteratorOld(this);
     }
+
 }

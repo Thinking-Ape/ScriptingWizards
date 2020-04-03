@@ -4,7 +4,7 @@ import main.model.statement.Condition.Condition;
 
 public class WhileStatement extends ComplexStatement {
 
-    public  WhileStatement (Condition condition){
+    public WhileStatement(Condition condition){
         super();
         this.condition = condition;
         this.statementType = StatementType.WHILE;
@@ -19,7 +19,7 @@ public class WhileStatement extends ComplexStatement {
         Statement statement = super.nextStatement();
         if(statement == null){
             if(counter == statementList.size()){
-                resetVariables(true);
+//                resetVariables(true);
                 counter = 0;
                 return this;
             }
@@ -35,16 +35,5 @@ public class WhileStatement extends ComplexStatement {
     public String getText() {
         return "while("+condition.getText()+") {";
     }
-//    @Override
-//    public void print() throws IllegalAccessException {
-//        System.out.println(getText());
-////        for (Statement statement : statementList){
-////            for(int j = 0; j < statement.getDepth()-1;j++){
-////                System.out.print("  ");
-////            }
-////            statement.print();
-////        }
-//        super.print();
-//        System.out.println("}");
-//    }
+
 }

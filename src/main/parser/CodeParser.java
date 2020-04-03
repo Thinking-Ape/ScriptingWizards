@@ -27,6 +27,7 @@ public abstract class CodeParser {
     private static CodeAreaType codeAreaType;
     private static Statement lastStatement;
     private static Variable currentForVariable;
+    private static VariableScope variableScope;
 
     public static ComplexStatement parseProgramCode(List<String> lines) {
         return parseProgramCode(lines, CodeAreaType.PLAYER);
@@ -41,6 +42,7 @@ public abstract class CodeParser {
      * @throws IllegalArgumentException TODO
      */
     public static ComplexStatement parseProgramCode(List<String> lines, CodeAreaType codeAreaType){
+        variableScope  = new VariableScope();
         codeLines = lines;
         CodeParser.codeAreaType = codeAreaType;
         behaviour = new ComplexStatement();
@@ -67,13 +69,15 @@ public abstract class CodeParser {
             // code lines representing a closing bracket ('}') are ignored as they don't hold any relevant information
             if(code.equals("}")){
                 depth--;
+                variableScope.setCurrentDepth(depth-1);
                 continue;
             }
             Statement statement = parseString(code,depth);
             if(statement ==null )throw new IllegalArgumentException("Unknown statement: \""+code+"\"!");
             if (statement.isComplex()){
                 if(statement.getStatementType() == StatementType.ELSE){
-                    if(!testIfElseCanStandHere(depth)) throw new IllegalArgumentException("Else cannot stand here");
+                    //TODO!
+//                    if(!testIfElseCanStandHere(depth)) throw new IllegalArgumentException("Else cannot stand here");
                     ((ConditionalStatement)depthStatementMap.get(depth)).setElseStatement(((ConditionalStatement)statement));
                 }
                 if (depthStatementMap.containsKey(depth))
@@ -85,6 +89,10 @@ public abstract class CodeParser {
                 //TODO: evaluate if I want to keep that!
                 if(depth > GameConstants.MAX_DEPTH)throw new IllegalStateException("You are not allowed to have a greater depth than "+ GameConstants.MAX_DEPTH +"!");
                 depth++;
+                variableScope.setCurrentDepth(depth-1);
+                if(statement.getStatementType() == StatementType.FOR){
+                    variableScope.addVariable(currentForVariable);
+                }
             }
             else {
                 depthStatementMap.get(depth - 1).addSubStatement(statement);
@@ -108,13 +116,13 @@ public abstract class CodeParser {
                             if(variableType != variable.getVariableType())throw new IllegalArgumentException(((Assignment) statement).getText()+ " is an illegal expression!");
                         }
                     }
-                    statement.getParentStatement().addLocalVariable(((Assignment)statement).getVariable());
+                    variableScope.addVariable(variable);
                 }
             }
             lastStatement = statement;
             index++;
         }
-        behaviour.resetVariables(true);
+//        behaviour.resetVariables(true);
         if(depth != 1)throw new IllegalStateException("Unbalanced amount of brackets!");
         return behaviour;
     }
@@ -269,7 +277,7 @@ public abstract class CodeParser {
             }
             return new MethodCall(null,methodName,parameterString);
         }
-        Variable v = depthStatementMap.get(depth-1).getVariable(objectName);
+        Variable v = variableScope.getVariable(objectName);
         if(v==null)
             throw new IllegalArgumentException("Variable inside MethodCall " +objectName +" not in scope!");
         // Maybe give VariableType an attribute that regulates whether this variable can have MethodCalls?
@@ -335,18 +343,18 @@ public abstract class CodeParser {
                 break;
             case TURN:
                 if(parameters.matches(VariableType.TURN_DIRECTION.getAllowedRegex())||
-                        (depthStatementMap.get(depth-1).getVariable(parameters) != null &&
-                                depthStatementMap.get(depth-1).getVariable(parameters).getVariableType() == VariableType.TURN_DIRECTION &&
-                                    !depthStatementMap.get(depth-1).getVariable(parameters).getValue().getText().equals(""))){
+                        (variableScope.getVariable(parameters) != null &&
+                                variableScope.getVariable(parameters).getVariableType() == VariableType.TURN_DIRECTION &&
+                                    !variableScope.getVariable(parameters).getValue().getText().equals(""))){
                     return;
                 }
                 break;
 
             case IS_LOOKING:
                 if(parameters.matches(VariableType.DIRECTION.getAllowedRegex())||
-                        (depthStatementMap.get(depth-1).getVariable(parameters)!=null &&
-                                depthStatementMap.get(depth-1).getVariable(parameters).getVariableType()==VariableType.DIRECTION&&
-                                    !depthStatementMap.get(depth-1).getVariable(parameters).getValue().getText().equals(""))){
+                        (variableScope.getVariable(parameters)!=null &&
+                                variableScope.getVariable(parameters).getVariableType()==VariableType.DIRECTION&&
+                                    !variableScope.getVariable(parameters).getValue().getText().equals(""))){
                     return;
                 }
                 break;
@@ -410,7 +418,7 @@ public abstract class CodeParser {
             isDeclaration = false;
             ComplexStatement complexStatement = depthStatementMap.get(depth-1);
             if (complexStatement != null && currentForVariable == null){
-                variable1 = complexStatement.getVariable(variableName.trim());
+                variable1 = variableScope.getVariable(variableName.trim());
                 if(variable1 == null)
                     throw new IllegalArgumentException("Variable inside Assignment " + variableName+ " not in scope!");
                 variableType = variable1.getVariableType();
@@ -419,7 +427,7 @@ public abstract class CodeParser {
             }
             else {
                 ComplexStatement cS = depthStatementMap.get(depth-1);
-                if(cS != null && cS.getVariable(variableName)!=null)throw new IllegalArgumentException("Variable " + variableName + " already in scope!");
+                if(cS != null && variableScope.getVariable(variableName)!=null)throw new IllegalArgumentException("Variable " + variableName + " already in scope!");
                 variableType = VariableType.INT;
             }
         }
@@ -433,7 +441,7 @@ public abstract class CodeParser {
         value = value.trim();
         if(value.equals(""))throw new IllegalArgumentException("You cannot have an empty value!");
         if(depthStatementMap.get(depth-1) == null)throw new IllegalStateException("You cant have this statement here!");
-        Variable v = depthStatementMap.get(depth-1).getVariable(value);
+        Variable v = variableScope.getVariable(value);
         if(v!=null){
             if(v.getVariableType() != variableType)throw new IllegalArgumentException(value + " has the wrong type!");
 //            if(depthStatementMap.get(depth-1).getStatementType() == StatementType.FOR){
@@ -443,7 +451,7 @@ public abstract class CodeParser {
 //            }
 //            else
             if(depthStatementMap.get(depth-1).getStatementType()==StatementType.METHOD_DECLARATION)return;
-            testForCorrectValueType(variableType, depthStatementMap.get(depth-1).getVariable(value).getValue().getText(),depth);
+            testForCorrectValueType(variableType, variableScope.getVariable(value).getValue().getText(),depth);
             return;
         }
         switch (variableType){
@@ -503,7 +511,7 @@ public abstract class CodeParser {
                                     testForCorrectValueType(VariableType.INT,rightTree.getText(),depth);
                                     return;
                                 case SIMPLE:
-                                    v = depthStatementMap.get(depth-1).getVariable(leftTree.getText());
+                                    v = variableScope.getVariable(leftTree.getText());
                                     if(v!=null){
                                         testForCorrectValueType(v.getVariableType(),v.getValue().getText(),depth);
                                     }
@@ -514,7 +522,7 @@ public abstract class CodeParser {
                                         else if(leftTree.getText().matches("(true|false)"))
                                             testForCorrectValueType(VariableType.BOOLEAN,leftTree.getText(),depth);
                                     }
-                                    v = depthStatementMap.get(depth-1).getVariable(rightTree.getText());
+                                    v = variableScope.getVariable(rightTree.getText());
                                     if(v!=null){
                                         testForCorrectValueType(v.getVariableType(),v.getValue().getText(),depth);
                                         return;
@@ -549,7 +557,7 @@ public abstract class CodeParser {
             case KNIGHT:
                 if(!value.matches(variableType.getAllowedRegex())){
                     tree = ExpressionTree.expressionTreeFromString(value);
-                    if(tree.getRightNode() != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)return;
+                    if(tree.getRightNode() != null && variableScope.getVariable(tree.getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)return;
                     throw new IllegalArgumentException(value + " is not a valid Knight constructor!");
                 }
                 break;
@@ -557,14 +565,14 @@ public abstract class CodeParser {
                 if(!value.matches(variableType.getAllowedRegex())){
                     tree = ExpressionTree.expressionTreeFromString(value);
                     if(tree.getRightNode() != null) {
-                        boolean varDirValid = depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION;
+                        boolean varDirValid = variableScope.getVariable(tree.getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION;
                         boolean dirValid = tree.getRightNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
                         if(varDirValid || dirValid)return;
                         // 2 Parameters
                         if(tree.getRightNode().getLeftNode() != null && tree.getRightNode().getRightNode() != null){
-                            varDirValid = depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getLeftNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getLeftNode().getText()).getVariableType() == VariableType.DIRECTION;
+                            varDirValid = variableScope.getVariable(tree.getRightNode().getLeftNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getLeftNode().getText()).getVariableType() == VariableType.DIRECTION;
                             dirValid = tree.getRightNode().getLeftNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
-                            boolean varIntValid = depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getRightNode().getText()) != null && depthStatementMap.get(depth-1).getVariable(tree.getRightNode().getRightNode().getText()).getVariableType() == VariableType.INT;
+                            boolean varIntValid = variableScope.getVariable(tree.getRightNode().getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getRightNode().getText()).getVariableType() == VariableType.INT;
                             boolean intValid = tree.getRightNode().getLeftNode().getText().matches(VariableType.INT.getAllowedRegex());
                             if((varDirValid || dirValid) && (varIntValid || intValid))return;
                         }
@@ -599,12 +607,12 @@ public abstract class CodeParser {
                     if(checkForDoppelgangers(parameters))throw  new IllegalArgumentException("You shall not add the same Entity more than once!");
                     for(String parameter : parameters){
 
-                    if(depthStatementMap.get(depth-1).getVariable(parameter) == null)
+                    if(variableScope.getVariable(parameter) == null)
                         throw new IllegalArgumentException(parameter + " is not a valid variable!");
                     else {
                         boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
-                        boolean isKnight = depthStatementMap.get(depth-1).getVariable(parameter).getVariableType() == VariableType.KNIGHT && isPlayerCode;
-                        boolean isSkeleton = depthStatementMap.get(depth-1).getVariable(parameter).getVariableType() == VariableType.SKELETON && !isPlayerCode;
+                        boolean isKnight = variableScope.getVariable(parameter).getVariableType() == VariableType.KNIGHT && isPlayerCode;
+                        boolean isSkeleton = variableScope.getVariable(parameter).getVariableType() == VariableType.SKELETON && !isPlayerCode;
                         if(isKnight || isSkeleton)continue;
                     }
                     throw new IllegalArgumentException(value + " is not a valid Army constructor!");}
@@ -638,7 +646,7 @@ public abstract class CodeParser {
             ConditionLeaf conditionLeaf = (ConditionLeaf)condition;
             switch(conditionLeaf.getSimpleConditionType()){
                 case SIMPLE:
-                    if(depthStatementMap.get(depth-1).getVariable(condition.getText())==null) throw new IllegalArgumentException("Boolean Variable "+condition.getText()+" not in scope!");
+                    if(variableScope.getVariable(condition.getText())==null) throw new IllegalArgumentException("Boolean Variable "+condition.getText()+" not in scope!");
                     return;
                 case GR_EQ:
                 case LE_EQ:
@@ -690,7 +698,7 @@ public abstract class CodeParser {
                     checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(s), depth);
                 return;
             }
-            if(depthStatementMap.get(depth-1).getVariable(valueTree.getText())==null)
+            if(variableScope.getVariable(valueTree.getText())==null)
                 throw new IllegalArgumentException("Variable "+valueTree.getText()+" not in scope!");
         }
     }

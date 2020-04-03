@@ -1,83 +1,64 @@
 package main.model.statement;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-//TODO:
 public class StatementIterator {
 
+    StatementIterator childIterator;
     ComplexStatement complexStatement;
-//    int counter = 0;
-    Map<Statement,Integer> statementCounterMap = new HashMap<>();
-    Statement currentStatement;
+    int counter;
 
-    StatementIterator (ComplexStatement complexStatement){
+    public StatementIterator(ComplexStatement complexStatement, boolean isChild){
         this.complexStatement = complexStatement;
-        currentStatement = complexStatement;
+        counter = isChild ? -1 : 0;
     }
 
-    public Statement next() throws IllegalAccessException {
-        if(currentStatement.isComplex())
-            currentStatement = walk((ComplexStatement)currentStatement);
-        else currentStatement = walk(currentStatement.getParentStatement());
-        return currentStatement;
+    public Statement next(){
+        if(counter == -1){
+            counter++;
+            return complexStatement;
+        }
+        if(counter >= complexStatement.getStatementListSize()){
+            counter = 0;
+            if(complexStatement.getStatementType() == StatementType.COMPLEX||complexStatement.getStatementType() == StatementType.IF||complexStatement.getStatementType() == StatementType.ELSE)return null;
+            return complexStatement;
+        }
+        Statement currentStatement = complexStatement.getSubStatement(counter);
+        if(!currentStatement.isComplex()){
+            counter++;
+            return currentStatement;
+        }
+        else {
+            if(childIterator == null){
+                childIterator = new StatementIterator((ComplexStatement)currentStatement, true);
+            }
+//            else if (childIterator.isAtMax() && (childIterator.complexStatement.statementType == StatementType.IF||childIterator.complexStatement.statementType == StatementType.ELSE)){
+//                counter++;
+//                childIterator = null;
+//                return next();
+//            }
+            Statement output = childIterator.next();
+            if(output == null){
+                childIterator = null;
+                counter++;
+            }
+            else return output;
+            return next();
+        }
     }
 
-
-    //TODO: not working
-    public Statement walk(ComplexStatement complexStatement) throws IllegalAccessException {
-       if(statementCounterMap.containsKey(complexStatement)){
-           int counter = statementCounterMap.get(complexStatement);
-
-           if(counter < complexStatement.getStatementListSize()){
-               if(complexStatement.getStatementType() == StatementType.IF||complexStatement.getStatementType() == StatementType.ELSE){
-                   ConditionalStatement conditionalStatement = ((ConditionalStatement)complexStatement);
-
-                   if(!conditionalStatement.isActive() && conditionalStatement.hasElseStatement()){
-                       statementCounterMap.remove(conditionalStatement);
-                       return walk(conditionalStatement.getElseStatement());
-                   } else if (!conditionalStatement.isActive()){
-                       int parentCounter = statementCounterMap.get(complexStatement.getParentStatement());
-                       statementCounterMap.replace(complexStatement.getParentStatement(),parentCounter+1);
-                       statementCounterMap.remove(conditionalStatement);
-                       return walk(complexStatement.getParentStatement());
-                   }
-               }
-               if(!complexStatement.getSubStatement(counter).isComplex()){
-                   statementCounterMap.replace(complexStatement,counter+1);
-                   return complexStatement.getSubStatement(counter);
-               }
-               return walk((ComplexStatement)(complexStatement.getSubStatement(counter)));
-           }
-           else {
-               statementCounterMap.remove(complexStatement);
-               switch (complexStatement.getStatementType()){
-                   case FOR:
-                   case WHILE:
-                       return complexStatement;
-                   case IF:
-                   case ELSE:
-                   case COMPLEX:
-                       if(complexStatement.getParentStatement() != null){
-                           int parentCounter = statementCounterMap.get(complexStatement.getParentStatement());
-                           statementCounterMap.replace(complexStatement.getParentStatement(),parentCounter+1);
-                           return walk(complexStatement.getParentStatement());
-                       }
-                       else return null;
-                   case METHOD_CALL:
-                   case ASSIGNMENT:
-                   case DECLARATION:
-                       throw new IllegalAccessException("These Statementtypes are not allowed here!");
-               }
-           }
-       } else{
-           statementCounterMap.put(complexStatement,0);
-           return complexStatement;
-       }
-       throw new IllegalStateException("This point should never be reached!");
+    private boolean isAtMax() {
+        return counter >= complexStatement.getStatementListSize();
     }
-    public void skip(ComplexStatement statement){
-        int counter = statementCounterMap.get(statement.getParentStatement());
-        statementCounterMap.replace(statement.getParentStatement(),counter+1);
+
+    public void skip(int depth){
+        if(depth == -1)throw new IllegalArgumentException("Depth must not be smaller than 0!");
+        StatementIterator currentChild = this;
+        for(int i = 0; i < depth; i++){
+            currentChild = currentChild.childIterator;
+        }
+        currentChild.counter++;
+        currentChild.childIterator = null;
     }
 }

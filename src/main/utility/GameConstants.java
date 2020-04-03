@@ -5,6 +5,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import main.model.gamemap.Entity;
 import main.model.enums.EntityType;
+import main.model.statement.ComplexStatement;
+import main.model.statement.Statement;
 
 //import javax.swing.text.html.ImageView;
 import java.awt.*;
@@ -41,6 +43,7 @@ public abstract class GameConstants {
     public static final String VARIABLE_NAME_REGEX = "[a-zA-Z_][a-zA-Z_0-9]*";
     public static final double PLAY_CELL_SIZE_FACTOR = 1.2;
     public static final Entity NO_ENTITY = new Entity("", null, EntityType.NONE);
+    public final static ComplexStatement FALSE_STATEMENT = new ComplexStatement();
 //    public static final boolean EXECUTE_IF_IS_COMMAND = true;
     public static final String TOOLTIP_VARIABLE_NAME = "Reference this variable via this name.";
     public static final String TOOLTIP_BOOLEAN = "True, false, a boolean variable, boolean method call or comparisons of int:\n" +

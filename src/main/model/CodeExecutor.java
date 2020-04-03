@@ -34,18 +34,22 @@ public abstract class CodeExecutor {
         else knightWasSpawned = false;
         currentGameMap  = gameMap;
         boolean method_Called = false;
-        if(isPlayer)updateUnlocks(statement);
         if(statement.getStatementType()== StatementType.METHOD_CALL) {
             MethodCall evaluatedMethodCall = (MethodCall)statement;
             method_Called = true;
             executeMethodCall(evaluatedMethodCall,isPlayer);
         }
-        if(statement.getStatementType()== StatementType.DECLARATION || statement.getStatementType()== StatementType.ASSIGNMENT) {
+        else if(statement.getStatementType()== StatementType.DECLARATION || statement.getStatementType()== StatementType.ASSIGNMENT) {
             Assignment assignment = (Assignment)statement;
             if(assignment.getVariable().getVariableType() == VariableType.KNIGHT){
                 method_Called = true;
                 String name = assignment.getVariable().getName();
-                Direction direction = evaluateDirection(assignment.getVariable().getValue().getRightNode(),assignment.getParentStatement());
+                Direction direction = null;
+                if(assignment.getVariable().getValue().getRightNode()!=null)
+                    direction= Direction.getValueFromString(assignment.getVariable().getValue().getRightNode().getText());
+                if(direction == null)
+                    direction = Direction.NORTH;
+
 
                 Point spawn = currentGameMap.findSpawn();
 
@@ -59,7 +63,9 @@ public abstract class CodeExecutor {
                 method_Called = true;
                 if(currentGameMap.getEnemySpawnList().size()==0)return true;
                 String name = assignment.getVariable().getName();
-                Direction direction = evaluateDirection(assignment.getVariable().getValue().getRightNode(),assignment.getParentStatement());
+                Direction direction = Direction.NORTH;
+                if(assignment.getVariable().getValue().getRightNode()!= null)
+                    direction = Direction.getValueFromString(assignment.getVariable().getValue().getRightNode().getText());
                 String spawnId = "";
                 if(assignment.getVariable().getValue().getRightNode() != null){
                     String s =assignment.getVariable().getValue().getRightNode().getText();
@@ -75,7 +81,7 @@ public abstract class CodeExecutor {
                 int index = GameConstants.RANDOM.nextInt(currentGameMap.getEnemySpawnList().size());
                 Point spawnPoint = new Point(currentGameMap.getEnemySpawnList().get(index).getX(),currentGameMap.getEnemySpawnList().get(index).getY());
                 if(!spawnId.equals("")){
-                    int i = CodeEvaluator.evaluateIntVariable(spawnId);
+                    int i = Integer.valueOf(spawnId);
                     for(Point point : currentGameMap.getEnemySpawnList()){
                         spawnPoint = point;
                         if(currentGameMap.getCellID(spawnPoint)==i){
@@ -94,67 +100,6 @@ public abstract class CodeExecutor {
         return method_Called;
     }
 
-    private static void updateUnlocks(Statement statement) {
-
-        String unlock = "";
-        List<String> unlock2 = new ArrayList<>();
-        switch (statement.getStatementType()){
-            case FOR:
-            case WHILE:
-            case IF:
-            case ELSE:
-                unlock2 = getUnlockedBooleanMethodsFromStatement(statement,((ComplexStatement)statement).getCondition());
-                unlock = statement.getStatementType().name().toLowerCase();
-                break;
-            case METHOD_CALL:
-                unlock = ((MethodCall)statement).getMethodType().getName();
-                break;
-            case ASSIGNMENT:
-            case DECLARATION:
-                unlock = ((Assignment)statement).getVariable().getVariableType().getName();
-                break;
-            case COMPLEX:
-                break;
-            case SIMPLE:
-                if(GameConstants.DEBUG)System.out.println("You have unlocked the following: "+statement.getText());
-                return;
-        }
-        Model.addUnlockedStatement(unlock);
-        for(String s : unlock2){
-            Model.addUnlockedStatement(s);
-        }
-    }
-
-    private static List<String> getUnlockedBooleanMethodsFromStatement(Statement complexStatement, Condition condition) {
-        List<String> output = new ArrayList<>();
-        if(condition == null)return output;
-        Matcher m = Pattern.compile(".*("+GameConstants.VARIABLE_NAME_REGEX.substring(1, GameConstants.VARIABLE_NAME_REGEX.length()-1)+").*?").matcher(condition.getText());
-        if(m.matches())
-        for(int i = 1; i< m.groupCount()+1;i++){
-            Variable v = complexStatement.getParentStatement().getVariable(m.group(i));
-            if(v!=null && v.getVariableType() == VariableType.BOOLEAN){
-                output.addAll(getUnlockedBooleanMethodsFromStatement(complexStatement,Condition.getConditionFromString(v.getValue().getText())));
-            }
-        }
-
-         m = Pattern.compile(".*?([a-zA-Z]+)\\(.*\\).*?").matcher(condition.getText());
-        if(m.matches())
-        for(int i = 1; i< m.groupCount()+1;i++){
-            output.add(m.group(i));
-        }
-        return output;
-    }
-
-    private static Direction evaluateDirection(ExpressionTree rightNode, ComplexStatement parentStatement) {
-        Direction output = Direction.NORTH;
-        Variable dirVar = parentStatement.getVariable(rightNode.getText());
-        if(rightNode != null)output = Direction.getValueFromString(rightNode.getText());
-        if(output == null){
-            if(dirVar != null && dirVar.getVariableType() == VariableType.DIRECTION)return evaluateDirection(dirVar.getValue(),parentStatement);
-            else return Direction.NORTH;
-        }
-        return output;
-    }
 
     private static void tryToUseItem(Point actorPos) {
         String name = currentGameMap.getEntity(actorPos).getName();
@@ -226,37 +171,19 @@ public abstract class CodeExecutor {
             if(actorCell.getEntity().getItem()!=ItemType.NONE) item = actorCell.getEntity().getItem();
             currentGameMap.setEntityItem(actorPoint,currentGameMap.getItem(targetPoint));
             currentGameMap.setItem(targetPoint,item);
-//            targetCell.setFlagValue(CFlag.TRAVERSABLE,true);
-//            targetCell.setFlagValue(CFlag.COLLECTIBLE,false);
             return true;
         }
         return false;
     }
     private static void tryToTurnCell(Point actorPoint, String direction, MethodCall mc){
-        direction = evaluateTurnDirection(direction,mc);
         currentGameMap.changeEntityDirection(actorPoint,direction);
 
     }
 
-    private static String evaluateTurnDirection(String direction, MethodCall mc) {
-        String output = direction;
-        Variable tdirVar = mc.getParentStatement().getVariable(direction);
-        if(tdirVar!=null && tdirVar.getVariableType() == VariableType.TURN_DIRECTION)return evaluateTurnDirection(tdirVar.getValue().getText(),mc);
-        else return output;
-    }
-
-    private static void tryToMoveCell(String name, boolean isPlayer) {
-//        Cell output = entityCell;
+    private static void tryToMoveCell(String name) {
         Point targetPoint = currentGameMap.getTargetPoint(name);
         Point actorPoint = currentGameMap.getEntityPosition(name);
-//        Entity targetEntity = gameMap.getEntity(targetPoint);
         Entity actorEntity = currentGameMap.getEntity(actorPoint);
-//        if(targetEntity != null && targetEntity.getEntityType() == EntityType.SKELETON && actorEntity.getEntityType() == EntityType.KNIGHT){
-//            gameMap.kill(actorPoint);
-//        }
-//        if(targetEntity != null && targetEntity.getEntityType() == EntityType.KNIGHT && actorEntity.getEntityType() == EntityType.SKELETON){
-//            gameMap.kill(targetPoint);
-//        }
 
         boolean isOpen = currentGameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CFlag.INVERTED);
         if(currentGameMap.isGateWrongDirection(actorPoint, targetPoint))return;
@@ -289,9 +216,9 @@ public abstract class CodeExecutor {
     private static void executeMethodCall(MethodCall methodCall, boolean isPlayer) {
         List<String> nameList = new ArrayList<>();
         nameList.add(methodCall.getObjectName());
-        if(methodCall.getParentStatement().getVariable(nameList.get(0)).getVariableType()==VariableType.ARMY){
-            Variable v  = methodCall.getParentStatement().getVariable(nameList.get(0));
-            nameList = new ArrayList<>(Arrays.asList(v.getValue().getRightNode().getText().split(",")));
+        Matcher matcher = Pattern.compile("\\((.*,.*)\\)").matcher(methodCall.getObjectName());
+        if(matcher.matches()){
+            nameList = new ArrayList<>(Arrays.asList(matcher.group(1).split(",")));
         }
         for(String name : nameList){
 //            if(!isPlayer) System.out.println(methodCall.getText()+" "+name);
@@ -318,7 +245,7 @@ public abstract class CodeExecutor {
                 break;
 
             case MOVE:
-                tryToMoveCell(name,isPlayer); //TODO: stattdessen mit getTargetPoint()?
+                tryToMoveCell(name); //TODO: stattdessen mit getTargetPoint()?
                 break;
             case TURN:
                 tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightCondition().getText()));

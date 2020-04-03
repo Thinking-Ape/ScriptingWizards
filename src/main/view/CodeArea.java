@@ -134,10 +134,10 @@ public class CodeArea extends VBox {
 //            if(complexStatement.getStatementType() == StatementType.FOR)statement = ((ComplexStatement)complexStatement.getSubStatement(0)).getSubStatement(i);
 //            else
             statement = complexStatement.getSubStatement(i);
-            output.add(new CodeField(statement.getText(),statement.getDepth()-1,isEditable));
+            output.add(new CodeField(statement.getText(),statement.getDepth(),isEditable));
             if(statement.isComplex()){
                 output.addAll(getCodeFieldsFromStatement((ComplexStatement)statement));
-                output.add(new CodeField("}",statement.getDepth()-1,false));
+                output.add(new CodeField("}",statement.getDepth(),false));
             }
         }
         return output;
@@ -218,7 +218,7 @@ public class CodeArea extends VBox {
         codeFieldList.remove(codeField);
         int scrollAmount = getScrollAmount();
         if(scrollAmount+MAX_CODE_LINES > codeFieldList.size() && codeFieldList.size() >= MAX_CODE_LINES)
-            setScrollAmount(scrollAmount-1);
+            scollTo(scrollAmount-1);
     }
 
     public int getSize() {
@@ -304,7 +304,7 @@ public class CodeArea extends VBox {
         }
     }
 
-    public void setScrollAmount(int t1) {
+    public void scollTo(int t1) {
         if(codeFieldList.size() < MAX_CODE_LINES){
             scrollAmount = 0;
             return;
@@ -342,20 +342,21 @@ public class CodeArea extends VBox {
     }
 
     public void highlightCodeField(int index){
-        if(index == -1) setScrollAmount(0);
+        deselectAll();
+        if(index == -1) scollTo(0);
         int i = 0;
         for (CodeField cf : codeFieldList){
-            if(cf.getText().equals("")&&cf.getDepth()>1){
+            if(cf.isEmpty()&&cf.getDepth()>1){
                 index++;
             }
             else if(i == index){
+                if(index >= MAX_CODE_LINES){
+                    scollTo(index-MAX_CODE_LINES+1);
+                }
                 if( CodeAreaType.AI != codeAreaType)
                     codeFieldList.get(index).setStyle("-fx-background-color: green");
                 else
                     codeFieldList.get(index).setStyle("-fx-background-color: violet");
-                if(index >= MAX_CODE_LINES){
-                    setScrollAmount(index-MAX_CODE_LINES+1);
-                }
             }
             else {
                 cf.resetStyle();

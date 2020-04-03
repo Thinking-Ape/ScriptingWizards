@@ -10,103 +10,305 @@ import main.model.statement.Expression.ExpressionTree;
 import main.model.statement.Expression.ExpressionType;
 import main.utility.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class CodeEvaluator {
+public class CodeEvaluator {
 
-    private static Statement currentStatement;
-    private static GameMap currentGameMap;
+    private Statement currentStatement;
+    private VariableScope variableScope;
+    private List<ForStatement> declaredForStatements;
+    private boolean isPlayer;
 
-    public static Statement evaluateNext(ComplexStatement behaviour, GameMap gameMap) {
-        currentGameMap = gameMap;
-        currentStatement = behaviour.nextStatement();
+//    private static CodeEvaluator aiEvaluator;
+//    private static CodeEvaluator playerEvaluator;
+//
+//    public static CodeEvaluator getInstance(boolean isAI){
+//        if(isAI){
+//            if(aiEvaluator == null)aiEvaluator = new CodeEvaluator();
+//            return aiEvaluator;
+//        }
+//        else{
+//            if(playerEvaluator == null)playerEvaluator = new CodeEvaluator();
+//            return playerEvaluator;
+//        }
+//    }
+    public CodeEvaluator(boolean isPlayer){
+        variableScope = new VariableScope();
+        declaredForStatements = new ArrayList<>();
+        this.isPlayer = isPlayer;
+    }
+
+
+    private void updateUnlocks(Statement statement) {
+
+        String unlock = "";
+        List<String> unlock2 = new ArrayList<>();
+        switch (statement.getStatementType()){
+            case FOR:
+            case WHILE:
+            case IF:
+            case ELSE:
+                unlock2 = getUnlockedBooleanMethodsFromStatement(((ComplexStatement)statement).getCondition());
+                unlock = statement.getStatementType().name().toLowerCase();
+                break;
+            case METHOD_CALL:
+                unlock = ((MethodCall)statement).getMethodType().getName();
+                break;
+            case ASSIGNMENT:
+            case DECLARATION:
+                unlock = ((Assignment)statement).getVariable().getVariableType().getName();
+                break;
+            case COMPLEX:
+                break;
+            case SIMPLE:
+                if(GameConstants.DEBUG)System.out.println("You have unlocked the following: "+statement.getText());
+                return;
+        }
+        Model.addUnlockedStatement(unlock);
+        for(String s : unlock2){
+            Model.addUnlockedStatement(s);
+        }
+    }
+
+    private List<String> getUnlockedBooleanMethodsFromStatement( Condition condition) {
+        List<String> output = new ArrayList<>();
+        if(condition == null)return output;
+        Matcher m = Pattern.compile(".*("+GameConstants.VARIABLE_NAME_REGEX.substring(1, GameConstants.VARIABLE_NAME_REGEX.length()-1)+").*?").matcher(condition.getText());
+        if(m.matches())
+            for(int i = 1; i< m.groupCount()+1;i++){
+                Variable v = variableScope.getVariable(m.group(i));
+                if(v!=null && v.getVariableType() == VariableType.BOOLEAN){
+                    output.addAll(getUnlockedBooleanMethodsFromStatement(Condition.getConditionFromString(v.getValue().getText())));
+                }
+            }
+
+        m = Pattern.compile(".*?([a-zA-Z]+)\\(.*\\).*?").matcher(condition.getText());
+        if(m.matches())
+            for(int i = 1; i< m.groupCount()+1;i++){
+                output.add(m.group(i));
+            }
+        return output;
+    }
+
+    public Statement evaluateStatement(Statement statement) {
+        currentStatement = statement;
         if(currentStatement==null)return null;
-
         Condition condition = new ConditionLeaf(null, BooleanType.SIMPLE, null);
-        if(currentStatement.isComplex())condition = ((ComplexStatement)currentStatement).getCondition();
+        if(currentStatement.isComplex()){
+            condition = ((ComplexStatement)currentStatement).getCondition();
+        }
+        if(isPlayer)updateUnlocks(currentStatement);
         switch (currentStatement.getStatementType()){
             //TODO: statementDepth map, List<Variable> in every statement, new Variable -> statemnetDepthMap.get(currentDepth -1).addVariable(variable) -> add also to substatements
             case COMPLEX:
                 break;
             case FOR:
                 ForStatement forStatement = (ForStatement)currentStatement;
+                if(!declaredForStatements.contains(forStatement)){
+                    Variable forVariable =  forStatement.getDeclaration().getVariable();
+                    ExpressionLeaf value = new ExpressionLeaf(evaluateNumericalExpression(forVariable.getValue())+"");
+                    variableScope.addVariable(new Variable(VariableType.INT,forVariable.getName(),value));
+                    declaredForStatements.add(forStatement);
+                }
+                else{
+                    Variable forVariable =  forStatement.getAssignment().getVariable();
+                    ExpressionLeaf value = new ExpressionLeaf(evaluateNumericalExpression(forVariable.getValue())+"");
+                    variableScope.updateVariable(new Variable(VariableType.INT,forVariable.getName(),value));
+                }
                 if(!testCondition(condition)){
-                    forStatement.getParentStatement().skip();
-                    forStatement.resetVariables(true);
+                    variableScope.removeVariable(forStatement.getDeclaration().getVariable().getName());
+                    declaredForStatements.remove(forStatement);
+                    currentStatement = GameConstants.FALSE_STATEMENT;
+//                    forStatement.resetVariables(true);
                 }
                 break;
             case WHILE:
-                if(!testCondition(condition)){
-                    currentStatement.getParentStatement().skip();
-                }
+                if(!testCondition(condition))currentStatement = GameConstants.FALSE_STATEMENT;
                 break;
             case IF:
                 ConditionalStatement ifStatement = (ConditionalStatement)currentStatement;
                 if(!testCondition(condition)){
                     ifStatement.activateElse();
-                    currentStatement.getParentStatement().skip();
+                    currentStatement = GameConstants.FALSE_STATEMENT;
+                }
+                else {
+                    ifStatement.deactivateElse();
                 }
                 break;
             case ELSE:
                 ConditionalStatement elseStatement = (ConditionalStatement)currentStatement;
                 if(!elseStatement.isActive()){
-                    currentStatement.getParentStatement().skip();
+                    currentStatement = GameConstants.FALSE_STATEMENT;
                 } else if(!testCondition(condition)){
                     elseStatement.activateElse();
-                    currentStatement.getParentStatement().skip();
+                    currentStatement = GameConstants.FALSE_STATEMENT;
                 }
+                else elseStatement.deactivateElse();
                 break;
             case METHOD_CALL:
                 //TODO: necessary?
                 MethodCall mC = (MethodCall)currentStatement;
-
+//                Variable var = variableScope.getVariable(mC.getObjectName());
+//                VariableType variableType = var.getVariableType();
+//                if(variableType == VariableType.ARMY){
+//                    Matcher matcher = Pattern.compile("^ *new *Army(\\(.*\\)) *$").matcher(var.getValue().getText());
+//                    if(matcher.matches()){
+//                        varNames = matcher.group(1);
+//                    }
+//                }
+                String newParameters = "";
+                switch (mC.getMethodType()){
+                    case MOVE:
+                        break;
+                    case USE_ITEM:
+                        break;
+                    case COLLECT:
+                        break;
+                    case CAN_MOVE:
+                        break;
+                    case HAS_ITEM:
+                    case TARGETS_CELL:
+                    case TARGETS_ITEM:
+                    case TURN:
+                    case TARGETS_ENTITY:
+                        newParameters = evaluateVariable(mC.getParameters()[0]).getText();
+                        break;
+                    case WAIT:
+                        break;
+                    case TARGET_IS_DANGER:
+                        break;
+                    case DROP_ITEM:
+                        break;
+                    case ATTACK:
+                        break;
+                    case IS_LOOKING:
+                        break;
+                }
+                String objectName = mC.getObjectName();
+                if(variableScope.getVariable(mC.getObjectName()).getVariableType()==VariableType.ARMY){
+                    objectName = evaluateVariable(objectName).getText().replaceAll(" *new +Army *", "");
+                }
+                currentStatement = new MethodCall(mC.getMethodType(), objectName, newParameters);
                 break;
             case DECLARATION:
                 Assignment declaration = (Assignment)currentStatement;
                 Variable variable = declaration.getVariable();
-                currentStatement.getParentStatement().addLocalVariable(new Variable(variable.getVariableType(),variable.getName(),variable.getValue()));
+                Variable variable2 = null;
+//                VariableType variableType = variable.getVariableType();
+//                String varNames = variable.getName();
+//                ExpressionTree value = declaration.getVariable().getValue();
+//                if(value.getText().equals("")){
+//                    variable2 = new Variable(variableType, varNames,new ExpressionLeaf(""));
+//                    break;
+//                }
+//                switch(declaration.getVariable().getVariableType()){
+//                    default:
+//                        variable2 = new Variable(variableType, varNames, evaluateVariable(value.getText()));
+//                        break;
+//                    case INT:
+//                        variable2 = new Variable(variableType,varNames,new ExpressionLeaf(evaluateNumericalExpression(value)+""));
+//                        break;
+//                    case BOOLEAN:
+//                        variable2 = new Variable(variableType,varNames,new ExpressionLeaf(""+testCondition(Condition.getConditionFromString(value.getText()))));
+//                        break;
+//                    case VOID:
+//                        throw new IllegalArgumentException("Impossible!");
+//                    case KNIGHT:
+//                        String valueString =value.getText();
+//                        //TODO: no!
+//                        Matcher knightMatcher = Pattern.compile("^ *new +Knight\\((.*)\\) *$").matcher(valueString);
+//                        if(knightMatcher.matches()){
+//                            String direction = knightMatcher.group(1);
+//                            direction = evaluateVariable(direction).getText();
+//                            if(direction.equals(""))direction = "NORTH";
+//                            //TODO: no!
+//                            valueString = "new Knight("+direction+")";
+//                        }
+//                        variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
+//                        break;
+//                    case SKELETON:
+//                        valueString = declaration.getVariable().getValue().getText();
+//                        //TODO: no!
+//                        Matcher skeletonMatcher = Pattern.compile("^ *new +Skeleton\\((.*)\\) *$").matcher(valueString);
+//                        if(skeletonMatcher.matches()){
+//                            String[] directionAndId = skeletonMatcher.group(1).split(",");
+//                            if(directionAndId.length == 1){
+//                                String direction = evaluateVariable(directionAndId[0]).getText();
+//                                if(direction.equals(""))direction = "NORTH";
+//                            //TODO: no!
+//                                valueString = "new Skeleton("+direction+")";
+//                            }
+//                            else {
+//                                String direction = evaluateVariable(directionAndId[0]).getText();
+//                                int id =  evaluateIntVariable(directionAndId[1]);
+//                                //TODO: no!
+//                                valueString = "new Skeleton("+direction+","+id+")";
+//                            }
+//                        }
+//                        variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
+//                        break;
+//                }
+                variableScope.addVariable(variable);
+//                if(variableType == VariableType.KNIGHT ||variableType == VariableType.SKELETON ||variableType == VariableType.ARMY){
+//                    String valueString = variable2.getValue().getText();
+//                    if(variableType == VariableType.ARMY){
+//                        Matcher matcher = Pattern.compile("^ *new +Army(\\(.*\\)) *$").matcher(variable2.getValue().getText());
+//                        if(matcher.matches()){
+////                            varNames = matcher.group(1);
+//                        }
+//                    }
+//                    currentStatement = new Assignment(varNames, variable.getVariableType(), variable2.getValue(), true);
+//                }
                 break;
             case ASSIGNMENT:
                 Assignment assignment = (Assignment)currentStatement;
-                Variable variable2 = null;
+                variable2 = null;
 
-                VariableType variableType =assignment.getVariable().getVariableType();
-                String varName = assignment.getVariable().getName();
+                VariableType variableType = assignment.getVariable().getVariableType();
+                String varNames = assignment.getVariable().getName();
                 switch(assignment.getVariable().getVariableType()){
                     default:
-                        variable2 = new Variable(variableType, varName, assignment.getVariable().getValue());
+                        variable2 = new Variable(variableType, varNames, evaluateVariable(assignment.getVariable().getValue().getText()));
                         break;
                     case INT:
-                        variable2 = new Variable(variableType,varName,new ExpressionLeaf(evaluateNumericalExpression(assignment.getVariable().getValue())+""));
+                        variable2 = new Variable(variableType,varNames,new ExpressionLeaf(evaluateNumericalExpression(assignment.getVariable().getValue())+""));
                         break;
                     case BOOLEAN:
-                        variable2 = new Variable(variableType,varName,new ExpressionLeaf(evaluateBoolVariable(assignment.getVariable().getValue().getText())+""));
-                        break;
-                    case KNIGHT:
-                    case SKELETON:
-                        //TODO: seems to do nothing
-                        // TODO: why not just assignment.getVariable().getValue()?
-                        //ExpressionTree.expressionTreeFromString( "code below".getText())
-                        ExpressionTree varValue = assignment.getVariable().getValue();
-                        variable2 = new Variable(variableType,varName,varValue);
+                        variable2 = new Variable(variableType,varNames,new ExpressionLeaf(""+testCondition(Condition.getConditionFromString(assignment.getVariable().getValue().getText()))));
                         break;
                     case VOID:
                         break;
                 }
                 assert variable2 != null;
-                currentStatement.getParentStatement().updateVariable(variable2);
+                variableScope.updateVariable(variable2);
+                if(variableType == VariableType.KNIGHT ||variableType == VariableType.SKELETON ||variableType == VariableType.ARMY){
+                    if(variableType == VariableType.ARMY){
+                        Matcher matcher = Pattern.compile("^ *new *Army(\\(.*\\)) *$").matcher(variable2.getValue().getText());
+                        if(matcher.matches()){
+//                            varNames = matcher.group(1);
+                        }
+                    }
+                    currentStatement = new Assignment(varNames, variableType, variable2.getValue(), false);
+                }
                 break;
         }
+        variableScope.setCurrentDepth(statement.getDepth()-1);
         return currentStatement;
+    }
+
+    private ExpressionTree evaluateVariable(String value) {
+        if(variableScope.containsVariable(value))
+            return evaluateVariable(variableScope.getVariable(value).getValue().getText());
+        else return new ExpressionLeaf(value);
     }
 
     /** Evaluates whether a given Condition Object should represent a true or false boolean in regards to
      *  the current map
-     * @throws IllegalAccessException This will only occur if there are incompatible types of Variables
      */
-    //TODO: removeCurrentLevel IllegalAccessException
-    public static boolean testCondition(Condition condition) {
+    public boolean testCondition(Condition condition) {
         if(condition == null)return true;
         if(condition.getConditionType() == ConditionType.SINGLE){
             return evaluateBooleanExpression((ConditionLeaf)condition);
@@ -134,7 +336,7 @@ public abstract class CodeEvaluator {
      *
      * @param numericalExpression An ExpressionTree representing a mathematical term
      */
-    private static int evaluateNumericalExpression(ExpressionTree numericalExpression) {
+    private int evaluateNumericalExpression(ExpressionTree numericalExpression) {
         if(numericalExpression.getText().matches(" *"))throw new IllegalArgumentException("A mathematical term cant be blank!");
         if(numericalExpression.getExpressionType() == ExpressionType.SIMPLE){
             return evaluateIntVariable(numericalExpression.getText());
@@ -161,7 +363,7 @@ public abstract class CodeEvaluator {
      *
      * @param variableString might either be the name of a variable or a number
      */
-    static int evaluateIntVariable(String variableString) {
+    private int evaluateIntVariable(String variableString) {
         variableString = variableString.trim();
         Matcher randomMatcher = Pattern.compile(GameConstants.RAND_INT_REGEX).matcher(variableString);
         if(randomMatcher.matches()){
@@ -186,9 +388,9 @@ public abstract class CodeEvaluator {
             variableString = variableString.substring(0,variableString.length()-1);
             System.out.println("This should never have happened! Please report error-code 0 in CodeEvaluator!");
         }
-        Variable variable =  currentStatement.getParentStatement().getVariable(variableString);
+        Variable variable =  variableScope.getVariable(variableString);
         // the variable declared within the for-Loop needs to be handled separately
-        if(currentStatement.getStatementType() == StatementType.FOR) variable = ((ComplexStatement)currentStatement).getVariable(variableString);
+        if(currentStatement.getStatementType() == StatementType.FOR) variable = variableScope.getVariable(variableString);
         // the value of this variable might be a term that needs to be evaluated
         if(variable!= null)return evaluateNumericalExpression(variable.getValue());
         else return Integer.valueOf(variableString);
@@ -197,7 +399,7 @@ public abstract class CodeEvaluator {
     /** Evaluates a boolean expression represented by a ConditionLeaf Object. It may be a boolean MethodCall such as
      *  knight.targetsCell(EXIT) or contain comparisons, but it cannot contain any &&, || or !.
      */
-    private static boolean evaluateBooleanExpression(ConditionLeaf conditionLeaf) {
+    private boolean evaluateBooleanExpression(ConditionLeaf conditionLeaf) {
         ExpressionTree leftTree = conditionLeaf.getLeftTree();
         ExpressionTree rightTree = conditionLeaf.getRightTree();
         // whether the ConditionLeaf represents a MethodCall such as knight.targetsCell(EXIT)
@@ -233,8 +435,8 @@ public abstract class CodeEvaluator {
                 rightEvaluated = evaluateNumericalExpression(rightTree);
                 return leftEvaluated < rightEvaluated;
             case NEQ:
-                Variable var1 = currentStatement.getParentStatement().getVariable(leftTree.getText());
-                Variable var2 = currentStatement.getParentStatement().getVariable(rightTree.getText());
+                Variable var1 = variableScope.getVariable(leftTree.getText());
+                Variable var2 = variableScope.getVariable(rightTree.getText());
                 VariableType vt1 = VariableType.getVariableTypeFromValue(leftTree.getText());
                 VariableType vt2 = VariableType.getVariableTypeFromValue(rightTree.getText());
                 boolean var1Found = var1!=null && var1.getVariableType() != VariableType.INT;
@@ -249,8 +451,8 @@ public abstract class CodeEvaluator {
                 rightEvaluated = evaluateNumericalExpression(rightTree);
                 return leftEvaluated != rightEvaluated;
             case EQ:
-                var1 = currentStatement.getParentStatement().getVariable(leftTree.getText());
-                var2 = currentStatement.getParentStatement().getVariable(rightTree.getText());
+                var1 = variableScope.getVariable(leftTree.getText());
+                var2 = variableScope.getVariable(rightTree.getText());
                 vt1 = VariableType.getVariableTypeFromValue(leftTree.getText());
                 vt2 = VariableType.getVariableTypeFromValue(rightTree.getText());
                 var1Found = var1!=null && var1.getVariableType() != VariableType.INT;
@@ -273,10 +475,10 @@ public abstract class CodeEvaluator {
      *
      * @param variableString either true, false or the name of a boolean variable
      */
-    private static boolean evaluateBoolVariable(String variableString) {
+    private boolean evaluateBoolVariable(String variableString) {
         if(variableString.matches(VariableType.BOOLEAN.getAllowedRegex()))return Boolean.valueOf(variableString);
         variableString = variableString.trim();
-        Variable variable =  currentStatement.getParentStatement().getVariable(variableString);
+        Variable variable =  variableScope.getVariable(variableString);
         if(variable.getValue().getText().matches(VariableType.BOOLEAN.getAllowedRegex()))
             return Boolean.valueOf(variable.getValue().getText());
         else {
@@ -291,13 +493,15 @@ public abstract class CodeEvaluator {
      * @param methodName The name of the Method
      * @param parameterString Possible parameters
      */
-    private static boolean evaluateBooleanMethodCall(String objectName, String methodName, String parameterString) {
-        Variable variable = currentStatement.getParentStatement().getVariable(objectName);
+    private boolean evaluateBooleanMethodCall(String objectName, String methodName, String parameterString) {
+        GameMap currentGameMap = Model.getCurrentMap();
+        Variable variable = variableScope.getVariable(objectName);
         if(variable == null)throw new IllegalArgumentException("Variable "+objectName +" does not exist!");
         VariableType vType = variable.getVariableType();
+        //TODO: make better!
         if(vType == VariableType.KNIGHT||vType == VariableType.SKELETON || vType == VariableType.ARMY){
             String[] nameList = new String[]{objectName};
-            if(vType == VariableType.ARMY)nameList = variable.getValue().getRightNode().getText().split(",");
+            if(vType == VariableType.ARMY)nameList = variable.getValue().getText().replaceAll(" *new +Army *\\((.*)\\)", "$1").split(",");
                     boolean output = true;
             for(int i = 0; i < nameList.length; i++){
                 objectName = nameList[i];
@@ -352,5 +556,4 @@ public abstract class CodeEvaluator {
         }return output;}
         throw new IllegalStateException(objectName + " has wrong variable type!");
     }
-
 }

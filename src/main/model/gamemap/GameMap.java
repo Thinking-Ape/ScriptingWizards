@@ -38,7 +38,7 @@ public class GameMap {
     public GameMap copy(){
         GameMap cloneMap = new GameMap(cellArray2D);
         cloneMap.changedCellPoints = new SimpleSet<>(changedCellPoints);
-//         cloneMap.entityCellMap = new HashMap<>(this.entityCellMap);
+         cloneMap.entityCellMap = new HashMap<>(this.entityCellMap);
          return cloneMap;
     }
 

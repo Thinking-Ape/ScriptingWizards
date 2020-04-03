@@ -23,7 +23,6 @@ import main.utility.GameConstants;
 import main.utility.Util;
 import main.view.*;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -339,9 +338,9 @@ public class Controller {
 
         ((ImageView) view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
         view.getBtnExecute().setOnAction(actionEvent -> {
-            view.getCodeArea().setScrollAmount(0);
+            view.getCodeArea().scollTo(0);
             final boolean hasAi = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
-            if (hasAi) view.getAICodeArea().setScrollAmount(0);
+            if (hasAi) view.getAICodeArea().scollTo(0);
             CodeArea playerCodeArea = CodeArea.getInstance(CodeAreaType.PLAYER);
             List<String> oldCode = view.getCodeArea().getAllText();
             ComplexStatement behaviour = CodeParser.parseProgramCode(view.getCodeArea().getAllText(), CodeAreaType.PLAYER);
@@ -352,7 +351,7 @@ public class Controller {
             if (GameConstants.DEBUG) System.out.println(behaviour.print());
             if (GameConstants.DEBUG) System.out.println(aiBehaviour.print());
             Model.setCurrentPlayerBehaviour(behaviour);
-            Model.setCurrentAIBehaviour(aiBehaviour);
+            Model.initAiIteratorAndEvaluator(aiBehaviour);
             Model.changeCurrentLevel(LevelDataType.AI_CODE, aiBehaviour);
             view.setNodesDisableWhenRunning(true);
             isGameRunning = true;

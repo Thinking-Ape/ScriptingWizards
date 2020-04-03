@@ -576,6 +576,7 @@ public class EditorController implements SimpleEventListener {
 
                                 gameMap.setCellId(view.getSelectedPointList().get(0).getX(),view.getSelectedPointList().get(0).getY(),id);
                                 view.getLevelEditorModule().getCellIdValueLbl().setText(id!=-1 ? ""+id : "NONE");
+                                Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                             }
                             else new Alert(Alert.AlertType.NONE,"Id "+id+" already in use",ButtonType.OK).showAndWait();
                         }

@@ -17,7 +17,7 @@ OPTIONAL:
 
 IMPORTANT:
 -----------------------------------
--define own methods?? (Big!!)
+- define own methods?? (Big!!) <- didnt work out ~
 - language settings
 - duplicate code in new lvl, open lvl, edit lvl?
 - add all VariableTypes enumerated in the enum
@@ -80,7 +80,6 @@ IMPORTANT:
  - Allgemein mehr Features für den Editor wie zB. Markieren oder Drag & Drop von Code-Zeilen wären sehr hilfreich.
  ==========================
  - allow XOR (^)?
- - EIGENE METHODEN
  - (Level, das randInt verwendet!)
  - Better Understand and clean up CodeParser
  - you can just put ; wherever and it will be removed
@@ -97,6 +96,9 @@ IMPORTANT:
  - allow _ in variable Names?? HMMM
  - if compiler not active -> make all codefields editable? disable isError?
  - for(int i=0;i<5;int i) { is valid!! makie not valid!!!!
+ - i++ in for doesnt work no more!
+ - make new Skeleton/Knight(wrong arguments) illegal!
+ - while(true) doesnt wuurk
 ---------------------------------------------
 
 

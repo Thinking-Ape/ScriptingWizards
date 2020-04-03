@@ -82,8 +82,8 @@ public class LevelOverviewPane extends VBox {
             GameMap gameMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
             boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
             int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
-            LevelEntry le = new LevelEntry(view.getImageFromMap(gameMap),levelName,"Has AI: "+hasAI+", Max Knights: " +maxKnights+"\nMax Turns for ***: "+turnsToStars[1]+", Max Turns for **: "
-                    +turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+", Max LOC for **: "+locToStars[0],"Best Turns: "+turns+"\nBest LOC: "+loc+"\nEarned Stars: "+ (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : ""),nStars);
+            LevelEntry le = new LevelEntry(view.getImageFromMap(gameMap),levelName,
+                    getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
             le.autosize();
             boolean isTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i);
             if(isTutorial && isTut && Model.getCurrentIndex() <= Model.getTutorialProgress()+1){
@@ -107,9 +107,8 @@ public class LevelOverviewPane extends VBox {
         String levelName = (String)Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i);
         boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
         int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
-        LevelEntry le = new LevelEntry(image,levelName,"Has AI: "+hasAI+", Max Knights: " + maxKnights+
-                "\nMax Turns for ***: "+turnsToStars[1]+", Max Turns for **: "+turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+
-                ", Max LOC for **: "+locToStars[0],"Best Turns: "+-1+"\nBest LOC: "+-1+"\nEarned Stars: "+ 0,0);
+        LevelEntry le = new LevelEntry(image,levelName,
+                getLevelTooltip(turnsToStars,locToStars),getBestScoreString(-1,-1,0),0);
         levelListView.getItems().add(Model.getTutorialSlot(levelName),le);
     }
 
@@ -154,10 +153,19 @@ public class LevelOverviewPane extends VBox {
         int loc =Model.getBestLocOfLevel(currentIndex);
         int turns =Model.getBestTurnsOfLevel(currentIndex);
         double nStars = Util.calculateStars(turns,loc,turnsToStars,locToStars);
-        String starString =  (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "");
-        LevelEntry le = new LevelEntry(levelListView.getItems().get(index).getLevelImage(),Model.getNameOfLevelWithIndex(Model.getCurrentIndex()),"Has AI: "+hasAI+", Max Knights: " + maxKnights+
-                "\nMax Turns for ***: "+turnsToStars[1]+", Max Turns for **: "+turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+
-                ", Max LOC for **: "+locToStars[0],"Best Turns: "+turns+"\nBest LOC: "+loc+"\nEarned Stars: "+ starString,nStars);
+        LevelEntry le = new LevelEntry(levelListView.getItems().get(index).getLevelImage(),Model.getNameOfLevelWithIndex(Model.getCurrentIndex()),
+                getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
         levelListView.getItems().set(index,le);
+    }
+
+    private String getBestScoreString(int turns, int loc, double nStars) {
+
+        String starString =  (int)nStars + (Math.round(nStars)!=(int)nStars ? ".5" : "");
+        return "Best Turns: "+turns+"\nBest LOC: "+loc+"\nEarned Stars: "+ starString;
+    }
+
+    private String getLevelTooltip(Integer[] turnsToStars, Integer[] locToStars) {
+        return "Max Turns for ***: "+turnsToStars[1]+", Max Turns for **: "+turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+
+                ", Max LOC for **: "+locToStars[0];
     }
 }

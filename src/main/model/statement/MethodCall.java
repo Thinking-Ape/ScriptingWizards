@@ -36,6 +36,7 @@ public class MethodCall extends SimpleStatement {
         return expressionTree.getLeftNode().getText();
     }
     public String[] getParameters() {
+//        if(expressionTree.getRightNode() == null)return new String[]{""};
         if(!expressionTree.getRightNode().getText().contains(","))return new String[] {expressionTree.getRightNode().getText()};
         return Util.getParametersFromString(expressionTree.getRightNode().getText());
     }

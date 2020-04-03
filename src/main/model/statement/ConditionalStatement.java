@@ -56,11 +56,11 @@ public class ConditionalStatement extends ComplexStatement {
             elseStatement.setActive(true);
     }
 
-    @Override
-    public void resetVariables(boolean isTotal) {
-        if(StatementType.ELSE == this.statementType)this.setActive(false);
-        super.resetVariables(true);
-    }
+//    @Override
+//    public void resetVariables(boolean isTotal) {
+//        if(StatementType.ELSE == this.statementType)this.setActive(false);
+//        super.resetVariables(true);
+//    }
 
     @Override
     public String getText() {
@@ -71,5 +71,13 @@ public class ConditionalStatement extends ComplexStatement {
         }
         else output = "if ("+condition.getText()+") {";
         return output;
+    }
+
+    public void deactivateElse() {
+        if(elseStatement != null)
+        {
+            elseStatement.setActive(false);
+            elseStatement.deactivateElse();
+        }
     }
 }

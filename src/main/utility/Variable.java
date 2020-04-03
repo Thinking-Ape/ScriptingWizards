@@ -42,10 +42,10 @@ public class Variable {
         //TODO: check whether value has the correct type!
         this.value = value;
     }
-    public static ExpressionTree evaluateVariable(String varName, ComplexStatement parentStatement) {
-        Variable variable = parentStatement.getVariable(varName);
-        if(variable == null)return ExpressionTree.expressionTreeFromString(varName);
-        if(parentStatement.getVariable(variable.getValue().getText())!=null)return evaluateVariable(variable.getValue().getText(),parentStatement);
-        else return variable.getValue();
-    }
+//    public static ExpressionTree evaluateVariable(String varName, ComplexStatement parentStatement) {
+//        Variable variable = parentStatement.getVariable(varName);
+//        if(variable == null)return ExpressionTree.expressionTreeFromString(varName);
+//        if(parentStatement.getVariable(variable.getValue().getText())!=null)return evaluateVariable(variable.getValue().getText(),parentStatement);
+//        else return variable.getValue();
+//    }
 }

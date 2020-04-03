@@ -20,7 +20,7 @@ public class MethodDeclaration extends ComplexStatement {
         this.returnType = returnType;
         this.methodName = methodName;
         this.variableList = variableList;
-        localVariableSet.addAll(variableList);
+//        localVariableSet.addAll(variableList);
         this.statementType = StatementType.METHOD_DECLARATION;
         //no condition!
         this.condition = null;

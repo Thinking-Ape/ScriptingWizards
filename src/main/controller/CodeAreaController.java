@@ -14,7 +14,6 @@ import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
 import main.utility.GameConstants;
 import main.utility.SimpleEventListener;
-import main.utility.SimpleSet;
 import main.utility.Util;
 import main.view.*;
 
@@ -71,7 +70,7 @@ public class CodeAreaController implements SimpleEventListener {
         // Make sure that the AI-CodeArea may only be edited within the Editor
         if(currentCodeArea.isAi() && view.getCurrentSceneState() != SceneState.LEVEL_EDITOR) currentCodeArea.setEditable(false);
 
-        // When scrolling with the mouse on a CodeArea will setScrollAmount through the codefields
+        // When scrolling with the mouse on a CodeArea will scollTo through the codefields
         currentCodeArea.setOnScroll(evt -> {
             if(isError)return;
             // scrolling up or down will return a negative / positive value for y
@@ -79,20 +78,20 @@ public class CodeAreaController implements SimpleEventListener {
             int scroll = currentCodeArea.getScrollAmount();
             if(y < 0 && scroll+1<= currentCodeArea.getSize()-GameConstants.MAX_CODE_LINES)scroll ++;
             if(y > 0 && scroll-1 >= 0)scroll--;
-            currentCodeArea.setScrollAmount(scroll);
+            currentCodeArea.scollTo(scroll);
 
         });
         currentCodeArea.getUpBtn().setOnAction(actionEvent -> {
             if(isError)return;
             // Only to be safe, as UpBtn should be disabled in this case
             if(currentCodeArea.getScrollAmount() - 1<0)return;
-            currentCodeArea.setScrollAmount(currentCodeArea.getScrollAmount() - 1);
+            currentCodeArea.scollTo(currentCodeArea.getScrollAmount() - 1);
         });
         currentCodeArea.getDownBtn().setOnAction(actionEvent -> {
             if(isError)return;
             // Only to be safe, as DownBtn should be disabled in this case
             if(currentCodeArea.getScrollAmount() + 1 + GameConstants.MAX_CODE_LINES > currentCodeArea.getSize())return;
-            currentCodeArea.setScrollAmount(currentCodeArea.getScrollAmount()+ 1);
+            currentCodeArea.scollTo(currentCodeArea.getScrollAmount()+ 1);
         });
 
         // Only visual
@@ -274,15 +273,16 @@ public class CodeAreaController implements SimpleEventListener {
                         needToIncreaseCurrentIndex = true;
                     // If the added CodeField we want to edit is outside of our visible CodeArea we need to scroll!
                     if (!addBefore && currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
-                        currentCodeArea.setScrollAmount(scrollAmount);
+                        currentCodeArea.scollTo(scrollAmount);
                     break;
                 case BACK_SPACE:
-                    if (currentIndex == 0) break;
+                    if (currentCodeArea.getSize() == 1) break;
                     if (!currentCodeField.isEditable()) {
                         if(!compilerActive){
                             currentCodeField.setText("");
                             break;
                         }
+                        if(currentIndex == 0) break;
                         CodeField prevCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex-1);
                         if( prevCodeField != null && prevCodeField.isEmpty()) codeLines.remove(currentIndex-1);
                         else if (currentIndex > 0){
@@ -317,14 +317,14 @@ public class CodeAreaController implements SimpleEventListener {
                         // Deleting a line will put us into the CodeField above -> we need to scroll up
                         scrollAmount = currentCodeArea.getScrollAmount();
                         if(scrollAmount > 0)
-                            currentCodeArea.setScrollAmount(scrollAmount-1);
+                            currentCodeArea.scollTo(scrollAmount-1);
                         break;
                     }
                     else if(codeLines.get(currentIndex-1).matches(" *")&&currentCodeField.getCaretPosition() == 0){
                         codeLines.remove(currentIndex-1);
                         scrollAmount = currentCodeArea.getScrollAmount()-1 > 0 ? currentCodeArea.getScrollAmount()-1 : 0;
                         if(currentIndex<= currentCodeArea.getScrollAmount())
-                            currentCodeArea.setScrollAmount(scrollAmount);
+                            currentCodeArea.scollTo(scrollAmount);
                         currentIndex--;
                     }
                     break;
@@ -357,7 +357,7 @@ public class CodeAreaController implements SimpleEventListener {
 
                             scrollAmount = currentCodeArea.getScrollAmount() - 1 > 0 ? currentCodeArea.getScrollAmount() - 1 : 0;
                             if (currentIndex <= currentCodeArea.getScrollAmount())
-                                currentCodeArea.setScrollAmount(scrollAmount);
+                                currentCodeArea.scollTo(scrollAmount);
                             currentIndex--;
                         }
                     }
@@ -380,7 +380,7 @@ public class CodeAreaController implements SimpleEventListener {
                     scrollAmount = currentCodeArea.getScrollAmount() - 1 > 0 ? currentCodeArea.getScrollAmount() - 1 : 0;
 
                     if (currentIndex <= currentCodeArea.getScrollAmount())
-                        currentCodeArea.setScrollAmount(scrollAmount);
+                        currentCodeArea.scollTo(scrollAmount);
                     // Pressing Alt enables moving the current CodeField
                     if(event.isAltDown()){
                         int startIndex = currentIndex;
@@ -405,7 +405,7 @@ public class CodeAreaController implements SimpleEventListener {
                     }
                     scrollAmount = currentCodeArea.getScrollAmount() + 1 < currentCodeArea.getSize() ? currentCodeArea.getScrollAmount() + 1 : currentCodeArea.getSize() - 1 - GameConstants.MAX_CODE_LINES;
                     if (currentIndex + 1 >= GameConstants.MAX_CODE_LINES + currentCodeArea.getScrollAmount())
-                        currentCodeArea.setScrollAmount(scrollAmount);
+                        currentCodeArea.scollTo(scrollAmount);
                     // Pressing Alt enables moving the current CodeField
                     if(event.isAltDown()){
                         int startIndex = currentIndex;

@@ -19,7 +19,7 @@ public class CodeField extends TextField {
     public CodeField(String code, int depth, boolean isEditable){
         this.setEditable(isEditable);
         this.depth = depth;
-//        isEmpty = code.equals("");
+        isEmpty = code.equals("");
         if(code.equals("}"))this.setEditable(false);
         setText(code);
         this.setFont(GameConstants.CODE_FONT);

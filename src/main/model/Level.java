@@ -247,9 +247,9 @@ public class Level {
         this.tutorialMessages = tutorialMessages;
     }
 
-    public void resetVariables() {
-        aiBehaviour.resetVariables(true);
-    }
+//    public void resetVariables() {
+//        aiBehaviour.resetVariables(true);
+//    }
 /*
     public int getCurrentTutorialMessageIndex() {
         return Integer.valueOf(currentTutorialIndexProperty.get());

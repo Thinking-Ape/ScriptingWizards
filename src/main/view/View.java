@@ -54,28 +54,22 @@ public class View implements LevelChangeListener {
     private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
     private SimpleEventSender eventSender;
-    //Testing
-
-    //    private Canvas canvas;
     private double cell_size;
     private StartScreen startScreen;
     private Button btnExecute;
     private Button btnReset;
-    //    TextArea codeTextArea;
     private CodeArea codeArea = CodeArea.getInstance(CodeAreaType.PLAYER);
     private CodeArea aiCodeArea = CodeArea.getInstance(CodeAreaType.AI);
     private VBox vBox;
     private Slider speedSlider;
     private Label errorLabel = new Label();
     private Label errorLabelAI = new Label();
-    private Shape[][] mapShapes;
     private GridPane actualMapGPane;
     private StackPane rootPane;
     private VBox baseContentVBox;
     private List<Polyline> highlights = new ArrayList<>();
     private LevelEditorModule levelEditorModule;
-    private List<Point> selectedPointList = new ArrayList<>();
-    private ChoiceBox<String> choiceBox;
+    private List<Point> selectedPointList;
     private Map<String, Image> contentImageMap = new HashMap<>();
 
     private LevelOverviewPane levelOverviewPane;
@@ -327,7 +321,7 @@ public class View implements LevelChangeListener {
                 contentImageMap.put(s, new Image("file:resources/images/" + s + ".png"));
         }
         StackPane[][] output = new StackPane[map.getBoundX()][map.getBoundY()];
-        mapShapes = new Shape[map.getBoundX()][map.getBoundY()];
+//        mapShapes = new Shape[map.getBoundX()][map.getBoundY()];
         for(Point p : pointSet){
             int x = p.getX();
             int y = p.getY();
@@ -807,13 +801,13 @@ public class View implements LevelChangeListener {
             aiCodeArea.setVisible(true);
             if(sceneState == SceneState.LEVEL_EDITOR)clearAICodeBtn.setVisible(true);
             aiCodeArea.updateCodeFields(aiBehaviour);
-            aiCodeArea.setScrollAmount(0);
+            aiCodeArea.scollTo(0);
         }
         else {
             aiCodeArea.setVisible(false);
             clearAICodeBtn.setVisible(false);
         }
-        codeArea.setScrollAmount(0);
+        codeArea.scollTo(0);
         if (sceneState == SceneState.LEVEL_EDITOR) {
             updateLevelEditorModule();
             Platform.runLater(()->highlightInMap(selectedPointList));
@@ -973,10 +967,7 @@ public class View implements LevelChangeListener {
             aiCodeArea.setVisible(false);
             clearAICodeBtn.setVisible(false);
         }
-        codeArea.select(0, Selection.START);
-
-//        aiCodeArea.draw();
-//        codeArea.draw();
+//        codeArea.select(0, Selection.START);
 
         rightVBox.setAlignment(Pos.TOP_CENTER);
         rightVBox.getChildren().addAll(vBox);
