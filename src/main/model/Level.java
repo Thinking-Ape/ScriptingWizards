@@ -3,8 +3,6 @@ package main.model;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
-import main.parser.CodeParser;
-import main.view.CodeArea;
 import main.view.CodeAreaType;
 
 import java.util.*;

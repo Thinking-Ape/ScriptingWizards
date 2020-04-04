@@ -1,15 +1,9 @@
 package main.main;
 
-import main.model.Model;
 import main.model.enums.CellContent;
-import main.model.statement.ComplexStatement;
-import main.parser.CodeParser;
-import main.utility.GameConstants;
 import main.utility.Util;
-import main.view.CodeArea;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public abstract class Tester {
@@ -45,12 +39,12 @@ public abstract class Tester {
 
 
 //    public static CodeBoxCompound evaluateCodeBox(String... codeList ) throws IllegalAccessException {
-//        CodeParser codeParser = new CodeParser();
+//        OldCodeParser codeParser = new OldCodeParser();
 //        ComplexStatement behaviour = codeParser.parseProgramCode(codeList);
 //        return new CodeBoxCompound(behaviour);
 //    }
 //    public static CodeArea evaluateCodeBox(String... codeList ) {
-//        ComplexStatement behaviour = CodeParser.parseProgramCode(Arrays.asList(codeList));
+//        ComplexStatement behaviour = OldCodeParser.parseProgramCode(Arrays.asList(codeList));
 //        return new CodeArea(behaviour,true,false);
 //    }
 }

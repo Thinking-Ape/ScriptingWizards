@@ -76,7 +76,8 @@ public class CodeEvaluator {
     private List<String> getUnlockedBooleanMethodsFromStatement( Condition condition) {
         List<String> output = new ArrayList<>();
         if(condition == null)return output;
-        Matcher m = Pattern.compile(".*("+GameConstants.VARIABLE_NAME_REGEX.substring(1, GameConstants.VARIABLE_NAME_REGEX.length()-1)+").*?").matcher(condition.getText());
+        //TODO: !!!UUUUURRRGH
+        Matcher m = Pattern.compile(".*("+GameConstants.VARIABLE_NAME_REGEX+").*?").matcher(condition.getText());
         if(m.matches())
             for(int i = 1; i< m.groupCount()+1;i++){
                 Variable v = variableScope.getVariable(m.group(i));
@@ -196,79 +197,45 @@ public class CodeEvaluator {
             case DECLARATION:
                 Assignment declaration = (Assignment)currentStatement;
                 Variable variable = declaration.getVariable();
-                Variable variable2 = null;
-//                VariableType variableType = variable.getVariableType();
-//                String varNames = variable.getName();
-//                ExpressionTree value = declaration.getVariable().getValue();
-//                if(value.getText().equals("")){
-//                    variable2 = new Variable(variableType, varNames,new ExpressionLeaf(""));
-//                    break;
-//                }
-//                switch(declaration.getVariable().getVariableType()){
-//                    default:
-//                        variable2 = new Variable(variableType, varNames, evaluateVariable(value.getText()));
-//                        break;
-//                    case INT:
-//                        variable2 = new Variable(variableType,varNames,new ExpressionLeaf(evaluateNumericalExpression(value)+""));
-//                        break;
-//                    case BOOLEAN:
-//                        variable2 = new Variable(variableType,varNames,new ExpressionLeaf(""+testCondition(Condition.getConditionFromString(value.getText()))));
-//                        break;
-//                    case VOID:
-//                        throw new IllegalArgumentException("Impossible!");
-//                    case KNIGHT:
-//                        String valueString =value.getText();
-//                        //TODO: no!
-//                        Matcher knightMatcher = Pattern.compile("^ *new +Knight\\((.*)\\) *$").matcher(valueString);
-//                        if(knightMatcher.matches()){
-//                            String direction = knightMatcher.group(1);
-//                            direction = evaluateVariable(direction).getText();
-//                            if(direction.equals(""))direction = "NORTH";
-//                            //TODO: no!
-//                            valueString = "new Knight("+direction+")";
-//                        }
-//                        variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
-//                        break;
-//                    case SKELETON:
-//                        valueString = declaration.getVariable().getValue().getText();
-//                        //TODO: no!
-//                        Matcher skeletonMatcher = Pattern.compile("^ *new +Skeleton\\((.*)\\) *$").matcher(valueString);
-//                        if(skeletonMatcher.matches()){
-//                            String[] directionAndId = skeletonMatcher.group(1).split(",");
-//                            if(directionAndId.length == 1){
-//                                String direction = evaluateVariable(directionAndId[0]).getText();
-//                                if(direction.equals(""))direction = "NORTH";
-//                            //TODO: no!
-//                                valueString = "new Skeleton("+direction+")";
-//                            }
-//                            else {
-//                                String direction = evaluateVariable(directionAndId[0]).getText();
-//                                int id =  evaluateIntVariable(directionAndId[1]);
-//                                //TODO: no!
-//                                valueString = "new Skeleton("+direction+","+id+")";
-//                            }
-//                        }
-//                        variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
-//                        break;
-//                }
+                VariableType variableType = variable.getVariableType();
+                String varNames = variable.getName();
+                ExpressionTree value = declaration.getVariable().getValue();
+                String valueString =value.getText();
+                        //TODO: no!
+                if(declaration.getVariable().getVariableType() == VariableType.KNIGHT){
+                    Matcher knightMatcher = Pattern.compile(VariableType.KNIGHT.getAllowedRegex()).matcher(valueString);
+                    if(knightMatcher.matches()){
+                        String direction = knightMatcher.group(1);
+                        direction = evaluateVariable(direction).getText();
+                        valueString = "new Knight("+direction+")";
+                    }
+                }
+                else if(declaration.getVariable().getVariableType() == VariableType.SKELETON) {
+                    Matcher skeletonMatcher = Pattern.compile(VariableType.SKELETON.getAllowedRegex()).matcher(valueString);
+                    if(skeletonMatcher.matches()){
+                        String[] directionAndId = skeletonMatcher.group(1).split(",");
+                        if(directionAndId.length == 1){
+                            String direction = evaluateVariable(directionAndId[0]).getText();
+                            valueString = valueString.replace(directionAndId[0],direction);
+                        }
+                        else {
+                            String direction = evaluateVariable(directionAndId[0]).getText();
+                            int id =  evaluateIntVariable(directionAndId[1]);
+                            valueString = valueString.replace(directionAndId[0],direction);
+                            valueString = valueString.replace(directionAndId[1],id+"");
+                        }
+                    }
+                }
                 variableScope.addVariable(variable);
-//                if(variableType == VariableType.KNIGHT ||variableType == VariableType.SKELETON ||variableType == VariableType.ARMY){
-//                    String valueString = variable2.getValue().getText();
-//                    if(variableType == VariableType.ARMY){
-//                        Matcher matcher = Pattern.compile("^ *new +Army(\\(.*\\)) *$").matcher(variable2.getValue().getText());
-//                        if(matcher.matches()){
-////                            varNames = matcher.group(1);
-//                        }
-//                    }
-//                    currentStatement = new Assignment(varNames, variable.getVariableType(), variable2.getValue(), true);
-//                }
+                currentStatement = new Assignment(varNames, variableType, ExpressionTree.expressionTreeFromString(valueString), true);
                 break;
             case ASSIGNMENT:
                 Assignment assignment = (Assignment)currentStatement;
-                variable2 = null;
+                Variable variable2 = null;
 
-                VariableType variableType = assignment.getVariable().getVariableType();
-                String varNames = assignment.getVariable().getName();
+                variableType = assignment.getVariable().getVariableType();
+                varNames = assignment.getVariable().getName();
+                valueString =assignment.getVariable().getValue().getText();
                 switch(assignment.getVariable().getVariableType()){
                     default:
                         variable2 = new Variable(variableType, varNames, evaluateVariable(assignment.getVariable().getValue().getText()));
@@ -279,7 +246,33 @@ public class CodeEvaluator {
                     case BOOLEAN:
                         variable2 = new Variable(variableType,varNames,new ExpressionLeaf(""+testCondition(Condition.getConditionFromString(assignment.getVariable().getValue().getText()))));
                         break;
+                    case KNIGHT:
+                            Matcher knightMatcher = Pattern.compile(VariableType.KNIGHT.getAllowedRegex()).matcher(valueString);
+                            if(knightMatcher.matches()){
+                                String direction = knightMatcher.group(1);
+                                direction = evaluateVariable(direction).getText();
+                                valueString = "new Knight("+direction+")";
+                            }
+                            variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
+                            break;
+                    case SKELETON:
+                        Matcher skeletonMatcher = Pattern.compile(VariableType.SKELETON.getAllowedRegex()).matcher(valueString);
+                        if(skeletonMatcher.matches()){
+                            String[] directionAndId = skeletonMatcher.group(1).split(",");
+                            if(directionAndId.length == 1){
+                                String direction = evaluateVariable(directionAndId[0]).getText();
+                                valueString = valueString.replace(directionAndId[0],direction);
+                            }
+                            else {
+                                String direction = evaluateVariable(directionAndId[0]).getText();
+                                int id =  evaluateIntVariable(directionAndId[1]);
+                                valueString = valueString.replace(directionAndId[0],direction);
+                                valueString = valueString.replace(directionAndId[1],id+"");
+                            }
+                        }
+                        variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
                     case VOID:
+                        System.out.println(currentStatement.getText());
                         break;
                 }
                 assert variable2 != null;
@@ -519,7 +512,7 @@ public class CodeEvaluator {
                 case TURN:
                 case USE_ITEM:
                 case COLLECT:
-                    throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in CodeParser
+                    throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in OldCodeParser
                 case CAN_MOVE:
                     if(currentGameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;
                     // ^ means XOR. Java allows this boolean operator. I currently do not!

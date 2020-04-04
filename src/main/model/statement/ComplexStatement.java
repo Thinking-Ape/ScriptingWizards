@@ -190,8 +190,5 @@ public class ComplexStatement implements Statement {
         if(obj instanceof ComplexStatement)return this.getCodeLines().equals(((ComplexStatement)obj).getCodeLines());
         return super.equals(obj);
     }
-    public StatementIteratorOld iterator(){
-        return new StatementIteratorOld(this);
-    }
 
 }

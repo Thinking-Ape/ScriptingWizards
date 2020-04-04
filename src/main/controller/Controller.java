@@ -17,8 +17,8 @@ import main.model.Model;
 import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
-import main.parser.CodeParser;
 import main.parser.JSONParser;
+import main.parser.CodeParser;
 import main.utility.GameConstants;
 import main.utility.Util;
 import main.view.*;
@@ -98,7 +98,7 @@ public class Controller {
             );
             Optional<ButtonType> o  = createMethodDialog.showAndWait();
             if(o.isPresent()&&o.get() == ButtonType.OK){
-                ComplexStatement complexStatement = CodeParser.parseProgramCode(newMethodCodeArea.getAllText(),CodeAreaType.METHOD_CREATOR);
+                ComplexStatement complexStatement = OldCodeParser.parseProgramCode(newMethodCodeArea.getAllText(),CodeAreaType.METHOD_CREATOR);
                 Statement firstStatement = complexStatement.getSubStatement(0);
 
                 if(firstStatement.getStatementType() == StatementType.METHOD_DECLARATION) Model.addMethod((MethodDeclaration)firstStatement);

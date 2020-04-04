@@ -346,10 +346,11 @@ public class CodeArea extends VBox {
         if(index == -1) scollTo(0);
         int i = 0;
         for (CodeField cf : codeFieldList){
-            if(cf.isEmpty()&&cf.getDepth()>1){
-                index++;
-            }
-            else if(i == index){
+//            if(cf.isEmpty()&&cf.getDepth()>1){
+//                index++;
+//            }
+//            else
+                if(i == index){
                 if(index >= MAX_CODE_LINES){
                     scollTo(index-MAX_CODE_LINES+1);
                 }

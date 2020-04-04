@@ -13,8 +13,8 @@ public interface Condition {
 
     static Condition getConditionFromString(String code) throws IllegalArgumentException {
         int depth = 0;
+        if(code == null || code.matches(" *"))return null;
         code = code.trim();
-        if(code.matches(" *"))return null;
             //throw new IllegalArgumentException("You cannot have an empty condition");
         for(int i =0; i < code.length();i++){
             char c = code.charAt(i);

@@ -17,5 +17,5 @@ public interface Statement {
 
     List<String> getCodeLines();
     //TODO: maybe move methods to complex statements?
-    //TODO: eventuell eine parse Methode, die die Methoden in CodeParser ersetzt.
+    //TODO: eventuell eine parse Methode, die die Methoden in OldCodeParser ersetzt.
 }

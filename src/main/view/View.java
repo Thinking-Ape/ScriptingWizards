@@ -32,8 +32,8 @@ import main.model.enums.CFlag;
 import main.model.enums.EntityType;
 import main.model.enums.ItemType;
 import main.model.statement.ComplexStatement;
-import main.parser.CodeParser;
 import main.parser.JSONParser;
+import main.parser.CodeParser;
 import main.utility.*;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -253,6 +253,7 @@ public class View implements LevelChangeListener {
             else codeArea.updateCodeFields(new ComplexStatement());
         } catch (Exception e) {
             e.printStackTrace();
+            codeArea.updateCodeFields(new ComplexStatement());
         }
     }
 

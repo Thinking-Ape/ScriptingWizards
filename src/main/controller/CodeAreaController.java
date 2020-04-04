@@ -320,6 +320,7 @@ public class CodeAreaController implements SimpleEventListener {
                             currentCodeArea.scollTo(scrollAmount-1);
                         break;
                     }
+                    else if(currentIndex == 0) break;
                     else if(codeLines.get(currentIndex-1).matches(" *")&&currentCodeField.getCaretPosition() == 0){
                         codeLines.remove(currentIndex-1);
                         scrollAmount = currentCodeArea.getScrollAmount()-1 > 0 ? currentCodeArea.getScrollAmount()-1 : 0;

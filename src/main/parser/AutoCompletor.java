@@ -6,7 +6,7 @@ public abstract class AutoCompletor {
         boolean isValid = false;
 
         // try to match to regex!
-        // eventuell stattdessen einen Auto-Completor und nach jeder änderung einmal den CodeParser drüber laufen lassen!
+        // eventuell stattdessen einen Auto-Completor und nach jeder änderung einmal den OldCodeParser drüber laufen lassen!
 
         return isValid;
     }

@@ -43,7 +43,7 @@ public class ForStatement extends ComplexStatement {
         output += "for(";
         output += declaration.getText();
         output += condition.getText()+";";
-        output += assignment.getText().replace(";", "");
+        output += assignment.getText().replaceAll(";", "");
         output += ") {";
         return output;
     }

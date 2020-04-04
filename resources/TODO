@@ -87,18 +87,11 @@ IMPORTANT:
  - back() Method?
  - Visitor-pattern to walk through complexstatements
  - jan: Wechsel auf FastAndFurious geht nicht (NEXT) und da geht auch LoadBestCode nicht!
- - EDITOR CONTROLLER 472
  - make view static
- - improve error message by e.g.: "for *(.*) *{" and "int [] = .+;.+;.+"
- - make CodeArea only 3 times avaiable!! and then store the scroll amounts respectively
+ - make CodeArea only 3(2!) times avaiable!! and then store the scroll amounts respectively
  - decide what to do with custom methods!
  - rework how regexes are implemented + also question Enums like Direction! + make TestForCorrectParameters() in CodeParser obsolete -> TestForcorrectValueType
  - allow _ in variable Names?? HMMM
- - if compiler not active -> make all codefields editable? disable isError?
- - for(int i=0;i<5;int i) { is valid!! makie not valid!!!!
- - i++ in for doesnt work no more!
- - make new Skeleton/Knight(wrong arguments) illegal!
- - while(true) doesnt wuurk
 ---------------------------------------------
 
 

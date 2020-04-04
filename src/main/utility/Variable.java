@@ -11,6 +11,12 @@ public class Variable {
     private ExpressionTree value;
     private VariableType variableType;
 
+    public Variable (Variable v){
+        this.name = v.name;
+        this.variableType = v.variableType;
+        this.value = ExpressionTree.expressionTreeFromString(v.value.getText());
+    }
+
     public Variable( VariableType variableType,String variableName, ExpressionTree value) {
         this.name = variableName.trim();
         if(Direction.getValueFromString(name)!=null || ItemType.getValueFromName(name) != ItemType.NONE || CellContent.getValueFromName(name) != null || EntityType.getValueFromName(name) != NONE || name.equals("AROUND")|| name.equals("LEFT")|| name.equals("RIGHT"))
