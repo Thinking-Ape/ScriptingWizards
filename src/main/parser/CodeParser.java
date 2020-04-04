@@ -251,8 +251,10 @@ public abstract class CodeParser {
         if(objectName.matches(" *"))throw new IllegalArgumentException("You cant have an empty object!");
         boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
         if(variableScope.getVariable(objectName) == null)throw new IllegalArgumentException("Variable "+ objectName+" not in scope");
-        if(isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.KNIGHT)throw new IllegalArgumentException("Object "+objectName+ " must be a Knight");
-        if(!isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.SKELETON)throw new IllegalArgumentException("Object "+objectName+ " must be a Skeleton");
+        if(variableScope.getVariable(objectName).getVariableType() != VariableType.ARMY){
+            if(isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.KNIGHT)throw new IllegalArgumentException("Object "+objectName+ " must be a Knight");
+            if(!isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.SKELETON)throw new IllegalArgumentException("Object "+objectName+ " must be a Skeleton");
+        }
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
         if(mType == null) throw new IllegalArgumentException("Method " + methodName + " is not a valid method!");
         testForCorrectParameters(parameterString, mType);
@@ -273,6 +275,7 @@ public abstract class CodeParser {
             case WAIT:
             case DROP_ITEM:
             case MOVE:
+            case BACK_OFF:
             case USE_ITEM:
             case COLLECT:
             case CAN_MOVE:

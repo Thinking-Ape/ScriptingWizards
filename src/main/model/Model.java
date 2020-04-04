@@ -157,6 +157,7 @@ public abstract class Model {
                 break;
             case IS_TUTORIAL:
                 getCurrentLevel().setIsTutorial((boolean) value);
+
                 break;
             case TUTORIAL_LINES:
                 getCurrentLevel().setTutorialMessages((List<String>) value);
@@ -216,6 +217,7 @@ public abstract class Model {
                 oldValue = getCurrentLevel().getAIBehaviourCopy();
                 break;
             case HAS_AI:
+                oldValue = getCurrentLevel().hasAi();
                 break;
             case LOC_TO_STARS:
                 oldValue = getCurrentLevel().getLocToStarsCopy();
@@ -238,6 +240,11 @@ public abstract class Model {
             default:
                 throw new IllegalStateException("You might have forgotten to add the following case: "+levelDataType);
         }
+        if(levelDataType == LevelDataType.TURNS_TO_STARS || levelDataType == LevelDataType.LOC_TO_STARS){
+            Integer[] oldToStars = ((Integer[])oldValue);
+            Integer[] newToStars = ((Integer[])newValue);
+            if(oldToStars[0].equals(newToStars[0])&&oldToStars[1].equals(newToStars[1]))return;
+        }
         if(newValue.equals(oldValue))return;
         LevelChange levelChange = new LevelChange(levelDataType, oldValue, newValue);
         updateLevelValues(levelChange.getLevelDataType(), levelChange.getNewValue());
@@ -250,17 +257,6 @@ public abstract class Model {
 
     public static Map<LevelDataType,LevelChange> getAndConfirmCurrentChanges() {
         Map<LevelDataType,LevelChange> output = levelChangeSender.getAndConfirmChanges();
-        if(output.containsKey(LevelDataType.LEVEL_INDEX)){
-            LevelChange change = output.get(LevelDataType.LEVEL_INDEX);
-            int newIndex = (int)change.getNewValue();
-            int oldIndex = (int)change.getOldValue();
-            int step = 1;
-            if(newIndex < oldIndex)step = -1;
-            for(int i = 0; i < levelList.size(); i++){
-                int absDiff = (i-oldIndex)*step;
-                if ( absDiff > 0 && absDiff <= (newIndex-oldIndex)*step)moveCurrentLevel(step);
-            }
-        }
         if(output.containsKey(LevelDataType.LEVEL_NAME)){
             LevelChange change = output.get(LevelDataType.LEVEL_NAME);
             String name = getCurrentLevel().getName();

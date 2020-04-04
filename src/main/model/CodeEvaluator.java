@@ -163,12 +163,10 @@ public class CodeEvaluator {
                 String newParameters = "";
                 switch (mC.getMethodType()){
                     case MOVE:
-                        break;
                     case USE_ITEM:
-                        break;
                     case COLLECT:
-                        break;
                     case CAN_MOVE:
+                    case BACK_OFF:
                         break;
                     case HAS_ITEM:
                     case TARGETS_CELL:
@@ -511,6 +509,8 @@ public class CodeEvaluator {
                 case TURN:
                 case USE_ITEM:
                 case COLLECT:
+                case BACK_OFF:
+                case ATTACK:
                     throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in OldCodeParser
                 case CAN_MOVE:
                     if(currentGameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;

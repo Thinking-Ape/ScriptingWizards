@@ -73,7 +73,7 @@ public class LevelChangeSender {
 
     public void resetLevelNew(){
         levelNew = false;
-        levelChangeMap.clear();
+        levelChangeListener.updateAll();
     }
 
 //    public void setListener(LevelChangeListener levelChangeListener){

@@ -180,21 +180,16 @@ public abstract class CodeExecutor {
 
     }
 
-    private static void tryToMoveCell(String name) {
-        Point targetPoint = currentGameMap.getTargetPoint(name);
+    private static void tryToMoveCell(String name, boolean forwards) {
+
         Point actorPoint = currentGameMap.getEntityPosition(name);
         Entity actorEntity = currentGameMap.getEntity(actorPoint);
+        Point targetPoint = currentGameMap.getTargetPoint(name,forwards);
 
         boolean isOpen = currentGameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CFlag.INVERTED);
         if(currentGameMap.isGateWrongDirection(actorPoint, targetPoint))return;
         if((currentGameMap.getContentAtXY(targetPoint).isTraversable()||isOpen) && currentGameMap.isCellFree(targetPoint)){
             CellContent targetContent =currentGameMap.getContentAtXY(targetPoint);
-//            if(targetContent==CellContent.EXIT){
-//                if(isPlayer)hasWon = true;
-//                return;
-//                //TODO: replace with better handling in controller!
-//            }
-
             currentGameMap.removeEntity(actorPoint);
             currentGameMap.setEntity(targetPoint,  actorEntity );
 
@@ -245,7 +240,10 @@ public abstract class CodeExecutor {
                 break;
 
             case MOVE:
-                tryToMoveCell(name); //TODO: stattdessen mit getTargetPoint()?
+                tryToMoveCell(name,true); //TODO: stattdessen mit getTargetPoint()?
+                break;
+            case BACK_OFF:
+                tryToMoveCell(name,false); //TODO: stattdessen mit getTargetPoint()?
                 break;
             case TURN:
                 tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightCondition().getText()));

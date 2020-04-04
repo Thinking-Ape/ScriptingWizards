@@ -8,6 +8,7 @@ import static main.model.enums.VariableType.*;
 
 public enum MethodType {
     MOVE("move\\(\\)", VOID, "Moves this Knight one cell in the target direction, if the target cell is free."),
+    BACK_OFF("backOff\\(\\)", VOID, "Moves this Knight one cell backwards, if the target cell is free."),
     TURN("turn\\(.+\\)", VOID, "Turns the Knight in a given direction. Valid parameters are: LEFT, RIGHT, AROUND"),
     USE_ITEM("useItem\\(\\)", VOID, "Uses any item this Knight previously collected!"), // maybe change to use() -> does activate levers when no items equipped?!
     COLLECT("collect\\(\\)", VOID,"Collect any item that is in front of this Knight. If this Knight already has an Item equipped, swap them!"),

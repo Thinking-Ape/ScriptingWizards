@@ -202,6 +202,7 @@ public class SpellBookPane extends VBox {
             methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,"(",""));
             switch (methodType){
                 case MOVE:
+                case BACK_OFF:
                 case USE_ITEM:
                 case COLLECT:
                 case CAN_MOVE:

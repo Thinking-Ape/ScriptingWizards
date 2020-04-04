@@ -41,8 +41,9 @@ public class Level {
             if(tutorialEntryList.size() > 0){
                 tutorialMessages.addAll(tutorialEntryList);
             }
-
+            else tutorialMessages.add("");
         }
+        else tutorialMessages.add("");
     }
 
 //    private Level (String name, GameMap originalMap, ComplexStatement aiBehaviour, Integer[]  turnsToStars, Integer[] locToStars, List<String> requiredLevels, int maxKnights,

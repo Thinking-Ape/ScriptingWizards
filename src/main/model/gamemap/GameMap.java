@@ -226,21 +226,27 @@ public class GameMap {
     }
 
     public Point getTargetPoint(String actorName) {
+        return getTargetPoint(actorName, true);
+    }
+    public Point getTargetPoint(String actorName, boolean isForward) {
         Point p = getEntityPosition(actorName);
         Entity entity = cellArray2D[p.getX()][p.getY()].getEntity();
         if(entity == NO_ENTITY) return new Point(-1, -1);
+        int d = isForward ? 1 : -1;
         switch (entity.getDirection()){
             case NORTH:
-                return new Point(p.getX(), p.getY()-1);
+                return new Point(p.getX(), p.getY()-d);
             case SOUTH:
-                return new Point(p.getX(), p.getY()+1);
+                return new Point(p.getX(), p.getY()+d);
             case EAST:
-                return new Point(p.getX()+1, p.getY());
+                return new Point(p.getX()+d, p.getY());
             case WEST:
-                return new Point(p.getX()-1, p.getY());
+                return new Point(p.getX()-d, p.getY());
         }
         return new Point(-1, -1);
     }
+
+
 
     public CellContent getContentAtXY(Point targetPos) {
         return getContentAtXY(targetPos.getX(), targetPos.getY());
