@@ -249,12 +249,16 @@ public abstract class CodeParser {
      */
     private static MethodCall parseMethodCall(String objectName, String methodName, String parameterString) {
         if(objectName.matches(" *"))throw new IllegalArgumentException("You cant have an empty object!");
+        boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
+        if(variableScope.getVariable(objectName) == null)throw new IllegalArgumentException("Variable "+ objectName+" not in scope");
+        if(isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.KNIGHT)throw new IllegalArgumentException("Object "+objectName+ " must be a Knight");
+        if(!isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.SKELETON)throw new IllegalArgumentException("Object "+objectName+ " must be a Skeleton");
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
         if(mType == null) throw new IllegalArgumentException("Method " + methodName + " is not a valid method!");
         testForCorrectParameters(parameterString, mType);
         // Makes lines such as: knight.targetsCell(EXIT); illegal (they need the condition context!)
         if(mType.getOutputType() != VariableType.VOID) throw new IllegalArgumentException("Method " + methodName + " cannot stand here!");
-        boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
+
         if(isPlayerCode && mType == MethodType.ATTACK) throw new IllegalArgumentException("Knights cannot attack! Collect a sword and refer to useItem()!");
         return new MethodCall(mType,objectName,parameterString);
     }

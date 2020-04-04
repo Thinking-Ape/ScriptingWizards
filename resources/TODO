@@ -81,17 +81,17 @@ IMPORTANT:
  ==========================
  - allow XOR (^)?
  - (Level, das randInt verwendet!)
- - Better Understand and clean up CodeParser
- - you can just put ; wherever and it will be removed
  - make controlElements ignore keyboard input?
  - back() Method?
- - Visitor-pattern to walk through complexstatements
  - jan: Wechsel auf FastAndFurious geht nicht (NEXT) und da geht auch LoadBestCode nicht!
  - make view static
  - make CodeArea only 3(2!) times avaiable!! and then store the scroll amounts respectively
  - decide what to do with custom methods!
  - rework how regexes are implemented + also question Enums like Direction! + make TestForCorrectParameters() in CodeParser obsolete -> TestForcorrectValueType
  - allow _ in variable Names?? HMMM
+
+ - Better Understand and clean up CodeParser
+ - does unlocking of booleanmethods work??!
 ---------------------------------------------
 
 

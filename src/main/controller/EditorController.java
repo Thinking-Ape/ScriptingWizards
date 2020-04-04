@@ -252,7 +252,7 @@ public class EditorController implements SimpleEventListener {
                 Integer[] locToStars = new Integer[2];
                 locToStars[0] = 0;
                 locToStars[1] = 0;
-                Model.addLevelAtCurrentPos(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new String[0],1,false,null),true); //TODO!
+                Model.addLevelAtCurrentPos(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new String[0],1,(boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex()),null),true); //TODO!
                 // There ain't no spawn when creating a new Level!
                 view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
                 view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());

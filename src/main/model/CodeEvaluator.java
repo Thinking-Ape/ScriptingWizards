@@ -272,7 +272,6 @@ public class CodeEvaluator {
                         }
                         variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
                     case VOID:
-                        System.out.println(currentStatement.getText());
                         break;
                 }
                 assert variable2 != null;

@@ -763,7 +763,9 @@ public abstract class JSONParser {
             int turns = Model.getBestTurnsOfLevel(index);
             List<String> code  = Model.getBestCodeOfLevel(index);
             JSONArray behaviourJArray = new JSONArray();
-            for(String codeLine : code){
+            if(code == null)
+                behaviourJArray.put("");
+            else for(String codeLine : code){
                 if(codeLine.equals(""))continue;
                 behaviourJArray.put(codeLine);
             }
