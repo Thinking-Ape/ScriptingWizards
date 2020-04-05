@@ -1,3 +1,15 @@
+Version 1.5a:
+    - LevelOverviewPanes no longer contain information about AI, etc.
+    - improved Error recognition and Error messages
+    - created new Challenge-Level RandomizedLaboratory
+    - added Method backOff()
+    - added new Tutorial-Level UnexpectedTraps to introduce backOff()
+    - edited Level AllAboutTiming
+    - changed colors of entities and increased number of maximal Knights to 5
+    - Added Title to Startscreen
+    - Added images for Buttons in Startscreen
+    - Removed change Language Button
+    - Tons of bugfixes
 Version 1.4c:
     - Reworked behaviour of pressing backspace or delete whilst on '}' Codefields
     - Fixed a bug where the current Index of a level would not change

@@ -1235,7 +1235,7 @@ public class View implements LevelChangeListener {
 
     public void highlightButtons() {
         Effect dropShadow = new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.YELLOW);
-        final int n = 2;
+        final int n = 3;
         switch (getTutorialGroup().getCurrentIndex()){
             case n:
                 removeEffectsOfControlElements();

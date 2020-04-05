@@ -3,12 +3,14 @@ package main.controller;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
@@ -165,6 +167,57 @@ public class Controller {
             Platform.runLater(() -> view.highlightInMap(view.getSelectedPointList()));
         });
 
+        view.getStartScreen().getExitBtn().setOnMouseEntered(event -> {
+            ImageView quitImageView = new ImageView(new Image(GameConstants.QUIT_BTN_ACTIVATED_PATH));
+            quitImageView.setScaleX(GameConstants.WIDTH_RATIO);
+            quitImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            view.getStartScreen().getExitBtn().setGraphic(quitImageView);
+        });
+        view.getStartScreen().getExitBtn().setOnMouseExited(event -> {
+            ImageView quitImageView = new ImageView(new Image(GameConstants.QUIT_BTN_PATH));
+            quitImageView.setScaleX(GameConstants.WIDTH_RATIO);
+            quitImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            view.getStartScreen().getExitBtn().setGraphic(quitImageView);
+        });
+
+        view.getStartScreen().getPlayBtn().setOnMouseEntered(event -> {
+            ImageView playImageView = new ImageView(new Image(GameConstants.CHALLENGES_BTN_ACTIVATED_PATH));
+            playImageView.setScaleX(GameConstants.WIDTH_RATIO);
+            playImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            view.getStartScreen().getPlayBtn().setGraphic(playImageView);
+        });
+        view.getStartScreen().getPlayBtn().setOnMouseExited(event -> {
+            ImageView playImageView = new ImageView(new Image(GameConstants.CHALLENGES_BTN_PATH));
+            playImageView.setScaleX(GameConstants.WIDTH_RATIO);
+            playImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            view.getStartScreen().getPlayBtn().setGraphic(playImageView);
+        });
+
+        view.getStartScreen().getLvlEditorBtn().setOnMouseEntered(event -> {
+            ImageView editorImageView = new ImageView(new Image(GameConstants.LVL_EDITOR_BTN_ACTIVATED_PATH));
+            editorImageView.setScaleX(GameConstants.WIDTH_RATIO);
+            editorImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            view.getStartScreen().getLvlEditorBtn().setGraphic(editorImageView);
+        });
+        view.getStartScreen().getLvlEditorBtn().setOnMouseExited(event -> {
+            ImageView editorImageView = new ImageView(new Image(GameConstants.LVL_EDITOR_BTN_PATH));
+            editorImageView.setScaleX(GameConstants.WIDTH_RATIO);
+            editorImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            view.getStartScreen().getLvlEditorBtn().setGraphic(editorImageView);
+        });
+        view.getStartScreen().getTutorialBtn().setOnMouseEntered(event -> {
+            ImageView tutorialImageView = new ImageView(new Image(GameConstants.TUTORIAL_BTN_ACTIVATED_PATH));
+            tutorialImageView.setScaleX(GameConstants.WIDTH_RATIO);
+            tutorialImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            view.getStartScreen().getTutorialBtn().setGraphic(tutorialImageView);
+
+        });
+        view.getStartScreen().getTutorialBtn().setOnMouseExited(event -> {
+            ImageView tutorialImageView = new ImageView(new Image(GameConstants.TUTORIAL_BTN_PATH));
+            tutorialImageView.setScaleX(GameConstants.WIDTH_RATIO);
+            tutorialImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            view.getStartScreen().getTutorialBtn().setGraphic(tutorialImageView);
+        });
         view.getStartScreen().getExitBtn().setOnAction(actionEvent -> {
             JSONParser.storeAllData();
             try {

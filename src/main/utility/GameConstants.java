@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 public abstract class GameConstants {
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     public static final String VERSION = "1.5a";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
@@ -103,6 +103,14 @@ public abstract class GameConstants {
     public static final Effect HIGHLIGHT_BTN_EFFECT = new Glow();
     public static final String PREV_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Prev_Btn.png";
     public static final String NEXT_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Next_Btn.png";
+    public static final String TUTORIAL_BTN_PATH = "file:"+IMAGES_PATH+"Tutorial_Btn.png";
+    public static final String TUTORIAL_BTN_ACTIVATED_PATH = "file:"+IMAGES_PATH+"Tutorial_Btn_Activated.png";
+    public static final String QUIT_BTN_PATH = "file:"+IMAGES_PATH+"Quit_Btn.png";
+    public static final String QUIT_BTN_ACTIVATED_PATH = "file:"+IMAGES_PATH+"Quit_Btn_Activated.png";
+    public static final String CHALLENGES_BTN_PATH = "file:"+IMAGES_PATH+"Challenges_Btn.png";
+    public static final String CHALLENGES_BTN_ACTIVATED_PATH = "file:"+IMAGES_PATH+"Challenges_Btn_Activated.png";
+    public static final String LVL_EDITOR_BTN_PATH = "file:"+IMAGES_PATH+"LevelEditor_Btn.png";
+    public static final String LVL_EDITOR_BTN_ACTIVATED_PATH = "file:"+IMAGES_PATH+"LevelEditor_Btn_Activated.png";
     public static final String EMPTY_TOKEN_PATH = "file:"+IMAGES_PATH+"Knight_Token_Used.png";
     public static final String UP_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Up_Btn.png";
     public static final String DOWN_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Down_Btn.png";
