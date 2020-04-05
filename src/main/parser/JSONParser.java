@@ -145,6 +145,8 @@ public abstract class JSONParser {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        dataJSONString = String.join("", Files.readAllLines(dataFilePath));
+        dataJSONObject = new JSONObject(dataJSONString);
     }
 
     private static void fillJSONArrayWithObjects(JSONArray requiredLevelsArray, Object[] requiredLevels) {
@@ -735,6 +737,9 @@ public abstract class JSONParser {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        dataJSONString = String.join("", Files.readAllLines(dataFilePath));
+        dataJSONObject = new JSONObject(dataJSONString);
 //        }
     }
 
@@ -770,10 +775,9 @@ public abstract class JSONParser {
         dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, Model.getTutorialProgress());
         int skips = 0;
         List<String> unlockedLevelNames =Model.getUnlockedLevelNames();
-        for(int i = 0; i < unlockedLevelNames.size()+skips; i++){
-            String name = Model.getNameOfLevelWithIndex(i+skips);
+        for(int i = 0; i < unlockedLevelNames.size(); i++){
+            String name = unlockedLevelNames.get(i);
             int index = Model.getIndexOfLevelInList(name);
-            if(index > i)skips += index -i;
             int loc = Model.getBestLocOfLevel(index);
             int turns = Model.getBestTurnsOfLevel(index);
             List<String> code  = Model.getBestCodeOfLevel(index);
@@ -803,7 +807,7 @@ public abstract class JSONParser {
                 levelJSONO.put(JSONConstants.BEST_TURNS,turns);
                 levelJSONO.put(JSONConstants.BEST_CODE,behaviourJArray);
                 levelJSONO.put(JSONConstants.LEVEL_NAME,name);
-                unlocksArray.put(i,levelJSONO);
+                unlocksArray.put(levelJSONO);
             }
         }
         dataJSONObject.put(JSONConstants.UNLOCKED_LEVELS,unlocksArray);

@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 public abstract class GameConstants {
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final String VERSION = "1.5a";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
@@ -59,9 +59,6 @@ public abstract class GameConstants {
             "Lastly here is an example with the boolean variable b1: !( ((1<2) && false) || b1). Can you figure out when its true?";
     public static final String TOOLTIP_VARIABLE_VALUE = "The value of the variable:\nint : a whole number, randInt(<lowestValue>,<highestValue>) or any other int variable as well as a term thereof:\nboolean: "+TOOLTIP_BOOLEAN+"\nDirection: EAST, WEST, NORTH, SOUTH\nTurnDirection: LEFT, RIGHT, AROUND\nCommand: a Method Call (see Knight Methods) but without an object name and the '.' e.g. move()";
     public static final String TOOLTIP_VARIABLE_TYPE = "Options are: int, boolean, Direction, TurnDirection, Command (, Knight and Army)";
-    public static final Effect GREEN_ADJUST = new ColorAdjust(-0.35, 0, 0, 0);
-    public static final Effect VIOLET_ADJUST = new ColorAdjust(0.3, 0, 0.1, 0);
-    public static final Effect LAST_ADJUST = new ColorAdjust(0.5, 0.1, 0.15, 0.1);
     public static final double LEVEL_ENTRY_SIZE = SCREEN_HEIGHT/10;
     public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.12;
     public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.25;
@@ -138,6 +135,7 @@ public abstract class GameConstants {
     public static final String FOR_INNER_REGEX = "^ *+(.+?) *+; *+(.+?) *+; *+(.+?) *+$";
     public static final String VARIABLE_NAME_REGEX = "[a-zA-Z_][a-zA-Z_0-9]*";
     public static final String WHOLE_VARIABLE_NAME_REGEX = "^"+VARIABLE_NAME_REGEX+"$";
+    public static final int MAX_KNIGHTS_AMOUNT = 5;
 //    public static final String CONDITION_REGEX = "^ *+"+VARIABLE_NAME_REGEX+"(\\|\\||&&|<|>|>=|<=|!=|==) *+$";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;

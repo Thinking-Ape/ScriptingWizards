@@ -187,6 +187,11 @@ public class TutorialGroup extends Group {
         hb.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/background_Test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
         endIntroductionBtn.setVisible(false);
         hideBtn.setVisible(false);
+        nextBtn.setStyle("-fx-background-color: white;" +
+                "-fx-base: transparent;");
+
+        prevBtn.setStyle("-fx-background-color: white;" +
+                "-fx-base: transparent;");
     }
     public boolean isLastMsg() {
         return index == tutorialEntries.size()-1;

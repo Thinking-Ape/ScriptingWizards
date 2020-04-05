@@ -160,10 +160,7 @@ public class Controller {
         });
 
         view.getStartScreen().getLvlEditorBtn().setOnAction(actionEvent -> {
-
             view.setSceneState(SceneState.LEVEL_EDITOR);
-
-
             editorController.setEditorHandlers();
             Platform.runLater(() -> view.highlightInMap(view.getSelectedPointList()));
         });
@@ -250,8 +247,9 @@ public class Controller {
             );
             view.getLevelOverviewPane().getPlayBtn().setOnAction(actionEvent1 -> {
                 String levelName = view.getLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
-                Model.selectLevel(levelName);
+
                 view.setSceneState(SceneState.PLAY);
+                Model.selectLevel(levelName);
             });
         });
 
@@ -393,7 +391,7 @@ public class Controller {
                     String levelName = (String) Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
                     double nStars = Util.calculateStars(turns, loc, turnsToStars, locToStars);
                     boolean isBetter = false;
-                    if (view.getCurrentSceneState() == SceneState.PLAY || view.getCurrentSceneState() == SceneState.TUTORIAL) {
+                    if (view.getCurrentSceneState() == SceneState.PLAY || view.getCurrentSceneState() == SceneState.TUTORIAL || (view.getCurrentSceneState() == SceneState.LEVEL_EDITOR && GameConstants.DEBUG)) {
                         isBetter = Model.putStatsIfBetter(loc, turns, nStars);
                         Model.updateUnlockedLevelsList(false);
                     }

@@ -468,7 +468,11 @@ public abstract class CodeParser {
                             break;
                         case CAL:
                             MethodType mt = MethodType.getMethodTypeFromCall(conditionLeaf.getRightTree().getText());
-                            if(mt== null)throw new IllegalArgumentException("Unknown Method:" + conditionLeaf.getText());
+                            if(mt== null){
+                                if(MethodType.getMethodTypeFromCall(conditionLeaf.getRightTree().getText()+"()")!=null)
+                                    throw new IllegalArgumentException("You might have forgotten brackets: " + conditionLeaf.getText());
+                                else throw new IllegalArgumentException("Unknown Method:" + conditionLeaf.getRightTree().getText());
+                            }
                             if(mt.getOutputType()== VariableType.BOOLEAN){
                                 testForCorrectParameters(conditionLeaf.getRightTree().getRightNode().getText(), mt);
                                 return;
@@ -582,7 +586,7 @@ public abstract class CodeParser {
             ConditionLeaf conditionLeaf = (ConditionLeaf)condition;
             switch(conditionLeaf.getSimpleConditionType()){
                 case SIMPLE:
-//                    if(variableScope.getVariable(condition.getText())==null) throw new IllegalArgumentException("Boolean Variable "+condition.getText()+" not in scope!");
+                    if(variableScope.getVariable(condition.getText())==null) throw new IllegalArgumentException("Boolean Variable "+condition.getText()+" not in scope!");
                     return;
                 case GR_EQ:
                 case LE_EQ:
@@ -594,6 +598,7 @@ public abstract class CodeParser {
                     checkExpressionTreeForUnknownVars(conditionLeaf.getRightTree());
                     return;
                 case CAL:
+                    if(variableScope.getVariable(conditionLeaf.getLeftTree().getText())==null)throw new IllegalArgumentException("Variable "+conditionLeaf.getLeftTree().getText() + " not in scope!");
                     checkExpressionTreeForUnknownVars(conditionLeaf.getLeftTree());
                     if(conditionLeaf.getRightTree().getLeftNode() == null)throw new IllegalArgumentException(conditionLeaf.getRightTree().getText() + " is not a valid Method!");
                     MethodType mT = MethodType.getMethodTypeFromName(conditionLeaf.getRightTree().getLeftNode().getText());

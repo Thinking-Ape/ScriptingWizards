@@ -115,7 +115,6 @@ public class CodeAreaController implements SimpleEventListener {
 
             needsRecreation = false;
             needToIncreaseCurrentIndex = false;
-            if( /*gameRunning ||*/ !currentCodeArea.isEditable() )return;
             // clicking the current CodeField will do nothing
             if(currentCodeArea.getSelectedCodeField() == currentCodeField)return;
 
@@ -125,6 +124,7 @@ public class CodeAreaController implements SimpleEventListener {
             if(compilerActive)
                 handleCodeFieldEvent(currentCodeArea.getAllText(),currentCodeArea);
 
+            if(!currentCodeArea.isEditable() )return;
             if(!isError){
                 currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
                 currentCodeArea.deselectAll();

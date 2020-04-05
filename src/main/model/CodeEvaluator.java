@@ -207,6 +207,7 @@ public class CodeEvaluator {
                         direction = evaluateVariable(direction).getText();
                         valueString = "new Knight("+direction+")";
                     }
+                    currentStatement = new Assignment(varNames, variableType, ExpressionTree.expressionTreeFromString(valueString), true);
                 }
                 else if(declaration.getVariable().getVariableType() == VariableType.SKELETON) {
                     Matcher skeletonMatcher = Pattern.compile(VariableType.SKELETON.getAllowedRegex()).matcher(valueString);
@@ -223,9 +224,11 @@ public class CodeEvaluator {
                             valueString = valueString.replace(directionAndId[1],id+"");
                         }
                     }
+                    currentStatement = new Assignment(varNames, variableType, ExpressionTree.expressionTreeFromString(valueString), true);
                 }
-                variableScope.addVariable(variable);
-                currentStatement = new Assignment(varNames, variableType, ExpressionTree.expressionTreeFromString(valueString), true);
+                if(!variableScope.containsVariable(variable.getName()))variableScope.addVariable(new Variable(variable));
+                else
+                    variableScope.updateVariable(variable);
                 break;
             case ASSIGNMENT:
                 Assignment assignment = (Assignment)currentStatement;
@@ -496,7 +499,10 @@ public class CodeEvaluator {
             for(int i = 0; i < nameList.length; i++){
                 objectName = nameList[i];
             Point actorPoint = currentGameMap.getEntityPosition(objectName);
-            if(actorPoint == null) continue;
+            if(actorPoint == null){
+                output = false;
+                continue;
+            }
             Point targetPoint = currentGameMap.getTargetPoint(objectName);
             if(targetPoint.getX()==-1)return false;
             CellContent targetContent = currentGameMap.getContentAtXY(targetPoint);

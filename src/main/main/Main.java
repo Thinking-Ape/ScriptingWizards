@@ -45,8 +45,7 @@ public class Main extends Application {
         List<String> unlockedStatementList = JSONParser.getUnlockedStatementList();
         Model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelList,unlockedStatementList);
 
-    if(GameConstants.DEBUG)
-        Tester.runTests();
+        if(GameConstants.DEBUG)  Tester.runTests();
         View view = View.getInstance(primaryStage);
         Model.initLevelChangeListener(view);
         Model.selectLevel(0);
@@ -57,7 +56,9 @@ public class Main extends Application {
             try{
                 CodeParser.parseProgramCode(view.getCodeArea().getAllText());
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllText()));
-            }catch (Exception e){
+            }
+            catch (Exception e){
+                System.out.println("Saving failed");
             }
 
 

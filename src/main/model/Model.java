@@ -556,7 +556,10 @@ public abstract class Model {
                 }
             }
             if (foundLevels == getCurrentLevel().getRequiredLevelNamesCopy().size() && !getCurrentLevel().isTutorial())
+            {
                 if (!unlockedLevelList.contains(getCurrentLevel())) unlockedLevelList.add(getCurrentLevel());
+            }
+            else unlockedLevelList.remove(getCurrentLevel());
         }
         // If the current Level was finished from outside of the LevelEditor -> unlock levels that required it
         else {

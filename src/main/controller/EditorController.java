@@ -405,7 +405,7 @@ public class EditorController implements SimpleEventListener {
         TextField nameTField = new TextField((String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
 
             nameTField.textProperty().addListener((observableValue, s, t1) -> {
-                if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Z|a-z|ä|Ä|ö|Ö|ü|Ü|ß]*\\d*")){
+                if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Za-zäÄöÖüÜß_]+(\\d[A-Za-zäÄöÖüÜß_])*")){
                     nameTField.setText(s);
                 }
             });
@@ -747,15 +747,8 @@ public class EditorController implements SimpleEventListener {
                 view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
             }
         }else view.getLevelEditorModule().deactivateCellDetails();
-
-
-//        if(content == CellContent.ENEMY_SPAWN || content == CellContent.SPAWN||content == CellContent.EXIT){
-//            view.getLevelEditorModule().addTurnable();
-//            view.getLevelEditorModule().getIsTurnedCBox().setSelected(map.cellHasFlag(x,y,CFlag.TURNED));
-//            view.getLevelEditorModule().getIsTurnedCBox().setOnAction(evt -> {
-//                map.setFlag(x, y, CFlag.TURNED,view.getLevelEditorModule().getIsTurnedCBox().isSelected());
-//            });
-//        }
+        if(view.getCodeArea().getSelectedCodeField()!=null && !view.getCodeArea().isDisabled())view.getCodeArea().getSelectedCodeField().requestFocus();
+        else if(view.getAICodeArea().getSelectedCodeField()!=null && !view.getAICodeArea().isDisabled())view.getAICodeArea().getSelectedCodeField().requestFocus();
     }
 
     private boolean toggleActionEventFiring() {

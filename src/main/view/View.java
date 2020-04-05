@@ -298,11 +298,7 @@ public class View implements LevelChangeListener {
         for (int i = 0; i < maxKnights; i++) {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
             int amountOfKnights = Model.getAmountOfKnightsSpawned();
-            if(i+ amountOfKnights == 1)tokenIView.setEffect(GREEN_ADJUST);
-            if(i+amountOfKnights == 2)tokenIView.setEffect(VIOLET_ADJUST);
-            if(i+amountOfKnights == 3)tokenIView.setEffect(LAST_ADJUST);
-            if(i >= maxKnights - amountOfKnights)
-                tokenIView.setImage(new  Image(GameConstants.EMPTY_TOKEN_PATH));
+            tokenIView.setEffect(Util.getEffect(i+amountOfKnights));
             tokenIView.setFitHeight(cell_size/1.5);
             tokenIView.setFitWidth(cell_size/1.5);
             knightsLeftVBox.getChildren().add(tokenIView);
@@ -430,29 +426,11 @@ public class View implements LevelChangeListener {
         //COLOR EXPERIMENT:
         int knightCount = Model.getAmountOfKnightsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
-            switch (knightCount){
-                case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
-                    break;
-                case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
-                    break;
-                case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
-                    break;
-                case 4: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
-                    break;
-            }
+            entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(knightCount-1));
         }
         int skeletonCount = Model.getAmountOfSkeletonsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.SKELETON){
-            switch (skeletonCount){
-                case 1: entityColorMap.putIfAbsent(cell.getEntity().getName(), new ColorAdjust());
-                    break;
-                case 2: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.GREEN_ADJUST);
-                    break;
-                case 3: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.VIOLET_ADJUST);
-                    break;
-                case 4: entityColorMap.putIfAbsent(cell.getEntity().getName(), GameConstants.LAST_ADJUST);
-                    break;
-            }
+            entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(skeletonCount-1));
         }
         imageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
 
@@ -499,25 +477,12 @@ public class View implements LevelChangeListener {
         int amountOfKnights = Model.getAmountOfKnightsSpawned();
         int maxKnights = (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
         if((amountOfKnights< maxKnights &&cell.getContent()== CellContent.SPAWN))
-            switch (amountOfKnights){
-                case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
-                    break;
-                case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
-                    break;
-                case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
-                    break;
-            }
+            imageView.setEffect(Util.getEffect(amountOfKnights));
         if(cell.getContent()== CellContent.ENEMY_SPAWN){
             //switch (entityColorMap.size() -Model.getCurrentLevel().getUsedKnights()){
             int skelCount = Model.getAmountOfSkeletonsSpawned();
-            switch (skelCount){
-                case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
-                    break;
-                case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
-                    break;
-                case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
-                    break;
-            }}
+            imageView.setEffect(Util.getEffect(skelCount));
+        }
 
         return imageView;
     }
@@ -908,6 +873,8 @@ public class View implements LevelChangeListener {
                 stage.getScene().setRoot(startScreen);
                 break;
             case LEVEL_EDITOR:
+                GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                drawMap(gameMap);
                 prepareRootPane();
                 aiCodeArea.setEditable(true);
 //                aiCodeArea.deselectAll();
@@ -934,6 +901,9 @@ public class View implements LevelChangeListener {
                 stage.getScene().setRoot(rootPane);
                 break;
             case TUTORIAL:
+                if(Model.getTutorialProgress()==-1){
+                    isIntroduction = true;
+                }
                 prepareRootPane();
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();

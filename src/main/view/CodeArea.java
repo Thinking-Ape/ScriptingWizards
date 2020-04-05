@@ -257,6 +257,7 @@ public class CodeArea extends VBox {
         for(CodeField codeField : codeFieldList){
             codeField.resetStyle();
         }
+        selectedCodeField = null;
     }
     public void select(CodeField codeField, Selection selection) {
 

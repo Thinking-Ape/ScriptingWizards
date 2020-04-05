@@ -6,6 +6,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -23,6 +24,7 @@ import main.model.enums.CFlag;
 import main.model.enums.CellContent;
 
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class Util {
@@ -440,23 +442,10 @@ public abstract class Util {
         if(isTurned)imageView.setRotate(270);
         int amountOfKnights = Model.getAmountOfKnightsSpawned();
         if(amountOfKnights < (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS)&&cell.getContent()== CellContent.SPAWN)
-            switch (amountOfKnights){
-                case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
-                    break;
-                case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
-                    break;
-                case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
-                    break;
-            }
+            imageView.setEffect(getEffect(amountOfKnights));
+
         if(cell.getContent()== CellContent.ENEMY_SPAWN)
-            switch (entityColorMap.size() -amountOfKnights){
-                case 1: imageView.setEffect(GameConstants.GREEN_ADJUST);
-                    break;
-                case 2: imageView.setEffect(GameConstants.VIOLET_ADJUST);
-                    break;
-                case 3: imageView.setEffect(GameConstants.LAST_ADJUST);
-                    break;
-            }
+            imageView.setEffect(getEffect(entityColorMap.size() -amountOfKnights));
         stackPane.getChildren().add(imageView);
 
         return stackPane;
@@ -538,6 +527,12 @@ public abstract class Util {
         text.setFont(GameConstants.CODE_FONT);
         if(text.getLayoutBounds().getWidth() > GameConstants.TEXTFIELD_WIDTH-GameConstants.CODE_OFFSET*depth-GameConstants.SCREEN_WIDTH/110)return true;
         else return false;
+    }
+
+    public static Effect getEffect(int i) {
+        double c1 = 0.65*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*6.5);
+        double c2 = 0.15*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*8.4);
+        return new ColorAdjust(c1,-i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*0.2,c2,0);
     }
 
 
