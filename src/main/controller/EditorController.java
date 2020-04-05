@@ -171,12 +171,12 @@ public class EditorController implements SimpleEventListener {
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
                 String levelName = (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
+                Model.removeCurrentLevel();
                 try {
                     JSONParser.deleteLevel(levelName);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Model.removeCurrentLevel();
             }
             if(Model.getAmountOfLevels()==1)view.getLevelEditorModule().getDeleteLevelBtn().setDisable(true);
         });
@@ -316,6 +316,8 @@ public class EditorController implements SimpleEventListener {
                     !(boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
                 new Alert(Alert.AlertType.NONE,"Can't move Level down, as Challenge Levels must not come in between Tutorial Levels",ButtonType.OK).showAndWait();
             else Model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex-1);
+            if(currentLevelIndex == 1)view.getLevelEditorModule().getMoveIndexDownBtn().setDisable(true);
+            else view.getLevelEditorModule().getMoveIndexDownBtn().setDisable(false);
         });
         view.getLevelEditorModule().getMoveIndexUpBtn().setOnAction(actionEvent -> {
             int currentLevelIndex = Model.getCurrentIndex();
@@ -326,6 +328,8 @@ public class EditorController implements SimpleEventListener {
             if(Model.getNextTutorialIndex()==-1 && (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
                 new Alert(Alert.AlertType.NONE,"Can't move Level up, as Tutorial Levels must not come after a Challenge Level",ButtonType.OK).showAndWait();
             else Model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex+1);
+            if(currentLevelIndex == Model.getAmountOfLevels()-2)view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(true);
+            else view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(false);
         });
         view.getLevelEditorModule().getEditLvlBtn().setOnAction(event -> {
             Dialog<ButtonType> changeLvlDialog = new Dialog<>();
@@ -344,7 +348,7 @@ public class EditorController implements SimpleEventListener {
             VBox maxKnightsVBox = new VBox(new HBox(new Label("Max Knights: "),maxKnightsLbl),maxKnightsSlider);
             formatSlider(heightSlider,GameConstants.MIN_LEVEL_SIZE,GameConstants.MAX_LEVEL_SIZE);
             formatSlider(widthSlider,GameConstants.MIN_LEVEL_SIZE,GameConstants.MAX_LEVEL_SIZE);
-            formatSlider(maxKnightsSlider,1,4);
+            formatSlider(maxKnightsSlider,1,GameConstants.MAX_KNIGHTS_AMOUNT);
             GameMap currentMapClone = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
             heightSlider.setValue(currentMapClone.getBoundY());
             widthSlider.setValue(currentMapClone.getBoundX());

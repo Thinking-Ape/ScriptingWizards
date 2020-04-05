@@ -464,7 +464,9 @@ public class CodeAreaController implements SimpleEventListener {
             isError = true;
             disableControlElements(true,currentCodeArea);
             currentCodeArea.setEditable(false);
-            currentCodeArea.setEditable(currentIndex,true);
+            // After the compiler is inactive the current codefield might be a '}'
+            if(!currentCodeArea.getCodeFieldListClone().get(currentIndex).getText().equals("}"))
+                currentCodeArea.setEditable(currentIndex,true);
             if(GameConstants.DEBUG)e.printStackTrace();
             errorLabel.setText(e.getMessage());
             if(showError){

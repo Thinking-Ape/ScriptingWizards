@@ -83,6 +83,8 @@ IMPORTANT:
 
  - Better Understand and clean up CodeParser
  - does unlocking of booleanmethods work??!
+ - requiredLevels -> is it saved in JSONPArser for other lvls?
+ - changelog 1.5a
 ---------------------------------------------
 
 

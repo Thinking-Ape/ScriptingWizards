@@ -92,9 +92,17 @@ public abstract class Model {
     }
 
     public static void removeCurrentLevel() {
+        unlockedLevelList.remove(getCurrentLevel());
+        bestTurnsMap.remove(getCurrentLevel());
+        bestCodeMap.remove(getCurrentLevel());
+        bestLOCMap.remove(getCurrentLevel());
         levelList.remove(currentLevelIndex);
         for(Level l : levelList){
-            l.getRequiredLevelNamesCopy().remove(getCurrentLevel().getName());
+            List<String> reqLevels = new ArrayList<>();
+            for(String s : l.getRequiredLevelNamesCopy()){
+              if(!s.equals(getCurrentLevel().getName()))reqLevels.add(s);
+            }
+            l.setRequiredLevels(reqLevels);
         }
         if(currentLevelIndex != 0)currentLevelIndex--;
         selectLevel(currentLevelIndex);

@@ -530,9 +530,14 @@ public abstract class Util {
     }
 
     public static Effect getEffect(int i) {
-        double c1 = 0.65*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*6.5);
-        double c2 = 0.15*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*8.4);
-        return new ColorAdjust(c1,-i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*0.2,c2,0);
+        //just random numbers
+        // color to similar
+        if(i >= 2)i++;
+        // this too
+        if(i >= 5)i*=2;
+        double c1 = 0.67*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*6.8)*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*4.2);
+        double c2 = -0.15*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*8.4);
+        return new ColorAdjust(c1,0,c2,0);
     }
 
 

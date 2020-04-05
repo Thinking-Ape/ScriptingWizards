@@ -79,7 +79,7 @@ public class LevelEditorModule {
     private Button copyLevelBtn = new Button("Copy Level");
     private Button resetLevelScoresBtn = new Button("Reset Level Score");
     private Button reloadLevelBtn = new Button("Reload Level");
-    private HBox bottomHBox = new HBox(newLevelBtn, copyLevelBtn, openLevelBtn, saveLevelBtn, deleteLevelBtn, reloadLevelBtn, resetLevelScoresBtn);
+    private HBox bottomHBox = new HBox(openLevelBtn, saveLevelBtn,newLevelBtn, copyLevelBtn, deleteLevelBtn, reloadLevelBtn, resetLevelScoresBtn);
     private VBox requiredLVBOX = new VBox(requiredLevelsLabel,requiredLevelsLView);
     private Button changeLvlNameBtn = new Button("Change Level Name");
     private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new HBox(maxKnightsLbl,maxKnightsValueLbl),new HBox(), new HBox(maxLocVbox,maxLocValueVbox), new HBox(maxTurnsVbox,maxTurnsValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
