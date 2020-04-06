@@ -316,8 +316,7 @@ public class EditorController implements SimpleEventListener {
                     !(boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
                 new Alert(Alert.AlertType.NONE,"Can't move Level down, as Challenge Levels must not come in between Tutorial Levels",ButtonType.OK).showAndWait();
             else Model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex-1);
-            if(currentLevelIndex == 1)view.getLevelEditorModule().getMoveIndexDownBtn().setDisable(true);
-            else view.getLevelEditorModule().getMoveIndexDownBtn().setDisable(false);
+            view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(false);
         });
         view.getLevelEditorModule().getMoveIndexUpBtn().setOnAction(actionEvent -> {
             int currentLevelIndex = Model.getCurrentIndex();
@@ -328,8 +327,8 @@ public class EditorController implements SimpleEventListener {
             if(Model.getNextTutorialIndex()==-1 && (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
                 new Alert(Alert.AlertType.NONE,"Can't move Level up, as Tutorial Levels must not come after a Challenge Level",ButtonType.OK).showAndWait();
             else Model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex+1);
-            if(currentLevelIndex == Model.getAmountOfLevels()-2)view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(true);
-            else view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(false);
+//            if(currentLevelIndex == Model.getAmountOfLevels()-2)view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(true);
+            view.getLevelEditorModule().getMoveIndexDownBtn().setDisable(false);
         });
         view.getLevelEditorModule().getEditLvlBtn().setOnAction(event -> {
             Dialog<ButtonType> changeLvlDialog = new Dialog<>();

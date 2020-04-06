@@ -755,6 +755,14 @@ public class View implements LevelChangeListener {
 
         levelEditorModule.toggleLevelIsSaved(!Model.currentLevelHasChanged());
 
+        if(Model.getCurrentIndex() == 0){
+            levelEditorModule.getMoveIndexDownBtn().setDisable(true);
+        }
+        else levelEditorModule.getMoveIndexDownBtn().setDisable(false);
+        if(Model.getCurrentIndex() == Model.getAmountOfLevels()-1){
+            levelEditorModule.getMoveIndexUpBtn().setDisable(true);
+        }
+        else levelEditorModule.getMoveIndexUpBtn().setDisable(false);
     }
 
     @Override
