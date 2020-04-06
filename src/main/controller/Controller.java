@@ -3,20 +3,17 @@ package main.controller;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import main.model.LevelDataType;
 import main.model.Model;
-import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.parser.JSONParser;
@@ -44,6 +41,7 @@ public class Controller {
         codeAreaController = new CodeAreaController(view);
         editorController = new EditorController(view);
         int minIndex = Model.getTutorialProgress();
+        if(minIndex < Model.getAmountOfTutorials()-1)view.getStartScreen().getLvlEditorBtn().setDisable(true);
         view.getStage().getScene().setOnKeyPressed(event -> {
             if (!(view.getStage().getScene().getFocusOwner() instanceof CodeField)) {
                 if (view.getCodeArea().getSelectedCodeField() == null)
@@ -318,7 +316,7 @@ public class Controller {
 
     private void showDialogToClearCode(CodeArea codeArea) {
         Dialog<ButtonType> deleteDialog = new Dialog<>();
-        Label deleteLabel = new Label("You are going to removeCurrentLevel all code! Are you sure?");
+        Label deleteLabel = new Label("You are going to remove all code! Are you sure?");
         deleteLabel.setAlignment(Pos.CENTER);
         deleteLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
         deleteLabel.setTextAlignment(TextAlignment.CENTER);
@@ -407,18 +405,20 @@ public class Controller {
 
                     boolean isTutorial = (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
                     int nextIndex = Model.getNextTutorialIndex();
-
+                    // This only to stop levels with enemies from having differently colored SpawnPoints in LevelOverview
+                    Model.reset();
                     String nextLevelName;
                     if (isTutorial && View.getCurrentSceneState() == SceneState.TUTORIAL) {
                         if (isBetter)
                             view.getTutorialLevelOverviewPane().updateCurrentLevel();
                         minIndex = nextIndex - 1 > minIndex ? nextIndex - 1 : minIndex;
-                        if (nextIndex != -1) {
-                            Model.nextTutorial();
+                        if (nextIndex != -1 && nextIndex > Model.getTutorialProgress()) {
+                            Model.setTutorialProgress(nextIndex);
                             nextLevelName = (String) Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, nextIndex);
                             if (!view.getTutorialLevelOverviewPane().containsLevel(nextLevelName))
                                 view.getTutorialLevelOverviewPane().addLevel(nextIndex);
                         }
+                        else view.getStartScreen().getLvlEditorBtn().setDisable(false);
                     } else if (View.getCurrentSceneState() == SceneState.PLAY) {
                         if (isBetter)
                             view.getLevelOverviewPane().updateCurrentLevel();

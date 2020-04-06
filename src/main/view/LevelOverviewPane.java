@@ -70,6 +70,7 @@ public class LevelOverviewPane extends VBox {
         double width=0;
 //        String[] levelNames =JSONParser.getUnlockedLevelNames();
 //        String[] sortedLevelNames = new String[levelNames.length];
+        int k = 0;
         for(String levelName : Model.getUnlockedLevelNames()){
             int i = Model.getIndexOfLevelInList(levelName);
             int loc =Model.getBestLocOfLevel(i);
@@ -82,23 +83,18 @@ public class LevelOverviewPane extends VBox {
             GameMap gameMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
             boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
             int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
+            // View.getImageFromMap(gameMap) is an intensive calculation!
+            // Dont call this too often!
             LevelEntry le = new LevelEntry(View.getImageFromMap(gameMap),levelName,
                     getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
             le.autosize();
             boolean isTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i);
-            if(isTutorial && isTut && Model.getCurrentIndex() <= Model.getTutorialProgress()+1){
+            if((isTutorial && isTut && Model.getCurrentIndex() <= Model.getTutorialProgress()+1)||(!isTutorial && (GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!isTut))){
                 levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
                 levelListView.getItems().add(le);
-                width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
             }
-            else if(!isTutorial && (GameConstants.SHOW_TUTORIAL_LEVELS_IN_PLAY||!isTut)){
-                levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
-                levelListView.getItems().add(le);
-                width = le.getMaxWidth() > width ? le.getMaxWidth() : width;
-            }
-
+            updateWidth(le);
         }
-        levelListView.setMaxWidth(width+GameConstants.TEXTFIELD_HEIGHT*2);
     }
     public void addLevel(int i){
         Image image = View.getImageFromMap((GameMap)Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i));
@@ -112,9 +108,18 @@ public class LevelOverviewPane extends VBox {
                 getLevelTooltip(turnsToStars,locToStars),getBestScoreString(-1,-1,0),0);
         int index = 0;
         for(LevelEntry levelEntry : levelListView.getItems()){
-            if(Model.getIndexOfLevelInList(levelEntry.getLevelName())>i)index ++;
+            if(Model.getIndexOfLevelInList(levelEntry.getLevelName())<i)index ++;
         }
         levelListView.getItems().add(index,le);
+        if(levelListView.getItems().size() == 1){
+            updateWidth(le);
+        }
+    }
+
+    private void updateWidth(LevelEntry le) {
+        double width = levelListView.getMaxWidth();
+        width = le.getMaxWidth()+GameConstants.TEXTFIELD_HEIGHT*2 > width ? le.getMaxWidth()+GameConstants.TEXTFIELD_HEIGHT*2 : width;
+        levelListView.setMaxWidth(width);
     }
 
     public void updateCurrentLevel() {

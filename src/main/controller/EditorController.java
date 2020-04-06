@@ -73,6 +73,19 @@ public class EditorController implements SimpleEventListener {
             changeEditorModuleDependingOnCellContent(view.getSelectedPointList());
         }
 
+        view.getStage().getScene().setOnKeyPressed(event -> {
+
+            if(View.getCurrentSceneState() != SceneState.LEVEL_EDITOR)return;
+            if(!event.isControlDown())return;
+            switch (event.getCode()){
+                case S:
+                    view.getLevelEditorModule().getSaveLevelBtn().fire();
+                    break;
+                case O:
+                    view.getLevelEditorModule().getOpenLevelBtn().fire();
+                    break;
+            }
+        });
 
         view.getLevelEditorModule().getEditTutorialTextBtn().setOnAction(evt -> {
             Dialog<ButtonType> editTutorialDialog = new Dialog<>();

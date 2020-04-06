@@ -41,11 +41,9 @@ public class CodeAreaController implements SimpleEventListener {
 
         CodeArea.getInstance(CodeAreaType.PLAYER).addListener(this);
         CodeArea.getInstance(CodeAreaType.AI).addListener(this);
-        CodeArea.getInstance(CodeAreaType.METHOD_CREATOR).addListener(this);
 
         setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.PLAYER));
         setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.AI));
-        setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.METHOD_CREATOR));
     }
     public void setAllHandlersForCodeArea(CodeArea currentCodeArea) {
         for (CodeField codeField : currentCodeArea.getCodeFieldListClone()) {
@@ -53,6 +51,7 @@ public class CodeAreaController implements SimpleEventListener {
         }
         // Clicking the Icon above any of the two(three) CodeAreas will toggle the Compiler for that CodeArea
         currentCodeArea.getIcon().setOnMousePressed(keyEvent -> {
+            if(View.getCurrentSceneState() != SceneState.LEVEL_EDITOR && currentCodeArea.isAi())return;
             compilerActive = !compilerActive;
             // if the compiler is inactive every code line may be edited
             if(!compilerActive){
@@ -110,6 +109,7 @@ public class CodeAreaController implements SimpleEventListener {
 
     private void setHandlerForCodeField(CodeField currentCodeField, CodeArea currentCodeArea) {
         currentCodeField.setOnMousePressed(event -> {
+            if(View.getCurrentSceneState() != SceneState.LEVEL_EDITOR && currentCodeArea.isAi())return;
             if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
             else view.getAICodeArea().deselectAll();
 
@@ -144,6 +144,7 @@ public class CodeAreaController implements SimpleEventListener {
             // this is to circumvent a JavaFX Bug, which makes it possible to edit non-editable CodeFields by pressing Ctrl
             if(compilerActive && event.isControlDown() && !currentCodeField.isEditable())
                 currentCodeArea.requestFocus();
+            if(View.getCurrentSceneState() != SceneState.LEVEL_EDITOR && currentCodeArea.isAi())return;
 //            if (gameRunning){
 //                return;
 //            }
@@ -481,7 +482,7 @@ public class CodeAreaController implements SimpleEventListener {
         view.getBtnExecute().setDisable(b);
         view.getStoreCodeBtn().setDisable(b);
         if(codeArea.isAi())view.getCodeArea().setDisable(b);
-        else view.getAICodeArea().setDisable(b);
+        else if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR) view.getAICodeArea().setDisable(b);
         if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR && codeArea.isAi())
             view.getLevelEditorModule().getSaveLevelBtn().setDisable(b);
     }

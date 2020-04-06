@@ -559,14 +559,14 @@ public abstract class Model {
         int foundLevels = 0;
         // If the current level was saved from within the LevelEditor -> Maybe Required Levels was changed
         // -> Unlock non-Tutoriallevels whose requirements are met
-        if(isEditor) {
+        if(isEditor && !getCurrentLevel().isTutorial()) {
             for (String s : getCurrentLevel().getRequiredLevelNamesCopy()) {
                 Level l = getLevelWithName(s);
                 if (bestLOCMap.get(l) != null && bestLOCMap.get(l) > -1) {
                     foundLevels++;
                 }
             }
-            if (foundLevels == getCurrentLevel().getRequiredLevelNamesCopy().size() && !getCurrentLevel().isTutorial())
+            if (foundLevels == getCurrentLevel().getRequiredLevelNamesCopy().size())
             {
                 if (!unlockedLevelList.contains(getCurrentLevel()))
                     unlockedLevelList.add(getCurrentLevel());
@@ -757,6 +757,10 @@ public abstract class Model {
             }
         }
         return null;
+    }
+
+    public static void setTutorialProgress(int nextIndex) {
+        tutorialProgress = nextIndex;
     }
 
 

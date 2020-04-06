@@ -877,13 +877,13 @@ public class View implements LevelChangeListener {
 
     public void setSceneState(SceneState sceneState) {
         Model.resetTutorialIndex();
-        this.sceneState = sceneState;
+        View.sceneState = sceneState;
+        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         switch (sceneState) {
             case START_SCREEN:
                 stage.getScene().setRoot(startScreen);
                 break;
             case LEVEL_EDITOR:
-                GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                 drawMap(gameMap);
                 prepareRootPane();
                 aiCodeArea.setEditable(true);
@@ -904,6 +904,7 @@ public class View implements LevelChangeListener {
                 tutorialLevelOverviewPane.setBackground(brickBackground);
                 break;
             case PLAY:
+                drawMap(gameMap);
                 prepareRootPane();
                 aiCodeArea.deselectAll();
                 codeArea.deselectAll();
@@ -911,6 +912,7 @@ public class View implements LevelChangeListener {
                 stage.getScene().setRoot(rootPane);
                 break;
             case TUTORIAL:
+                drawMap(gameMap);
                 if(Model.getTutorialProgress()==-1){
                     isIntroduction = true;
                 }

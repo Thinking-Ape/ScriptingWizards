@@ -22,10 +22,10 @@ Falls kein Zugang zu einem Windows-Rechner besteht:
     erforderlich. Falls all diese Bedingungen erfüllt sind und kein Windows PC erreichbar ist, kann man mich persönlich
     kontaktieren, um Zugang zum git Repository zu erhalten.
 Ansonsten muss einfach die image.zip in einen beliebigen Ordner entpackt werden. Anschließend kann das Spiel durch
-Aufrufen der Datei "Programmierprojekt.bat" im Ordner "bin" gestartet werden.
+Aufrufen der Datei "ScriptingWizards.bat" im Ordner "bin" gestartet werden.
 Wenn das Projekt auf den neuesten Stand gebracht werden soll, ohne den bisherigen Spielstand zu verlieren, muss die
 Datei "data.json" im Ordner "bin/resources" kopiert werden und nach herunterladen der neuesten Version (über den Link
-https://cloud.chrz.de/s/ieiSggK6YfwJq28) die neue data.json durch die alte ersetzt werden.
+https://cloud.chrz.de/s/yHyjfLxgb83BaDk) die neue data.json durch die alte ersetzt werden.
 BEACHTE: Dies kann das Spiel eventuell zum abstürzen bringen! In diesem Fall ist die alte data.json nicht mehr
 kompatibel!
 
@@ -34,37 +34,38 @@ kompatibel!
 ------------------------------------------------------------------------------------------------------------------------
 Das Tutorial:
 -------------
-Diese Version des Spiels entspricht nicht derjenigen, die die Schüler erhalten werden, da für jedes Level bereits eine
-Musterlösung abgespeichert ist. Das dient hier dafür, dass einerseits ein Vergleich zur Verfügung steht und andererseits
-die Hilfestellung ersetzt werden soll, die den Schüler durch die Anwesenheit des Lehrers verfügbar ist.
+Für alle, die das Spiel schon getestet haben:
+Es gibt jetzt keine Musterlösungen mehr, da diese Version nun der entspricht, die die Schüler erhalten werden.
+
 Das Tutorial besteht aus mehreren Levels sowie einer kurzen Einführung. Wichtige Informationen sind, dass man den
 Mauszeiger über den Knöpfen am unteren Bildschirmrand verweilen lassen kann, um eine kurze Erklärung ihrer Funktion zu
-erhalten. Von links nach rechts, gibt es einen Knopf, der dich zurück ins Hauptmenü bringt, einen der den momentanen
-Code ausführt, einen Slider, der kontrolliert, wie schnell der Code ausgeführt wird, einen Knopf der das Level
-zurücksetzt und einen, der ein "Zauberbuch" öffnet, das alle bisher freigeschalteten Zaubersprüche (Methoden,
-Kontrollstrukturen, etc.) enthält. Dieses kann zudem über einen Knopf im oberen Rand des Buches verschoben werden.
-Rechts oben befindet sich das Skript, in dem man selber programmieren kann, indem man zuerst die Anweisungen im Tutorial
-befolgt. In späteren Levels wird sich zudem Links ein Skript welches Gegner steuert befinden. Nachdem das gesamte
-Tutorial durchgespielt wurde, kann man danach beliebige Tutorial-Levels auswählen, um diese erneut auszuprobieren.
-Weitere Levels, um sein Können zu testen befinden sich zudem unter "Challenges".
-Durch die Tastenkombination Strg+Pfeiltaste Oben/Unten lässt sich zudem die derzeitig ausgewählte Codezeile bewegen!
+erhalten. Folgendes wird alles auch im Spiel selbst erklärt:
+    Von links nach rechts, gibt es einen Knopf, der dich zurück ins Hauptmenü bringt, einen der den momentanen
+    Code ausführt, einen Slider, der kontrolliert, wie schnell der Code ausgeführt wird, einen Knopf der das Level
+    zurücksetzt und einen, der ein "Zauberbuch" öffnet, das alle bisher freigeschalteten Zaubersprüche (Methoden,
+    Kontrollstrukturen, etc.) enthält. Dieses kann zudem über einen Knopf im oberen Rand des Buches verschoben werden.
+    Rechts oben befindet sich das Skript, in dem man selber programmieren kann, indem man zuerst die Anweisungen im
+    Tutorial befolgt. In späteren Levels wird sich zudem Links ein Skript welches Gegner steuert befinden.
+Nachdem das erste Tutorial durchgespielt wurde, kann man danach beliebige Tutorial-Levels auswählen,
+um diese erneut auszuprobieren. Weitere Levels, um sein Können zu testen befinden sich zudem unter "Challenges".
+Durch die Tastenkombination Alt+Pfeiltaste Oben/Unten lässt sich zudem die derzeitig ausgewählte Codezeile bewegen!
 ----------------
 Der Leveleditor:
 ----------------
 Der Leveleditor ermöglicht es, eigene Level zu erstellen, vorhandene zu bearbeiten oder zu löschen. Dafür gibt es
 entsprechende Knöpfe oben, unterhalb einer Leiste mit wichtigen Informationen zum momentanen Level, welche auch über
-einen Knopf in dieser bearbeitet werden können. Über das Auswählen einer Zelle und drücken eines der Knöpfe rechts davon
-kann der Inhalt der Zelle bearbeitet werden. Über Drücken der Str/Shift-Taste lassen sich mehrere einzelne/zusammen-
-hängende Zellen markieren und gleichzeitig bearbeiten. Links lässt sich zudem der Code der gegnerischen Einheiten
-bestimmen, welcher gegebenenfalls erst in der obersten Zeile durch drücken des entsprechenden Knopfes und abhaken des
-entsprechenden Kästchens, aktiviert werden muss. Zudem lässt sich hier bestimmen, ob ein Level zum Tutorial gehört, oder
-nicht, ob es erst freigeschaltet werden muss und welcher Text im Tutorial angezeigt wird.
+einen Knopf "Edit" in dieser bearbeitet werden können. Über das Auswählen einer Zelle und drücken eines der Knöpfe
+rechts davon kann der Inhalt der Zelle bearbeitet werden. Über Drücken der Strg/Shift-Taste lassen sich mehrere einzelne
+bzw zusammenhängende Zellen markieren und gleichzeitig bearbeiten. Links lässt sich zudem der Code der gegnerischen
+Einheiten bestimmen, welcher gegebenenfalls erst in der obersten Zeile durch drücken von "Edit" und abhaken des
+entsprechenden Kästchens, aktiviert werden muss. Zudem lässt sich hier bestimmen, ob ein Level zum Tutorial gehört,
+oder nicht, ob es erst freigeschaltet werden muss und welcher Text im Tutorial angezeigt wird.
 
 ------------------------------------------------------------------------------------------------------------------------
                                              F E E D B A C K
 ------------------------------------------------------------------------------------------------------------------------
 
-Feedback sowohl zu den Informationen in dieser README als auch zum Spiel selber bitte an folgende Mail-Adresse:
+Feedback zum Spiel bitte an folgende Mail-Adresse:
 sgunzelmann@arcor.de am besten mit Betreff Feedback
 Ich würde mich über jegliche Anregungen, Wünsche, didaktische Einschätzungen, gefundene Fehler und allgemeine Kritik
 freuen. Folgende Fragen sind für mich von besonderem Interesse:
@@ -78,8 +79,7 @@ freuen. Folgende Fragen sind für mich von besonderem Interesse:
   Waren z.B. alle Elemente da wo sie hingehören?
 - Konntest du auch bei höchster Ausführgeschwindigkeit das Spiel problemlos laufen lassen? (Wenn nein, bitte ein paar
   Infos zur Hardware)
-- Fällt dir ein toller Name (deutsch oder englisch) für das Projekt ein? Das Titelbild soll nämlich noch durch einen
-  Namen ergänzt werden und ich habe bisher noch keinen gefunden, mit dem ich 100% glücklich bin
+
 Und zuletzt noch eine weitere Bitte: Falls dir das Projekt gut gefallen hat und es dir Spaß macht, selber Level zu
 erstellen: Benutze doch den Leveleditor, um ein eigenes Level für die Challenges (oder auch Tutorials) zu erstellen und
 schicke mir dieses dann auch an obige Mailadresse. (Nach der Erstellung, auf speichern drücken und dann ist die Datei

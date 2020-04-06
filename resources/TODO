@@ -82,6 +82,8 @@ IMPORTANT:
  - Better Understand and clean up CodeParser
  - readme
  - disable leveleditor!
+ - Levels are still getting distorted in lvl editor (after going there from menu!)
+ - on hover over disabled startscreen buzttons -> "will unlock after completing tut"
 ---------------------------------------------
 
 
