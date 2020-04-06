@@ -188,7 +188,8 @@ public class CodeEvaluator {
                 }
                 String objectName = mC.getObjectName();
                 if(variableScope.getVariable(mC.getObjectName()).getVariableType()==VariableType.ARMY){
-                    objectName = evaluateVariable(objectName).getText().replaceAll(" *new +Army *", "");
+                    objectName = evaluateVariable(objectName).getText().replaceAll(VariableType.ARMY.getAllowedRegex(), "$1");
+                    if(objectName.contains(","))objectName="("+objectName+")";
                 }
                 currentStatement = new MethodCall(mC.getMethodType(), objectName, newParameters);
                 break;
@@ -494,64 +495,66 @@ public class CodeEvaluator {
         //TODO: make better!
         if(vType == VariableType.KNIGHT||vType == VariableType.SKELETON || vType == VariableType.ARMY){
             String[] nameList = new String[]{objectName};
-            if(vType == VariableType.ARMY)nameList = variable.getValue().getText().replaceAll(" *new +Army *\\((.*)\\)", "$1").split(",");
-                    boolean output = true;
+            if(vType == VariableType.ARMY)nameList = variable.getValue().getText().replaceAll(VariableType.ARMY.getAllowedRegex(), "$1").split(",");
+            boolean output = true;
             for(int i = 0; i < nameList.length; i++){
                 objectName = nameList[i];
-            Point actorPoint = currentGameMap.getEntityPosition(objectName);
-            if(actorPoint == null){
-                output = false;
-                continue;
-            }
-            Point targetPoint = currentGameMap.getTargetPoint(objectName);
-            if(targetPoint.getX()==-1)return false;
-            CellContent targetContent = currentGameMap.getContentAtXY(targetPoint);
-            Entity actorEntity = currentGameMap.getEntity(actorPoint);
-            Entity targetEntity = currentGameMap.getEntity(targetPoint);
-            switch (MethodType.getMethodTypeFromName(methodName)){
-                case DROP_ITEM:
-                case WAIT:
-                case MOVE:
-                case TURN:
-                case USE_ITEM:
-                case COLLECT:
-                case BACK_OFF:
-                case ATTACK:
-                    throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in OldCodeParser
-                case CAN_MOVE:
-                    if(currentGameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;
-                    // ^ means XOR. Java allows this boolean operator. I currently do not!
-                    boolean eitherOpenOrInverted = (currentGameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CFlag.INVERTED));
-                    output = output && (currentGameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || eitherOpenOrInverted));
+                Point actorPoint = currentGameMap.getEntityPosition(objectName);
+                if(actorPoint == null){
+                    output = false;
                     continue;
-                case HAS_ITEM:
-                    if(parameterString.equals(""))output = output && (actorEntity.getItem()!= ItemType.NONE);
-                    else output = output && (actorEntity.getItem()==ItemType.getValueFromName(parameterString));
-                    continue;
-                case TARGETS_CELL:
-                    output = output && (targetContent == CellContent.getValueFromName(parameterString));
-                    continue;
-                case TARGET_IS_DANGER:
-                    output = output && (currentGameMap.cellHasFlag(targetPoint,CFlag.PREPARING)|| currentGameMap.cellHasFlag(targetPoint,CFlag.ARMED));
-                    //||!(targetEntity.getEntityType()!= EntityType.SKELETON) <- Skeletons no longer kill you when you walk into them
-                    continue;
-                case TARGETS_ENTITY:
-                    if(parameterString.equals(""))output = output && (targetEntity.getEntityType()!= EntityType.NONE);
-                    else output = output && (targetEntity.getEntityType()==EntityType.getValueFromName(parameterString));
-                    continue;
-                case TARGETS_ITEM:
-                    if(parameterString.equals(""))output = output && (currentGameMap.getItem(targetPoint)!=ItemType.NONE);
-                    else output = output && (currentGameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString));
-                    continue;
-                // has become pretty useless after deleting executeIf
+                }
+                Point targetPoint = currentGameMap.getTargetPoint(objectName);
+                if(targetPoint.getX()==-1)return false;
+                CellContent targetContent = currentGameMap.getContentAtXY(targetPoint);
+                Entity actorEntity = currentGameMap.getEntity(actorPoint);
+                Entity targetEntity = currentGameMap.getEntity(targetPoint);
+                switch (MethodType.getMethodTypeFromName(methodName)){
+                    case DROP_ITEM:
+                    case WAIT:
+                    case MOVE:
+                    case TURN:
+                    case USE_ITEM:
+                    case COLLECT:
+                    case BACK_OFF:
+                    case ATTACK:
+                        throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in OldCodeParser
+                    case CAN_MOVE:
+                        if(currentGameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;
+                        // ^ means XOR. Java allows this boolean operator. I currently do not!
+                        boolean eitherOpenOrInverted = (currentGameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CFlag.INVERTED));
+                        output = output && (currentGameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || eitherOpenOrInverted));
+                        continue;
+                    case HAS_ITEM:
+                        if(parameterString.equals(""))output = output && (actorEntity.getItem()!= ItemType.NONE);
+                        else output = output && (actorEntity.getItem()==ItemType.getValueFromName(parameterString));
+                        continue;
+                    case TARGETS_CELL:
+                        output = output && (targetContent == CellContent.getValueFromName(parameterString));
+                        continue;
+                    case TARGET_IS_DANGER:
+                        output = output && (currentGameMap.cellHasFlag(targetPoint,CFlag.PREPARING)|| currentGameMap.cellHasFlag(targetPoint,CFlag.ARMED));
+                        //||!(targetEntity.getEntityType()!= EntityType.SKELETON) <- Skeletons no longer kill you when you walk into them
+                        continue;
+                    case TARGETS_ENTITY:
+                        if(parameterString.equals(""))output = output && (targetEntity.getEntityType()!= EntityType.NONE);
+                        else output = output && (targetEntity.getEntityType()==EntityType.getValueFromName(parameterString));
+                        continue;
+                    case TARGETS_ITEM:
+                        if(parameterString.equals(""))output = output && (currentGameMap.getItem(targetPoint)!=ItemType.NONE);
+                        else output = output && (currentGameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString));
+                        continue;
+                    // has become pretty useless after deleting executeIf
 
-                case IS_LOOKING:
-                    output = output && ((actorEntity.getDirection() == Direction.getValueFromString(parameterString)));
-                    continue;
-            }
+                    case IS_LOOKING:
+                        output = output && ((actorEntity.getDirection() == Direction.getValueFromString(parameterString)));
+                        continue;
+                }
 
-            throw new IllegalStateException("Method \"" + methodName+"("+parameterString+")\" could not be evaluated");
-        }return output;}
+                throw new IllegalStateException("Method \"" + methodName+"("+parameterString+")\" could not be evaluated");
+            }
+            return output;
+        }
         throw new IllegalStateException(objectName + " has wrong variable type!");
     }
 }

@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 public abstract class GameConstants {
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final String VERSION = "1.5a";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();

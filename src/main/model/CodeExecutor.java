@@ -41,12 +41,21 @@ public abstract class CodeExecutor {
         }
         else if(statement.getStatementType()== StatementType.DECLARATION || statement.getStatementType()== StatementType.ASSIGNMENT) {
             Assignment assignment = (Assignment)statement;
-            if(assignment.getVariable().getVariableType() == VariableType.KNIGHT){
+            Variable var = assignment.getVariable();
+            boolean replaced = false;
+            if(var.getValue().getText().equals(""))return false;
+            if(!currentGameMap.getEntity(var.getName()).equals(NO_ENTITY)){
+                if(currentGameMap.getEntity(var.getName()).getEntityType().getDisplayName().equals(var.getVariableType().getName())){
+                    currentGameMap.kill(currentGameMap.getEntityPosition(var.getName()));
+                    replaced = true;
+                }
+            }
+            if(var.getVariableType() == VariableType.KNIGHT){
                 method_Called = true;
                 String name = assignment.getVariable().getName();
                 Direction direction = null;
                 if(assignment.getVariable().getValue().getRightNode()!=null)
-                    direction= Direction.getValueFromString(assignment.getVariable().getValue().getRightNode().getText());
+                    direction= Direction.getValueFromString(var.getValue().getRightNode().getText());
                 if(direction == null)
                     direction = Direction.NORTH;
 
@@ -56,25 +65,25 @@ public abstract class CodeExecutor {
                 if(statement.getStatementType() == StatementType.ASSIGNMENT) currentGameMap.getEntity(name).deleteIdentity();
                 if(spawn.getX() != -1&&currentGameMap.isCellFree(spawn) && canSpawnKnights){
                     currentGameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
-                    knightWasSpawned = true;
+                    knightWasSpawned = !replaced;
                 }
 
-            }else if(assignment.getVariable().getVariableType() == VariableType.SKELETON){ //TODO: stattdessen ENEMY?
+            }else if(var.getVariableType() == VariableType.SKELETON){ //TODO: stattdessen ENEMY?
                 method_Called = true;
                 if(currentGameMap.getEnemySpawnList().size()==0)return true;
-                String name = assignment.getVariable().getName();
+                String name = var.getName();
                 Direction direction = Direction.NORTH;
                 if(assignment.getVariable().getValue().getRightNode()!= null)
-                    direction = Direction.getValueFromString(assignment.getVariable().getValue().getRightNode().getText());
+                    direction = Direction.getValueFromString(var.getValue().getRightNode().getText());
                 String spawnId = "";
-                if(assignment.getVariable().getValue().getRightNode() != null){
-                    String s =assignment.getVariable().getValue().getRightNode().getText();
+                if(var.getValue().getRightNode() != null){
+                    String s =var.getValue().getRightNode().getText();
                     if(s.matches(".*,.*")){
 
                         direction = Direction.valueOf(s.split(",")[0]);
                         spawnId =s.split(",")[1];
                     }
-                    else direction = Direction.getValueFromString(assignment.getVariable().getValue().getRightNode().getText());
+                    else direction = Direction.getValueFromString(var.getValue().getRightNode().getText());
 
                 }
                 if(direction == null)direction = Direction.NORTH;
@@ -86,7 +95,7 @@ public abstract class CodeExecutor {
                         spawnPoint = point;
                         if(currentGameMap.getCellID(spawnPoint)==i){
                             currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
-                            skeletonWasSpawned = true;
+                            skeletonWasSpawned = !replaced;
                         }
                     }
                 }

@@ -1,6 +1,7 @@
 package main.main;
 
 import main.model.enums.CellContent;
+import main.model.enums.VariableType;
 import main.utility.Util;
 
 import java.util.ArrayList;
@@ -12,6 +13,10 @@ public abstract class Tester {
         int i = 0;
         System.out.println("aha" + i++);
         System.out.println("aha" + i);
+        String[] test = "k".replaceAll(VariableType.ARMY.getAllowedRegex(), "$1").split(",");
+        for(int j = 0; j < test.length; j++){
+            System.out.println(test[j]);
+        }
         boolean a = Util.stringInEnum(CellContent.class,"banane");
         boolean b = Util.stringInEnum(CellContent.class,"EMPTY");
         boolean c = Util.stringInEnum(CellContent.class,"empty");

@@ -251,6 +251,7 @@ public abstract class CodeParser {
         if(objectName.matches(" *"))throw new IllegalArgumentException("You cant have an empty object!");
         boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
         if(variableScope.getVariable(objectName) == null)throw new IllegalArgumentException("Variable "+ objectName+" not in scope");
+        if(variableScope.getVariable(objectName).getValue().getText().equals(""))throw new IllegalArgumentException("Variable "+ objectName+" has not been initialized");
         if(variableScope.getVariable(objectName).getVariableType() != VariableType.ARMY){
             if(isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.KNIGHT)throw new IllegalArgumentException("Object "+objectName+ " must be a Knight");
             if(!isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.SKELETON)throw new IllegalArgumentException("Object "+objectName+ " must be a Skeleton");

@@ -298,11 +298,13 @@ public class View implements LevelChangeListener {
         for (int i = 0; i < maxKnights; i++) {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
             int amountOfKnights = Model.getAmountOfKnightsSpawned();
+            if(i < maxKnights - amountOfKnights)
             tokenIView.setEffect(Util.getEffect(i+amountOfKnights));
+            else
+                tokenIView.setImage(new  Image(GameConstants.EMPTY_TOKEN_PATH));
             tokenIView.setFitHeight(cell_size/1.5);
             tokenIView.setFitWidth(cell_size/1.5);
             knightsLeftVBox.getChildren().add(tokenIView);
-//            System.out.println(Model.getCurrentLevel().getName()+", " +getCurrentSceneState().name()+": " +cell_size);
         }
     }
 

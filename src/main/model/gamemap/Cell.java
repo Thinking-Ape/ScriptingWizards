@@ -157,6 +157,7 @@ public class Cell {
     public Cell getMutation(CellContent content) {
         Cell mutatedCell = this.copy();
         mutatedCell.content = content;
+        if(!content.isTraversable())mutatedCell.item = NONE;
         return mutatedCell;
     }
 

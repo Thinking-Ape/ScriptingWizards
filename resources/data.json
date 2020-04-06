@@ -1,1 +1,1 @@
-{"tutorialProgress":-1,"storedCode":[],"statements":[],"unlocks":[{"loc":-1,"code":[],"name":"HelloDungeon","turns":-1}]}
+{"tutorialProgress":-1,"storedCode":["Knight k;","k = new Knight(EAST);","k.move();","Knight k3;","k = new Knight();","k.turn(AROUND);"],"statements":["Knight","move","turn"],"unlocks":[{"loc":-1,"code":[],"name":"HelloDungeon","turns":-1},{"loc":-1,"code":[""],"name":"DeathAssignment","turns":-1}]}

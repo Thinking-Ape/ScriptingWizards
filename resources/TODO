@@ -80,8 +80,9 @@ IMPORTANT:
  - make view static
  - make CodeArea only 3(2!) times avaiable!! and then store the scroll amounts respectively
  - allow _ in variable Names?? HMMM
-
+ - find another way to load images?
  - Better Understand and clean up CodeParser
+ - readme
 ---------------------------------------------
 
 
