@@ -565,6 +565,22 @@ public abstract class JSONParser {
         dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, Model.getTutorialProgress());
         int skips = 0;
         List<String> unlockedLevelNames =Model.getUnlockedLevelNames();
+        List<Integer> lockedIndexes = new ArrayList<>();
+
+        for(int j = 0; j<unlocksArray.length();j++){
+            String levelName = unlocksArray.getJSONObject(j).getString(JSONConstants.LEVEL_NAME,"");
+            boolean found = false;
+            for(int i = 0; i < unlockedLevelNames.size(); i++){
+                String name = unlockedLevelNames.get(i);
+                if(levelName.equals(name)){
+                    found = true;
+                }
+            }
+            if(!found)lockedIndexes.add(j);
+        }
+        for(Integer i : lockedIndexes){
+            unlocksArray.remove(i);
+        }
         for(int i = 0; i < unlockedLevelNames.size(); i++){
             String name = unlockedLevelNames.get(i);
             int index = Model.getIndexOfLevelInList(name);

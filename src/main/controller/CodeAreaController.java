@@ -68,7 +68,7 @@ public class CodeAreaController implements SimpleEventListener {
         });
 
         // Make sure that the AI-CodeArea may only be edited within the Editor
-        if(currentCodeArea.isAi() && view.getCurrentSceneState() != SceneState.LEVEL_EDITOR) currentCodeArea.setEditable(false);
+        if(currentCodeArea.isAi() && View.getCurrentSceneState() != SceneState.LEVEL_EDITOR) currentCodeArea.setEditable(false);
 
         // When scrolling with the mouse on a CodeArea will scollTo through the codefields
         currentCodeArea.setOnScroll(evt -> {
@@ -482,7 +482,7 @@ public class CodeAreaController implements SimpleEventListener {
         view.getStoreCodeBtn().setDisable(b);
         if(codeArea.isAi())view.getCodeArea().setDisable(b);
         else view.getAICodeArea().setDisable(b);
-        if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR && codeArea.isAi())
+        if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR && codeArea.isAi())
             view.getLevelEditorModule().getSaveLevelBtn().setDisable(b);
     }
 

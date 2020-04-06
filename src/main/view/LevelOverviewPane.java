@@ -24,9 +24,9 @@ public class LevelOverviewPane extends VBox {
     private Button backBtn = new Button();
     private boolean isTutorial = false;
 
-    public LevelOverviewPane( View view,boolean isTutorial){
+    public LevelOverviewPane( boolean isTutorial){
         this.isTutorial = isTutorial;
-        updateUnlockedLevels( view);
+        updateUnlockedLevels();
         backBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE*0.75);
         playBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE);
         ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
@@ -65,7 +65,7 @@ public class LevelOverviewPane extends VBox {
     }
 
 
-    public void updateUnlockedLevels( View view) {
+    public void updateUnlockedLevels() {
         levelListView.getItems().clear();
         double width=0;
 //        String[] levelNames =JSONParser.getUnlockedLevelNames();
@@ -82,7 +82,7 @@ public class LevelOverviewPane extends VBox {
             GameMap gameMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
             boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
             int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
-            LevelEntry le = new LevelEntry(view.getImageFromMap(gameMap),levelName,
+            LevelEntry le = new LevelEntry(View.getImageFromMap(gameMap),levelName,
                     getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
             le.autosize();
             boolean isTut = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i);
@@ -100,7 +100,8 @@ public class LevelOverviewPane extends VBox {
         }
         levelListView.setMaxWidth(width+GameConstants.TEXTFIELD_HEIGHT*2);
     }
-    public void addLevel(int i, Image image){
+    public void addLevel(int i){
+        Image image = View.getImageFromMap((GameMap)Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i));
         Integer[] turnsToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
         Integer[] locToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
 //        double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars)
@@ -109,7 +110,11 @@ public class LevelOverviewPane extends VBox {
         int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
         LevelEntry le = new LevelEntry(image,levelName,
                 getLevelTooltip(turnsToStars,locToStars),getBestScoreString(-1,-1,0),0);
-        levelListView.getItems().add(Model.getTutorialSlot(levelName),le);
+        int index = 0;
+        for(LevelEntry levelEntry : levelListView.getItems()){
+            if(Model.getIndexOfLevelInList(levelEntry.getLevelName())>i)index ++;
+        }
+        levelListView.getItems().add(index,le);
     }
 
     public void updateCurrentLevel() {
@@ -136,14 +141,14 @@ public class LevelOverviewPane extends VBox {
         return containsLevel(Model.getNameOfLevelWithIndex(Model.getCurrentIndex()));
     }
 
-    public void updateLevel(String levelName) {
+    public boolean updateLevel(String levelName) {
         int index = -1;
         int i = 0;
         for(LevelEntry le : levelListView.getItems()){
             if(le.getLevelName().equals(levelName))index = i;
             i++;
         }
-        if(index==-1)throw new IllegalStateException("Current Level was not found!");
+        if(index==-1)return false;
         int currentIndex = Model.getCurrentIndex();
         Integer[] turnsToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,currentIndex);
         Integer[] locToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,currentIndex);
@@ -156,6 +161,7 @@ public class LevelOverviewPane extends VBox {
         LevelEntry le = new LevelEntry(levelListView.getItems().get(index).getLevelImage(),Model.getNameOfLevelWithIndex(Model.getCurrentIndex()),
                 getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
         levelListView.getItems().set(index,le);
+        return true;
     }
 
     private String getBestScoreString(int turns, int loc, double nStars) {

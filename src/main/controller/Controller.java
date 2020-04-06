@@ -61,51 +61,6 @@ public class Controller {
             a.getDialogPane().setMinWidth(GameConstants.TEXTFIELD_WIDTH * 1.75);
             a.showAndWait();
         });
-        // Not in use at the moment:
-        /*view.getSpellBookPane().getCreateMethodBtn().setOnAction(evt ->{
-            Dialog<ButtonType> createMethodDialog = new Dialog<>();
-
-            createMethodDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-            createMethodDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
-            createMethodDialog.getDialogPane().setStyle("-fx-background-color: rgba(50,50,50,1)");
-            CodeArea newMethodCodeArea = CodeArea.getInstance(CodeAreaType.METHOD_CREATOR);
-            newMethodCodeArea.updateCodeFields(new ComplexStatement());
-            createMethodDialog.getDialogPane().setContent(newMethodCodeArea);
-            newMethodCodeArea.select(0, Selection.END);
-            codeAreaController.setAllHandlersForCodeArea(newMethodCodeArea);
-            newMethodCodeArea.addPropertyChangeListener(codeAreaController);
-            createMethodDialog.setContentText("Create a new Method");
-            // +1 because of the gap in between Codefields
-            // needs to be here for correct placement of the dialog
-            createMethodDialog.setHeight(standardHeight+GameConstants.MAX_CODE_LINES*(GameConstants.TEXTFIELD_HEIGHT+1));
-            Platform.runLater(()->{
-                standardHeight = createMethodDialog.getHeight();
-                newMethodCodeArea.getSelectedCodeField().requestFocus();
-
-                createMethodDialog.setHeight(standardHeight+GameConstants.MAX_CODE_LINES*(GameConstants.TEXTFIELD_HEIGHT+1));
-            });
-            final Button btOk = (Button) createMethodDialog.getDialogPane().lookupButton(ButtonType.OK);
-//            createMethodDialog.getDialogPane().setOnKeyPressed(evt2 ->{
-//                int amount = newMethodCodeArea.getSize() > GameConstants.MAX_CODE_LINES ? GameConstants.MAX_CODE_LINES : newMethodCodeArea.getSize();
-//                createMethodDialog.setHeight(standardHeight+amount*(GameConstants.TEXTFIELD_HEIGHT+1));
-//                createMethodDialog.getDialogPane().setMaxHeight(standardHeight+amount*(GameConstants.TEXTFIELD_HEIGHT+1));
-//            });
-            btOk.addEventFilter(
-                    ActionEvent.ACTION,
-                    event -> {
-                        //this stops the dialog from closing, when pressing Enter!
-                        if(!btOk.isFocused())
-                            event.consume();
-                    }
-            );
-            Optional<ButtonType> o  = createMethodDialog.showAndWait();
-            if(o.isPresent()&&o.get() == ButtonType.OK){
-                ComplexStatement complexStatement = OldCodeParser.parseProgramCode(newMethodCodeArea.getAllText(),CodeAreaType.METHOD_CREATOR);
-                Statement firstStatement = complexStatement.getSubStatement(0);
-
-                if(firstStatement.getStatementType() == StatementType.METHOD_DECLARATION) Model.addMethod((MethodDeclaration)firstStatement);
-            }
-        });*/
         view.getSpellBookPane().getMoveBtn().setOnMouseDragged(evt -> {
             Button moveBtn = view.getSpellBookPane().getMoveBtn();
             view.getSpellBookPane().setTranslateX(view.getSpellBookPane().getTranslateX() + evt.getX() - mouse_PositionX - moveBtn.getWidth() / 2);
@@ -128,7 +83,7 @@ public class Controller {
         view.getBackBtn().setOnAction(actionEvent -> {
             boolean isVisible = view.getSpellBookPane().isVisible();
             if (isVisible) view.getShowSpellBookBtn().fire();
-            switch (view.getCurrentSceneState()) {
+            switch (View.getCurrentSceneState()) {
                 case LEVEL_EDITOR:
                     if (Model.currentLevelHasChanged()) editorController.showSavingDialog();
                     if (isGameRunning) view.getBtnReset().fire();
@@ -231,7 +186,7 @@ public class Controller {
         });
         view.getStage().getScene().setOnKeyPressed(evt -> {
             evt.consume();
-            if (view.getCurrentSceneState() != SceneState.TUTORIAL) return;
+            if (View.getCurrentSceneState() != SceneState.TUTORIAL) return;
             if (evt.getCode() == KeyCode.RIGHT && evt.isAltDown()) {
                 if (!view.getTutorialGroup().getNextBtn().isDisabled()) view.getTutorialGroup().getNextBtn().fire();
             } else if (evt.getCode() == KeyCode.LEFT && evt.isAltDown()) {
@@ -316,7 +271,7 @@ public class Controller {
             boolean hasAi = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
             if (hasAi) view.getAICodeArea().highlightCodeField(-1);
             view.setNodesDisableWhenRunning(false);
-            if (view.getCurrentSceneState() == SceneState.LEVEL_EDITOR) {
+            if (View.getCurrentSceneState() == SceneState.LEVEL_EDITOR) {
                 view.getLevelEditorModule().setDisableAllLevelBtns(false);
                 if (hasAi) view.getAICodeArea().setEditable(true);
                 editorController.setAllEditButtonsToDisable(false);
@@ -397,7 +352,7 @@ public class Controller {
             ComplexStatement behaviour = CodeParser.parseProgramCode(view.getCodeArea().getAllText(), CodeAreaType.PLAYER);
             ComplexStatement aiBehaviour = new ComplexStatement();
             if (hasAi) aiBehaviour = CodeParser.parseProgramCode(view.getAICodeArea().getAllText(), CodeAreaType.AI);
-            if (view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
+            if (View.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
                 view.getLevelEditorModule().setDisableAllLevelBtns(true);
             if (GameConstants.DEBUG) System.out.println(behaviour.print());
             if (GameConstants.DEBUG) System.out.println(aiBehaviour.print());
@@ -441,47 +396,43 @@ public class Controller {
                     int loc = behaviour.getActualSize();
                     Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
                     Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
-                    String levelName = (String) Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
                     double nStars = Util.calculateStars(turns, loc, turnsToStars, locToStars);
                     boolean isBetter = false;
-                    if (view.getCurrentSceneState() == SceneState.PLAY || view.getCurrentSceneState() == SceneState.TUTORIAL || (view.getCurrentSceneState() == SceneState.LEVEL_EDITOR && GameConstants.DEBUG)) {
+                    if (View.getCurrentSceneState() == SceneState.PLAY || View.getCurrentSceneState() == SceneState.TUTORIAL || (View.getCurrentSceneState() == SceneState.LEVEL_EDITOR && GameConstants.DEBUG)) {
                         isBetter = Model.putStatsIfBetter(loc, turns, nStars);
                         Model.updateUnlockedLevelsList(false);
                     }
                     timeline.stop();
                     String winString = "You have won!" + "\nYou earned " + (int) nStars + (Math.round(nStars) != (int) nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (") + turns + " Turns, " + loc + " Lines of Code)";
-                    int amountOfTuts = Model.getAmountOfTutorials();
+
                     boolean isTutorial = (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
                     int nextIndex = Model.getNextTutorialIndex();
 
                     String nextLevelName;
-                    GameMap nextLevelMap;
-                    if (isTutorial && view.getCurrentSceneState() == SceneState.TUTORIAL) {
+                    if (isTutorial && View.getCurrentSceneState() == SceneState.TUTORIAL) {
                         if (isBetter)
                             view.getTutorialLevelOverviewPane().updateCurrentLevel();
                         minIndex = nextIndex - 1 > minIndex ? nextIndex - 1 : minIndex;
                         if (nextIndex != -1) {
                             Model.nextTutorial();
                             nextLevelName = (String) Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, nextIndex);
-                            nextLevelMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA, nextIndex);
                             if (!view.getTutorialLevelOverviewPane().containsLevel(nextLevelName))
-                                view.getTutorialLevelOverviewPane().addLevel(nextIndex, view.getImageFromMap(nextLevelMap));
+                                view.getTutorialLevelOverviewPane().addLevel(nextIndex);
                         }
-                    } else if (view.getCurrentSceneState() == SceneState.PLAY) {
+                    } else if (View.getCurrentSceneState() == SceneState.PLAY) {
                         if (isBetter)
                             view.getLevelOverviewPane().updateCurrentLevel();
 
                         if (nextIndex != -1) {
                             nextLevelName = (String) Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, nextIndex);
-                            nextLevelMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA, nextIndex);
                             if (!view.getLevelOverviewPane().containsLevel(nextLevelName))
-                                view.getLevelOverviewPane().addLevel(nextIndex, view.getImageFromMap(nextLevelMap));
+                                view.getLevelOverviewPane().addLevel(nextIndex);
                         }
                     }
 
 
                     Platform.runLater(() -> {
-                       showWinDialog(winString, view.getCurrentSceneState(), nStars);
+                       showWinDialog(winString, View.getCurrentSceneState(), nStars);
                     });
                     isGameRunning = false;
                     if (view.getLevelOverviewPane().getLevelListView().getItems().size() > 0)
@@ -503,7 +454,7 @@ public class Controller {
 
             }));
             timeline.play();
-            if (view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
+            if (View.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
                 editorController.setAllEditButtonsToDisable(true);
         });
     }

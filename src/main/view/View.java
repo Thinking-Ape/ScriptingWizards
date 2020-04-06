@@ -54,7 +54,7 @@ public class View implements LevelChangeListener {
     private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
     private SimpleEventSender eventSender;
-    private double cell_size;
+    private static double cell_size;
     private StartScreen startScreen;
     private Button btnExecute;
     private Button btnReset;
@@ -70,7 +70,7 @@ public class View implements LevelChangeListener {
     private List<Polyline> highlights = new ArrayList<>();
     private LevelEditorModule levelEditorModule;
     private List<Point> selectedPointList;
-    private Map<String, Image> contentImageMap = new HashMap<>();
+    private static Map<String, Image> contentImageMap = new HashMap<>();
 
     private LevelOverviewPane levelOverviewPane;
     //    private Scene levelSelectScene;
@@ -79,7 +79,7 @@ public class View implements LevelChangeListener {
     //    private Scene editorScene;
 //    private Scene tutorialScene;
     private Button backBtn = new Button();
-    private SceneState sceneState = SceneState.START_SCREEN;
+    private static SceneState sceneState = SceneState.START_SCREEN;
     private VBox knightsLeftVBox;
     private SpellBookPane spellBookPane = new SpellBookPane();
     private Label levelNameLabel = new Label();
@@ -98,8 +98,8 @@ public class View implements LevelChangeListener {
     private Button storeCodeBtn = new Button("Store Code");
 
     //TODO: for visual purposes:
-    List<Entity> entityActionList = new ArrayList<>();
-    Map<String, Effect> entityColorMap = new HashMap<>();
+    private static List<Entity>entityActionList = new ArrayList<>();
+    private static Map<String, Effect> entityColorMap = new HashMap<>();
     private boolean isIntroduction;
 
     private static View instance = null;
@@ -137,8 +137,8 @@ public class View implements LevelChangeListener {
 //        knightsLeftVBox.setStyle("-fx-background-color: lightgrey");
         knightsLeftVBox.setSpacing(cell_size / 4);
         knightsLeftVBox.setMinWidth(cell_size/1.5);
-        levelOverviewPane = new LevelOverviewPane(this,false);
-        tutorialLevelOverviewPane = new LevelOverviewPane( this,true);
+        levelOverviewPane = new LevelOverviewPane(false);
+        tutorialLevelOverviewPane = new LevelOverviewPane( true);
 //        levelSelectScene = new Scene(levelOverviewPane);
         //TODO: model.getCurrentLevel().addListener(this);
         //Testing
@@ -308,7 +308,7 @@ public class View implements LevelChangeListener {
         }
     }
 
-    private StackPane[][] getStackPaneFieldFromMap(GameMap map, Set<Point> pointSet) {
+    private static StackPane[][] getStackPaneFieldFromMap(GameMap map, Set<Point> pointSet) {
         //TODO: cell_size = calculateCellSize
         calculateCellSize();
         File folder = new File(Paths.get(GameConstants.ROOT_PATH + "/images").toString());
@@ -421,7 +421,7 @@ public class View implements LevelChangeListener {
         return output;
     }
 
-    private ImageView getEntityImageView(Cell cell, String entityName) {
+    private static ImageView getEntityImageView(Cell cell, String entityName) {
         ImageView imageView = new ImageView(contentImageMap.get(entityName));
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
@@ -441,7 +441,7 @@ public class View implements LevelChangeListener {
         return imageView;
     }
 
-    private ImageView getContentImageView(Cell cell){
+    private static ImageView getContentImageView(Cell cell){
         StringBuilder contentString = new StringBuilder(cell.getContent().getDisplayName());
 
         boolean isTurned = false;
@@ -489,7 +489,7 @@ public class View implements LevelChangeListener {
         return imageView;
     }
 
-    private void calculateCellSize() {
+    private static void calculateCellSize() {
         GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         cell_size = gameMap.getBoundY() > gameMap.getBoundX() ?
                 GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundX());
@@ -776,6 +776,7 @@ public class View implements LevelChangeListener {
             clearAICodeBtn.setVisible(false);
         }
         codeArea.scollTo(0);
+        drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
         if (sceneState == SceneState.LEVEL_EDITOR) {
             updateLevelEditorModule();
             Platform.runLater(()->highlightInMap(selectedPointList));
@@ -784,7 +785,6 @@ public class View implements LevelChangeListener {
             tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         }
         spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
-        drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
     }
 
     @Override
@@ -804,7 +804,7 @@ public class View implements LevelChangeListener {
             case IS_TUTORIAL:
                 if(levelChange.getLevelDataType().equals(LevelDataType.IS_TUTORIAL)){
                     if((boolean)levelChange.getNewValue())
-                        Platform.runLater(()->tutorialLevelOverviewPane.addLevel(Model.getCurrentIndex(), getImageFromMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA))));
+                        Platform.runLater(()->tutorialLevelOverviewPane.addLevel(Model.getCurrentIndex()));
                     else tutorialLevelOverviewPane.removeCurrentLevel();
                 }
             case TUTORIAL_LINES:
@@ -1047,7 +1047,7 @@ public class View implements LevelChangeListener {
         highlightInMap(new ArrayList<>());
     }
 
-    public Image getImageFromMap(GameMap originalMap) {
+    public static Image getImageFromMap(GameMap originalMap) {
         GridPane gridPane = new GridPane();
 
         StackPane[][] stackpaneField = getStackPaneFieldFromMap(originalMap,Util.getAllPointsIn(new Point(0,0),new Point(originalMap.getBoundX(),originalMap.getBoundY())));
@@ -1064,7 +1064,7 @@ public class View implements LevelChangeListener {
         return makeTransparent(image);
     }
 
-    private Image makeTransparent(Image inputImage) {
+    private static Image makeTransparent(Image inputImage) {
         int W = (int) inputImage.getWidth();
         int H = (int) inputImage.getHeight();
         WritableImage outputImage = new WritableImage(W, H);
@@ -1099,7 +1099,7 @@ public class View implements LevelChangeListener {
         return backBtn;
     }
 
-    public SceneState getCurrentSceneState() {
+    public static SceneState getCurrentSceneState() {
         return sceneState;
     }
 

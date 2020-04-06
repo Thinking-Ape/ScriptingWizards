@@ -63,7 +63,7 @@ public abstract class CodeExecutor {
                 Point spawn = currentGameMap.findSpawn();
 
                 if(statement.getStatementType() == StatementType.ASSIGNMENT) currentGameMap.getEntity(name).deleteIdentity();
-                if(spawn.getX() != -1&&currentGameMap.isCellFree(spawn) && canSpawnKnights){
+                if(spawn.getX() != -1&&currentGameMap.isCellFree(spawn) && (canSpawnKnights||replaced)){
                     currentGameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
                     knightWasSpawned = !replaced;
                 }

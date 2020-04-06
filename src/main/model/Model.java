@@ -276,6 +276,9 @@ public abstract class Model {
                 }
             }
         }
+//        if(output.containsKey(LevelDataType.REQUIRED_LEVELS)){
+//            updateUnlockedLevelsList(true);
+//        }
         if(output.containsKey(LevelDataType.IS_TUTORIAL)){
             if((boolean)output.get(LevelDataType.IS_TUTORIAL).getNewValue())
                 output.put(LevelDataType.REQUIRED_LEVELS,new LevelChange(LevelDataType.REQUIRED_LEVELS,getCurrentLevel().getRequiredLevelNamesCopy(),new ArrayList<>()));
@@ -565,9 +568,12 @@ public abstract class Model {
             }
             if (foundLevels == getCurrentLevel().getRequiredLevelNamesCopy().size() && !getCurrentLevel().isTutorial())
             {
-                if (!unlockedLevelList.contains(getCurrentLevel())) unlockedLevelList.add(getCurrentLevel());
+                if (!unlockedLevelList.contains(getCurrentLevel()))
+                    unlockedLevelList.add(getCurrentLevel());
             }
-            else unlockedLevelList.remove(getCurrentLevel());
+            else {
+                unlockedLevelList.remove(getCurrentLevel());
+            }
         }
         // If the current Level was finished from outside of the LevelEditor -> unlock levels that required it
         else {
@@ -681,16 +687,6 @@ public abstract class Model {
     public static List<String> getBestCodeOfLevel(int i) {
         return bestCodeMap.get(levelList.get(i));
     }
-
-    public static boolean methodExists(String methodName) {
-        for(MethodDeclaration mD : createdMethodsList){
-            if(mD.getMethodName().equals(methodName))return true;
-        }
-        return false;
-    }
-    /*public static void addMethod(MethodDeclaration mD) {
-        if(!methodExists(mD.getMethodName())) createdMethodsList.add(mD);
-    }*/
 
     public static boolean isCurrentLevelNew() {
         return levelChangeSender.isLevelNew();

@@ -437,6 +437,28 @@ public class EditorController implements SimpleEventListener {
             else JSONParser.saveLevelChanges(changes, (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
 //            JSONParser.saveIndexAndRequiredLevels(Model.getLevelListCopy());
             Model.updateUnlockedLevelsList(true);
+            if(!Model.getUnlockedLevelNames().contains(Model.getNameOfLevelWithIndex(Model.getCurrentIndex()))){
+                view.getTutorialLevelOverviewPane().removeCurrentLevel();
+                view.getLevelOverviewPane().removeCurrentLevel();
+            } else {
+                String levelName = Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"";
+                if((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL)){
+                    if(view.getTutorialLevelOverviewPane().containsLevel(levelName))
+                        view.getTutorialLevelOverviewPane().updateLevel(levelName);
+                    else view.getTutorialLevelOverviewPane().addLevel(Model.getCurrentIndex());
+                }
+                else {
+
+                    if(view.getLevelOverviewPane().containsLevel(levelName))
+                        view.getLevelOverviewPane().updateLevel(Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"");
+                    else view.getLevelOverviewPane().addLevel(Model.getCurrentIndex());
+                }
+            }
+//            Platform.runLater(() ->{
+                if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
+                else view.getStartScreen().getPlayBtn().setDisable(false);
+//            });
+
             Alert alert = new Alert(Alert.AlertType.NONE,"Level was saved!",ButtonType.OK);
             alert.setTitle("Success!");
             alert.setHeaderText("");
@@ -864,7 +886,7 @@ public class EditorController implements SimpleEventListener {
 
     @Override
     public void update(Object o) {
-        if(view.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
+        if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
         setEditorHandlers();
     }
 
