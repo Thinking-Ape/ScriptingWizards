@@ -67,6 +67,9 @@ public class CodeEvaluator {
                 if(GameConstants.DEBUG)System.out.println("You have unlocked the following: "+statement.getText());
                 return;
         }
+        if(statement.getStatementType().equals(StatementType.FOR)){
+            Model.addUnlockedStatement(VariableType.INT.getName());
+        }
         Model.addUnlockedStatement(unlock);
         for(String s : unlock2){
             Model.addUnlockedStatement(s);
@@ -160,6 +163,13 @@ public class CodeEvaluator {
 //                        varNames = matcher.group(1);
 //                    }
 //                }
+
+//                Variable object = variableScope.getVariable(mC.getObjectName());
+//                if(object.getVariableType() == VariableType.KNIGHT ||object.getVariableType() == VariableType.SKELETON)
+//                if(Model.getCurrentMap().getEntityPosition(mC.getObjectName()) == null){
+//                    currentStatement = new SimpleStatement();
+//                    break;
+//                }
                 String newParameters = "";
                 switch (mC.getMethodType()){
                     case MOVE:
@@ -167,6 +177,7 @@ public class CodeEvaluator {
                     case COLLECT:
                     case CAN_MOVE:
                     case BACK_OFF:
+                    case IS_ALIVE:
                         break;
                     case HAS_ITEM:
                     case TARGETS_CELL:
@@ -199,6 +210,14 @@ public class CodeEvaluator {
                 VariableType variableType = variable.getVariableType();
                 String varNames = variable.getName();
                 ExpressionTree value = declaration.getVariable().getValue();
+                value = evaluateVariable(value.getText());
+                if(variableType == VariableType.INT){
+                    value = ExpressionTree.expressionTreeFromString(evaluateNumericalExpression(value)+"");
+                }
+                else if(variableType == VariableType.BOOLEAN){
+                    value = ExpressionTree.expressionTreeFromString(evaluateVariablesInCondition(Condition.getConditionFromString(value.getText())).getText());
+                }
+
                 String valueString =value.getText();
                         //TODO: no!
                 if(declaration.getVariable().getVariableType() == VariableType.KNIGHT){
@@ -227,7 +246,7 @@ public class CodeEvaluator {
                     }
                     currentStatement = new Assignment(varNames, variableType, ExpressionTree.expressionTreeFromString(valueString), true);
                 }
-                if(!variableScope.containsVariable(variable.getName()))variableScope.addVariable(new Variable(variable));
+                if(!variableScope.containsVariable(variable.getName()))variableScope.addVariable(new Variable(variableType,varNames,value));
                 else
                     variableScope.updateVariable(variable);
                 break;
@@ -246,7 +265,10 @@ public class CodeEvaluator {
                         variable2 = new Variable(variableType,varNames,new ExpressionLeaf(evaluateNumericalExpression(assignment.getVariable().getValue())+""));
                         break;
                     case BOOLEAN:
-                        variable2 = new Variable(variableType,varNames,new ExpressionLeaf(""+testCondition(Condition.getConditionFromString(assignment.getVariable().getValue().getText()))));
+                        Condition condition1 = evaluateVariablesInCondition(Condition.getConditionFromString(assignment.getVariable().getValue().getText()));
+                        ExpressionTree value2 = assignment.getVariable().getValue();
+                        if(condition1 != null)value2 = ExpressionTree.expressionTreeFromString(condition1.getText());
+                        variable2 = new Variable(variableType,varNames,value2);
                         break;
                     case KNIGHT:
                             Matcher knightMatcher = Pattern.compile(VariableType.KNIGHT.getAllowedRegex()).matcher(valueString);
@@ -291,6 +313,48 @@ public class CodeEvaluator {
         }
         variableScope.setCurrentDepth(statement.getDepth()-1);
         return currentStatement;
+    }
+
+    private Condition evaluateVariablesInCondition(Condition conditionFromString) {
+
+        if(!conditionFromString.isLeaf()){
+            Condition leftTree = null;
+            Condition rightTree = null;
+            ConditionTree tree = (ConditionTree)conditionFromString;
+            if(tree.getLeftCondition()!= null)leftTree = evaluateVariablesInCondition(tree.getLeftCondition());
+            if(tree.getRightCondition()!= null)rightTree = evaluateVariablesInCondition(tree.getRightCondition());
+            return new ConditionTree(leftTree, conditionFromString.getConditionType(), rightTree);
+        }
+        else {
+            ExpressionTree leftTree = null;
+            ExpressionTree rightTree = null;
+            ConditionLeaf leaf = (ConditionLeaf) conditionFromString;
+            if(leaf.getLeftTree()!= null){
+                if(leaf.getSimpleConditionType() == BooleanType.CAL)leftTree = leaf.getLeftTree();
+                else leftTree = evaluateVariablesInExpressionTree(leaf.getLeftTree());
+            }
+            if(leaf.getRightTree()!= null)rightTree = evaluateVariablesInExpressionTree(leaf.getRightTree());
+            return new ConditionLeaf(leftTree, leaf.getSimpleConditionType(), rightTree);
+
+        }
+    }
+
+    private ExpressionTree evaluateVariablesInExpressionTree(ExpressionTree tree) {
+        if(tree instanceof ExpressionLeaf){
+            return evaluateVariable(tree.getText());
+        }
+        else{
+            ExpressionTree leftTree = tree.getLeftNode();
+            ExpressionTree rightTree = tree.getRightNode();
+            if(tree.getLeftNode() != null){
+                leftTree = evaluateVariablesInExpressionTree(leftTree);
+            }
+
+            if(tree.getRightNode() != null){
+                rightTree = evaluateVariablesInExpressionTree(rightTree);
+            }
+            return new ExpressionTree(leftTree,tree.getExpressionType(),rightTree);
+        }
     }
 
     private ExpressionTree evaluateVariable(String value) {
@@ -497,11 +561,15 @@ public class CodeEvaluator {
             String[] nameList = new String[]{objectName};
             if(vType == VariableType.ARMY)nameList = variable.getValue().getText().replaceAll(VariableType.ARMY.getAllowedRegex(), "$1").split(",");
             boolean output = true;
+            int deadEntities = 0;
             for(int i = 0; i < nameList.length; i++){
                 objectName = nameList[i];
                 Point actorPoint = currentGameMap.getEntityPosition(objectName);
                 if(actorPoint == null){
-                    output = false;
+                    deadEntities++;
+                    if(deadEntities == nameList.length){
+                        return false;
+                    }
                     continue;
                 }
                 Point targetPoint = currentGameMap.getTargetPoint(objectName);
@@ -519,6 +587,8 @@ public class CodeEvaluator {
                     case BACK_OFF:
                     case ATTACK:
                         throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in OldCodeParser
+                    case IS_ALIVE:
+                        continue;
                     case CAN_MOVE:
                         if(currentGameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;
                         // ^ means XOR. Java allows this boolean operator. I currently do not!

@@ -418,15 +418,25 @@ public class Controller {
                             if (!view.getTutorialLevelOverviewPane().containsLevel(nextLevelName))
                                 view.getTutorialLevelOverviewPane().addLevel(nextIndex);
                         }
+                        else if (nextIndex == -1){
+
+                            for(String s : Model.getUnlockedLevelNames()){
+                                int i = Model.getIndexOfLevelInList(s);
+                                if(view.getLevelOverviewPane().containsLevel(s) || (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i))continue;
+                                view.getLevelOverviewPane().addLevel(i);
+                            }
+                            if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
+                            else view.getStartScreen().getPlayBtn().setDisable(false);
+                        }
                         else view.getStartScreen().getLvlEditorBtn().setDisable(false);
                     } else if (View.getCurrentSceneState() == SceneState.PLAY) {
                         if (isBetter)
                             view.getLevelOverviewPane().updateCurrentLevel();
 
-                        if (nextIndex != -1) {
-                            nextLevelName = (String) Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, nextIndex);
-                            if (!view.getLevelOverviewPane().containsLevel(nextLevelName))
-                                view.getLevelOverviewPane().addLevel(nextIndex);
+                        for(String s : Model.getUnlockedLevelNames()){
+                            int i = Model.getIndexOfLevelInList(s);
+                            if(view.getLevelOverviewPane().containsLevel(s) || (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i))continue;
+                            view.getLevelOverviewPane().addLevel(i);
                         }
                     }
 
@@ -483,7 +493,7 @@ public class Controller {
 
     private void showWinDialog(String winString, SceneState sceneState, double stars) {
         Dialog<ButtonType> winDialog = new Dialog<>();
-        winDialog.getDialogPane().setBackground(new Background(new BackgroundImage(new Image("file:resources/images/background_tile.png"), BackgroundRepeat.REPEAT, null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT)));
+        winDialog.getDialogPane().setBackground(new Background(new BackgroundImage(new Image(GameConstants.BG_LIGHT_TILE_PATH), BackgroundRepeat.REPEAT, null, BackgroundPosition.CENTER, BackgroundSize.DEFAULT)));
         ImageView starsIV = new ImageView(Util.getStarImageFromDouble(stars));
 
         Label winLabel = new Label(winString);
@@ -519,7 +529,7 @@ public class Controller {
         boolean nextLvlIsTut = false;
         if (Model.getCurrentIndex() + 1 < Model.getAmountOfLevels())
             nextLvlIsTut = (boolean) Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL, Model.getCurrentIndex() + 1);
-        if (Model.getCurrentIndex() < Model.getAmountOfLevels() - 1 && (sceneState != SceneState.TUTORIAL || nextLvlIsTut) && sceneState != SceneState.LEVEL_EDITOR) {
+        if (Model.getCurrentIndex() < Model.getAmountOfLevels() - 1 && nextLvlIsTut && sceneState != SceneState.LEVEL_EDITOR) {
             winDialog.getDialogPane().getButtonTypes().add(2, nextBtn);
         }
         Optional<ButtonType> bnt = winDialog.showAndWait();

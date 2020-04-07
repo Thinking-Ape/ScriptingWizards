@@ -65,6 +65,9 @@ oder nicht, ob es erst freigeschaltet werden muss und welcher Text im Tutorial a
                                              F E E D B A C K
 ------------------------------------------------------------------------------------------------------------------------
 
+Wichtig: Bevor du das Spiel beendest bitte immer in die Konsole schauen, ob da Text aufgetaucht ist! Falls ja, bitte
+markieren, kopieren und mir schicken, da es sich höchstwahrscheinlich um eine Fehlermeldung handelt!
+
 Feedback zum Spiel bitte an folgende Mail-Adresse:
 sgunzelmann@arcor.de am besten mit Betreff Feedback
 Ich würde mich über jegliche Anregungen, Wünsche, didaktische Einschätzungen, gefundene Fehler und allgemeine Kritik

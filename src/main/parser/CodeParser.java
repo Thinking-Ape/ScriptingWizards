@@ -128,8 +128,6 @@ public abstract class CodeParser {
     }
 
     /** Will try to turn the given code into a Statement
-     *
-     * @throws IllegalArgumentException TODO
      */
     private static Statement parseString(String code) {
         for(StatementType statementType : StatementType.values()){
@@ -175,6 +173,7 @@ public abstract class CodeParser {
                 case IF:
                     if(matcher.matches()){
                         String conditionString = matcher.group(1);
+
                         Condition condition = Condition.getConditionFromString(conditionString);
                         if(condition == null)throw new IllegalArgumentException("Couldnt parse Condition from input " + conditionString);
                         checkConditionForUnknownVars(condition);
@@ -206,11 +205,7 @@ public abstract class CodeParser {
                         String varName = matcher.group(2);
                         String varType = matcher.group(1);
                         String value = matcher.group(4);
-//                        if(!objectName.matches(GameConstants.VARIABLE_NAME_REGEX))throw new IllegalArgumentException("A variable must not be named: "+methodName);
-                        //TODO:
                         Assignment declaration = parseDeclaration(varType,varName,value);
-                        //TODO:
-
                         if(declaration == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
                         return declaration;
                     }
@@ -220,27 +215,24 @@ public abstract class CodeParser {
                         String varName = matcher.group(1);
                         String operation = matcher.group(2);
                         String value = matcher.group(3);
-//                        if(!objectName.matches(GameConstants.VARIABLE_NAME_REGEX))throw new IllegalArgumentException("A variable must not be named: "+methodName);
                         Assignment assignment = parseAssignment(varName,operation,value);
                         //TODO:
                         if(assignment == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
                         return assignment;
                     }
                     break;
-//                case COMPLEX:
-//                    break;
-//                case SIMPLE:
-//                    break;
             }
         }
-        Statement tempStatement1;
-        Statement tempStatement2;
         char lastChar = code.charAt(code.length()-1);
         if(lastChar!=';' && lastChar!='{'){
-            tempStatement1 =  parseString(code+";");
-            tempStatement2 = parseString(code + "{");
+            Statement tempStatement1 =  parseString(code+";");
+            Statement tempStatement2 = parseString(code + "{");
+//            Statement tempStatement3 = parseString(code + ");");
+//            Statement tempStatement4 = parseString(code + "();");
             if(tempStatement1 != null) throw new IllegalArgumentException("You might have forgotten a ';'!");
             if(tempStatement2 != null) throw new IllegalArgumentException("You might have forgotten a '{'");
+//            if(tempStatement3 != null) throw new IllegalArgumentException("You might have forgotten a closing bracket!");
+//            if(tempStatement4 != null) throw new IllegalArgumentException("You might have forgotten brackets!");
         }
         return null;
     }
@@ -280,6 +272,7 @@ public abstract class CodeParser {
             case USE_ITEM:
             case COLLECT:
             case CAN_MOVE:
+            case IS_ALIVE:
                 if(!parameters.equals(""))throw new IllegalArgumentException("This method doesnt have parameters!");
                 return;
             case HAS_ITEM:
@@ -338,6 +331,7 @@ public abstract class CodeParser {
         if(operation.equals("--"))valueString = varName+"-1";
         valueString = valueString.trim();
         ExpressionTree valueTree = ExpressionTree.expressionTreeFromString(valueString);
+        if(variableScope.getVariable(varName)==null)throw new IllegalArgumentException("Variable "+ varName+ " is not in scope!");
         VariableType variableType = variableScope.getVariable(varName).getVariableType();
         if(variableType == VariableType.BOOLEAN && !valueString.equals("")){
             Condition condition = Condition.getConditionFromString(valueString);
@@ -361,6 +355,8 @@ public abstract class CodeParser {
         boolean valueNotEmpty = !valueString.equals("");
         VariableType variableType = VariableType.getVariableTypeFromString(variableTypeString);
         if(variableType == VariableType.VOID)throw new IllegalArgumentException("Variable type void is not allowed!");
+        if(variableType == VariableType.CELL_CONTENT || variableType == VariableType.ITEM_TYPE || variableType == VariableType.ENTITY_TYPE)
+            throw new IllegalArgumentException("Variable type "+ variableType +" is not implemented yet!");
         if(variableType == VariableType.BOOLEAN && valueNotEmpty){
             Condition condition = Condition.getConditionFromString(valueString);
             checkConditionForUnknownVars(condition );
@@ -574,7 +570,9 @@ public abstract class CodeParser {
     }
 
     private static void checkConditionForUnknownVars(Condition condition) {
+        // I know this doenst belong here but no time left:
         if(condition == null||condition.getText().equals(""))throw new IllegalArgumentException("You cannot have an empty Condition!");
+
         testForCorrectValueType(VariableType.BOOLEAN,condition.getText());
         if(condition.getText().matches(" *"))return;
         if(condition.getConditionType() != SINGLE){

@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
+import main.model.Model;
 import main.utility.GameConstants;
 
 import java.util.ArrayList;
@@ -55,11 +56,22 @@ public class TutorialGroup extends Group {
         prevBtn.setGraphic(prevIV);
         nextBtn.setGraphic(nextIV);
 
-        nextBtn.setStyle("-fx-background-color: white;" +
-                "-fx-base: transparent;");
+        if(Model.getTutorialProgress() == -1){
 
-        prevBtn.setStyle("-fx-background-color: white;" +
-                "-fx-base: transparent;");
+            nextBtn.setStyle("-fx-background-color: white;" +
+                    "-fx-base: transparent;");
+
+            prevBtn.setStyle("-fx-background-color: white;" +
+                    "-fx-base: transparent;");
+        }
+        else {
+
+            nextBtn.setStyle("-fx-background-color: transparent;" +
+                    "-fx-base: transparent;");
+
+            prevBtn.setStyle("-fx-background-color: transparent;" +
+                    "-fx-base: transparent;");
+        }
         endIntroductionBtn.setGraphic(imageView);
         endIntroductionBtn.setStyle("-fx-background-color: white;" +
                 "-fx-base: transparent;");
@@ -184,7 +196,7 @@ public class TutorialGroup extends Group {
 
     public void activateIntroduction(){
         hb.setBorder(new Border(new BorderStroke(Color.BLACK,new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.ROUND, StrokeLineCap.ROUND,1,2,null),null,new BorderWidths(5))));
-        hb.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/background_Test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
+        hb.setBackground(new Background(new BackgroundImage(new Image(GameConstants.BG_DARK_TILE_PATH),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
         endIntroductionBtn.setVisible(false);
         hideBtn.setVisible(false);
         nextBtn.setStyle("-fx-background-color: white;" +

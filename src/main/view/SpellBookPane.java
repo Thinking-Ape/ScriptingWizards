@@ -48,8 +48,8 @@ public class SpellBookPane extends VBox {
         this.setAlignment(Pos.CENTER);
         //makes the layer below this one also receive clicks!
         this.setPickOnBounds(false);
-        this.setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/Background_test.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT )));
-        this.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
+        this.setBackground(new Background(new BackgroundImage(new Image( GameConstants.BG_DARK_TILE_PATH ), BackgroundRepeat.REPEAT,null,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT )));
+        this.setBorder(new Border(new BorderImage(new Image(GameConstants.BG_DARK_TILE_PATH),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
 //        this.setPickOnBounds(false);
 //        this.getChildren().addAll();//rect,vBox);
         //TODO: decide what to do with this
@@ -206,6 +206,7 @@ public class SpellBookPane extends VBox {
                 case USE_ITEM:
                 case COLLECT:
                 case CAN_MOVE:
+                case IS_ALIVE:
                 case WAIT:
                 case DROP_ITEM:
                 case TARGET_IS_DANGER:

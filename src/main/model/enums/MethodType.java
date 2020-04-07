@@ -13,6 +13,7 @@ public enum MethodType {
     USE_ITEM("useItem\\(\\)", VOID, "Uses any item this Knight previously collected!"), // maybe change to use() -> does activate levers when no items equipped?!
     COLLECT("collect\\(\\)", VOID,"Collect any item that is in front of this Knight. If this Knight already has an Item equipped, swap them!"),
     CAN_MOVE("canMove\\(\\)",BOOLEAN,"Returns a boolean value corresponding to whether this Knight can move in its current Direction"),
+    IS_ALIVE("isAlive\\(\\)",BOOLEAN,"Returns a boolean value corresponding to whether this Knight is alive"),
     HAS_ITEM("hasItem\\(.*\\)",BOOLEAN,"Optionally takes an ItemType Parameter. Returns true if this Knight is holding an Item of the specified type or if left blank any Item at all."),
     TARGETS_CELL("targetsCell\\(.+\\)",BOOLEAN,"Requires a CellContent Parameter. Returns true, if this Knight's target cell is of a type equal to the parameter."), //TODO: DISALLOW ITEMS -> PATH
     TARGETS_ITEM("targetsItem\\(.*\\)",BOOLEAN, "Optionally takes an ItemType Parameter. Returns true if this Knight's target cell contains an Item of a type equal to the parameter. If left blank any ItemType will return true."),

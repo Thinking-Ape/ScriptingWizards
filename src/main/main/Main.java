@@ -58,7 +58,7 @@ public class Main extends Application {
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllText()));
             }
             catch (Exception e){
-                System.out.println("Saving failed");
+                System.out.println("Saving failed because the player code was corrupted!");
             }
 
 

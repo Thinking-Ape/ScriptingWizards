@@ -19,7 +19,7 @@ public abstract class JSONConstants {
     public static final String TUTORIAL_LINES = "tutorialEntries";
     public static final String MAP_DATA = "map";
     public static final String INDEX = "index";
-    public static final String DATA = "data";
+    public static final String DATA = "data_stub";
     public static final String CELL_FLAGS = "flags";
     public static final String CELL_CONTENT = "content";
     public static final String CELL_ID = "id";

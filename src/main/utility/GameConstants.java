@@ -144,6 +144,9 @@ public abstract class GameConstants {
     public static final String VARIABLE_NAME_REGEX = "[a-zA-Z_][a-zA-Z_0-9]*";
     public static final String WHOLE_VARIABLE_NAME_REGEX = "^"+VARIABLE_NAME_REGEX+"$";
     public static final int MAX_KNIGHTS_AMOUNT = 5;
+    public static final String BG_DARK_TILE_PATH ="file:"+IMAGES_PATH+"Background_Tile_Dark.png";
+    public static final String BG_LIGHT_TILE_PATH ="file:"+IMAGES_PATH+"Background_Tile_Light.png";
+    public static final String BOOLEAN_REGEX = "^\\(?!? *([^{}&|!]+ *| *([^{}&|!]+ *(&&|\\|\\|) *!?)+[^{}&|!]+)\\)?$";
 //    public static final String CONDITION_REGEX = "^ *+"+VARIABLE_NAME_REGEX+"(\\|\\||&&|<|>|>=|<=|!=|==) *+$";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;

@@ -49,7 +49,7 @@ import static main.utility.GameConstants.TUTORIAL_LINES;
 public class View implements LevelChangeListener {
 
     private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/project_background.png", SCREEN_WIDTH,SCREEN_HEIGHT,true,true ), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER, BackgroundSize.DEFAULT ));
-    private final BackgroundImage backgroundImage = new BackgroundImage(new Image( "file:resources/images/background_tile.png" ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
+    private final BackgroundImage backgroundImage = new BackgroundImage(new Image( GameConstants.BG_LIGHT_TILE_PATH ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
     private final LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
@@ -151,8 +151,8 @@ public class View implements LevelChangeListener {
         }
         stage.setFullScreenExitHint("");
         actualMapGPane = new GridPane();
-        actualMapGPane.setBorder(new Border(new BorderImage(new Image("file:resources/images/Background_test.png"),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
-        actualMapGPane.setBackground(new Background(new BackgroundImage(new Image("file:resources/images/Background_test.png"),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
+        actualMapGPane.setBorder(new Border(new BorderImage(new Image(GameConstants.BG_DARK_TILE_PATH),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
+        actualMapGPane.setBackground(new Background(new BackgroundImage(new Image(GameConstants.BG_DARK_TILE_PATH),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
 //        actualMapGPane.setHgap(1);
 //        actualMapGPane.setVgap(1);
         rootPane = new StackPane();
@@ -744,7 +744,7 @@ public class View implements LevelChangeListener {
         }
         else if(Model.getCurrentTutorialMessageIndex()==0)
             levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
-        else if(Model.getCurrentTutorialSize()== Model.getCurrentTutorialMessageIndex()-1)
+        else if(Model.getCurrentTutorialSize()-1== Model.getCurrentTutorialMessageIndex())
             levelEditorModule.getNextTutorialTextBtn().setDisable(true);
         else {
             levelEditorModule.getNextTutorialTextBtn().setDisable(false);

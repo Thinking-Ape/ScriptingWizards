@@ -559,7 +559,8 @@ public abstract class Model {
         int foundLevels = 0;
         // If the current level was saved from within the LevelEditor -> Maybe Required Levels was changed
         // -> Unlock non-Tutoriallevels whose requirements are met
-        if(isEditor && !getCurrentLevel().isTutorial()) {
+        if(isEditor) {
+             if(getCurrentLevel().isTutorial())return;
             for (String s : getCurrentLevel().getRequiredLevelNamesCopy()) {
                 Level l = getLevelWithName(s);
                 if (bestLOCMap.get(l) != null && bestLOCMap.get(l) > -1) {

@@ -33,6 +33,7 @@ public class CodeAreaController implements SimpleEventListener {
     private boolean needToIncreaseCurrentIndex;
     private boolean compilerActive = true;
     private boolean neverShown = true;
+    private boolean needToDecreaseCurrentIndex;
     // Maybe a feature for future versions: Select Multiple CodeFields
 //    private SimpleSet<Integer> selectedIndexSet = new SimpleSet<>();
 
@@ -55,7 +56,7 @@ public class CodeAreaController implements SimpleEventListener {
             compilerActive = !compilerActive;
             // if the compiler is inactive every code line may be edited
             if(!compilerActive){
-                currentCodeArea.setEditable(true);
+                currentCodeArea.setEditable(true,true);
             }
             // upon reactivation the CodeArea will be recreated
             else {
@@ -115,10 +116,11 @@ public class CodeAreaController implements SimpleEventListener {
 
             needsRecreation = false;
             needToIncreaseCurrentIndex = false;
+            needToDecreaseCurrentIndex = false;
             // clicking the current CodeField will do nothing
             if(currentCodeArea.getSelectedCodeField() == currentCodeField)return;
 
-            currentCodeArea.deselectAll();
+//            currentCodeArea.deselectAll();
             showError = true;
 
             if(compilerActive)
@@ -207,7 +209,7 @@ public class CodeAreaController implements SimpleEventListener {
                             new Alert(Alert.AlertType.NONE,"Compiler has been deactivated!\nPress F5 or click the icon above the codearea to reactivate it!", ButtonType.OK).showAndWait();
                             neverShown = false;
                         }
-                        currentCodeArea.setEditable(true);
+                        currentCodeArea.setEditable(true,true);
                     }
                     else {
                         needsRecreation = true;
@@ -226,7 +228,7 @@ public class CodeAreaController implements SimpleEventListener {
                     // visit https://regex101.com/ for more info
                     String simpleStatementRegex = GameConstants.SIMPLE_STATEMENT_REGEX;
 
-                    currentCodeArea.deselectAll();
+                    if(!isError)currentCodeArea.deselectAll();
                     String textAfterBracket = "";
 
                     Matcher matcherSimple = Pattern.compile(simpleStatementRegex).matcher(currentCodeField.getText());
@@ -327,7 +329,7 @@ public class CodeAreaController implements SimpleEventListener {
                         scrollAmount = currentCodeArea.getScrollAmount()-1 > 0 ? currentCodeArea.getScrollAmount()-1 : 0;
                         if(currentIndex<= currentCodeArea.getScrollAmount())
                             currentCodeArea.scollTo(scrollAmount);
-                        currentIndex--;
+                        needToDecreaseCurrentIndex = true;
                     }
                     break;
                 case DELETE:
@@ -337,6 +339,9 @@ public class CodeAreaController implements SimpleEventListener {
                     if (!currentCodeField.isEditable()) {
                         if(!compilerActive){
                             currentCodeField.setText("");
+                            break;
+                        }
+                        if(currentIndex == currentCodeArea.getSize()-1) {
                             break;
                         }
                         CodeField nextCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex+1);
@@ -360,7 +365,7 @@ public class CodeAreaController implements SimpleEventListener {
                             scrollAmount = currentCodeArea.getScrollAmount() - 1 > 0 ? currentCodeArea.getScrollAmount() - 1 : 0;
                             if (currentIndex <= currentCodeArea.getScrollAmount())
                                 currentCodeArea.scollTo(scrollAmount);
-                            currentIndex--;
+                            needToDecreaseCurrentIndex = true;
                         }
                     }
                     else if(currentCodeField.getCaretPosition() == currentCodeField.getText().length() && currentIndex < currentCodeArea.getSize()-1){
@@ -459,6 +464,8 @@ public class CodeAreaController implements SimpleEventListener {
                 setAllHandlersForCodeArea(currentCodeArea);
                 if(needToIncreaseCurrentIndex)
                     currentIndex++;
+                if(needToDecreaseCurrentIndex)
+                    currentIndex--;
                 currentCodeArea.select(currentIndex, Selection.END);
             }
         }catch (Exception e){

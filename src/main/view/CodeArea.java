@@ -297,14 +297,17 @@ public class CodeArea extends VBox {
         codeFieldList.get(currentLine).setStyle("-fx-background-color: rgba(255,150,150,0.6);");
     }
 
-    public void setEditable(boolean isEditable){
+    public void setEditable(boolean isEditable, boolean isTotal){
         this.isEditable = isEditable;
         for(CodeField codeField : codeFieldList){
-            if(!codeField.getText().equals("}"))codeField.setEditable(isEditable);
+            if(!codeField.getText().equals("}") || isTotal)codeField.setEditable(isEditable);
             else codeField.setEditable(false);
         }
     }
 
+    public void setEditable(boolean isEditable){
+        setEditable(isEditable,false);
+    }
     public void scollTo(int t1) {
         if(codeFieldList.size() < MAX_CODE_LINES){
             scrollAmount = 0;

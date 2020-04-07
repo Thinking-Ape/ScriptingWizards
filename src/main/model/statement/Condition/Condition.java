@@ -14,6 +14,7 @@ public interface Condition {
     static Condition getConditionFromString(String code) throws IllegalArgumentException {
         int depth = 0;
         if(code == null || code.matches(" *"))return null;
+        if(!code.matches(GameConstants.BOOLEAN_REGEX))throw new IllegalArgumentException("Condition could not be parsed!");
         code = code.trim();
             //throw new IllegalArgumentException("You cannot have an empty condition");
         for(int i =0; i < code.length();i++){
