@@ -129,7 +129,7 @@ public class CodeAreaController implements SimpleEventListener {
             if(!currentCodeArea.isEditable() )return;
             if(!isError){
                 currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
-                currentCodeArea.deselectAll();
+//                currentCodeArea.deselectAll();
                 currentCodeArea.select(currentCodeField, Selection.NONE);
             }
         });
@@ -451,7 +451,7 @@ public class CodeAreaController implements SimpleEventListener {
             ComplexStatement behaviour = CodeParser.parseProgramCode(codeLines,currentCodeArea.getCodeAreaType());
             disableControlElements(false, currentCodeArea);
             if(isError){
-                currentCodeArea.resetStyle(currentIndex);
+                currentCodeArea.getSelectedCodeField().setStyle(null);
             }
             isError = false;
             currentCodeArea.setEditable(true);

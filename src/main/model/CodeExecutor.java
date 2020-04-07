@@ -134,7 +134,7 @@ public abstract class CodeExecutor {
             currentGameMap.setFlag(actorPos, CFlag.ACTION, true );
             currentGameMap.setFlag(targetPos, CFlag.DIRT_REMOVED, true );
         }
-        if(actorEntity.getItem() == ItemType.SWORD&&currentGameMap.getEntity(targetPos) != NO_ENTITY){
+        if(actorEntity.getItem() == ItemType.SWORD&&(currentGameMap.getEntity(targetPos) != NO_ENTITY||currentGameMap.getItem(targetPos)!=ItemType.NONE)){
             if(currentGameMap.getItem(targetPos) == ItemType.BOULDER)return;
             currentGameMap.kill(targetPos); //TODO: maybe -> targetCell.kill();??
             currentGameMap.setFlag(actorPos, CFlag.ACTION, true );

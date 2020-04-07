@@ -225,12 +225,12 @@ public abstract class CodeParser {
         }
         char lastChar = code.charAt(code.length()-1);
         if(lastChar!=';' && lastChar!='{'){
-            Statement tempStatement1 =  parseString(code+";");
             Statement tempStatement2 = parseString(code + "{");
+            if(tempStatement2 != null) throw new IllegalArgumentException("You might have forgotten a '{'");
+            Statement tempStatement1 =  parseString(code+";");
+            if(tempStatement1 != null) throw new IllegalArgumentException("You might have forgotten a ';'!");
 //            Statement tempStatement3 = parseString(code + ");");
 //            Statement tempStatement4 = parseString(code + "();");
-            if(tempStatement1 != null) throw new IllegalArgumentException("You might have forgotten a ';'!");
-            if(tempStatement2 != null) throw new IllegalArgumentException("You might have forgotten a '{'");
 //            if(tempStatement3 != null) throw new IllegalArgumentException("You might have forgotten a closing bracket!");
 //            if(tempStatement4 != null) throw new IllegalArgumentException("You might have forgotten brackets!");
         }
@@ -240,6 +240,7 @@ public abstract class CodeParser {
     /** Will try to convert the given code into a MethodCall Object
      */
     private static MethodCall parseMethodCall(String objectName, String methodName, String parameterString) {
+        if(objectName == null)throw new IllegalArgumentException("You're lacking an object for your Method!");
         if(objectName.matches(" *"))throw new IllegalArgumentException("You cant have an empty object!");
         boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
         if(variableScope.getVariable(objectName) == null)throw new IllegalArgumentException("Variable "+ objectName+" not in scope");

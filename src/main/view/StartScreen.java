@@ -1,6 +1,7 @@
 package main.view;
 
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -8,8 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import main.utility.GameConstants;
 import main.utility.Util;
@@ -28,53 +28,68 @@ public class StartScreen extends BorderPane {
         Util.applyStartButtonFormat(tutorialBtn,playBtn,exitBtn,lvlEditor);
 //        Separator sep = new Separator(Orientation.HORIZONTAL);
 //        sep.setHalignment(HPos.CENTER);
-        VBox vBox = new VBox(tutorialBtn,playBtn,lvlEditor,exitBtn);
-        vBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT);
-        vBox.setAlignment(Pos.BOTTOM_CENTER);
         Label versionLabel = new Label("Version"+ GameConstants.VERSION);
         versionLabel.setStyle("-fx-text-fill: white");
-        Text helper = new Text(versionLabel.getText());
-        helper.autosize();
-        vBox.setTranslateY(-1.5*GameConstants.TEXTFIELD_HEIGHT);
-        vBox.setTranslateX(-helper.getLayoutBounds().getWidth());
-        this.setTop(versionLabel);
-        this.setCenter(vBox);
+
         ImageView tutorialImageView = new ImageView(new Image(GameConstants.TUTORIAL_BTN_PATH));
-        tutorialImageView.setScaleX(GameConstants.WIDTH_RATIO);
-        tutorialImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+        tutorialImageView.setPreserveRatio(false);
+        tutorialImageView.setFitWidth(tutorialImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+        tutorialImageView.setFitHeight(tutorialImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        tutorialImageView.autosize();
         tutorialBtn.setGraphic(tutorialImageView);
         tutorialBtn.setStyle("-fx-background-color: transparent;" +
                 "-fx-base: transparent;");
-
+        tutorialBtn.autosize();
         ImageView playImageView = new ImageView(new Image(GameConstants.CHALLENGES_BTN_PATH));
-        playImageView.setScaleX(GameConstants.WIDTH_RATIO);
-        playImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+        playImageView.setPreserveRatio(false);
+        playImageView.setFitWidth(playImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+        playImageView.setFitHeight(playImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        playImageView.autosize();
         playBtn.setGraphic(playImageView);
         playBtn.setStyle("-fx-background-color: transparent;" +
                 "-fx-base: transparent;");
-
+        playBtn.autosize();
         ImageView editorImageView = new ImageView(new Image(GameConstants.LVL_EDITOR_BTN_PATH));
-        editorImageView.setScaleX(GameConstants.WIDTH_RATIO);
-        editorImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+        editorImageView.setPreserveRatio(false);
+        editorImageView.setFitWidth(editorImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+        editorImageView.setFitHeight(editorImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        editorImageView.autosize();
         lvlEditor.setGraphic(editorImageView);
         lvlEditor.setStyle("-fx-background-color: transparent;" +
                 "-fx-base: transparent;");
+        lvlEditor.autosize();
         ImageView quitImageView = new ImageView(new Image(GameConstants.QUIT_BTN_PATH));
-        quitImageView.setScaleX(GameConstants.WIDTH_RATIO);
-        quitImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+        quitImageView.setPreserveRatio(false);
+        quitImageView.setFitWidth(quitImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+        quitImageView.setFitHeight(quitImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        quitImageView.autosize();
         exitBtn.setGraphic(quitImageView);
         exitBtn.setStyle("-fx-background-color: transparent;" +
                 "-fx-base: transparent;");
-//        HBox hb = new HBox(,switchLanguage);
-//        Group g = new Group(exitBtn);
-//        this.setBottom(g);
-//        hb.setAlignment(Pos.BOTTOM_CENTER);
-//        hb.setSpacing(100);
-//        exitBtn.setAlignment(Pos.CENTER);
-//        BorderPane.setAlignment(g, Pos.CENTER);
-//        this.setRight(switchLanguage);
+        exitBtn.autosize();
         switchLanguage.setAlignment(Pos.BASELINE_LEFT);
 
+        Text helper = new Text(versionLabel.getText());
+        helper.autosize();
+        VBox vBox = new VBox();
+        vBox.setTranslateY(-quitImageView.getLayoutBounds().getHeight());
+        vBox.setTranslateX(-helper.getLayoutBounds().getWidth()/2);
+
+        this.setMaxSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
+        this.autosize();
+        this.layout();
+        this.setTop(versionLabel);
+        this.setBottom(vBox);
+        exitBtn.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
+        lvlEditor.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
+        playBtn.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
+        vBox.setAlignment(Pos.BASELINE_CENTER);
+//        BorderPane.setAlignment(vBox, Pos.BASELINE_CENTER);
+//        Pane.setAlignment(vBox, Pos.BOTTOM_CENTER);
+        vBox.setMaxHeight(quitImageView.getLayoutBounds().getHeight()*10);
+//        vBox.setManaged(false);
+        vBox.setSpacing(0);
+        vBox.getChildren().addAll(tutorialBtn,playBtn,lvlEditor,exitBtn);
 //        Group g = new Group(vBox,hb);
 //        BorderPane.setMargin( g,new Insets(25));
     }

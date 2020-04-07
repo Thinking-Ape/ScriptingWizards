@@ -35,7 +35,8 @@ public class SpellBookPane extends VBox {
         // does actually belong here, as it is only concerned with visual effect and not with any functionality
         // maybe add actual functionality later -> move to controller!
         spellListView.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume);
-
+        showShortcutsBtn.setFont(MEDIUM_FONT);
+        moveBtn.setFont(MEDIUM_FONT);
         spellListView.autosize();
 //        Rectangle rect = new Rectangle(spellListView.getPrefWidth()+10,spellListView.getPrefHeight()+25,Color.BLACK);//spellListView.getItems().size()*20,Color.WHITE);
 //        this.setMouseTransparent(true);

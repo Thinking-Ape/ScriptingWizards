@@ -9,10 +9,12 @@ Version 1.5a:
     - Added Title to Startscreen
     - Added images for Buttons in Startscreen
     - Removed change Language Button
-    - Edited some tutorial texts
+    - Edited some tutorial texts, ratings and maps
     - You can now reassign Entity variables anew
     - Added level DeathAssignment
     - Added shortcuts Ctrl-S and Ctrl-O for Editor
+    - Added isAlive() Method
+    - Improved layout
     - Tons of bugfixes
 Version 1.4c:
     - Reworked behaviour of pressing backspace or delete whilst on '}' Codefields

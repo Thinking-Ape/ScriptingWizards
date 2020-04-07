@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 public abstract class GameConstants {
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     public static final String VERSION = "1.5a";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
@@ -98,7 +98,7 @@ public abstract class GameConstants {
     public static final double WIDTH_RATIO = SCREEN_WIDTH/1920.0;
     public static final Font CHALLENGER_FONT = new Font("Times New Roman",CHALLENGER_FONT_SIZE);
     public static final String RED_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Red_Script_Icon.png";
-    public static final String BLUE_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Blue_Script_Icon_2.png";
+    public static final String BLUE_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Blue_Script_Icon.png";
     public static final String KNIGHT_TOKEN_PATH = "file:"+IMAGES_PATH+"Knight_Token.png";
     public static final Effect HIGHLIGHT_BTN_EFFECT = new Glow();
     public static final String PREV_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Prev_Btn.png";

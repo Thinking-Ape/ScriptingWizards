@@ -100,7 +100,7 @@ public class Controller {
                     break;
                 case TUTORIAL:
                     if (isGameRunning) view.getBtnReset().fire();
-                    if (minIndex == -1) view.setSceneState(SceneState.START_SCREEN);
+                    if (Model.getTutorialProgress() == -1) view.setSceneState(SceneState.START_SCREEN);
                     else view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
                     view.getBtnExecute().setMouseTransparent(false);
                     view.getSpeedSlider().setMouseTransparent(false);
@@ -122,53 +122,69 @@ public class Controller {
 
         view.getStartScreen().getExitBtn().setOnMouseEntered(event -> {
             ImageView quitImageView = new ImageView(new Image(GameConstants.QUIT_BTN_ACTIVATED_PATH));
-            quitImageView.setScaleX(GameConstants.WIDTH_RATIO);
-            quitImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            quitImageView.setPreserveRatio(false);
+            quitImageView.setFitWidth(quitImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+            quitImageView.setFitHeight(quitImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+            quitImageView.autosize();
             view.getStartScreen().getExitBtn().setGraphic(quitImageView);
         });
         view.getStartScreen().getExitBtn().setOnMouseExited(event -> {
             ImageView quitImageView = new ImageView(new Image(GameConstants.QUIT_BTN_PATH));
-            quitImageView.setScaleX(GameConstants.WIDTH_RATIO);
-            quitImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            quitImageView.setPreserveRatio(false);
+            quitImageView.setFitWidth(quitImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+            quitImageView.setFitHeight(quitImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+            quitImageView.autosize();
             view.getStartScreen().getExitBtn().setGraphic(quitImageView);
         });
 
         view.getStartScreen().getPlayBtn().setOnMouseEntered(event -> {
             ImageView playImageView = new ImageView(new Image(GameConstants.CHALLENGES_BTN_ACTIVATED_PATH));
-            playImageView.setScaleX(GameConstants.WIDTH_RATIO);
-            playImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            playImageView.setPreserveRatio(false);
+            playImageView.setFitWidth(playImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+            playImageView.setFitHeight(playImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+            playImageView.autosize();
             view.getStartScreen().getPlayBtn().setGraphic(playImageView);
         });
         view.getStartScreen().getPlayBtn().setOnMouseExited(event -> {
             ImageView playImageView = new ImageView(new Image(GameConstants.CHALLENGES_BTN_PATH));
-            playImageView.setScaleX(GameConstants.WIDTH_RATIO);
-            playImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            playImageView.setPreserveRatio(false);
+            playImageView.setFitWidth(playImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+            playImageView.setFitHeight(playImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+            playImageView.autosize();
             view.getStartScreen().getPlayBtn().setGraphic(playImageView);
         });
 
         view.getStartScreen().getLvlEditorBtn().setOnMouseEntered(event -> {
             ImageView editorImageView = new ImageView(new Image(GameConstants.LVL_EDITOR_BTN_ACTIVATED_PATH));
-            editorImageView.setScaleX(GameConstants.WIDTH_RATIO);
-            editorImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            editorImageView.setPreserveRatio(false);
+            editorImageView.setFitWidth(editorImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+            editorImageView.setFitHeight(editorImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+            editorImageView.autosize();
             view.getStartScreen().getLvlEditorBtn().setGraphic(editorImageView);
         });
         view.getStartScreen().getLvlEditorBtn().setOnMouseExited(event -> {
             ImageView editorImageView = new ImageView(new Image(GameConstants.LVL_EDITOR_BTN_PATH));
-            editorImageView.setScaleX(GameConstants.WIDTH_RATIO);
-            editorImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            editorImageView.setPreserveRatio(false);
+            editorImageView.setFitWidth(editorImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+            editorImageView.setFitHeight(editorImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+            editorImageView.autosize();
             view.getStartScreen().getLvlEditorBtn().setGraphic(editorImageView);
         });
         view.getStartScreen().getTutorialBtn().setOnMouseEntered(event -> {
             ImageView tutorialImageView = new ImageView(new Image(GameConstants.TUTORIAL_BTN_ACTIVATED_PATH));
-            tutorialImageView.setScaleX(GameConstants.WIDTH_RATIO);
-            tutorialImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            tutorialImageView.setPreserveRatio(false);
+            tutorialImageView.setFitWidth(tutorialImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+            tutorialImageView.setFitHeight(tutorialImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+            tutorialImageView.autosize();
             view.getStartScreen().getTutorialBtn().setGraphic(tutorialImageView);
 
         });
         view.getStartScreen().getTutorialBtn().setOnMouseExited(event -> {
             ImageView tutorialImageView = new ImageView(new Image(GameConstants.TUTORIAL_BTN_PATH));
-            tutorialImageView.setScaleX(GameConstants.WIDTH_RATIO);
-            tutorialImageView.setScaleY(GameConstants.HEIGHT_RATIO);
+            tutorialImageView.setPreserveRatio(false);
+            tutorialImageView.setFitWidth(tutorialImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+            tutorialImageView.setFitHeight(tutorialImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+            tutorialImageView.autosize();
             view.getStartScreen().getTutorialBtn().setGraphic(tutorialImageView);
         });
         view.getStartScreen().getExitBtn().setOnAction(actionEvent -> {
@@ -427,8 +443,8 @@ public class Controller {
                             }
                             if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
                             else view.getStartScreen().getPlayBtn().setDisable(false);
+                            view.getStartScreen().getLvlEditorBtn().setDisable(false);
                         }
-                        else view.getStartScreen().getLvlEditorBtn().setDisable(false);
                     } else if (View.getCurrentSceneState() == SceneState.PLAY) {
                         if (isBetter)
                             view.getLevelOverviewPane().updateCurrentLevel();
@@ -534,16 +550,14 @@ public class Controller {
         }
         Optional<ButtonType> bnt = winDialog.showAndWait();
         if (bnt.isPresent()) {
+            view.getBtnReset().fire();
             switch (bnt.get().getButtonData()) {
                 case NEXT_FORWARD:
-                    view.getBtnReset().fire();
                     Model.selectLevel(Model.getCurrentIndex() + 1);
                 case CANCEL_CLOSE:
-                    view.getBtnReset().fire();
                     break;
                 case BACK_PREVIOUS:
-                    view.getBtnReset().fire();
-                    view.setSceneState(SceneState.START_SCREEN);
+                    view.getBackBtn().fire();
                     break;
             }
         }

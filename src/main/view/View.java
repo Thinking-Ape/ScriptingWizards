@@ -40,6 +40,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -48,7 +49,7 @@ import static main.utility.GameConstants.TUTORIAL_LINES;
 
 public class View implements LevelChangeListener {
 
-    private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/project_background.png", SCREEN_WIDTH,SCREEN_HEIGHT,true,true ), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER, BackgroundSize.DEFAULT ));
+    private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/Project_Background.png", SCREEN_WIDTH,SCREEN_HEIGHT,true,true ), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER, BackgroundSize.DEFAULT ));
     private final BackgroundImage backgroundImage = new BackgroundImage(new Image( GameConstants.BG_LIGHT_TILE_PATH ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
     private final LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
@@ -159,22 +160,23 @@ public class View implements LevelChangeListener {
         baseContentVBox = new VBox();
 //        hBoxRoot.setSpacing(4);
         stage.setScene(startScene);
+
         vBox = new VBox();
         btnExecute = new Button();
 
         ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
-        backBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-        backBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        backBtnIV.setFitHeight(backBtnIV.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        backBtnIV.setFitWidth(backBtnIV.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
         ImageView executeBtnIV = new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH);
-        executeBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-        executeBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        executeBtnIV.setFitHeight(executeBtnIV.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        executeBtnIV.setFitWidth(executeBtnIV.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
         ImageView resetBtnIV = new ImageView(GameConstants.RESET_BTN_IMAGE_PATH);
-        resetBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-        resetBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        resetBtnIV.setFitHeight(resetBtnIV.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        resetBtnIV.setFitWidth(resetBtnIV.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
 
         ImageView spellBtnIV = new ImageView(GameConstants.SHOW_SPELLS_BTN_IMAGE_PATH);
-        spellBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-        spellBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        spellBtnIV.setFitHeight(spellBtnIV.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        spellBtnIV.setFitWidth(spellBtnIV.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
 
         showSpellBookBtn.setPrefHeight(GameConstants.BUTTON_SIZE*0.75);
         showSpellBookBtn.setGraphic(spellBtnIV);
@@ -207,8 +209,8 @@ public class View implements LevelChangeListener {
         speedSlider.setSnapToTicks(true);
         speedSlider.setShowTickLabels(false);
         speedSlider.setBackground(new Background(new BackgroundImage(new Image( "file:resources/images/Speed_Slider.png" ), BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER,BackgroundSize.DEFAULT )));
-        File f = new File(GameConstants.ROOT_PATH+"/slider_style.css");
-        if (f.exists()) speedSlider.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
+        File f = new File(Path.of(GameConstants.ROOT_PATH+"/slider_style.css").toUri());
+        if (f.exists()) speedSlider.getStylesheets().add( f.toURI().toString().replace("\\", "/"));
 
         speedSlider.setStyle("-fx-base: rgba(0,0,0,0)");
         speedVBox.setAlignment(Pos.BOTTOM_CENTER);

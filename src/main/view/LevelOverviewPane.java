@@ -30,11 +30,11 @@ public class LevelOverviewPane extends VBox {
         backBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE*0.75);
         playBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE);
         ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
-        backBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-        backBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        backBtnIV.setFitHeight(backBtnIV.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        backBtnIV.setFitWidth(backBtnIV.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
         ImageView executeBtnIV = new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH);
-        executeBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-        executeBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
+        executeBtnIV.setFitHeight(executeBtnIV.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        executeBtnIV.setFitWidth(executeBtnIV.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
         playBtn.setGraphic(executeBtnIV);
         backBtn.setGraphic(backBtnIV);
         backBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");

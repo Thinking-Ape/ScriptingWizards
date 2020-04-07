@@ -14,7 +14,7 @@ public class SpellBookLabel extends Label {
     public SpellBookLabel(SpellBookLabelType sBLType, String entryText, String tooltipString){
         this.setAlignment(Pos.CENTER);
         this.setText(entryText);
-        this.setFont(new Font(this.getFont().getName(), GameConstants.FONT_SIZE));
+        this.setFont(GameConstants.MEDIUM_FONT);
         this.sBLType = sBLType;
         Tooltip tooltip = new Tooltip(tooltipString);
         tooltip.setShowDelay(Duration.millis(50));

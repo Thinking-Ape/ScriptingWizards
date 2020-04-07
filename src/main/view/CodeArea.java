@@ -1,11 +1,14 @@
 package main.view;
 
 
+import javafx.event.Event;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import main.controller.Selection;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
@@ -240,6 +243,10 @@ public class CodeArea extends VBox {
             CodeField codeField1 = findNextBracket(index, codeField.getDepth());
             if(codeField1!=null)codeField1.setStyle("-fx-background-color: rgba(150,150,255,0.4);");
         }
+        if(codeField.getText().matches("}") && this.getBracketBalance() == 0){
+            CodeField codeField1 = findPreviousBracket(index, codeField.getDepth());
+            if(codeField1!=null)codeField1.setStyle("-fx-background-color: rgba(150,150,255,0.4);");
+        }
         if(codeField.isEditable())codeField.setStyle(null);
         else codeField.setStyle("-fx-background-color: rgba(150,150,255,1);");
         codeField.requestFocus();
@@ -253,6 +260,8 @@ public class CodeArea extends VBox {
         }
         selectedCodeField = codeField;
     }
+
+
     public void deselectAll(){
         for(CodeField codeField : codeFieldList){
             codeField.resetStyle();
@@ -283,6 +292,16 @@ public class CodeArea extends VBox {
         }
         return null;
     }
+
+    private CodeField findPreviousBracket(int index, int depth) {
+        for(int i = index; i>=0;i--){
+            if(codeFieldList.get(i).getDepth()==depth&&codeFieldList.get(i).getText().matches(GameConstants.COMPLEX_STATEMENT_REGEX)){
+                return codeFieldList.get(i);
+            }
+        }
+        return null;
+    }
+
     public int findNextBracketIndex(int index,int depth) {
         for(int i = index; i<codeFieldList.size();i++){
             if(codeFieldList.get(i).getDepth()==depth&&codeFieldList.get(i).getText().equals("}")){
@@ -404,6 +423,7 @@ public class CodeArea extends VBox {
         codeFieldList.clear();
         codeFieldList.add(new CodeField("", 1, true));
         draw();
+        select(0, Selection.END);
     }
     public void addListener(SimpleEventListener eventListener){
         eventSender = new SimpleEventSender(eventListener);

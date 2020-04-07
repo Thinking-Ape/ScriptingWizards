@@ -38,19 +38,13 @@ public class TutorialGroup extends Group {
     //TODO: ALIGNMENT NOT WORKING PROP
     public TutorialGroup(){
         ImageView imageView = new ImageView(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
-        imageView.setScaleX(GameConstants.WIDTH_RATIO);
-        imageView.setScaleY(GameConstants.HEIGHT_RATIO);
         imageView.setFitHeight(GameConstants.BUTTON_SIZE);
         imageView.setFitWidth(GameConstants.BUTTON_SIZE);
 
         ImageView nextIV = new ImageView(new Image(GameConstants.NEXT_BTN_IMAGE_PATH));
-        nextIV.setScaleX(GameConstants.WIDTH_RATIO);
-        nextIV.setScaleY(GameConstants.HEIGHT_RATIO);
         nextIV.setFitHeight(GameConstants.SMALL_BUTTON_SIZE);
         nextIV.setFitWidth(GameConstants.SMALL_BUTTON_SIZE);
         ImageView prevIV = new ImageView(new Image(GameConstants.PREV_BTN_IMAGE_PATH));
-        prevIV.setScaleX(GameConstants.WIDTH_RATIO);
-        prevIV.setScaleY(GameConstants.HEIGHT_RATIO);
         prevIV.setFitHeight(GameConstants.SMALL_BUTTON_SIZE);
         prevIV.setFitWidth(GameConstants.SMALL_BUTTON_SIZE);
         prevBtn.setGraphic(prevIV);
@@ -86,17 +80,26 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setMaxSize(GameConstants.TEXTFIELD_WIDTH, GameConstants.TEXTFIELD_WIDTH/2.0);
         currentTutorialMessage.setFont(GameConstants.BIG_FONT);
         ImageView bubble_IView = new ImageView(new Image("file:resources/images/Speech_Bubble.png"));
-        bubble_IView.setScaleX(GameConstants.WIDTH_RATIO);
-        bubble_IView.setScaleY(GameConstants.HEIGHT_RATIO);
+        bubble_IView.setFitHeight(bubble_IView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        bubble_IView.setFitWidth(bubble_IView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
         currentTutorialMessage.setTranslateX(-bubble_IView.getBoundsInLocal().getWidth()/20.0);
-        currentTutorialMessage.setTranslateY(-bubble_IView.getBoundsInLocal().getHeight()/15.0);
+        currentTutorialMessage.setTranslateY(-bubble_IView.getBoundsInLocal().getHeight()/14.5);
         // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
-        currentTutorialMessage.setCache(false);
+        Platform.runLater(()->{
+            currentTutorialMessage.setCache(false);
+            if(currentTutorialMessage.getChildrenUnmodifiable().size() == 0)return;
+            ScrollPane sp = (ScrollPane)currentTutorialMessage.getChildrenUnmodifiable().get(0);
+            sp.setCache(false);
+            for (Node n : sp.getChildrenUnmodifiable()) {
+                n.setCache(false);
+            }});
+
 //        String tabString = "\t";
 //        Rectangle wizard = new Rectangle(50,50,Color.BLUE);
         wizard = new ImageView(new javafx.scene.image.Image(GameConstants.WIZARD_IMAGE_PATH));
-        wizard.setScaleX(GameConstants.WIDTH_RATIO);
-        wizard.setScaleY(GameConstants.HEIGHT_RATIO);
+        wizard.setFitHeight(wizard.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
+        wizard.setFitWidth(wizard.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+
         wizard.setMouseTransparent(true);
         bubble_IView.setMouseTransparent(true);
         currentTutorialMessage.setMouseTransparent(true);

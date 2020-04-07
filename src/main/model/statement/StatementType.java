@@ -12,7 +12,7 @@ public enum StatementType {
     FOR("^ *for *\\( *+(.+?) *+\\) *\\{ *$",false),
     IF("^ *if *\\( *+(.+?) *+\\) *\\{ *$",false),
     ELSE("^ *else( +if *\\( *+(.+?) *+\\) *+)? *+\\{ *+$",false),
-    METHOD_CALL("^ *(([^ ]+?)\\.)?([^ ]+?) *+\\( *+(.*) *+\\) *; *$",true),
+    METHOD_CALL("^ *(([^ ]+?)\\.)([^ ]+?) *+\\( *+(.*) *+\\) *; *$",true),
 //    METHOD_DECLARATION(GameConstants.METHOD_DECLARATION_REGEX,false),
     DECLARATION("^ *+([^ =]+?) +([^ ]+?) *+(|= *+(.+?) *+); *$",false),
     ASSIGNMENT("^ *+([^ =]+?) *+(= *+(.+?)|\\+\\+|--) *; *$",false),
