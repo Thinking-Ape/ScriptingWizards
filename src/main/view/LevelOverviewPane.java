@@ -68,13 +68,14 @@ public class LevelOverviewPane extends VBox {
     public void updateUnlockedLevels() {
         levelListView.getItems().clear();
         double width=0;
-//        String[] levelNames =JSONParser.getUnlockedLevelNames();
+//        String[] levelNames =JSONParser.getUnlockedLevelIds();
 //        String[] sortedLevelNames = new String[levelNames.length];
         int k = 0;
-        for(String levelName : Model.getUnlockedLevelNames()){
-            int i = Model.getIndexOfLevelInList(levelName);
-            int loc =Model.getBestLocOfLevel(i);
-            int turns =Model.getBestTurnsOfLevel(i);
+        for(int levelId : Model.getUnlockedLevelIds()){
+            int i = Model.getIndexOfLevelWithId(levelId);
+            int loc =Model.getBestLocOfLevel(levelId);
+            int turns =Model.getBestTurnsOfLevel(levelId);
+            String levelName = Model.getNameOfLevelWithId(levelId);
 
             Integer[] turnsToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
             Integer[] locToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
@@ -160,10 +161,11 @@ public class LevelOverviewPane extends VBox {
 //        double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars)
         boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,currentIndex);
         int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,currentIndex);
-        int loc =Model.getBestLocOfLevel(currentIndex);
-        int turns =Model.getBestTurnsOfLevel(currentIndex);
+        int id = Model.getIdOfLevelWithName(levelName);
+        int loc =Model.getBestLocOfLevel(id);
+        int turns =Model.getBestTurnsOfLevel(id);
         double nStars = Util.calculateStars(turns,loc,turnsToStars,locToStars);
-        LevelEntry le = new LevelEntry(levelListView.getItems().get(index).getLevelImage(),Model.getNameOfLevelWithIndex(Model.getCurrentIndex()),
+        LevelEntry le = new LevelEntry(levelListView.getItems().get(index).getLevelImage(),Model.getNameOfLevelWithIndex(currentIndex),
                 getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
         levelListView.getItems().set(index,le);
         return true;

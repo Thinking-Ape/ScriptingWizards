@@ -18,11 +18,13 @@ public abstract class JSONConstants {
     public static final String REQUIRED_LEVELS = "requiredLevels";
     public static final String TUTORIAL_LINES = "tutorialEntries";
     public static final String MAP_DATA = "map";
-    public static final String INDEX = "index";
+    public static final String ID = "id";
     public static final String DATA = "data";
     public static final String CELL_FLAGS = "flags";
     public static final String CELL_CONTENT = "content";
     public static final String CELL_ID = "id";
     public static final String CELL_ITEM = "item";
     public static final String LINKED_CELL_IDS = "linkedIds";
+    public static final String ORDER = "order";
+    public static final String AMOUNT_OF_RERUNS = "reruns";
 }

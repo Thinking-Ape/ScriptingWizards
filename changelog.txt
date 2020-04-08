@@ -2,9 +2,10 @@ Version 1.5a:
     - LevelOverviewPanes no longer contain information about AI, etc.
     - improved Error recognition and Error messages
     - created new Challenge-Level RandomizedLaboratory
+    - created new Challenge-Level Minesweeper
     - added Method backOff()
     - added new Tutorial-Level UnexpectedTraps to introduce backOff()
-    - edited Level AllAboutTiming
+    - edited Level AllAboutTiming and was also renamed to NotAboutTiming
     - changed colors of entities and increased number of maximal Knights to 5
     - Added Title to Startscreen
     - Added images for Buttons in Startscreen
@@ -15,6 +16,8 @@ Version 1.5a:
     - Added shortcuts Ctrl-S and Ctrl-O for Editor
     - Added isAlive() Method
     - Improved layout
+    - Levels can now be executed multiple times before winning (if there are random numbers involved)
+      Random numbers will then have different values than last round
     - Tons of bugfixes
 Version 1.4c:
     - Reworked behaviour of pressing backspace or delete whilst on '}' Codefields

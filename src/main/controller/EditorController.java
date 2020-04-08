@@ -2,8 +2,14 @@ package main.controller;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.EventType;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -26,10 +32,10 @@ import main.utility.Util;
 import main.view.SceneState;
 import main.view.View;
 
-import java.io.File;
+import java.awt.*;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 
 public class EditorController implements SimpleEventListener {
 
@@ -184,12 +190,15 @@ public class EditorController implements SimpleEventListener {
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
                 String levelName = (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
-                Model.removeCurrentLevel();
+                view.getLevelOverviewPane().removeCurrentLevel();
+                if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
+                view.getTutorialLevelOverviewPane().removeCurrentLevel();
                 try {
                     JSONParser.deleteLevel(levelName);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                Model.removeCurrentLevel();
             }
             if(Model.getAmountOfLevels()==1)view.getLevelEditorModule().getDeleteLevelBtn().setDisable(true);
         });
@@ -268,7 +277,8 @@ public class EditorController implements SimpleEventListener {
                 Integer[] locToStars = new Integer[2];
                 locToStars[0] = 0;
                 locToStars[1] = 0;
-                Model.addLevelAtCurrentPos(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new String[0],1,(boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex()),new ArrayList<>()),true); //TODO!
+                int id = Model.createUniqueId();
+                Model.addLevelAtCurrentPos(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new ArrayList<>(),1,(boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex()),new ArrayList<>(),id,1),true); //TODO!
                 // There ain't no spawn when creating a new Level!
                 view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
                 view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());
@@ -297,18 +307,14 @@ public class EditorController implements SimpleEventListener {
             ComplexStatement complexStatement = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
             Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
             Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
-            List<String> requiredLevelsList = (List<String>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS);
-            String[] requiredLevelsArray = new String[requiredLevelsList.size()];
-            int i = 0;
-            for(String s : requiredLevelsList){
-                requiredLevelsArray[i] = s;
-                i++;
-            }
+            List<Integer> requiredLevelsList = (List<Integer>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS);
+
             List<String> tutorialEntries = (List<String>) Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
             int maxKnights = (int) Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
             boolean isTutorial = (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
             boolean hasAI = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
-            Model.addLevelAtCurrentPos(new Level(name,map,complexStatement,turnsToStars,locToStars,requiredLevelsArray,maxKnights,isTutorial,tutorialEntries),true);
+            int id =Model.createUniqueId();
+            Model.addLevelAtCurrentPos(new Level(name,map,complexStatement,turnsToStars,locToStars,requiredLevelsList,maxKnights,isTutorial,tutorialEntries,id,1),true);
 
             view.getLevelEditorModule().getDeleteLevelBtn().setDisable(false);
             if(((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
@@ -352,19 +358,25 @@ public class EditorController implements SimpleEventListener {
             Label widthLbl = new Label();
             Slider maxKnightsSlider = new Slider();
             Label maxKnightsLbl = new Label();
+            Slider amountOfPlaysSlider = new Slider();
+            Label amountOfPlaysLbl = new Label();
             maxKnightsSlider.valueProperty().addListener((observableValue, number, t1) -> maxKnightsLbl.setText(t1.intValue()+""));
-            Util.applyValueFormat(heightLbl,widthLbl,maxKnightsLbl);
+            amountOfPlaysSlider.valueProperty().addListener((observableValue, number, t1) -> amountOfPlaysLbl.setText(t1.intValue()+""));
+            Util.applyValueFormat(heightLbl,widthLbl,maxKnightsLbl,amountOfPlaysLbl);
             widthSlider.valueProperty().addListener((observableValue, number, t1) -> widthLbl.setText(t1.intValue()+""));
             VBox sizeVBox = new VBox(new HBox(new Label("Width: "),widthLbl),widthSlider,new HBox(new Label("Height: "),heightLbl),heightSlider);
             sizeVBox.setAlignment(Pos.CENTER);
-            VBox maxKnightsVBox = new VBox(new HBox(new Label("Max Knights: "),maxKnightsLbl),maxKnightsSlider);
+            VBox sliderVBox = new VBox(new HBox(new Label("Max Knights: "),maxKnightsLbl),maxKnightsSlider,new HBox(new Label("Amount of Plays: "),amountOfPlaysLbl),amountOfPlaysSlider);
             formatSlider(heightSlider,GameConstants.MIN_LEVEL_SIZE,GameConstants.MAX_LEVEL_SIZE);
             formatSlider(widthSlider,GameConstants.MIN_LEVEL_SIZE,GameConstants.MAX_LEVEL_SIZE);
             formatSlider(maxKnightsSlider,1,GameConstants.MAX_KNIGHTS_AMOUNT);
+            formatSlider(amountOfPlaysSlider,1,GameConstants.MAX_AMOUNT_OF_RUNS);
             GameMap currentMapClone = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
             heightSlider.setValue(currentMapClone.getBoundY());
             widthSlider.setValue(currentMapClone.getBoundX());
             maxKnightsSlider.setValue((int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
+            amountOfPlaysSlider.setValue((int)Model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS));
+            //TODO:
             Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
             Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
             TextField loc2StarsTField = new TextField(locToStars[0]+"");
@@ -375,7 +387,7 @@ public class EditorController implements SimpleEventListener {
             addChangeListenerForIntTFields(loc2StarsTField,loc3StarsTField,turns2StarsTField,turns3StarsTField);
             CheckBox hasAiCheckBox = new CheckBox();
             CheckBox isTutorialCheckBox = new CheckBox();
-            HBox hBox = new HBox(sizeVBox,maxKnightsVBox,new VBox(new Label("*** max. LoC: "),new Label("** max. LoC: ")),new VBox(loc3StarsTField,loc2StarsTField),new VBox(new Label("*** max. Turns: "),new Label("** max. Turns: ")),new VBox(turns3StarsTField,turns2StarsTField),
+            HBox hBox = new HBox(sizeVBox,sliderVBox,new VBox(new Label("*** max. Turns: "),new Label("** max. Turns: ")),new VBox(turns3StarsTField,turns2StarsTField),new VBox(new Label("*** max. LoC: "),new Label("** max. LoC: ")),new VBox(loc3StarsTField,loc2StarsTField),
                     new Label("Has AI"),hasAiCheckBox,new Label("Is Tutorial"),isTutorialCheckBox);
             boolean currentLevelHasAI = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
             hasAiCheckBox.setSelected(currentLevelHasAI);
@@ -400,6 +412,7 @@ public class EditorController implements SimpleEventListener {
                 currentMapClone.changeWidth(width);
                 Model.changeCurrentLevel(LevelDataType.MAP_DATA,currentMapClone);
                 Model.changeCurrentLevel(LevelDataType.MAX_KNIGHTS,(int)maxKnightsSlider.getValue());
+                Model.changeCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS,(int)amountOfPlaysSlider.getValue());
                 Model.changeCurrentLevel(LevelDataType.LOC_TO_STARS,new Integer[]{Integer.valueOf(loc2StarsTField.getText()),Integer.valueOf(loc3StarsTField.getText())});
                 Model.changeCurrentLevel(LevelDataType.TURNS_TO_STARS,new Integer[]{Integer.valueOf(turns2StarsTField.getText()),Integer.valueOf(turns3StarsTField.getText())});
                 Model.changeCurrentLevel(LevelDataType.IS_TUTORIAL,isTutorialCheckBox.isSelected());
@@ -449,7 +462,7 @@ public class EditorController implements SimpleEventListener {
             else JSONParser.saveLevelChanges(changes, (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
 //            JSONParser.saveIndexAndRequiredLevels(Model.getLevelListCopy());
             Model.updateUnlockedLevelsList(true);
-            if(!Model.getUnlockedLevelNames().contains(Model.getNameOfLevelWithIndex(Model.getCurrentIndex()))){
+            if(!Model.getUnlockedLevelIds().contains(Model.getCurrentId())){
                 view.getTutorialLevelOverviewPane().removeCurrentLevel();
                 view.getLevelOverviewPane().removeCurrentLevel();
             } else {
@@ -583,6 +596,7 @@ public class EditorController implements SimpleEventListener {
                     int size = view.getLinkedCellsListView().getItems().size();
                     view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
                     gameMap.removeCellLinkedId(view.getSelectedPointList().get(0).getX(),view.getSelectedPointList().get(0).getY(),id);
+                    Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                     if(view.getLinkedCellsListView().getItems().size()==0){
                         view.getLinkedCellsListView().setVisible(false);
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
@@ -596,6 +610,13 @@ public class EditorController implements SimpleEventListener {
                     else view.getLevelEditorModule().getRemoveLinkedCellBtn().setVisible(false);
 //                    setEditorHandlers();
                 });
+
+                view.getLevelEditorModule().getChangeCellIdBtn().setOnKeyPressed(event->{
+                    event.consume();
+                    if(view.getCodeArea().getSelectedCodeField() != null)view.getCodeArea().getSelectedCodeField().requestFocus();
+                    if(view.getAICodeArea().getSelectedCodeField() != null)view.getAICodeArea().getSelectedCodeField().requestFocus();
+                });
+
                 view.getLevelEditorModule().getChangeCellIdBtn().setOnAction(event->{
                     final GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                     if(view.getSelectedPointList().size() > 1) return;
@@ -612,10 +633,12 @@ public class EditorController implements SimpleEventListener {
                             //TODO: unify and correctify!
                             int id = -1;
                             if(!idTField.getText().equals("")) id = Integer.valueOf(idTField.getText());
-//                            int old_id = Model.getCurrentLevel().getOriginalMapCopy()[view.getSelectedColumn()][view.getSelectedRow()].getCellId();
+    //                            int old_id = Model.getCurrentLevel().getOriginalMapCopy()[view.getSelectedColumn()][view.getSelectedRow()].getCellId();
+                            int x = view.getSelectedPointList().get(0).getX();
+                            int y = view.getSelectedPointList().get(0).getY();
                             if(gameMap.testIfIdIsUnique(id)){
-
-                                gameMap.setCellId(view.getSelectedPointList().get(0).getX(),view.getSelectedPointList().get(0).getY(),id);
+                                gameMap.deleteOldCellIdFromLinkedIds(gameMap.getCellID(x,y ));
+                                gameMap.setCellId(x,y,id);
                                 view.getLevelEditorModule().getCellIdValueLbl().setText(id!=-1 ? ""+id : "NONE");
                                 Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                             }
@@ -869,7 +892,7 @@ public class EditorController implements SimpleEventListener {
         for (int i = 0; i < Model.getCurrentIndex(); i++) {
             requiredLevelsListView.getItems().add(Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, i)+"");
         }
-        for (String requiredLevelName : (List<String>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS)) {
+        for (String requiredLevelName : Model.getCurrentRequiredLevels()) {
             int i = 0;
             for (String s : requiredLevelsListView.getItems()) {
                 if (s.equals(requiredLevelName)) {
@@ -884,16 +907,16 @@ public class EditorController implements SimpleEventListener {
         chooseRequiredLvlsDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
         Optional<ButtonType> o = chooseRequiredLvlsDialog.showAndWait();
         if (o.isPresent() && o.get() == ButtonType.OK) {
-            List<String> requiredLevelNames = new ArrayList<>();
+            List<Integer> requiredLevelNames = new ArrayList<>();
             for (int i = 0; i < requiredLevelsListView.getItems().size(); i++) {
                 if (requiredLevelsListView.getSelectionModel().isSelected(i))
-                    requiredLevelNames.add(requiredLevelsListView.getItems().get(i));
+                    requiredLevelNames.add(Model.getIdOfLevelWithName(requiredLevelsListView.getItems().get(i)));
             }
             Model.changeCurrentLevel(LevelDataType.REQUIRED_LEVELS,requiredLevelNames);
         }
 
         view.getLevelEditorModule().getRequiredLevelsLView().getItems().clear();
-        view.getLevelEditorModule().getRequiredLevelsLView().getItems().addAll((List<String>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS));
+        view.getLevelEditorModule().getRequiredLevelsLView().getItems().addAll(Model.getCurrentRequiredLevels());
     }
 
     @Override

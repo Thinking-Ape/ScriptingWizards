@@ -18,6 +18,7 @@ import main.model.gamemap.GameMap;
 import main.utility.GameConstants;
 import main.utility.Util;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +32,8 @@ public class LevelEditorModule {
     private Label heightLbl = new Label("Height: ");
     private Label maxKnightsValueLbl = new Label("");
     private Label maxKnightsLbl = new Label("Max Knights: ");
+    private Label amountOfRerunsValueLbl = new Label("");
+    private Label amountOfRerunsLbl = new Label("Amount of Plays: ");
     private Label heightValueLbl = new Label("");
     private Label widthLbl = new Label("Width: ");
     private Label hasAiLbl = new Label("Has AI: ");
@@ -66,7 +69,7 @@ public class LevelEditorModule {
     private Label cellIdLbl = new Label("Cell Id:");
     private Button addLinkedCellBtn = new Button("+ Linked Cell");
     private Button removeLinkedCellBtn = new Button("- Linked Cell");
-    private Button changeCellIdBtn = new Button("Change Cell CELL_ID");
+    private Button changeCellIdBtn = new Button("Change Cell Cell Id");
     private ListView<Integer> linkedCellListView = new ListView<>();
     private ChoiceBox<String> trapChoiceBox = new ChoiceBox<>();
     private VBox cellTypeVBox = new VBox(new Label("Cell Content:"),cellTypeSelectionGPane);
@@ -82,7 +85,7 @@ public class LevelEditorModule {
     private HBox bottomHBox = new HBox(openLevelBtn, saveLevelBtn,newLevelBtn, copyLevelBtn, deleteLevelBtn, reloadLevelBtn, resetLevelScoresBtn);
     private VBox requiredLVBOX = new VBox(requiredLevelsLabel,requiredLevelsLView);
     private Button changeLvlNameBtn = new Button("Change Level Name");
-    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new HBox(maxKnightsLbl,maxKnightsValueLbl),new HBox(), new HBox(maxLocVbox,maxLocValueVbox), new HBox(maxTurnsVbox,maxTurnsValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
+    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new VBox(new HBox(amountOfRerunsLbl,amountOfRerunsValueLbl),new HBox(maxKnightsLbl,maxKnightsValueLbl)),new HBox(),  new HBox(maxTurnsVbox,maxTurnsValueVbox),new HBox(maxLocVbox,maxLocValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
 
     private Label tutorialTextLbl = new Label("Tutorial Text Nr.");
     private Label tutorialNumberValueLbl = new Label("1");
@@ -102,12 +105,13 @@ public class LevelEditorModule {
     private CheckBox isTurnedCBox = new CheckBox("Is Turned");
     private CheckBox isInvertedCBox = new CheckBox("Is Open");
     private Label cellDetailLbl = new Label("Cell Details:");
+
 //    private HBox checkBoxHbox = new HBox(isTurnedCBox,isInvertedCBox);
 
     public LevelEditorModule(){
 //        if(level.getAIBehaviourCopy().getStatementListSize()==0) hasAICheckBox.setSelected(false);
 //        else hasAICheckBox.setSelected(true);
-        Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl);
+        Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl,amountOfRerunsValueLbl);
         levelNameValueLbl.setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
         Util.applyFontFormatRecursively(topHBox);
         isTurnedCBox.setStyle("-fx-background-color: white");
@@ -161,7 +165,7 @@ public class LevelEditorModule {
 //        indexValueLbl.setText(""+(level.getIndex()+1));
 //        isTutorialValueLbl.setText(""+level.isTutorial());
         requiredLVBOX.getTransforms().add(new Translate(0,-TEXTFIELD_HEIGHT*0.8,0));
-        topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevelNamesCopy().length*25+25);
+        topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevelIdsCopy().length*25+25);
         //TODO!
 //        update(level);
         int i = 0;
@@ -198,6 +202,9 @@ public class LevelEditorModule {
 
     void update(LevelChange change) {
         switch (change.getLevelDataType()){
+            case AMOUNT_OF_RERUNS:
+                amountOfRerunsValueLbl.setText(change.getNewValue()+"");
+                break;
             case LEVEL_INDEX:
                 indexValueLbl.setText(change.getNewValue()+"");
                 break;
@@ -225,9 +232,10 @@ public class LevelEditorModule {
                 maxTurns3StarsVLbl.setText(turnsToStars[1]+"");
                 break;
             case REQUIRED_LEVELS:
-                List<String> requiredLevels = (List<String>)change.getNewValue();
+                requiredLevelsLView.getItems().clear();
+                List<Integer> requiredLevels = (List<Integer>)change.getNewValue();
                 for(int i = 0; i < requiredLevels.size(); i++){
-                    requiredLevelsLView.getItems().add(requiredLevels.get(i));
+                    requiredLevelsLView.getItems().add(Model.getNameOfLevelWithId(requiredLevels.get(i)));
                 }
                 break;
             case IS_TUTORIAL:
@@ -547,5 +555,9 @@ public class LevelEditorModule {
 //        else topHBox.getChildren().remove(requiredLevelsHBox );
         requiredLVBOX.setVisible(b);
         editRequiredLevelsBtn.setVisible(b);
+    }
+
+    public Label getAmountOfRerunsValueLbl() {
+        return amountOfRerunsValueLbl;
     }
 }

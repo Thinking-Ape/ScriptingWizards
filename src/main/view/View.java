@@ -218,7 +218,22 @@ public class View implements LevelChangeListener {
 
         HBox hBox = new HBox();
         Button debugBtn = new Button("Clipboard");
-
+        Button debugBtn2 = new Button("Enter Code");
+        debugBtn2.setOnAction(evt -> {
+            Optional<String> res = new TextInputDialog().showAndWait();
+            if(res.isPresent()){
+                try{
+                    List<String> codeLines = new ArrayList<>();
+                    String[] codeArray = res.get().split("\",\"");
+                    for(String s : codeArray)codeLines.add(s.replaceAll("\"",""));
+                    ComplexStatement c = CodeParser.parseProgramCode(codeLines);
+                    codeArea.updateCodeFields(c);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
         debugBtn.setOnAction(event -> {
             String debug = "";
             for (String s : codeArea.getAllText()) {
@@ -229,7 +244,7 @@ public class View implements LevelChangeListener {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             clipboard.setContents(selection, selection);
         });
-        if(DEBUG)hBox.getChildren().add(debugBtn );
+        if(DEBUG)hBox.getChildren().addAll(debugBtn,debugBtn2 );
         hBox.setTranslateY(-SMALL_BUTTON_SIZE/2);
         hBox.setPickOnBounds(false);
         hBox.getChildren().addAll(loadBestCodeBtn, clearCodeBtn);
@@ -261,6 +276,7 @@ public class View implements LevelChangeListener {
 
 
     public void drawMap(GameMap map) {
+        entityColorMap = new HashMap<>();
         actualMapGPane.getChildren().clear();
         Point minBounds = new Point(0, 0);
         Point maxBounds = new Point(map.getBoundX(), map.getBoundY());
@@ -301,7 +317,7 @@ public class View implements LevelChangeListener {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
             int amountOfKnights = Model.getAmountOfKnightsSpawned();
             if(i < maxKnights - amountOfKnights)
-            tokenIView.setEffect(Util.getEffect(i+amountOfKnights));
+            tokenIView.setEffect(Util.getEffect(i+amountOfKnights,true));
             else
                 tokenIView.setImage(new  Image(GameConstants.EMPTY_TOKEN_PATH));
             tokenIView.setFitHeight(cell_size/1.5);
@@ -419,6 +435,7 @@ public class View implements LevelChangeListener {
             if(destructionIView.getImage()!=null)
                 output[x][y].getChildren().add(destructionIView);
 //                actualMapGPane.getChildren().add(mapShapes[row][column]);
+            if(Model.getCurrentRound()>1 && destructionIView.getImage() != null)destructionIView.setEffect(new ColorAdjust(0,0,0,-0.5));
         }
         return output;
     }
@@ -430,11 +447,11 @@ public class View implements LevelChangeListener {
         //COLOR EXPERIMENT:
         int knightCount = Model.getAmountOfKnightsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
-            entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(knightCount-1));
+            entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(knightCount-1,true));
         }
         int skeletonCount = Model.getAmountOfSkeletonsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.SKELETON){
-            entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(skeletonCount-1));
+            entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(skeletonCount-1,true));
         }
         imageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
 
@@ -481,11 +498,11 @@ public class View implements LevelChangeListener {
         int amountOfKnights = Model.getAmountOfKnightsSpawned();
         int maxKnights = (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
         if((amountOfKnights< maxKnights &&cell.getContent()== CellContent.SPAWN))
-            imageView.setEffect(Util.getEffect(amountOfKnights));
+            imageView.setEffect(Util.getEffect(amountOfKnights,false));
         if(cell.getContent()== CellContent.ENEMY_SPAWN){
             //switch (entityColorMap.size() -Model.getCurrentLevel().getUsedKnights()){
             int skelCount = Model.getAmountOfSkeletonsSpawned();
-            imageView.setEffect(Util.getEffect(skelCount));
+            imageView.setEffect(Util.getEffect(skelCount,false));
         }
 
         return imageView;
@@ -722,6 +739,7 @@ public class View implements LevelChangeListener {
         levelEditorModule.getLevelNameValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
         levelEditorModule.getIndexValueLbl().setText("" + Model.getCurrentIndex());
         levelEditorModule.getMaxKnightsValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
+        levelEditorModule.getAmountOfRerunsValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS));
         levelEditorModule.getIsTutorialValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
         levelEditorModule.getHeightValueLbl().setText("" + gameMap.getBoundY());
 
@@ -731,7 +749,7 @@ public class View implements LevelChangeListener {
         }
         else{
             levelEditorModule.showRequiredLevelsHBox(true);
-            levelEditorModule.setRequiredLevels((List<String>)Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS));
+            levelEditorModule.setRequiredLevels(Model.getCurrentRequiredLevels());
         }
         levelEditorModule.getTutorialVBox().setVisible(isTutorial);
         List<String> tutorialLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
@@ -769,7 +787,6 @@ public class View implements LevelChangeListener {
 
     @Override
     public void updateAll() {
-        entityColorMap = new HashMap<>();
         selectedPointList = new ArrayList<>();
         selectedPointList.add(new Point(0, 0));
         boolean hasAi =(boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
@@ -821,6 +838,7 @@ public class View implements LevelChangeListener {
             case LEVEL_NAME:
             case HAS_AI:
             case LEVEL_INDEX:
+            case AMOUNT_OF_RERUNS:
             case MAX_KNIGHTS:
                 levelEditorModule.update(levelChange);
                 if(levelChange.getLevelDataType().equals(LevelDataType.MAX_KNIGHTS)){

@@ -215,7 +215,7 @@ public class CodeEvaluator {
                     value = ExpressionTree.expressionTreeFromString(evaluateNumericalExpression(value)+"");
                 }
                 else if(variableType == VariableType.BOOLEAN){
-                    value = ExpressionTree.expressionTreeFromString(evaluateVariablesInCondition(Condition.getConditionFromString(value.getText())).getText());
+                    value = ExpressionTree.expressionTreeFromString(testCondition(Condition.getConditionFromString(value.getText()))+"");
                 }
 
                 String valueString =value.getText();
@@ -268,7 +268,9 @@ public class CodeEvaluator {
                         Condition condition1 = evaluateVariablesInCondition(Condition.getConditionFromString(assignment.getVariable().getValue().getText()));
                         ExpressionTree value2 = assignment.getVariable().getValue();
                         if(condition1 != null)value2 = ExpressionTree.expressionTreeFromString(condition1.getText());
+                        value2 = ExpressionTree.expressionTreeFromString(testCondition(Condition.getConditionFromString(value2.getText()))+"");
                         variable2 = new Variable(variableType,varNames,value2);
+
                         break;
                     case KNIGHT:
                             Matcher knightMatcher = Pattern.compile(VariableType.KNIGHT.getAllowedRegex()).matcher(valueString);
@@ -428,19 +430,12 @@ public class CodeEvaluator {
             int bnd1 =evaluateNumericalExpression(ExpressionTree.expressionTreeFromString(randomMatcher.group(1)));
             int bnd2 =evaluateNumericalExpression(ExpressionTree.expressionTreeFromString(randomMatcher.group(2)));
             // my randInt method doesnt care for which number is bigger
-            if(bnd2<bnd1){
-                int tmpBnd = bnd1;
-                bnd1 = bnd2;
-                bnd2 = tmpBnd;
+
+            int output =  Util.getRandIntWithout(bnd1, bnd2, new ArrayList<>());
+            if(!isPlayer && (int)Model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS)>1){
+                output =  Model.getDifferentRandomNumberEachTime(bnd1,bnd2);
             }
-            int bound = bnd2+1-bnd1;
-            // negative bounds also work!
-            int signum = 1;
-            if(bound<0){
-                bound = bound*-1;
-                signum = -1;
-            }
-            return signum * (GameConstants.RANDOM.nextInt(bound)+bnd1);
+            return output;
         }
         if(variableString.charAt(variableString.length()-1)==';') {
             variableString = variableString.substring(0,variableString.length()-1);

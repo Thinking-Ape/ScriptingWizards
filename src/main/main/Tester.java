@@ -10,6 +10,11 @@ import java.util.List;
 public abstract class Tester {
 
     public static void runTests(){
+//        int i1 = 0;
+//        int i2 = i1;
+//        boolean b = i2 == 0;
+//        i2 = 1;
+//        System.out.println(b);
         int i = 0;
         System.out.println("aha" + i++);
         System.out.println("aha" + i);

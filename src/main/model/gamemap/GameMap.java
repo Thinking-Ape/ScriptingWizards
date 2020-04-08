@@ -490,4 +490,11 @@ public class GameMap {
         }
         return super.equals(obj);
     }
+
+    public void deleteOldCellIdFromLinkedIds(int id) {
+        for(int i = 0; i < cellArray2D.length;i++)
+            for(int j = 0; j < cellArray2D[0].length;j++){
+                if(cellArray2D[i][j].hasLinkedCellId(id))cellArray2D[i][j].removeLinkedCellId(id);
+            }
+    }
 }

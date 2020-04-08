@@ -1,6 +1,8 @@
 package main.controller;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventType;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
@@ -202,6 +204,9 @@ public class CodeAreaController implements SimpleEventListener {
             }
 
             switch (event.getCode()) {
+                case TAB:
+                    currentCodeArea.select(currentIndex, Selection.END);
+                    return;
                 case F5:
                     compilerActive = !compilerActive;
                     if(!compilerActive){
@@ -285,6 +290,7 @@ public class CodeAreaController implements SimpleEventListener {
                             currentCodeField.setText("");
                             break;
                         }
+                        if(isError)break;
                         if(currentIndex == 0) break;
                         CodeField prevCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex-1);
                         if( prevCodeField != null && prevCodeField.isEmpty()) codeLines.remove(currentIndex-1);
@@ -297,6 +303,7 @@ public class CodeAreaController implements SimpleEventListener {
                     if(currentCodeField.isEmpty()){
                         // The following lines are there to make sure that if you remove a complex statement,
                         // the closing bracket will be removed as well
+                        showError = true;
                         boolean isLastCodeFieldSelected = currentIndex >= currentCodeArea.getSize()-1;
                         if(!isLastCodeFieldSelected){
                             CodeField nextCodeField = currentCodeArea.getCodeFieldListClone().get(currentIndex+1);
@@ -304,7 +311,6 @@ public class CodeAreaController implements SimpleEventListener {
                             if(nextCodeField.getDepth() > currentCodeField.getDepth()||isBraceOfSameDepth){
                                 int bracketIndex = currentCodeArea.findNextBracketIndex(currentIndex+1,currentCodeField.getDepth());
                                 if (bracketIndex > -1){
-                                    showError = true;
                                     codeLines.remove(bracketIndex);
                                 }
                             }
@@ -312,6 +318,7 @@ public class CodeAreaController implements SimpleEventListener {
                         // If there will be at least 1 CodeField left remove the current one
                         if(currentCodeArea.getCodeFieldListClone().size()>1){
                             showError = true;
+                            if(isError)break;
                             codeLines.remove(currentIndex);
                         }
                         currentIndex = (currentIndex > 0) ? currentIndex-1 : currentIndex;
@@ -325,6 +332,8 @@ public class CodeAreaController implements SimpleEventListener {
                     }
                     else if(currentIndex == 0) break;
                     else if(codeLines.get(currentIndex-1).matches(" *")&&currentCodeField.getCaretPosition() == 0){
+                        showError = true;
+                        if(isError)break;
                         codeLines.remove(currentIndex-1);
                         scrollAmount = currentCodeArea.getScrollAmount()-1 > 0 ? currentCodeArea.getScrollAmount()-1 : 0;
                         if(currentIndex<= currentCodeArea.getScrollAmount())
@@ -451,7 +460,7 @@ public class CodeAreaController implements SimpleEventListener {
             ComplexStatement behaviour = CodeParser.parseProgramCode(codeLines,currentCodeArea.getCodeAreaType());
             disableControlElements(false, currentCodeArea);
             if(isError){
-                currentCodeArea.getSelectedCodeField().setStyle(null);
+                if(currentCodeArea.getSelectedCodeField() !=null)currentCodeArea.getSelectedCodeField().setStyle(null);
             }
             isError = false;
             currentCodeArea.setEditable(true);

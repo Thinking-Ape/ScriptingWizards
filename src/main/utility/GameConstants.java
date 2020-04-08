@@ -147,6 +147,7 @@ public abstract class GameConstants {
     public static final String BG_DARK_TILE_PATH ="file:"+IMAGES_PATH+"Background_Tile_Dark.png";
     public static final String BG_LIGHT_TILE_PATH ="file:"+IMAGES_PATH+"Background_Tile_Light.png";
     public static final String BOOLEAN_REGEX = "^\\(?!? *([^{}&|!]+ *| *([^{}&|!]+ *(&&|\\|\\|) *!?)+[^{}&|!]+)\\)?$";
+    public static final int MAX_AMOUNT_OF_RUNS = 3;
 //    public static final String CONDITION_REGEX = "^ *+"+VARIABLE_NAME_REGEX+"(\\|\\||&&|<|>|>=|<=|!=|==) *+$";
 
 //    public static final int MAX_CHARS_PER_CODEFIELD = 50;

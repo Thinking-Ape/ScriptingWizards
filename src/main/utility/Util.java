@@ -442,10 +442,10 @@ public abstract class Util {
         if(isTurned)imageView.setRotate(270);
         int amountOfKnights = Model.getAmountOfKnightsSpawned();
         if(amountOfKnights < (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS)&&cell.getContent()== CellContent.SPAWN)
-            imageView.setEffect(getEffect(amountOfKnights));
+            imageView.setEffect(getEffect(amountOfKnights,false));
 
         if(cell.getContent()== CellContent.ENEMY_SPAWN)
-            imageView.setEffect(getEffect(entityColorMap.size() -amountOfKnights));
+            imageView.setEffect(getEffect(entityColorMap.size() -amountOfKnights,false));
         stackPane.getChildren().add(imageView);
 
         return stackPane;
@@ -529,7 +529,9 @@ public abstract class Util {
         else return false;
     }
 
-    public static Effect getEffect(int i) {
+    public static Effect getEffect(int i, boolean isEntity) {
+        double opacityChange = Model.getCurrentRound()>1 ? -0.5 : 0;
+        if(!isEntity)opacityChange = 0;
         //just random numbers
         // color to similar
         if(i >= 2)i++;
@@ -537,7 +539,40 @@ public abstract class Util {
         if(i >= 5)i*=2;
         double c1 = 0.67*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*6.8)*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*4.2);
         double c2 = -0.15*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*8.4);
-        return new ColorAdjust(c1,0,c2,0);
+        return new ColorAdjust(c1,0,c2,opacityChange);
+    }
+
+    public static int getRandIntWithout(int bnd1, int bnd2, List<Integer> excludes) {
+
+        if(bnd2<bnd1){
+            int tmpBnd = bnd1;
+            bnd1 = bnd2;
+            bnd2 = tmpBnd;
+        }
+        int bound = bnd2+1-bnd1;
+        // negative bounds also work!
+        int sign = 1;
+        if(bound<0){
+            bound = bound*-1;
+            sign = -1;
+        }
+        List<Integer> possibleInts = new ArrayList<>();
+        for(int i = bnd1; i <= bnd2; i++){
+            possibleInts.add(i);
+        }
+        possibleInts.removeAll(excludes);
+        if(possibleInts.size() == 0)return sign*GameConstants.RANDOM.nextInt(bound)+bnd1;
+        int index = GameConstants.RANDOM.nextInt(possibleInts.size());
+        return possibleInts.get(index);
+    }
+
+    public static int avgOfIntList(List<Integer> turnsList) {
+        int output = 0;
+        if(turnsList.size() == 0)return 0;
+        for(Integer i : turnsList){
+            output += i;
+        }
+        return output / turnsList.size();
     }
 
 

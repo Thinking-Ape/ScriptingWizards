@@ -12,19 +12,21 @@ public class Level {
 
     private List<String> tutorialMessages;
     private GameMap originalMap;
-    private List<String> requiredLevels;
+    private List<Integer> requiredLevelIds;
     private Integer[] locToStars; // actually int
     private Integer[] turnsToStars; // actually int
-//    private StringProperty currentTutorialMessageProperty;
     private String name;
     private int maxKnights; // actually int
     private boolean isTutorial; // actually boolean
-//    private StringProperty currentTutorialIndexProperty = new SimpleStringProperty(null,GameConstants.CURRENT_TUTORIAL_INDEX_PROPERTY_NAME,0+""); // actually int
     private ComplexStatement aiBehaviour;
+    private int amountOfReruns;
+    private final int id;
 
 
-    public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, String[] requiredLevels, int maxKnights,
-                 boolean isTutorial, List<String> tutorialEntryList) {
+    public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, List<Integer> requiredLevelIds, int maxKnights,
+                 boolean isTutorial, List<String> tutorialEntryList, int id, int amountOfReruns) {
+        this.amountOfReruns = amountOfReruns;
+        this.id=id;
         this.name =name;
         this.maxKnights = maxKnights;
         this.isTutorial = isTutorial;
@@ -34,7 +36,7 @@ public class Level {
 //        this.currentTutorialIndexProperty = new SimpleStringProperty(null,GameConstants.CURRENT_TUTORIAL_INDEX_PROPERTY_NAME,""+0);
         this.originalMap = new GameMap(originalArray);
         this.aiBehaviour = aiBehaviour;
-        this.requiredLevels = new ArrayList<>(Arrays.asList(requiredLevels));
+        this.requiredLevelIds = new ArrayList<>(requiredLevelIds);
 //        this.changeSupport = new PropertyChangeSupport(this);
         this.tutorialMessages = new ArrayList<>();
         if(isTutorial){
@@ -46,7 +48,7 @@ public class Level {
         else tutorialMessages.add("");
     }
 
-//    private Level (String name, GameMap originalMap, ComplexStatement aiBehaviour, Integer[]  turnsToStars, Integer[] locToStars, List<String> requiredLevels, int maxKnights,
+//    private Level (String name, GameMap originalMap, ComplexStatement aiBehaviour, Integer[]  turnsToStars, Integer[] locToStars, List<String> requiredLevelIds, int maxKnights,
 //                  boolean isTutorial, List<String> tutorialEntryList) {
 //        this.name = new SimpleStringProperty(null,GameConstants.LEVEL_NAME_PROPERTY_NAME, name);
 //        this.maxKnights = new SimpleStringProperty(null,GameConstants.MAX_KNIGHTS_PROPERTY_NAME,maxKnights+"");
@@ -64,7 +66,7 @@ public class Level {
 //        this.currentMap = originalMap.copy();
 //        this.turnsTaken = 0;
 //        this.aiBehaviour = aiBehaviour;
-//        this.requiredLevels = new ArrayList<>(requiredLevels);
+//        this.requiredLevelIds = new ArrayList<>(requiredLevelIds);
 //        this.tutorialMessages = new ArrayList<>();
 //        if(isTutorial){
 //            if(tutorialEntryList.size() > 0){
@@ -125,8 +127,8 @@ public class Level {
         return name;
     }
 
-    public List<String> getRequiredLevelNamesCopy() {
-        return new ArrayList<>(requiredLevels);
+    public List<Integer> getRequiredLevelIdsCopy() {
+        return new ArrayList<>(requiredLevelIds);
     }
 
     public Integer[] getLocToStarsCopy() {
@@ -145,9 +147,9 @@ public class Level {
         this.turnsToStars = turnsToStars;
     }
 
-    public void setRequiredLevels(List<String> requiredLevelNames) {
+    public void setRequiredLevelIds(List<Integer> requiredLevelNames) {
 //        List<String> oldNames = new ArrayList<>(requiredLevelNames);
-        this.requiredLevels = requiredLevelNames;
+        this.requiredLevelIds = requiredLevelNames;
 //        if(!Util.listsEqual(oldNames, requiredLevelNames))changeSupport.firePropertyChange(LevelDataType.REQUIRED_LEVELS.name(), oldNames, requiredLevelNames);
     }
 
@@ -197,39 +199,10 @@ public class Level {
 //        changeSupport.firePropertyChange(LevelDataType.IS_TUTORIAL.name(),old ,isTutorial());
     }
 
-//    public void setIndexProperty(int i, boolean confirmed) {
-//        int old = getIndex();
-//        indexProperty.setValue(i+"");
-//        if(!confirmed)changeSupport.firePropertyChange(LevelDataType.LEVEL_INDEX.name(), old,getIndex());
-//    }
-    /*public void addTutorialLine(String entry){
-        List<String> old = new ArrayList<>(tutorialMessages);
-        if(tutorialMessages.size()==0)
-            tutorialMessages.add(entry);
-        else tutorialMessages.add(getCurrentTutorialMessageIndex()+1,entry);
-//        currentTutorialIndexProperty.setValue(getCurrentTutorialMessageIndex()+1+"");
-//        currentTutorialMessageProperty.setValue(entry);
 
-//        changeSupport.firePropertyChange(LevelDataType.TUTORIAL_LINES.name(),old ,tutorialMessages);
-    }*/
-    /*public void setTutorialLine(String entry){
-        List<String> old = new ArrayList<>(tutorialMessages);
-        if(tutorialMessages.size() == 0) tutorialMessages.add(entry);
-        else tutorialMessages.set(getCurrentTutorialMessageIndex(),entry);
-        currentTutorialMessageProperty.setValue(entry);
-
-//        changeSupport.firePropertyChange(LevelDataType.TUTORIAL_LINES.name(),old ,tutorialMessages);
-    }*/
-
-    /*public void deleteCurrentTutorialLine() {
-        List<String> old = new ArrayList<>(tutorialMessages);
-        tutorialMessages.removeCurrentLevel(getCurrentTutorialMessageIndex());
-
-        if(getCurrentTutorialMessageIndex() == tutorialMessages.size() )currentTutorialIndexProperty.setValue(getCurrentTutorialMessageIndex()-1+"");
-        currentTutorialMessageProperty.setValue(tutorialMessages.get(getCurrentTutorialMessageIndex()));
-
-//        changeSupport.firePropertyChange(LevelDataType.TUTORIAL_LINES.name(),old ,tutorialMessages);
-    }*/
+    public Integer getId(){
+        return id;
+    }
 
 
     //TODO: getTutorialEntryListSize instead of this
@@ -246,7 +219,18 @@ public class Level {
         this.tutorialMessages = tutorialMessages;
     }
 
-//    public void resetVariables() {
+    public void removeRequiredLevelId(Integer id) {
+        requiredLevelIds.remove(id);
+    }
+
+    public int getAmountOfReruns() {
+        return amountOfReruns;
+    }
+
+    public void setAmountOfReruns(int value) {
+        amountOfReruns = value;
+    }
+    //    public void resetVariables() {
 //        aiBehaviour.resetVariables(true);
 //    }
 /*
@@ -277,6 +261,6 @@ public class Level {
 //
 //    public Level copy() {
 //        return new Level(getName(), originalMap.copy(), aiBehaviour, getTurnsToStarsCopy(), getLocToStarsCopy()
-//        , requiredLevels, getMaxKnights(), isTutorial(), tutorialMessages);
+//        , requiredLevelIds, getMaxKnights(), isTutorial(), tutorialMessages);
 //    }
 }

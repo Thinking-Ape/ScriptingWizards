@@ -20,16 +20,14 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         JSONParser.init();
-        List<String> unlockedLevelNameList = JSONParser.getUnlockedLevelNames();
+        List<Integer> unlockedLevelIdList = JSONParser.getUnlockedLevelIds();
         List<Level> levelList = JSONParser.parseAllResourceLevels();
 //        levelList.sort((l1, l2) -> l1.getIndex() > l2.getIndex() ? 1 : -1);
-        List<Level> unlockedLevelList = new ArrayList<>();
         if(GameConstants.DEBUG)System.out.println("UNLOCKED LEVELS:");
         if(GameConstants.DEBUG)System.out.println("==================");
         for(Level l : levelList){
              Model.addLevelLast(l,false);
-             if(unlockedLevelNameList.contains(l.getName())){
-                 unlockedLevelList.add(l);
+             if(unlockedLevelIdList.contains(l.getId())){
                  if(GameConstants.DEBUG)System.out.println(l.getName());
              }
 //         }
@@ -38,12 +36,12 @@ public class Main extends Application {
 
 
         //TODO: select different Level? //levelNameList[levelNameList.length-1]
-        Map<Level,List<String>> bestCodeLinesMap = JSONParser.getBestCodeForLevels(levelList);
-        Map<Level,Integer> bestLOCMap = JSONParser.getBestLOCForLevels(levelList);
-        Map<Level,Integer> bestTurnsMap = JSONParser.getBestTurnsForLevels(levelList);
+        Map<Integer,List<String>> bestCodeLinesMap = JSONParser.getBestCodeForLevels(levelList);
+        Map<Integer,Integer> bestLOCMap = JSONParser.getBestLOCForLevels(levelList);
+        Map<Integer,Integer> bestTurnsMap = JSONParser.getBestTurnsForLevels(levelList);
 
         List<String> unlockedStatementList = JSONParser.getUnlockedStatementList();
-        Model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelList,unlockedStatementList);
+        Model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelIdList,unlockedStatementList);
 
         if(GameConstants.DEBUG)  Tester.runTests();
         View view = View.getInstance(primaryStage);

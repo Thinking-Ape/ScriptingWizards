@@ -61,4 +61,14 @@ public class StatementIterator {
         currentChild.counter++;
         currentChild.childIterator = null;
     }
+
+    public int getCurrentIndex() {
+        int output = counter;
+        StatementIterator currentChildIt = childIterator;
+        while(currentChildIt != null){
+         output += currentChildIt.counter;
+         currentChildIt = currentChildIt.childIterator;
+        }
+        return output;
+    }
 }

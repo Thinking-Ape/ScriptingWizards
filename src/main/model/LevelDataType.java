@@ -14,7 +14,7 @@ public enum LevelDataType {
     REQUIRED_LEVELS,
     IS_TUTORIAL,
     TUTORIAL_LINES,
-
+    AMOUNT_OF_RERUNS,
 //    UNLOCKED_STATEMENTS,
 //    TUTORIAL_PROGRESS,
 //    BEST_CODE,
@@ -23,6 +23,8 @@ public enum LevelDataType {
     LEVEL_NAME;
 //    LEVEL_CREATION,
 //    LEVEL_CHANGE ;
+
+
 
     public static LevelDataType getLevelDataTypeFromString(String changeTypeString){
         for(LevelDataType levelDataType : LevelDataType.values()){

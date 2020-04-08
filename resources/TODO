@@ -81,10 +81,10 @@ IMPORTANT:
  - find another way to load images?
  - Better Understand and clean up CodeParser
  - readme
- - disable leveleditor!
  - png to jpg? for smaller images?
- - give level an ID that never changes so that the level names dont all have to be adapted!!!!!
  - move Codelines viel früher erklären
+ - cut empty from map?
+ - load best code nur falls welcher da ist
 ---------------------------------------------
 
 
