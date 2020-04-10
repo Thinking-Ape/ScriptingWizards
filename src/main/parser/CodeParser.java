@@ -1,6 +1,11 @@
 package main.parser;
 
-import main.model.enums.*;
+import main.model.enums.CellContent;
+import main.model.enums.Direction;
+import main.model.enums.EntityType;
+import main.model.enums.ItemType;
+import main.model.enums.MethodType;
+import main.model.enums.VariableType;
 import main.model.statement.*;
 import main.model.statement.Condition.Condition;
 import main.model.statement.Condition.ConditionLeaf;
@@ -11,7 +16,6 @@ import main.utility.GameConstants;
 import main.utility.Util;
 import main.utility.Variable;
 import main.view.CodeAreaType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,11 +26,8 @@ import java.util.regex.Pattern;
 import static main.model.statement.Condition.ConditionType.NEGATION;
 import static main.model.statement.Condition.ConditionType.SINGLE;
 
-//TODO: make abstract?
 public abstract class CodeParser {
 
-    private static ComplexStatement behaviour;
-    private static List<String> codeLines;
     private static Map<Integer,ComplexStatement> depthStatementMap;
     private static CodeAreaType codeAreaType;
     private static Statement lastStatement;
@@ -42,18 +43,16 @@ public abstract class CodeParser {
      *
      * @param lines The given lines of code
      * @param codeAreaType whether it is player code or code of the enemy. the first cannot spawn Skeletons, the latter
-     *                          cant spawn Knights
-     * @throws IllegalArgumentException TODO
+     *                     cant spawn Knights
      */
     public static ComplexStatement parseProgramCode(List<String> lines, CodeAreaType codeAreaType){
         variableScope = new VariableScope();
-        codeLines = lines;
+        List<String> codeLines = lines;
         CodeParser.codeAreaType = codeAreaType;
-        behaviour = new ComplexStatement();
+        ComplexStatement behaviour = new ComplexStatement();
         int depth = 1;
         depthStatementMap = new HashMap<>();
-        depthStatementMap.put(0,behaviour);
-        int index = 0;
+        depthStatementMap.put(0, behaviour);
         for ( String code : codeLines){
             if(Util.textIsTooLongForCodefield(code,depth))throw new IllegalArgumentException("This codeLine is too long: "+code);
             // empty lines are added but ignored when evaluating how many lines of code where used to complete the level
@@ -104,7 +103,6 @@ public abstract class CodeParser {
                 }
             }
             lastStatement = statement;
-            index++;
         }
         if(depth != 1)throw new IllegalStateException("Unbalanced amount of brackets!");
         return behaviour;
@@ -229,11 +227,8 @@ public abstract class CodeParser {
             if(tempStatement2 != null) throw new IllegalArgumentException("You might have forgotten a '{'");
             Statement tempStatement1 =  parseString(code+";");
             if(tempStatement1 != null) throw new IllegalArgumentException("You might have forgotten a ';'!");
-//            Statement tempStatement3 = parseString(code + ");");
-//            Statement tempStatement4 = parseString(code + "();");
-//            if(tempStatement3 != null) throw new IllegalArgumentException("You might have forgotten a closing bracket!");
-//            if(tempStatement4 != null) throw new IllegalArgumentException("You might have forgotten brackets!");
         }
+        if(code.matches("^ *[a-zA-Z]+\\(.*\\) *; *$"))throw new IllegalArgumentException("Your MethodCall might need an object!");
         return null;
     }
 
@@ -377,17 +372,9 @@ public abstract class CodeParser {
    private static void testForCorrectValueType(VariableType variableType, String value) {
         value = value.trim();
         if(value.equals(""))throw new IllegalArgumentException("You cannot have an empty value!");
-//        if(depthStatementMap.get(depth-1) == null)throw new IllegalStateException("You cant have this statement here!");
         Variable v = variableScope.getVariable(value);
         if(v!=null){
             if(v.getVariableType() != variableType)throw new IllegalArgumentException(value + " has the wrong type!");
-//            if(depthStatementMap.get(depth-1).getStatementType() == StatementType.FOR){
-//                Variable forVar = ((ForStatement)depthStatementMap.get(depth-1)).getDeclaration().getVariable();
-//                if(forVar.getName().equals(value))testForCorrectValueType(variableType, forVar.getValue().getText(),depth);
-//                else testForCorrectValueType(variableType, value,depth-1);
-//            }
-//            else
-//            System.out.println(value+" "+variableScope.getVariable(value).getValue().getText());
             testForCorrectValueType(variableType, variableScope.getVariable(value).getValue().getText());
             return;
         }
@@ -624,13 +611,8 @@ public abstract class CodeParser {
         }
         else{
             if(valueTree.getText().matches("new .*\\(.*\\)"))return;
-//            if(valueTree.getText().matches("\\(.*\\)"))
-//                return checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(valueTree.getText().substring(1,valueTree.getText().length()-1)),depth);
             //TODO: only allow the right ENUMS when writing those methods!
             if(MethodType.getMethodTypeFromCall(valueTree.getText())!=null)return;
-//            for(ItemType it : ItemType.values()){
-//                if(it.name().toUpperCase().equals(valueTree.getText()))return;
-//            }
             //TODO: make this relative to: VariableType.(.+).getAllowedRegex() + "|"
             if(valueTree.getText().matches("(-?\\d+|true|false|LEFT|RIGHT|AROUND|EAST|NORTH|SOUTH|WEST|"+GameConstants.RAND_INT_REGEX+")"))return;
             if(currentForVariable != null && valueTree.getText().equals(currentForVariable.getName())) return;
@@ -639,31 +621,7 @@ public abstract class CodeParser {
                     checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(s));
                 return;
             }
-//            if(variableScope.getVariable(valueTree.getText())==null)
-//                throw new IllegalArgumentException("Variable "+valueTree.getText()+" not in scope!");
         }
     }
 
 }
-/*if(statement.getStatementType() == StatementType.DECLARATION){
-                    Variable variable = ((Assignment)statement).getVariable();
-                    boolean isSkeleton = variable.getVariableType() == VariableType.SKELETON;
-                    //TODO: Implement GHOST or delete
-//                    boolean isGhost = variable.getVariableType() == VariableType.GHOST;
-                    boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
-                    if(isPlayerCode && (/*isGhost||isSkeleton ))throw new IllegalArgumentException("You are not allowed to create Enemy Creatures as Player");
-        boolean isKnight = variable.getVariableType() == VariableType.KNIGHT;
-        if(!isPlayerCode && isKnight )throw new IllegalArgumentException("You are not allowed to create Player Creatures as Enemy");
-        if(/*isGhost || isKnight || isSkeleton){
-        if(variable.getValue().getLeftNode()!=null){
-        VariableType variableType = VariableType.getVariableTypeFromString(variable.getValue().getLeftNode().getText().substring(4));
-        if(variableType != variable.getVariableType())throw new IllegalArgumentException(((Assignment) statement).getText()+ " is an illegal expression!");
-        }else {
-        // TODO: dafuq?!
-        System.out.println(variable.getValue().getText());
-        VariableType variableType = VariableType.getVariableTypeFromString(variable.getValue().getText().substring(4,variable.getValue().getText().length()-2));
-        if(variableType != variable.getVariableType())throw new IllegalArgumentException(((Assignment) statement).getText()+ " is an illegal expression!");
-        }
-        }
-//                    variableScope.addVariable(variable);
-        }*/

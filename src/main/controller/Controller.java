@@ -33,13 +33,12 @@ public class Controller {
     private double mouse_PositionY;
     private View view;
     private Timeline timeline;
-    private CodeAreaController codeAreaController;
     private EditorController editorController;
     private int minIndex = 0;
 
     private Controller(View view) {
         this.view = view;
-        codeAreaController = new CodeAreaController(view);
+        new CodeAreaController(view);
         editorController = new EditorController(view);
         int minIndex = Model.getTutorialProgress();
         if(minIndex < Model.getAmountOfTutorials()-1)view.getStartScreen().getLvlEditorBtn().setDisable(!GameConstants.DEBUG);
@@ -221,8 +220,8 @@ public class Controller {
             );
             view.getTutorialLevelOverviewPane().getPlayBtn().setOnAction(actionEvent1 -> {
                 String levelName = view.getTutorialLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
-                Model.selectLevel(levelName);
                 view.setSceneState(SceneState.TUTORIAL);
+                Model.selectLevel(levelName);
             });
 
             view.getTutorialGroup().getNextBtn().setOnAction(evt -> {
@@ -359,11 +358,9 @@ public class Controller {
 
         ((ImageView) view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
         view.getBtnExecute().setOnAction(actionEvent -> {
-            view.getCodeArea().scollTo(0);
+            view.getCodeArea().scrollTo(0);
             final boolean hasAi = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
-            if (hasAi) view.getAICodeArea().scollTo(0);
-            CodeArea playerCodeArea = CodeArea.getInstance(CodeAreaType.PLAYER);
-            List<String> oldCode = view.getCodeArea().getAllText();
+            if (hasAi) view.getAICodeArea().scrollTo(0);
             ComplexStatement behaviour = CodeParser.parseProgramCode(view.getCodeArea().getAllText(), CodeAreaType.PLAYER);
             ComplexStatement aiBehaviour = new ComplexStatement();
             if (hasAi) aiBehaviour = CodeParser.parseProgramCode(view.getAICodeArea().getAllText(), CodeAreaType.AI);
@@ -373,7 +370,6 @@ public class Controller {
             if (GameConstants.DEBUG) System.out.println(aiBehaviour.print());
             Model.setCurrentPlayerBehaviour(behaviour);
             Model.initAiIteratorAndEvaluator(aiBehaviour);
-            Model.changeCurrentLevel(LevelDataType.AI_CODE, aiBehaviour);
             view.setNodesDisableWhenRunning(true);
             isGameRunning = true;
             view.getBtnExecute().setDisable(false);
@@ -446,7 +442,7 @@ public class Controller {
                             Model.setTutorialProgress(nextIndex-1);
                             nextLevelName = (String) Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, nextIndex);
                             if (!view.getTutorialLevelOverviewPane().containsLevel(nextLevelName))
-                                view.getTutorialLevelOverviewPane().addLevel(nextIndex);
+                                view.getTutorialLevelOverviewPane().addLevelWithIndex(nextIndex);
                         }
                         else if (nextIndex == -1){
 
@@ -454,7 +450,7 @@ public class Controller {
                                 int i = Model.getIndexOfLevelWithId(id);
 
                                 if(view.getLevelOverviewPane().containsLevel(Model.getNameOfLevelWithId(id)) || (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i))continue;
-                                view.getLevelOverviewPane().addLevel(i);
+                                view.getLevelOverviewPane().addLevelWithIndex(i);
                             }
                             if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
                             else view.getStartScreen().getPlayBtn().setDisable(false);
@@ -467,7 +463,7 @@ public class Controller {
                         for(int id : Model.getUnlockedLevelIds()){
                             int i = Model.getIndexOfLevelWithId(id);
                             if(view.getLevelOverviewPane().containsLevel(Model.getNameOfLevelWithId(id)) || (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i))continue;
-                            view.getLevelOverviewPane().addLevel(i);
+                            view.getLevelOverviewPane().addLevelWithIndex(i);
                         }
                     }
 
@@ -540,22 +536,6 @@ public class Controller {
         ButtonType nextBtn = new ButtonType("Next", ButtonBar.ButtonData.NEXT_FORWARD);
         ButtonType backBtn = new ButtonType("Back To Menu", ButtonBar.ButtonData.BACK_PREVIOUS);
 
-//        ImageView resetBtnIV = new ImageView(GameConstants.RESET_BTN_IMAGE_PATH);
-//        resetBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-//        resetBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
-//        ((Button)winDialog.getDialogPane().lookup("replayBtn")).setGraphic(resetBtnIV);
-
-//        ImageView nextBtnIV = new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH);
-//        nextBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-//        nextBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
-//        ((Button)winDialog.getDialogPane().lookupButton(ButtonType.NEXT)).setGraphic(nextBtnIV);
-//
-//        ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
-//        backBtnIV.setScaleY(GameConstants.HEIGHT_RATIO);
-//        backBtnIV.setScaleX(GameConstants.WIDTH_RATIO);
-//        ((Button)winDialog.getDialogPane().lookupButton(ButtonType.PREVIOUS)).setGraphic(backBtnIV);
-
-//        winDialog.setContentText(winString);
         winDialog.getDialogPane().getButtonTypes().addAll(backBtn, replayBtn);
         boolean nextLvlIsTut = false;
         if (Model.getCurrentIndex() + 1 < Model.getAmountOfLevels())

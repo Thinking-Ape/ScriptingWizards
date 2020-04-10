@@ -125,7 +125,7 @@ public class Cell {
     }
 
     public boolean isFree() {
-        return item == NONE && entity == NO_ENTITY;
+        return entity == NO_ENTITY && item == NONE;
     }
 
     public List<CFlag> getFlags() {

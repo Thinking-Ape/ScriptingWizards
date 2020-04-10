@@ -11,11 +11,11 @@ public class LevelChangeSender {
     private LevelChangeListener levelChangeListener;
     private Map<LevelDataType,LevelChange> levelChangeMap = new HashMap<>();
 
-    public LevelChangeSender(LevelChangeListener levelChangeListener){
+    LevelChangeSender(LevelChangeListener levelChangeListener){
         this.levelChangeListener = levelChangeListener;
     }
 
-    public void addLevelChange(LevelChange change){
+    void addLevelChange(LevelChange change){
         LevelDataType levelDataType = change.getLevelDataType();
         if(levelChangeMap.containsKey(levelDataType)){
             Object oldValue = levelChangeMap.get(levelDataType).getOldValue();
@@ -27,8 +27,6 @@ public class LevelChangeSender {
             }
             if(isEqual){
                 levelChangeMap.remove(levelDataType);
-                if(levelChangeMap.size()==0)
-                    levelChangeListener.updateAll();
             }
             else levelChangeMap.put(levelDataType, new LevelChange(levelDataType,oldValue,change.getNewValue()));
         }

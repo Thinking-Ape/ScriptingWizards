@@ -1,6 +1,5 @@
 package main.view;
 
-import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -9,7 +8,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Translate;
-import main.model.Level;
 import main.model.LevelChange;
 import main.model.Model;
 import main.model.enums.CellContent;
@@ -17,13 +15,8 @@ import main.model.enums.ItemType;
 import main.model.gamemap.GameMap;
 import main.utility.GameConstants;
 import main.utility.Util;
-
-import javax.swing.*;
-import java.util.ArrayList;
 import java.util.List;
-
 import static main.utility.GameConstants.*;
-import static main.utility.GameConstants.TUTORIAL_LINES;
 
 
 public class LevelEditorModule {
@@ -69,11 +62,11 @@ public class LevelEditorModule {
     private Label cellIdLbl = new Label("Cell Id:");
     private Button addLinkedCellBtn = new Button("+ Linked Cell");
     private Button removeLinkedCellBtn = new Button("- Linked Cell");
-    private Button changeCellIdBtn = new Button("Change Cell Cell Id");
+    private Button changeCellIdBtn = new Button("Change Cell Id");
     private ListView<Integer> linkedCellListView = new ListView<>();
     private ChoiceBox<String> trapChoiceBox = new ChoiceBox<>();
     private VBox cellTypeVBox = new VBox(new Label("Cell Content:"),cellTypeSelectionGPane);
-    private VBox cellItemVBox = new VBox(new Label("Item:"),cellItemSelectionGPane);//,cellIDHBox, addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView,exitOpenCheckBox);
+    private VBox cellItemVBox = new VBox(new Label("Item:"),cellItemSelectionGPane);
 
     private Button saveLevelBtn = new Button("Save Level");
     private Button deleteLevelBtn = new Button("Delete Level");
@@ -106,11 +99,7 @@ public class LevelEditorModule {
     private CheckBox isInvertedCBox = new CheckBox("Is Open");
     private Label cellDetailLbl = new Label("Cell Details:");
 
-//    private HBox checkBoxHbox = new HBox(isTurnedCBox,isInvertedCBox);
-
-    public LevelEditorModule(){
-//        if(level.getAIBehaviourCopy().getStatementListSize()==0) hasAICheckBox.setSelected(false);
-//        else hasAICheckBox.setSelected(true);
+    LevelEditorModule(){
         Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl,amountOfRerunsValueLbl);
         levelNameValueLbl.setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
         Util.applyFontFormatRecursively(topHBox);
@@ -150,24 +139,13 @@ public class LevelEditorModule {
 
         prevTutorialTextBtn.setDisable(true);
 
-//        cellIDHBox.setVisible(false);
-//        addLinkedCellBtn.setVisible(false);
-//        removeLinkedCellBtn.setVisible(false);
-//        linkedCellListView.setVisible(false);
-//        exitOpenCheckBox.setVisible(false);
-
-
         requiredLevelsLView.setMaxHeight(TEXTFIELD_HEIGHT*1.2);
         requiredLevelsLView.setMinHeight(TEXTFIELD_HEIGHT*1.2);
         requiredLevelsLView.setMaxWidth(TEXTFIELD_WIDTH*0.5);
         requiredLevelsLView.setMinWidth(TEXTFIELD_WIDTH*0.5);
         requiredLevelsLabel.setFont(new Font(requiredLevelsLabel.getFont().getName(),GameConstants.FONT_SIZE));
-//        indexValueLbl.setText(""+(level.getIndex()+1));
-//        isTutorialValueLbl.setText(""+level.isTutorial());
         requiredLVBOX.getTransforms().add(new Translate(0,-TEXTFIELD_HEIGHT*0.8,0));
-        topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);//level.getRequiredLevelIdsCopy().length*25+25);
-        //TODO!
-//        update(level);
+        topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);
         int i = 0;
         int j = 0;
         for (CellContent content : CellContent.values()){
@@ -192,9 +170,6 @@ public class LevelEditorModule {
             cellItemSelectionGPane.add(button,j,i);
             i++;
         }
-//        Button button = new Button("None");
-//        button.setMinWidth(125);
-//        cellItemSelectionGPane.add(button,j,i);
         bottomHBox.setAlignment(Pos.TOP_CENTER);
         topHBox.setAlignment(Pos.BASELINE_CENTER);
         if(Model.getAmountOfLevels()==1)deleteLevelBtn.setDisable(true);
@@ -234,8 +209,8 @@ public class LevelEditorModule {
             case REQUIRED_LEVELS:
                 requiredLevelsLView.getItems().clear();
                 List<Integer> requiredLevels = (List<Integer>)change.getNewValue();
-                for(int i = 0; i < requiredLevels.size(); i++){
-                    requiredLevelsLView.getItems().add(Model.getNameOfLevelWithId(requiredLevels.get(i)));
+                for (Integer requiredLevel : requiredLevels) {
+                    requiredLevelsLView.getItems().add(Model.getNameOfLevelWithId(requiredLevel));
                 }
                 break;
             case IS_TUTORIAL:
@@ -244,7 +219,6 @@ public class LevelEditorModule {
             case TUTORIAL_LINES:
                 List<String> tutorialLines = (List<String>)change.getNewValue();
                 if(tutorialLines.size()== 0)nextTutorialTextBtn.setDisable(true);
-                //TODO
                 break;
             case LEVEL_NAME:
                 levelNameValueLbl.setText(change.getNewValue()+"");
@@ -253,21 +227,21 @@ public class LevelEditorModule {
 
     }
 
-    public VBox getRightVBox(){
+    VBox getRightVBox(){
         return rightVBox;
     }
-    public HBox getBottomHBox(){
+    HBox getBottomHBox(){
         return bottomHBox;
     }
 
-    public HBox getTopHBox() {
+    HBox getTopHBox() {
         return topHBox;
     }
 
-    public GridPane getCellTypeSelectionGPane() {
+    GridPane getCellTypeSelectionGPane() {
         return cellTypeSelectionGPane;
     }
-    public GridPane getCellItemSelectionGPane() {
+    GridPane getCellItemSelectionGPane() {
         return cellItemSelectionGPane;
     }
 
@@ -275,7 +249,6 @@ public class LevelEditorModule {
         return cellIdValueLbl;
     }
 
-    //TODO: ListView<Integer>?
     public ListView<Integer> getLinkedCellListView() {
         return linkedCellListView;
     }
@@ -284,71 +257,21 @@ public class LevelEditorModule {
         return saveLevelBtn;
     }
 
-   /* public void bindProperties(StringProperty[] properties) {
-        for(StringProperty stringProperty : properties)
-        switch (stringProperty.getName()){
-            case GameConstants.LEVEL_NAME_PROPERTY_NAME:
-                levelNameValueLbl.textProperty().unbind();
-                levelNameValueLbl.textProperty().bind(stringProperty);
-                break;
-            case GameConstants.MAX_KNIGHTS_PROPERTY_NAME:
-                maxKnightsValueLbl.textProperty().unbind();
-                maxKnightsValueLbl.textProperty().bind(stringProperty);
-                break;
-            case GameConstants.IS_TUTORIAL_PROPERTY_NAME:
-                isTutorialValueLbl.textProperty().unbind();
-                isTutorialValueLbl.textProperty().bind(stringProperty);
-                break;
-            case GameConstants.INDEX_PROPERTY_NAME:
-                indexValueLbl.textProperty().unbind();
-                indexValueLbl.textProperty().bind(stringProperty);
-                break;
-            case TURNS_TO_STARS_3_PROPERTY_NAME:
-                maxTurns3StarsVLbl.textProperty().unbind();
-                maxTurns3StarsVLbl.textProperty().bind(stringProperty);
-                break;
-            case TURNS_TO_STARS_2_PROPERTY_NAME:
-                maxTurns2StarsVLbl.textProperty().unbind();
-                maxTurns2StarsVLbl.textProperty().bind(stringProperty);
-                break;
-            case LOC_TO_STARS_3_PROPERTY_NAME:
-                maxLoc3StarsVLbl.textProperty().unbind();
-                maxLoc3StarsVLbl.textProperty().bind(stringProperty);
-                break;
-            case LOC_TO_STARS_2_PROPERTY_NAME:
-                maxLoc2StarsVLbl.textProperty().unbind();
-                maxLoc2StarsVLbl.textProperty().bind(stringProperty);
-                break;
-            case CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME:
-                tutorialTextArea.textProperty().unbind();
-                tutorialTextArea.textProperty().bind(stringProperty);
-                break;
-
-            case CURRENT_TUTORIAL_INDEX_PROPERTY_NAME:
-                tutorialNumberValueLbl.textProperty().unbind();
-                tutorialNumberValueLbl.textProperty().bind(stringProperty);
-                break;
-        }
-    }*/
-
     public Button getOpenLevelBtn() {
         return openLevelBtn;
     }
 
-    public Label getWidthValueLbl() {
+    Label getWidthValueLbl() {
         return widthValueLbl;
     }
 
-    public Label getHeightValueLbl() {
+    Label getHeightValueLbl() {
         return heightValueLbl;
     }
 
     public Button getEditLvlBtn() {
         return changeLvlBtn;
     }
-//    public HBox getCellIDHBox(){
-//        return cellIDHBox;
-//    }
 
     public Button getAddLinkedCellBtn() {
         return addLinkedCellBtn;
@@ -360,9 +283,7 @@ public class LevelEditorModule {
     public Button getNewLevelBtn() {
         return newLevelBtn;
     }
-//    public CheckBox getExitOpenCheckBox(){
-//        return exitOpenCheckBox;
-//    }
+
     public Label getHasAiValueLbl(){
         return hasAiValueLbl;
     }
@@ -380,14 +301,7 @@ public class LevelEditorModule {
         isInvertedCBox.setText("Is Open");
         cellDetailVBox.getChildren().addAll(cellDetailLbl,isTurnedCBox,isInvertedCBox,addLinkedCellBtn,removeLinkedCellBtn,linkedCellListView);
     }
-//    public void addTurnable(){
-//        if(!cellDetailVBox.getChildren().contains(isTurnedCBox))cellDetailVBox.getChildren().add(isTurnedCBox);
-//    }
 
-//    public void activateExitOpenCheckbox(){
-//        deactivateCellDetails();
-//        cellDetailVBox.getChildren().add(exitOpenCheckBox);
-//    }
     public void activateTrapChoicebox(){
         deactivateCellDetails();
         cellDetailVBox.getChildren().addAll(cellDetailLbl,trapChoiceBox);
@@ -418,14 +332,6 @@ public class LevelEditorModule {
         return changeCellIdBtn;
     }
 
-    public void setLOCToStarsValues(Integer[] locToStars) {
-        maxLoc2StarsVLbl.setText(locToStars[0]+"");
-        maxLoc3StarsVLbl.setText(locToStars[1]+"");
-    }
-    public void setTurnsToStarsValues(Integer[] turnsToStars) {
-        maxTurns2StarsVLbl.setText(turnsToStars[0]+"");
-        maxTurns3StarsVLbl.setText(turnsToStars[1]+"");
-    }
     public void setRequiredLevels(List<String> requiredLevels) {
         requiredLevelsLView.getItems().clear();
         if(requiredLevels == null) return;
@@ -434,7 +340,7 @@ public class LevelEditorModule {
         }
     }
 
-    public Label getMaxKnightsValueLbl() {
+    Label getMaxKnightsValueLbl() {
         return maxKnightsValueLbl;
     }
 
@@ -469,11 +375,11 @@ public class LevelEditorModule {
         return copyLevelBtn;
     }
 
-    public Label getIndexValueLbl() {
+    Label getIndexValueLbl() {
         return indexValueLbl;
     }
 
-    public Label getIsTutorialValueLbl() {
+    Label getIsTutorialValueLbl() {
         return isTutorialValueLbl;
     }
 
@@ -488,7 +394,7 @@ public class LevelEditorModule {
         return changeLvlNameBtn;
     }
 
-    public Label getTutorialNumberValueLbl() {
+    Label getTutorialNumberValueLbl() {
         return tutorialNumberValueLbl;
     }
 
@@ -513,7 +419,7 @@ public class LevelEditorModule {
     public Button getDeleteTutorialTextBtn() {
         return deleteTutorialTextBtn;
     }
-    public VBox getTutorialVBox() {
+    VBox getTutorialVBox() {
         return tutorialVBox;
     }
 
@@ -524,40 +430,36 @@ public class LevelEditorModule {
         return isInvertedCBox;
     }
 
-    public void toggleLevelIsSaved(boolean confirmed){
+    void toggleLevelIsSaved(boolean confirmed){
         if(confirmed)levelNameValueLbl.setStyle(LEVEL_IS_SAVED_STYLE);
         else levelNameValueLbl.setStyle(LEVEL_NOT_SAVED_STYLE);
     }
-    public Label getLevelNameValueLbl(){
+    Label getLevelNameValueLbl(){
         return levelNameValueLbl;
     }
 
-    public Label getMaxLoc3StarsVLbl() {
+    Label getMaxLoc3StarsVLbl() {
         return maxLoc3StarsVLbl;
     }
 
-    public Label getMaxLoc2StarsVLbl() {
+    Label getMaxLoc2StarsVLbl() {
         return maxLoc2StarsVLbl;
     }
 
-    public Label getMaxTurns3StarsVLbl() {
+    Label getMaxTurns3StarsVLbl() {
         return maxTurns3StarsVLbl;
     }
 
-    public Label getMaxTurns2StarsVLbl() {
+    Label getMaxTurns2StarsVLbl() {
         return maxTurns2StarsVLbl;
     }
 
-    public void showRequiredLevelsHBox(boolean b) {
-//        if(b && !topHBox.getChildren().contains(requiredLevelsHBox)){
-//            topHBox.getChildren().add(12,requiredLevelsHBox);
-//        }
-//        else topHBox.getChildren().remove(requiredLevelsHBox );
+    void showRequiredLevelsHBox(boolean b) {
         requiredLVBOX.setVisible(b);
         editRequiredLevelsBtn.setVisible(b);
     }
 
-    public Label getAmountOfRerunsValueLbl() {
+    Label getAmountOfRerunsValueLbl() {
         return amountOfRerunsValueLbl;
     }
 }

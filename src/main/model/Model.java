@@ -6,12 +6,10 @@ import main.model.enums.ItemType;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
-import main.model.statement.MethodDeclaration;
 import main.model.statement.Statement;
 import main.model.statement.StatementIterator;
 import main.utility.GameConstants;
 import main.utility.Util;
-import main.utility.Variable;
 
 import java.util.*;
 
@@ -23,10 +21,8 @@ public abstract class Model {
     private static int currentLevelIndex = 0;
     private static LevelChangeSender levelChangeSender;
 
-    //TODO:!!!!!
     private static List<Integer> unlockedLevelIdList = new ArrayList<>();
     private static List<String> unlockedStatementsList = new ArrayList<>();
-    private static List<MethodDeclaration> createdMethodsList = new ArrayList<>();
     private static GameMap currentMap;
     private static ComplexStatement playerBehaviour;
 
@@ -65,8 +61,6 @@ public abstract class Model {
         Model.unlockedLevelIdList = unlockedLevelsList;
         if(unlockedLevelsList.size()==0)unlockedLevelsList.add(levelList.get(0).getId());
         Model.unlockedStatementsList = unlockedStatementsList;
-        // not implemented at the moment:
-//        Model.createdMethodsList = new ArrayList<>();
     }
 
     private static Level getCurrentLevel() {
@@ -186,14 +180,7 @@ public abstract class Model {
                 getCurrentLevel().setTutorialMessages((List<String>) value);
                 break;
             case LEVEL_NAME:
-//                String oldName = getCurrentLevel().getName();
                 String name = (String) value;
-//                for(Level l : levelList){
-//                    if(l.getRequiredLevelIdsCopy().contains(oldName)){
-//                        l.getRequiredLevelIdsCopy().remove(oldName);
-//                        l.getRequiredLevelIdsCopy().add(name);
-//                    }
-//                }
                 getCurrentLevel().setName(name);
                 break;
         }
@@ -210,7 +197,6 @@ public abstract class Model {
 
     private static void moveCurrentLevelDown() {
         Level tempLevel = levelList.get(currentLevelIndex-1);
-//        getCurrentLevel().removeRequiredLevelId(tempLevel.getId());
         levelList.set(currentLevelIndex-1, getCurrentLevel());
         levelList.set(currentLevelIndex, tempLevel);
         currentLevelIndex--;
@@ -218,7 +204,6 @@ public abstract class Model {
 
     private static void moveCurrentLevelUp() {
         Level tempLevel = levelList.get(currentLevelIndex+1);
-//        tempLevel.removeRequiredLevelId(getCurrentLevel().getId());
         levelList.set(currentLevelIndex+1, getCurrentLevel());
         levelList.set(currentLevelIndex, tempLevel);
         currentLevelIndex++;
@@ -283,20 +268,6 @@ public abstract class Model {
 
     public static Map<LevelDataType,LevelChange> getAndConfirmCurrentChanges() {
         Map<LevelDataType,LevelChange> output = levelChangeSender.getAndConfirmChanges();
-        if(output.containsKey(LevelDataType.LEVEL_NAME)){
-            LevelChange change = output.get(LevelDataType.LEVEL_NAME);
-//            String name = getCurrentLevel().getName();
-//            String oldName = (String) change.getOldValue();
-//            for(Level l : levelList){
-//                if(l.getRequiredLevelIdsCopy().contains(oldName)){
-//                    l.getRequiredLevelIdsCopy().remove(oldName);
-//                    l.getRequiredLevelIdsCopy().add(name);
-//                }
-//            }
-        }
-        if(output.containsKey(LevelDataType.LEVEL_INDEX)){
-
-        }
         if(output.containsKey(LevelDataType.IS_TUTORIAL)){
             if((boolean)output.get(LevelDataType.IS_TUTORIAL).getNewValue())
                 output.put(LevelDataType.REQUIRED_LEVELS,new LevelChange(LevelDataType.REQUIRED_LEVELS,getCurrentLevel().getRequiredLevelIdsCopy(),new ArrayList<>()));
@@ -335,7 +306,6 @@ public abstract class Model {
                 return level.getName();
             case HAS_AI:
                 return level.hasAi();
-            //TODO:
         }
         return null;
     }
@@ -374,13 +344,6 @@ public abstract class Model {
             if(l.getName().equals(t1))return true;
         }
         return false;
-    }
-
-    private static Level getLevelWithName(String name) {
-        for(Level l : levelList){
-            if(l.getName().equals(name))return l;
-        }
-        return null;
     }
 
     public static Statement[] executeTurn() {
@@ -492,8 +455,6 @@ public abstract class Model {
 
                         currentMap.setFlag(x,y,CFlag.OPEN,false);
                         notAllTriggered = true;
-
-//                        break;
                     }
                 }
                 if(!notAllTriggered&&cell.getLinkedCellsSize()>0){
@@ -510,7 +471,6 @@ public abstract class Model {
                     currentMap.setFlag(x,y,CFlag.PREPARING,false);
                     currentMap.setFlag(x,y,CFlag.ARMED,true);
                     currentMap.kill(x,y);
-//                cell.setMultipleItems(null);
                 }else if(cell.hasFlag(CFlag.ARMED)){
                     currentMap.setFlag(x,y,CFlag.ARMED,false);
                 } else currentMap.setFlag(x,y,CFlag.PREPARING,true);}
@@ -540,13 +500,6 @@ public abstract class Model {
         return turnsTaken;
     }
 
-//    public static int getCurrentBestTurns() {
-//        return getBestTurnsOfLevel(currentLevelIndex);
-//    }
-//    public static int getCurrentBestLOC() {
-//        return getBestLocOfLevel(currentLevelIndex);
-//    }
-
     public static boolean isStackOverflow() {
         return isStackOverflow;
     }
@@ -559,9 +512,6 @@ public abstract class Model {
         resetForNextRound();
         aiLineRandIntMap = new HashMap<>();
         currentRound = 1;
-//        if(getCurrentLevel().hasAi())
-//        if(currentAiBehaviour!=null)
-//            currentAiBehaviour.resetVariables(true);
     }
 
     public static void resetForNextRound() {
@@ -610,10 +560,7 @@ public abstract class Model {
         else {
             // When completing a level from leveleditor without having it unlocked in DEBUG-Mode
             if(!unlockedLevelIdList.contains(getCurrentId()))return;
-                //throw new IllegalStateException("You just completed a level you hadnt even unlocked in the first place!");
-            // This also should be impossible!
             if(!bestLOCMap.containsKey(getCurrentId())||bestLOCMap.get(getCurrentId()).equals(-1))return;
-//                throw new IllegalStateException("Well this should not have happened! My sincerest apologies!");
 
             int i = 0;
             for(Level l : levelList){
@@ -640,13 +587,6 @@ public abstract class Model {
             }
         }
     }
-//
-//    private static Level getLevelWithId(Integer s) {
-//        for(Level l : levelList){
-//            if(l.getId() == s)return l;
-//        }
-//        return null;
-//    }
 
     public static boolean putStatsIfBetter(int loc, int turns, double nStars) {
         int bestLoc = -1;
@@ -748,18 +688,6 @@ public abstract class Model {
         return output;
     }
 
-    public static int getTutorialSlot(String levelName) {
-        int output = 0;
-        for(Level l : levelList){
-            if(levelName.equals(l.getName())){
-                if(!l.isTutorial())return -1;
-                return output;
-            }
-            if(l.isTutorial())output++;
-        }
-        return -1;
-    }
-
     public static int getNextTutorialIndex() {
         int output = 0;
         for(Level l : levelList){
@@ -783,15 +711,6 @@ public abstract class Model {
     public static void addLevelAtCurrentPos(Level level, boolean b) {
         if(currentLevelIndex == levelList.size()-1)addLevelLast(level, b);
         else addLevel(getCurrentIndex()+1, level, b);
-    }
-
-    public static List<Variable> getVariableListFromMethod(String methodName) {
-        for(MethodDeclaration mD : createdMethodsList){
-            if(mD.getMethodName().equals(methodName)){
-                return mD.getVariableList();
-            }
-        }
-        return null;
     }
 
     public static void setTutorialProgress(int nextIndex) {
@@ -865,9 +784,4 @@ public abstract class Model {
         currentRound++;
     }
 
-
-//    public static void updateSpawnedEntities() {
-//        if(CodeExecutor.knightWasSpawned())knightsSpawned++;
-//        if(CodeExecutor.skeletonWasSpawned())skeletonsSpawned++;
-//    }
 }

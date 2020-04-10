@@ -8,7 +8,7 @@ import main.utility.Util;
 
 public class MethodCall extends SimpleStatement {
     private MethodType methodType;
-    private ExpressionTree expressionTree; //TODO: erscheint eigentlich unnötig! weder das Object noch die parameter sind expressions (letztere eventuell aber doch!)
+    private ExpressionTree expressionTree;
 
     public MethodCall(MethodType methodType,String objectName,String parameters){
         super(StatementType.METHOD_CALL);
@@ -24,7 +24,7 @@ public class MethodCall extends SimpleStatement {
 
     @Override
     public String getText(){
-        String methodString = "";
+        String methodString;
         String objectName = getExpressionTree().getLeftNode().getText();
         if(!objectName.equals(""))methodString = getExpressionTree().getLeftNode().getText()+"."+methodType.getName()+"("+getExpressionTree().getRightNode().getText()+");";
         else methodString = methodType.getName()+"("+getExpressionTree().getRightNode().getText()+");";
@@ -36,7 +36,6 @@ public class MethodCall extends SimpleStatement {
         return expressionTree.getLeftNode().getText();
     }
     public String[] getParameters() {
-//        if(expressionTree.getRightNode() == null)return new String[]{""};
         if(!expressionTree.getRightNode().getText().contains(","))return new String[] {expressionTree.getRightNode().getText()};
         return Util.getParametersFromString(expressionTree.getRightNode().getText());
     }

@@ -18,17 +18,15 @@ import static main.utility.GameConstants.*;
 
 public class SpellBookPane extends VBox {
 
-    //    private List<SpellBookLabel> spellBookEntryList;
     private ListView<Pane> spellListView = new ListView<>();
 
 
     private Button closeBtn = new Button("x");
     private Button moveBtn = new Button("<+>");
     private Button showShortcutsBtn = new Button("Show Shortcuts");
-    private Button createMethodBtn = new Button("Create Method");
 
 
-    public SpellBookPane(){
+    SpellBookPane(){
         this.setMaxSize(SPELLBOOK_WIDTH, GameConstants.SPELLBOOK_HEIGHT);
         spellListView.setPrefSize(SPELLBOOK_WIDTH, GameConstants.SPELLBOOK_HEIGHT);
         spellListView.setMaxSize(SPELLBOOK_WIDTH, GameConstants.SPELLBOOK_HEIGHT);
@@ -38,9 +36,6 @@ public class SpellBookPane extends VBox {
         showShortcutsBtn.setFont(MEDIUM_FONT);
         moveBtn.setFont(MEDIUM_FONT);
         spellListView.autosize();
-//        Rectangle rect = new Rectangle(spellListView.getPrefWidth()+10,spellListView.getPrefHeight()+25,Color.BLACK);//spellListView.getItems().size()*20,Color.WHITE);
-//        this.setMouseTransparent(true);
-//        closeBtn.setAlignment(Pos.TOP_RIGHT);
         HBox hBox = new HBox(new SpellBookLabel(SpellBookLabelType.HEADING,"Spell Book","Contains all spells you've unlocked!"), showShortcutsBtn,moveBtn,closeBtn);
 
         hBox.setSpacing(SPELLBOOK_WIDTH/6);
@@ -51,10 +46,7 @@ public class SpellBookPane extends VBox {
         this.setPickOnBounds(false);
         this.setBackground(new Background(new BackgroundImage(new Image( GameConstants.BG_DARK_TILE_PATH ), BackgroundRepeat.REPEAT,null,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT )));
         this.setBorder(new Border(new BorderImage(new Image(GameConstants.BG_DARK_TILE_PATH),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
-//        this.setPickOnBounds(false);
-//        this.getChildren().addAll();//rect,vBox);
-        //TODO: decide what to do with this
-//        this.getChildren().add(createMethodBtn );
+
     }
 
     public void updateSpellbookEntries(List<String> unlockedSpells){
@@ -287,9 +279,6 @@ public class SpellBookPane extends VBox {
     }
     public Button getMoveBtn() {
         return moveBtn;
-    }
-    public Button getCreateMethodBtn() {
-        return createMethodBtn;
     }
     public Button getShowShortcutsBtn() {
         return showShortcutsBtn;

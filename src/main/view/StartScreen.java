@@ -1,12 +1,8 @@
 package main.view;
 
-import javafx.geometry.HPos;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -21,13 +17,9 @@ public class StartScreen extends BorderPane {
     private Button playBtn = new Button("");
     private Button exitBtn = new Button("");
     private Button lvlEditor  = new Button("");
-    private Button switchLanguage  = new Button("Switch Language: EN -> DE"); //TODO!!!
 
-    public StartScreen(){
-        switchLanguage.setDisable(true);
+    StartScreen(){
         Util.applyStartButtonFormat(tutorialBtn,playBtn,exitBtn,lvlEditor);
-//        Separator sep = new Separator(Orientation.HORIZONTAL);
-//        sep.setHalignment(HPos.CENTER);
         Label versionLabel = new Label("Version"+ GameConstants.VERSION);
         versionLabel.setStyle("-fx-text-fill: white");
 
@@ -67,7 +59,6 @@ public class StartScreen extends BorderPane {
         exitBtn.setStyle("-fx-background-color: transparent;" +
                 "-fx-base: transparent;");
         exitBtn.autosize();
-        switchLanguage.setAlignment(Pos.BASELINE_LEFT);
 
         Text helper = new Text(versionLabel.getText());
         helper.autosize();
@@ -84,14 +75,9 @@ public class StartScreen extends BorderPane {
         lvlEditor.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
         playBtn.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
         vBox.setAlignment(Pos.BASELINE_CENTER);
-//        BorderPane.setAlignment(vBox, Pos.BASELINE_CENTER);
-//        Pane.setAlignment(vBox, Pos.BOTTOM_CENTER);
         vBox.setMaxHeight(quitImageView.getLayoutBounds().getHeight()*10);
-//        vBox.setManaged(false);
         vBox.setSpacing(0);
         vBox.getChildren().addAll(tutorialBtn,playBtn,lvlEditor,exitBtn);
-//        Group g = new Group(vBox,hb);
-//        BorderPane.setMargin( g,new Insets(25));
     }
 
     public Button getTutorialBtn() {
@@ -108,9 +94,5 @@ public class StartScreen extends BorderPane {
 
     public Button getLvlEditorBtn() {
         return lvlEditor;
-    }
-
-    public Button getSwitchLanguage() {
-        return switchLanguage;
     }
 }

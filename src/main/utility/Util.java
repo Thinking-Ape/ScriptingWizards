@@ -30,16 +30,6 @@ import java.util.regex.Pattern;
 public abstract class Util {
     private static final Pattern isInteger = Pattern.compile("[+-]?\\d+");
 
-    public static final int tryParseInt(String value) {
-        if (value == null || !isInteger.matcher(value).matches()) {
-            return 0;
-        }
-        try {
-            return Integer.parseInt(value);
-        } catch(NumberFormatException nfe) {
-            return 0;
-        }
-    }
     public static String getDisplayableString(String name) {
         String output = "";
         boolean big = true;
@@ -57,14 +47,6 @@ public abstract class Util {
         }
         return output;
     }
-
-    public static <T> boolean listContains(List<T> list, T item){
-        for(int i = 0; i < list.size();i++){
-            if(list.get(i).equals(item))return true;
-        }
-        return false;
-    }
-
 
     public static List<String> splitValues(String text) {
         List<String> output = new ArrayList<>();
@@ -163,13 +145,6 @@ public abstract class Util {
         return new Color(95/255.0, 95/255.0, 95/255.0, 1);
     }
 
-    public static Cell[][] mirror(Cell[][] map) {
-        Cell[][] output = new Cell[map[0].length][map.length];
-        for(int i = 0; i < map[0].length;i++)for (int j = 0; j< map.length;j++){
-            output[i][j]=map[j][i];
-        }
-        return output;
-    }
 
     public static <T> boolean arrayContains(T[] list, T item){
         for(int i = 0; i < list.length;i++){
@@ -214,11 +189,9 @@ public abstract class Util {
         int i = 0;
         for(Double d : output){
             outputArray.get(outputArray.size()-1)[i]=d;
-//            System.out.print(i%2==0?"X: "+d:", Y: "+d+"\n");
             i++;
         }
         if(startList.size() == 0 ){
-//            List<Double[]> outputArray = new ArrayList<>();
             return outputArray;
         }
         else {
@@ -288,13 +261,13 @@ public abstract class Util {
         do {
             newPairs2 = newPairs;
             newPairs = newPairs2.replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+n|(^(\\\\\\\\)?+)\\\\+n)", "$2\n").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+t|(^(\\\\\\\\)?+)\\\\+t)", "$2\t").replaceAll("(([^\\\\](\\\\\\\\)?+)\\\\+\"|(^(\\\\\\\\)?+)\\\\+\")", "$2\"");
-//            System.out.println("."+pairs+"."+newPairs+".");
+
         }while (!newPairs.equals(newPairs2));
 
         do {
             newPairs2 = newPairs;
             newPairs = newPairs2.replaceAll("\\\\\\\\", "\\\\");
-//            System.out.println("."+pairs+"."+newPairs+".");
+
         }while (!newPairs.equals(newPairs2));
         return newPairs;
     }
@@ -362,16 +335,6 @@ public abstract class Util {
         return nStars;
     }
 
-    public static int countChars(String t1, char c) {
-
-        int output = 1;
-        char[] chars = t1.toCharArray();
-        for(int i = 0; i < t1.length(); i++){
-            if(chars[i]==c)output++;
-        }
-        return output;
-    }
-
     public static Image getStarImageFromDouble(double stars) {
         if(stars==0){
             return new Image("file:"+GameConstants.IMAGES_PATH+"0StarRating.png");
@@ -404,53 +367,6 @@ public abstract class Util {
         else return allText;
     }
 
-    public static StackPane getStackPane(Cell cell, Map<String,Image> contentImageMap, Shape shape, double cell_size, Map<String,Effect> entityColorMap) {
-        String contentString = cell.getContent().getDisplayName();
-        StackPane stackPane = new StackPane();
-
-        boolean isTurned = false;
-        boolean isInverted = false;
-        boolean isOpen = false;
-        for (CFlag flag : CFlag.values()) {
-            if (cell.hasFlag(flag)) {
-                if(flag.isTemporary())
-                    continue;
-                if(flag == CFlag.TURNED && (isTurned = true))continue;
-                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.GATE){
-                    isInverted = true;
-                    if(!isOpen)contentString += "_" + CFlag.OPEN.getDisplayName();
-                    else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
-                    continue;
-                }
-                if(flag == CFlag.OPEN ){
-                    isOpen = true;
-                    if(!isInverted)contentString += "_" + CFlag.OPEN.getDisplayName();
-                    else contentString = contentString.replace("_" + CFlag.OPEN.getDisplayName(),"");
-                    continue;
-                }
-                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && Model.getTurnsTaken()==0){
-                    isInverted = true;
-                    contentString += "_"+CFlag.INVERTED.getDisplayName()+ "_" + CFlag.TRIGGERED.getDisplayName();
-                    continue;
-                }
-                contentString += "_" + flag.getDisplayName();
-            }
-        }
-        ImageView imageView = new ImageView(contentImageMap.get(contentString));
-        imageView.setFitWidth(cell_size);
-        imageView.setFitHeight(cell_size);
-        if(isTurned)imageView.setRotate(270);
-        int amountOfKnights = Model.getAmountOfKnightsSpawned();
-        if(amountOfKnights < (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS)&&cell.getContent()== CellContent.SPAWN)
-            imageView.setEffect(getEffect(amountOfKnights,false));
-
-        if(cell.getContent()== CellContent.ENEMY_SPAWN)
-            imageView.setEffect(getEffect(entityColorMap.size() -amountOfKnights,false));
-        stackPane.getChildren().add(imageView);
-
-        return stackPane;
-    }
-
     public static Set<Point> getAllPointsIn(Point minBounds, Point maxBounds) {
         Set<Point> output = new SimpleSet<>();
         int minX = minBounds.getX();
@@ -462,25 +378,6 @@ public abstract class Util {
                 output.add(new Point(x, y));
             }
         return output;
-    }
-
-
-    public static StringPair splitAtChar(String code, char targetChar,boolean keepCharacter) {
-
-        String first ="";
-        String second="";
-        boolean found=false;
-        for(int i = 0; i < code.length(); i++){
-            char c = code.charAt(i);
-            if(!found)first = first.concat(c+"");
-            else second = second.concat(c+"");
-
-            if(c==targetChar){
-                found=true;
-            }
-        }
-        if(!keepCharacter && found)first = first.substring(0,first.length()-1);
-        return  new StringPair(first,second);
     }
 
     public static <T> List<T> moveItems(List<T> codeLines, int startIndex, int endIndex, int amount) {
@@ -575,16 +472,4 @@ public abstract class Util {
         return output / turnsList.size();
     }
 
-
-//    public static ImageView getEntityImageView(int number, Cell cell, Model model,List<Entity> entityActionList, Map<String,Image> contentImageMap, double cell_size, Map<String,Effect> entityColorMap, String entityName) {
-//
-//    }
-
-//    public static StackPane getStackPane2(Cell cell, Model model,List<Entity> entityActionList, Map<String,Image> contentImageMap, double cell_size, Map<String,Effect> entityColorMap) {
-//        StackPane stackPane = new StackPane();
-//        int number = 1;
-//
-//
-//        return stackPane;
-//    }
 }

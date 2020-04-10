@@ -18,7 +18,8 @@ public enum CFlag {
     ACTION(true), //only used for SPAWN when there are no more knights to spawn!
     //HURTING("Hurting"),
     //COLLECTIBLE("Collectible");
-    CHANGE_COLOR(true);
+    CHANGE_COLOR(true),
+    HELPER_FLAG(true);
     boolean isTemporary;
 
     CFlag(boolean isTemporary) {

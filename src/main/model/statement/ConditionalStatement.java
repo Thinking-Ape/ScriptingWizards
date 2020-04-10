@@ -19,13 +19,6 @@ public class ConditionalStatement extends ComplexStatement {
         elseStatement.setParentStatement(getParentStatement());
     }
 
-//    @Override
-//    public void print() throws IllegalAccessException {
-//        System.out.println(getText());
-//        super.print();
-//        System.out.println("}");
-//    }
-
     public void setActive(boolean isActive) {
         if(this.statementType == StatementType.ELSE){
             this.isActive = isActive;
@@ -35,9 +28,6 @@ public class ConditionalStatement extends ComplexStatement {
         System.out.println("This should not have happened");
     }
 
-//    public boolean elseActivated() {
-//        return jumpingToElse;
-//    }
 
     public boolean hasElseStatement() {
         return elseStatement == null;
@@ -55,12 +45,6 @@ public class ConditionalStatement extends ComplexStatement {
         if(elseStatement != null)
             elseStatement.setActive(true);
     }
-
-//    @Override
-//    public void resetVariables(boolean isTotal) {
-//        if(StatementType.ELSE == this.statementType)this.setActive(false);
-//        super.resetVariables(true);
-//    }
 
     @Override
     public String getText() {

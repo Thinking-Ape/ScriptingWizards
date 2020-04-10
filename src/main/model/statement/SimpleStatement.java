@@ -1,6 +1,5 @@
 package main.model.statement;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleStatement implements Statement {
@@ -29,19 +28,6 @@ public class SimpleStatement implements Statement {
     public void setParentStatement(ComplexStatement parentStatement) {
         this.parentStatement = parentStatement;
     }
-
-    @Override
-    public Statement nextStatement() {
-        parentStatement.skip();
-        return this;
-    }
-//
-//    @Override
-//    public void print() {
-//        System.out.print(expressionTree.getValue());
-//    }
-
-//    public abstract void print();
 
     public int getActualSize() {
         return getText().equals("") ? 0 : 1;
@@ -72,10 +58,6 @@ public class SimpleStatement implements Statement {
         return getText();
     }
 
-//    @Override
-//    public void resetCounter() {
-//        //do nothing
-//    }
 
     @Override
     public boolean isComplex() {

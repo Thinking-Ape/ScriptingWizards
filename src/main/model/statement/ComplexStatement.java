@@ -12,7 +12,6 @@ public class ComplexStatement implements Statement {
     List<Statement> statementList = new ArrayList<>();
     StatementType statementType;
     int counter=-1;
-//    Set<Variable> localVariableSet = new SimpleSet<>();
     ComplexStatement parentStatement = null;
     protected Condition condition;
 
@@ -23,53 +22,9 @@ public class ComplexStatement implements Statement {
         this.parentStatement = parentStatement;
     }
 
-//    public void updateVariable(Variable variable) {
-//        Variable var = getVariable(variable.getName());
-//        if(var == null){
-//            if(parentStatement == null || (var = parentStatement.getVariable(variable.getName())) == null)throw new IllegalStateException("Variable "+ variable.getName() + " does not exist!");
-//        }
-//        var.update(variable.getValue());
-//    }
-
-    /** Will return a Variable that has the same name as the given parameter. If there are no local variables with that
-     *  name, the search will be passed on to the parent statement
-     *
-     * @return The found Variable or null
-     */
-//    public Variable getVariable(String variableName) {
-//        for(Variable var : localVariableSet){
-//            if(var.getName().equals(variableName)){
-//                return  var;
-//            }
-//        }
-//        return parentStatement == null ? null : parentStatement.getVariable(variableName);
-//    }
-
     public ComplexStatement(){
-//        this.depth = depth;
         this.statementType = StatementType.COMPLEX;
     }
-//    public void resetVariables(boolean total) {
-//        counter = -1;
-//        localVariableSet = new SimpleSet<>();
-//        for(Statement statement : statementList){
-//            if(statement.isComplex()){
-//                ((ComplexStatement)statement).resetVariables(true);
-//            }
-//        }
-//    }
-
-//    public void addLocalVariable(Variable variable) {
-//        for(Variable variable1 : localVariableSet){
-//            if(variable.getName().equals(variable1.getName())){
-//                throw new IllegalStateException("Variable " + variable.getName()+" already in scope!");
-//            }
-//        }
-//        if(parentStatement != null && parentStatement.getVariable(variable.getName())!=null){
-//                throw new IllegalStateException("Variable " + variable.getName()+" already in scope!");
-//        }
-//        localVariableSet.add(variable);
-//    }
 
     @Override
     public ComplexStatement getParentStatement() {
@@ -118,37 +73,11 @@ public class ComplexStatement implements Statement {
 
     @Override
     public String getText() {
-//        throw new IllegalAccessException("You cannot call this Method for a Complex Statement!");
         return "";
     }
 
     public int getStatementListSize(){
         return statementList.size();
-    }
-
-    //TODO: Statement-Iterator-class?
-    /** Gives the next substatement in the List. If the counter reaches the end of the List,
-     * the instance of this Object is returned instead.
-     * @return this, or a Statement from the @statementList
-     */
-    public Statement nextStatement(){
-        if(counter == -1){
-            counter++;
-            return this;
-        }
-        if(counter == statementList.size()){
-//            resetVariables(false);
-            return null;
-        }
-        Statement nextStatement = statementList.get(counter).nextStatement();
-        if(nextStatement == null){
-            counter ++;
-            return nextStatement();
-        }
-        return nextStatement;
-    }
-    public void skip(){
-        counter++;
     }
 
     public int getActualSize(){

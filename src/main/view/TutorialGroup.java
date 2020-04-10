@@ -1,8 +1,6 @@
 package main.view;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -35,8 +33,7 @@ public class TutorialGroup extends Group {
     private List<String> tutorialEntries = new ArrayList<>();
     private ImageView wizard;
 
-    //TODO: ALIGNMENT NOT WORKING PROP
-    public TutorialGroup(){
+    TutorialGroup(){
         ImageView imageView = new ImageView(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
         imageView.setFitHeight(GameConstants.BUTTON_SIZE);
         imageView.setFitWidth(GameConstants.BUTTON_SIZE);
@@ -75,8 +72,6 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setMouseTransparent(true);
         currentTutorialMessage.setStyle("-fx-background-color: transparent;" +
                 "-fx-base: transparent;");
-//        currentTutorialMessage.setTranslateX(30);
-//        currentTutorialMessage.setTranslateY(90);
         currentTutorialMessage.setMaxSize(GameConstants.TEXTFIELD_WIDTH, GameConstants.TEXTFIELD_WIDTH/2.0);
         currentTutorialMessage.setFont(GameConstants.BIG_FONT);
         ImageView bubble_IView = new ImageView(new Image("file:resources/images/Speech_Bubble.png"));
@@ -84,18 +79,7 @@ public class TutorialGroup extends Group {
         bubble_IView.setFitWidth(bubble_IView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
         currentTutorialMessage.setTranslateX(-bubble_IView.getBoundsInLocal().getWidth()/20.0);
         currentTutorialMessage.setTranslateY(-bubble_IView.getBoundsInLocal().getHeight()/14.5);
-        // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
-        Platform.runLater(()->{
-            currentTutorialMessage.setCache(false);
-            if(currentTutorialMessage.getChildrenUnmodifiable().size() == 0)return;
-            ScrollPane sp = (ScrollPane)currentTutorialMessage.getChildrenUnmodifiable().get(0);
-            sp.setCache(false);
-            for (Node n : sp.getChildrenUnmodifiable()) {
-                n.setCache(false);
-            }});
 
-//        String tabString = "\t";
-//        Rectangle wizard = new Rectangle(50,50,Color.BLUE);
         wizard = new ImageView(new javafx.scene.image.Image(GameConstants.WIZARD_IMAGE_PATH));
         wizard.setFitHeight(wizard.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
         wizard.setFitWidth(wizard.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
@@ -114,20 +98,15 @@ public class TutorialGroup extends Group {
         HBox navigationHBox = new HBox(hideBtn, prevBtn, nextBtn);
         VBox vb = new VBox(sp, navigationHBox,endIntroductionBtn);
         vb.setAlignment(Pos.TOP_CENTER);
-//        vb.setMouseTransparent(true);
         vb.setPickOnBounds(false);
         StackPane.setAlignment(currentTutorialMessage, Pos.BOTTOM_CENTER);
         navigationHBox.setAlignment(Pos.TOP_RIGHT);
-//        prevBtn.setAlignment(Pos.TOP_RIGHT);
         vb.setSpacing(GameConstants.TEXTFIELD_HEIGHT);
         hb = new HBox(vb,wizard);
         hb.setAlignment(Pos.BOTTOM_RIGHT);
-//        hb.setMouseTransparent(true);
         hb.setPickOnBounds(false);
 
-//        hb.setAlignment(Pos.BOTTOM_RIGHT);
         this.getChildren().addAll(hb);
-//        this.setMinSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
         this.autosize();
         //makes the layer below this one also receive clicks!
         this.setPickOnBounds(false);
@@ -137,6 +116,18 @@ public class TutorialGroup extends Group {
         nextBtn.setDisable(true);
         endIntroductionBtn.setVisible(false);
 
+
+
+        // ANOTHER BUG WORK AROUND! (Bug was that text got blurry in TextArea)
+        Platform.runLater(()->{
+            currentTutorialMessage.setCache(false);
+            if(currentTutorialMessage.getChildrenUnmodifiable().size() == 0)return;
+            ScrollPane sp = (ScrollPane)currentTutorialMessage.getChildrenUnmodifiable().get(0);
+            sp.setCache(false);
+            for (Node n : sp.getChildrenUnmodifiable()) {
+                n.setCache(false);
+            }});
+        currentTutorialMessage.setCache(false);
 
     }
 
@@ -168,7 +159,7 @@ public class TutorialGroup extends Group {
         nextBtn.setDisable(false);
     }
 
-    public void setEntries(List<String> tutorialEntryList) {
+    void setEntries(List<String> tutorialEntryList) {
         index = 0;
         tutorialEntries.clear();
         tutorialEntries.addAll(tutorialEntryList);
@@ -184,9 +175,10 @@ public class TutorialGroup extends Group {
             for (Node n : sp.getChildrenUnmodifiable()) {
                 n.setCache(false);
             }});
+            currentTutorialMessage.setCache(false);
         }
     }
-    public void leaveIntroduction(){
+    void leaveIntroduction(){
         hb.setBorder(null);
         hb.setBackground(null);
         endIntroductionBtn.setVisible(false);
@@ -197,7 +189,7 @@ public class TutorialGroup extends Group {
                 "-fx-base: transparent;");
     }
 
-    public void activateIntroduction(){
+    void activateIntroduction(){
         hb.setBorder(new Border(new BorderStroke(Color.BLACK,new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.ROUND, StrokeLineCap.ROUND,1,2,null),null,new BorderWidths(5))));
         hb.setBackground(new Background(new BackgroundImage(new Image(GameConstants.BG_DARK_TILE_PATH),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
         endIntroductionBtn.setVisible(false);
@@ -216,7 +208,6 @@ public class TutorialGroup extends Group {
         return endIntroductionBtn;
     }
     public void toggleStackpaneVisibility(){
-//        this.setPickOnBounds(nextBtn.isVisible());
         nextBtn.setVisible(!nextBtn.isVisible());
         prevBtn.setVisible(!prevBtn.isVisible());
         sp.setVisible(!sp.isVisible());
@@ -225,18 +216,7 @@ public class TutorialGroup extends Group {
 
     }
 
-    public int getCurrentIndex() {
+    int getCurrentIndex() {
         return index;
     }
-//
-//    public void unbind() {
-//        for(StringProperty stringProperty : tutorialEntries){
-//            stringProperty.unbind();
-//        }
-//    }
-//
-//    public void bindEntriesTo(StringListProperty tutorialEntryList) {
-//        tutorialEntryList.bindAll(tutorialEntries);
-//        currentTutorialMessage.textProperty().bind();
-//    }
 }

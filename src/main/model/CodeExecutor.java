@@ -63,12 +63,14 @@ public abstract class CodeExecutor {
                 Point spawn = currentGameMap.findSpawn();
 
                 if(statement.getStatementType() == StatementType.ASSIGNMENT) currentGameMap.getEntity(name).deleteIdentity();
-                if(spawn.getX() != -1&&currentGameMap.isCellFree(spawn) && (canSpawnKnights||replaced)){
+                if(spawn.getX() != -1&&currentGameMap.getEntity(spawn)==NO_ENTITY && (canSpawnKnights||replaced)){
+                    if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
                     currentGameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
                     knightWasSpawned = !replaced;
                 }
 
-            }else if(var.getVariableType() == VariableType.SKELETON){ //TODO: stattdessen ENEMY?
+            }else if(var.getVariableType() == VariableType.SKELETON){
+                if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
                 method_Called = true;
                 if(currentGameMap.getEnemySpawnList().size()==0)return true;
                 String name = var.getName();
@@ -93,15 +95,15 @@ public abstract class CodeExecutor {
                     int i = Integer.valueOf(spawnId);
                     for(Point point : currentGameMap.getEnemySpawnList()){
                         spawnPoint = point;
-                        if(currentGameMap.getCellID(spawnPoint)==i){
+                        if(currentGameMap.getCellID(spawnPoint)==i&&currentGameMap.getEntity(spawnPoint)==NO_ENTITY){
                             currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
                             skeletonWasSpawned = !replaced;
                         }
                     }
                 }
-                else {
+                else if(currentGameMap.getEntity(spawnPoint)==NO_ENTITY){
                     currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
-                    skeletonWasSpawned = true;
+                    skeletonWasSpawned = !replaced;
                 }
             }
 
@@ -127,7 +129,7 @@ public abstract class CodeExecutor {
         if((actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD)&&GameConstants.ACTION_WITHOUT_CONSEQUENCE){
             currentGameMap.setFlag(actorPos , CFlag.ACTION,true );
             //this will have the effect that the target cell will be drawn, even though it did not change
-            if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name),CFlag.ACTION,true);
+            if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name),CFlag.HELPER_FLAG,true);
         }
         if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CellContent.DIRT){
             currentGameMap.setContent(targetPos, CellContent.PATH);

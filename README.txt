@@ -23,9 +23,7 @@ Falls kein Zugang zu einem Windows-Rechner besteht:
     kontaktieren, um Zugang zum git Repository zu erhalten.
 Ansonsten muss einfach die image.zip in einen beliebigen Ordner entpackt werden. Anschließend kann das Spiel durch
 Aufrufen der Datei "ScriptingWizards.bat" im Ordner "bin" gestartet werden.
-Wenn das Projekt auf den neuesten Stand gebracht werden soll, ohne den bisherigen Spielstand zu verlieren, muss die
-Datei "data.json" im Ordner "bin/resources" kopiert werden und nach herunterladen der neuesten Version (über den Link
-https://cloud.chrz.de/s/yHyjfLxgb83BaDk) die neue data.json durch die alte ersetzt werden.
+ACHTUNG: die neue data.json ist nicht mehr kompatibel mit der alten!
 BEACHTE: Dies kann das Spiel eventuell zum abstürzen bringen! In diesem Fall ist die alte data.json nicht mehr
 kompatibel!
 

@@ -22,7 +22,7 @@ public class LevelOverviewPane extends VBox {
     private ListView<LevelEntry> levelListView = new ListView<>();
     private Button playBtn = new Button();
     private Button backBtn = new Button();
-    private boolean isTutorial = false;
+    private boolean isTutorial;
 
     public LevelOverviewPane( boolean isTutorial){
         this.isTutorial = isTutorial;
@@ -82,8 +82,6 @@ public class LevelOverviewPane extends VBox {
             double nStars = Util.calculateStars(turns,loc,turnsToStars,locToStars);
             //TODO: improve -> see make view static
             GameMap gameMap = (GameMap) Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
-            boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
-            int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
             // View.getImageFromMap(gameMap) is an intensive calculation!
             // Dont call this too often!
             LevelEntry le = new LevelEntry(View.getImageFromMap(gameMap),levelName,
@@ -97,14 +95,12 @@ public class LevelOverviewPane extends VBox {
             updateWidth(le);
         }
     }
-    public void addLevel(int i){
+    public void addLevelWithIndex(int i){
         Image image = View.getImageFromMap((GameMap)Model.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i));
         Integer[] turnsToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
         Integer[] locToStars = (Integer[]) Model.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
 //        double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars)
         String levelName = (String)Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i);
-        boolean hasAI = (boolean)Model.getDataFromLevelWithIndex(LevelDataType.HAS_AI,i);
-        int maxKnights = (int)Model.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,i);
         LevelEntry le = new LevelEntry(image,levelName,
                 getLevelTooltip(turnsToStars,locToStars),getBestScoreString(-1,-1,0),0);
         int index = 0;

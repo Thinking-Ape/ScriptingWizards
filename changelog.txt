@@ -1,4 +1,13 @@
+Version 1.5c:
+    - load best code button is now only available if code is stored for that level
+    - Edited Level "The Revenant"
+    - Entities with the same name will now always have the same color and spawns will not change color everytime they are respawned
+    - more bugfixes
+Version 1.5b:
+    - more bugfixes
+    - added another Challenge Level "The Revenant"
 Version 1.5a:
+    - changed data.json! It is no longer compatible with older versions!!!
     - LevelOverviewPanes no longer contain information about AI, etc.
     - improved Error recognition and Error messages
     - created new Challenge-Level RandomizedLaboratory

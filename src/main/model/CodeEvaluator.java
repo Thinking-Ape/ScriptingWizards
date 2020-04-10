@@ -105,6 +105,7 @@ public class CodeEvaluator {
             condition = ((ComplexStatement)currentStatement).getCondition();
         }
         if(isPlayer)updateUnlocks(currentStatement);
+        variableScope.setCurrentDepth(statement.getDepth()-1);
         switch (currentStatement.getStatementType()){
             //TODO: statementDepth map, List<Variable> in every statement, new Variable -> statemnetDepthMap.get(currentDepth -1).addVariable(variable) -> add also to substatements
             case COMPLEX:
@@ -313,7 +314,6 @@ public class CodeEvaluator {
                 }
                 break;
         }
-        variableScope.setCurrentDepth(statement.getDepth()-1);
         return currentStatement;
     }
 

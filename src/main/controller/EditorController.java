@@ -2,7 +2,6 @@ package main.controller;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -32,7 +31,6 @@ import main.utility.Util;
 import main.view.SceneState;
 import main.view.View;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -470,13 +468,13 @@ public class EditorController implements SimpleEventListener {
                 if((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL)){
                     if(view.getTutorialLevelOverviewPane().containsLevel(levelName))
                         view.getTutorialLevelOverviewPane().updateLevel(levelName);
-                    else view.getTutorialLevelOverviewPane().addLevel(Model.getCurrentIndex());
+                    else view.getTutorialLevelOverviewPane().addLevelWithIndex(Model.getCurrentIndex());
                 }
                 else {
 
                     if(view.getLevelOverviewPane().containsLevel(levelName))
                         view.getLevelOverviewPane().updateLevel(Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"");
-                    else view.getLevelOverviewPane().addLevel(Model.getCurrentIndex());
+                    else view.getLevelOverviewPane().addLevelWithIndex(Model.getCurrentIndex());
                 }
             }
 //            Platform.runLater(() ->{
@@ -808,8 +806,8 @@ public class EditorController implements SimpleEventListener {
                 view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
             }
         }else view.getLevelEditorModule().deactivateCellDetails();
-        if(view.getCodeArea().getSelectedCodeField()!=null && !view.getCodeArea().isDisabled())view.getCodeArea().getSelectedCodeField().requestFocus();
-        else if(view.getAICodeArea().getSelectedCodeField()!=null && !view.getAICodeArea().isDisabled())view.getAICodeArea().getSelectedCodeField().requestFocus();
+//        if(view.getCodeArea().getSelectedCodeField()!=null && !view.getCodeArea().isDisabled())view.getCodeArea().getSelectedCodeField().requestFocus();
+//        else if(view.getAICodeArea().getSelectedCodeField()!=null && !view.getAICodeArea().isDisabled())view.getAICodeArea().getSelectedCodeField().requestFocus();
     }
 
     private boolean toggleActionEventFiring() {
