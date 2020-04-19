@@ -1,5 +1,7 @@
 Version 1.5c:
     - load best code button is now only available if code is stored for that level
+    - level editor will now only be available if all levels have been completed
+    - added spaces in between some level names
     - Edited Level "The Revenant"
     - Entities with the same name will now always have the same color and spawns will not change color everytime they are respawned
     - more bugfixes
