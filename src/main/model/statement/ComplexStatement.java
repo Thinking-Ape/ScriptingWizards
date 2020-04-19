@@ -7,28 +7,14 @@ import main.view.CodeAreaType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ComplexStatement implements Statement {
+public class ComplexStatement extends Statement {
 
-    List<Statement> statementList = new ArrayList<>();
-    StatementType statementType;
-    int counter=-1;
-    ComplexStatement parentStatement = null;
+    private List<Statement> statementList = new ArrayList<>();
     protected Condition condition;
 
 
-
-    @Override
-    public void setParentStatement(ComplexStatement parentStatement) {
-        this.parentStatement = parentStatement;
-    }
-
     public ComplexStatement(){
         this.statementType = StatementType.COMPLEX;
-    }
-
-    @Override
-    public ComplexStatement getParentStatement() {
-        return parentStatement;
     }
 
     public void addSubStatement(Statement statement){
@@ -38,19 +24,16 @@ public class ComplexStatement implements Statement {
     public Statement getSubStatement(int index) {
         return statementList.get(index);
     }
-    public StatementType getStatementType(){
-        return statementType;
-    }
 
     @Override
-    public String print() {
+    public String getAllText() {
         String output="";
-        output +=getText()+"\n";
+        output += getCode()+"\n";
         for (int i = 0; i < getStatementListSize(); i++){
             for(int j = 0; j < getDepth()-1;j++){
                 output +="  ";
             }
-            output+=getSubStatement(i).print()+"\n";
+            output+=getSubStatement(i).getAllText()+"\n";
         }
         for(int j = 0; j < getDepth()-2;j++){
             output+="  ";
@@ -61,7 +44,7 @@ public class ComplexStatement implements Statement {
 
     public List<String> getCodeLines(){
         List<String> output = new ArrayList<>();
-        if(parentStatement != null)output.add(getText());
+        if(parentStatement != null)output.add(getCode());
         for(Statement s : statementList)output.addAll(s.getCodeLines());
         if(isComplex() && parentStatement != null )output.add("}");
         return output;
@@ -72,7 +55,7 @@ public class ComplexStatement implements Statement {
     }
 
     @Override
-    public String getText() {
+    public String getCode() {
         return "";
     }
 
@@ -118,6 +101,10 @@ public class ComplexStatement implements Statement {
     public boolean equals(Object obj) {
         if(obj instanceof ComplexStatement)return this.getCodeLines().equals(((ComplexStatement)obj).getCodeLines());
         return super.equals(obj);
+    }
+
+    public StatementIterator iterator(){
+        return new StatementIterator(this, false);
     }
 
 }

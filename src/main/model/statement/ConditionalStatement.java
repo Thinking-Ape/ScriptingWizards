@@ -47,7 +47,7 @@ public class ConditionalStatement extends ComplexStatement {
     }
 
     @Override
-    public String getText() {
+    public String getCode() {
         String output;
         if(statementType == StatementType.ELSE){
             if(condition == null)output = "else {";

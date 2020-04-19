@@ -24,10 +24,10 @@ import main.model.*;
 import main.model.gamemap.Cell;
 import main.model.gamemap.Entity;
 import main.model.gamemap.GameMap;
-import main.model.enums.CellContent;
-import main.model.enums.CFlag;
-import main.model.enums.EntityType;
-import main.model.enums.ItemType;
+import main.model.gamemap.enums.CellContent;
+import main.model.gamemap.enums.CellFlag;
+import main.model.gamemap.enums.EntityType;
+import main.model.gamemap.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.parser.JSONParser;
 import main.parser.CodeParser;
@@ -41,14 +41,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static main.utility.GameConstants.*;
-import static main.utility.GameConstants.TUTORIAL_LINES;
+import static main.model.GameConstants.*;
+import static main.model.GameConstants.TUTORIAL_LINES;
 
 public class View implements LevelChangeListener {
 
-    private final Background startBackground = new Background(new BackgroundImage(new Image( "file:resources/images/Project_Background.png", SCREEN_WIDTH,SCREEN_HEIGHT,true,true ), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,BackgroundPosition.CENTER, BackgroundSize.DEFAULT ));
     private final BackgroundImage backgroundImage = new BackgroundImage(new Image( GameConstants.BG_LIGHT_TILE_PATH ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
-    private final LevelOverviewPane tutorialLevelOverviewPane;
+    private LevelOverviewPane tutorialLevelOverviewPane;
     private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
     private SimpleEventSender eventSender;
@@ -62,8 +61,8 @@ public class View implements LevelChangeListener {
     private Slider speedSlider;
     private Label errorLabel = new Label();
     private Label errorLabelAI = new Label();
-    private GridPane actualMapGPane;
-    private StackPane rootPane;
+    private GridPane mapGPane;
+    private StackPane levelPane;
     private VBox baseContentVBox;
     private List<Polyline> highlights = new ArrayList<>();
     private LevelEditorModule levelEditorModule;
@@ -71,20 +70,15 @@ public class View implements LevelChangeListener {
     private static Map<String, Image> contentImageMap = new HashMap<>();
 
     private LevelOverviewPane levelOverviewPane;
-    //TODO: why only one scene? Did the others not work?
-    private Scene startScene;
 
     private Button backBtn = new Button();
     private static SceneState sceneState = SceneState.START_SCREEN;
     private VBox knightsLeftVBox;
     private SpellBookPane spellBookPane = new SpellBookPane();
     private Label levelNameLabel = new Label();
-    private TextArea tutorialTextArea = new TextArea();
     private Button showSpellBookBtn = new Button();
 
     private VBox leftVBox = new VBox();
-    private VBox centerVBox = new VBox();
-    private VBox rightVBox = new VBox();
     private VBox speedVBox;
     private TutorialGroup tutorialGroup;
 
@@ -94,7 +88,7 @@ public class View implements LevelChangeListener {
     private Button storeCodeBtn = new Button("Store Code");
 
 
-    private static List<Entity>entityActionList = new ArrayList<>();
+    private static List<Entity> entityActionList = new ArrayList<>();
     private static Map<String, Effect> entityColorMap = new HashMap<>();
     private boolean isIntroduction;
 
@@ -124,12 +118,15 @@ public class View implements LevelChangeListener {
         this.startScreen = new StartScreen();
         tutorialGroup = new TutorialGroup();
 
-        startScene = new Scene(startScreen);
+        //TODO: why only one scene? Did the others not work?
+        Scene startScene = new Scene(startScreen);
 
+        Background startBackground = new Background(new BackgroundImage(new Image("file:resources/images/Project_Background.png", SCREEN_WIDTH, SCREEN_HEIGHT, true, true), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, BackgroundSize.DEFAULT));
         startScreen.setBackground(startBackground);
-        GameMap gameMap = (GameMap) Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        GameMap gameMap = (GameMap) ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         cell_size = gameMap.getBoundY() > gameMap.getBoundX() ? GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundX());
         cell_size = Math.round(cell_size);
+        TextArea tutorialTextArea = new TextArea();
         tutorialTextArea.setEditable(false);
         knightsLeftVBox = new VBox();
 
@@ -146,11 +143,11 @@ public class View implements LevelChangeListener {
             stage.setFullScreen(true);
         }
         stage.setFullScreenExitHint("");
-        actualMapGPane = new GridPane();
-        actualMapGPane.setBorder(new Border(new BorderImage(new Image(GameConstants.BG_DARK_TILE_PATH),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
-        actualMapGPane.setBackground(new Background(new BackgroundImage(new Image(GameConstants.BG_DARK_TILE_PATH),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
+        mapGPane = new GridPane();
+        mapGPane.setBorder(new Border(new BorderImage(new Image(GameConstants.BG_DARK_TILE_PATH),new BorderWidths(10),null,new BorderWidths(10),false,BorderRepeat.REPEAT,null)));
+        mapGPane.setBackground(new Background(new BackgroundImage(new Image(GameConstants.BG_DARK_TILE_PATH),BackgroundRepeat.REPEAT,BackgroundRepeat.REPEAT,BackgroundPosition.DEFAULT,BackgroundSize.DEFAULT)));
 
-        rootPane = new StackPane();
+        levelPane = new StackPane();
         baseContentVBox = new VBox();
         stage.setScene(startScene);
 
@@ -229,7 +226,7 @@ public class View implements LevelChangeListener {
         });
         debugBtn.setOnAction(event -> {
             String debug = "";
-            for (String s : codeArea.getAllText()) {
+            for (String s : codeArea.getAllCode()) {
                 debug += "\"" + s + "\",";
             }
             debug = debug.substring(0, debug.length() - 1);
@@ -268,13 +265,13 @@ public class View implements LevelChangeListener {
 
     public void drawMap(GameMap map) {
         entityColorMap = new HashMap<>();
-        actualMapGPane.getChildren().clear();
+        mapGPane.getChildren().clear();
         Point minBounds = new Point(0, 0);
         Point maxBounds = new Point(map.getBoundX(), map.getBoundY());
         StackPane[][] stackpaneField = getStackPaneFieldFromMap(map,Util.getAllPointsIn(minBounds,maxBounds));
         for(int x = 0; x < map.getBoundX(); x++)
             for(int y = 0; y < map.getBoundY(); y++)
-                actualMapGPane.add(stackpaneField[x][y],x,y);
+                mapGPane.add(stackpaneField[x][y],x,y);
         redrawKnightsLeftVBox();
         if(eventSender != null)
             eventSender.notifyListeners(null);
@@ -282,28 +279,28 @@ public class View implements LevelChangeListener {
 
 
     public void drawAllChangedCells() {
-        GameMap map = Model.getCurrentMap();
+        GameMap map = ModelInformer.getCurrentMapCopy();
         StackPane[][] stackpaneField = getStackPaneFieldFromMap(map,map.getAndResetChangedPointList());
         //x+1 and y+1 should not be a problem, as the outer rim never changes -> no out of bounds
         for(int x = 0; x < map.getBoundX(); x++)
         for(int y = 0; y < map.getBoundY(); y++){
             if(stackpaneField[x][y]==null)continue;
-            actualMapGPane.getChildren().set(y+x*map.getBoundY(),new StackPane());
-            actualMapGPane.add(stackpaneField[x][y],x,y);
+            mapGPane.getChildren().set(y+x*map.getBoundY(),new StackPane());
+            mapGPane.add(stackpaneField[x][y],x,y);
         }
 
         redrawKnightsLeftVBox();
     }
 
 
-    public void redrawKnightsLeftVBox() {
+    private void redrawKnightsLeftVBox() {
         knightsLeftVBox.getChildren().clear();
         knightsLeftVBox.setSpacing(cell_size/4);
         knightsLeftVBox.setMinWidth(cell_size/1.5);
-        int maxKnights = (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
+        int maxKnights = (int)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
         for (int i = 0; i < maxKnights; i++) {
             ImageView tokenIView = new ImageView(new  Image(GameConstants.KNIGHT_TOKEN_PATH));
-            int amountOfKnights = Model.getAmountOfKnightsSpawned();
+            int amountOfKnights = ModelInformer.getAmountOfKnightsSpawned();
             if(i < maxKnights - amountOfKnights)
             tokenIView.setEffect(Util.getEffect(i+amountOfKnights,true));
             else
@@ -352,12 +349,12 @@ public class View implements LevelChangeListener {
                     }
                     String entityName = cell.getEntity().getEntityType().getDisplayName();
                     if(cell.getEntity().getItem()!= ItemType.NONE && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
-                    if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_"+number))entityName+="_Action_"+number;
+                    if(cell.hasFlag(CellFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_"+number))entityName+="_Action_"+number;
                     ImageView entityImageView = getEntityImageView( cell,entityName);
                     //TODO: ImageViews durch Methoden einzeln generieren!
 
                     ImageView actionImageView = null;
-                    if(cell.hasFlag(CFlag.ACTION) && contentImageMap.containsKey(entityName))
+                    if(cell.hasFlag(CellFlag.ACTION) && contentImageMap.containsKey(entityName))
                     {
                         if(entityActionList.contains(cell.getEntity()))
                             entityActionList.remove(cell.getEntity());
@@ -412,16 +409,16 @@ public class View implements LevelChangeListener {
             ImageView destructionIView = new ImageView();
             destructionIView.setFitWidth(cell_size);
             destructionIView.setFitHeight(cell_size);
-            if(cell.hasFlag(CFlag.KNIGHT_DEATH)) destructionIView.setImage(contentImageMap.get(CFlag.KNIGHT_DEATH.getDisplayName()));
-            else if (cell.hasFlag(CFlag.SKELETON_DEATH))destructionIView.setImage(contentImageMap.get(CFlag.SKELETON_DEATH.getDisplayName()));
-            else if (cell.hasFlag(CFlag.DIRT_REMOVED))destructionIView.setImage(contentImageMap.get(CFlag.DIRT_REMOVED.getDisplayName()));
-            else if (cell.hasFlag(CFlag.KEY_DESTROYED))destructionIView.setImage(contentImageMap.get(CFlag.KEY_DESTROYED.getDisplayName()));
-            else if (cell.hasFlag(CFlag.ITEM_DESTROYED))
-                destructionIView.setImage(contentImageMap.get(CFlag.ITEM_DESTROYED.getDisplayName()));
+            if(cell.hasFlag(CellFlag.KNIGHT_DEATH)) destructionIView.setImage(contentImageMap.get(CellFlag.KNIGHT_DEATH.getDisplayName()));
+            else if (cell.hasFlag(CellFlag.SKELETON_DEATH))destructionIView.setImage(contentImageMap.get(CellFlag.SKELETON_DEATH.getDisplayName()));
+            else if (cell.hasFlag(CellFlag.DIRT_REMOVED))destructionIView.setImage(contentImageMap.get(CellFlag.DIRT_REMOVED.getDisplayName()));
+            else if (cell.hasFlag(CellFlag.KEY_DESTROYED))destructionIView.setImage(contentImageMap.get(CellFlag.KEY_DESTROYED.getDisplayName()));
+            else if (cell.hasFlag(CellFlag.ITEM_DESTROYED))
+                destructionIView.setImage(contentImageMap.get(CellFlag.ITEM_DESTROYED.getDisplayName()));
 
             if(destructionIView.getImage()!=null)
                 output[x][y].getChildren().add(destructionIView);
-            if(Model.getCurrentRound()>1 && destructionIView.getImage() != null)destructionIView.setEffect(new ColorAdjust(0,0,0,-0.5));
+            if(ModelInformer.getCurrentRound()>1 && destructionIView.getImage() != null)destructionIView.setEffect(new ColorAdjust(0,0,0,-0.5));
         }
         return output;
     }
@@ -431,11 +428,11 @@ public class View implements LevelChangeListener {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         //COLOR EXPERIMENT:
-        int knightCount = Model.getAmountOfKnightsSpawned();
+        int knightCount = ModelInformer.getAmountOfKnightsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
             entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(knightCount-1,true));
         }
-        int skeletonCount = Model.getAmountOfSkeletonsSpawned();
+        int skeletonCount = ModelInformer.getAmountOfSkeletonsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.SKELETON){
             entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(skeletonCount-1,true));
         }
@@ -452,26 +449,26 @@ public class View implements LevelChangeListener {
         boolean isTurned = false;
         boolean isInverted = false;
         boolean isOpen = false;
-        for (CFlag flag : CFlag.values()) {
+        for (CellFlag flag : CellFlag.values()) {
             if (cell.hasFlag(flag)) {
                 if(flag.isTemporary())
                     continue;
-                if(flag == CFlag.TURNED && (isTurned = true))continue;
-                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.GATE){
+                if(flag == CellFlag.TURNED && (isTurned = true))continue;
+                if(flag == CellFlag.INVERTED && cell.getContent()== CellContent.GATE){
                     isInverted = true;
-                    if(!isOpen) contentString.append("_").append(CFlag.OPEN.getDisplayName());
-                    else contentString = new StringBuilder(contentString.toString().replace("_" + CFlag.OPEN.getDisplayName(), ""));
+                    if(!isOpen) contentString.append("_").append(CellFlag.OPEN.getDisplayName());
+                    else contentString = new StringBuilder(contentString.toString().replace("_" + CellFlag.OPEN.getDisplayName(), ""));
                     continue;
                 }
-                if(flag == CFlag.OPEN ){
+                if(flag == CellFlag.OPEN ){
                     isOpen = true;
-                    if(!isInverted) contentString.append("_").append(CFlag.OPEN.getDisplayName());
-                    else contentString = new StringBuilder(contentString.toString().replace("_" + CFlag.OPEN.getDisplayName(), ""));
+                    if(!isInverted) contentString.append("_").append(CellFlag.OPEN.getDisplayName());
+                    else contentString = new StringBuilder(contentString.toString().replace("_" + CellFlag.OPEN.getDisplayName(), ""));
                     continue;
                 }
-                if(flag == CFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && Model.getTurnsTaken()==0){
+                if(flag == CellFlag.INVERTED && cell.getContent()== CellContent.PRESSURE_PLATE && ModelInformer.getTurnsTaken()==0){
                     isInverted = true;
-                    contentString.append("_").append(CFlag.INVERTED.getDisplayName()).append("_").append(CFlag.TRIGGERED.getDisplayName());
+                    contentString.append("_").append(CellFlag.INVERTED.getDisplayName()).append("_").append(CellFlag.TRIGGERED.getDisplayName());
                     continue;
                 }
                 contentString.append("_").append(flag.getDisplayName());
@@ -481,12 +478,12 @@ public class View implements LevelChangeListener {
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
         if(isTurned)imageView.setRotate(270);
-        int amountOfKnights = Model.getAmountOfKnightsSpawned();
-        int maxKnights = (int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
+        int amountOfKnights = ModelInformer.getAmountOfKnightsSpawned();
+        int maxKnights = (int)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
         if((amountOfKnights< maxKnights &&cell.getContent()== CellContent.SPAWN))
             imageView.setEffect(Util.getEffect(amountOfKnights,false));
         if(cell.getContent()== CellContent.ENEMY_SPAWN){
-            int skelCount = Model.getAmountOfSkeletonsSpawned();
+            int skelCount = ModelInformer.getAmountOfSkeletonsSpawned();
             imageView.setEffect(Util.getEffect(skelCount,false));
         }
 
@@ -494,7 +491,7 @@ public class View implements LevelChangeListener {
     }
 
     private static void calculateCellSize() {
-        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         cell_size = gameMap.getBoundY() > gameMap.getBoundX() ?
                 GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundX());
 
@@ -503,19 +500,19 @@ public class View implements LevelChangeListener {
         cell_size = Math.round(cell_size);
     }
 
-    public CodeArea getAICodeArea() {
+    public CodeArea getAiCodeArea() {
         return aiCodeArea;
     }
 
-    public GridPane getActualMapGPane() {
-        return actualMapGPane;
+    public GridPane getMapGPane() {
+        return mapGPane;
     }
 
     public void highlightInMap(List<Point> points) {
-        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         this.selectedPointList = new ArrayList<>(points);
         for (Polyline highlight: highlights) {
-            rootPane.getChildren().remove(highlight);
+            levelPane.getChildren().remove(highlight);
         }
         highlights = new ArrayList<>();
         Polyline highlight;
@@ -542,14 +539,14 @@ public class View implements LevelChangeListener {
             highlight.setStrokeWidth(2);
             highlight.setStrokeType(StrokeType.INSIDE);
 
-            rootPane.getChildren().add(highlight);
+            levelPane.getChildren().add(highlight);
             StackPane.setAlignment(highlight, Pos.TOP_LEFT);
-            actualMapGPane.autosize();
+            mapGPane.autosize();
             highlight.autosize();
             //TODO: +10 wegen Border
-            actualMapGPane.layout();
-            highlight.setTranslateX(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinX()+highlight.getLayoutBounds().getMinX()+10);
-            highlight.setTranslateY(actualMapGPane.localToScene(actualMapGPane.getBoundsInLocal()).getMinY()+highlight.getLayoutBounds().getMinY()+10);
+            mapGPane.layout();
+            highlight.setTranslateX(mapGPane.localToScene(mapGPane.getBoundsInLocal()).getMinX()+highlight.getLayoutBounds().getMinX()+10);
+            highlight.setTranslateY(mapGPane.localToScene(mapGPane.getBoundsInLocal()).getMinY()+highlight.getLayoutBounds().getMinY()+10);
             highlights.add(highlight);
         }
     }
@@ -589,7 +586,7 @@ public class View implements LevelChangeListener {
     public void setAllCellButtonsDisabled(boolean b) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
             Button btn = (Button) n;
-//            if (!btn.getText().equals(CellContent.EMPTY.getDisplayName()) && !btn.getText().equals(CellContent.WALL.getDisplayName()))
+//            if (!btn.getCode().equals(CellContent.EMPTY.getDisplayName()) && !btn.getCode().equals(CellContent.WALL.getDisplayName()))
             btn.setDisable(b);
         }
         for (Node n : levelEditorModule.getCellItemSelectionGPane().getChildren()) {
@@ -603,58 +600,58 @@ public class View implements LevelChangeListener {
     }
 
     private void updateLevelEditorModule() {
-        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         levelEditorModule.getWidthValueLbl().setText("" + gameMap.getBoundX());
-        levelEditorModule.getLevelNameValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
-        Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
-        Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
+        levelEditorModule.getLevelNameValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
+        Integer[] locToStars = (Integer[]) ModelInformer.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
+        Integer[] turnsToStars = (Integer[]) ModelInformer.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
         levelEditorModule.getMaxLoc2StarsVLbl().setText(locToStars[0]+"");
         levelEditorModule.getMaxLoc3StarsVLbl().setText(locToStars[1]+"");
         levelEditorModule.getMaxTurns2StarsVLbl().setText(turnsToStars[0]+"");
         levelEditorModule.getMaxTurns3StarsVLbl().setText(turnsToStars[1]+"");
-        levelEditorModule.getLevelNameValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
-        levelEditorModule.getIndexValueLbl().setText("" + Model.getCurrentIndex());
-        levelEditorModule.getMaxKnightsValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
-        levelEditorModule.getAmountOfRerunsValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS));
-        levelEditorModule.getIsTutorialValueLbl().setText("" + Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
+        levelEditorModule.getLevelNameValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
+        levelEditorModule.getIndexValueLbl().setText("" + ModelInformer.getCurrentIndex());
+        levelEditorModule.getMaxKnightsValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
+        levelEditorModule.getAmountOfRerunsValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS));
+        levelEditorModule.getIsTutorialValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
         levelEditorModule.getHeightValueLbl().setText("" + gameMap.getBoundY());
 
-        boolean isTutorial = (boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
+        boolean isTutorial = (boolean)ModelInformer.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
         if(isTutorial){
             levelEditorModule.showRequiredLevelsHBox(false);
         }
         else{
             levelEditorModule.showRequiredLevelsHBox(true);
-            levelEditorModule.setRequiredLevels(Model.getCurrentRequiredLevels());
+            levelEditorModule.setRequiredLevels(ModelInformer.getCurrentRequiredLevels());
         }
         levelEditorModule.getTutorialVBox().setVisible(isTutorial);
-        List<String> tutorialLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
+        List<String> tutorialLines = (List<String>)ModelInformer.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
         if(isTutorial){
-            levelEditorModule.getTutorialTextArea().setText(tutorialLines.get(Model.getCurrentTutorialMessageIndex()));
+            levelEditorModule.getTutorialTextArea().setText(tutorialLines.get(ModelInformer.getCurrentTutorialMessageIndex()));
             updateTutorialMessage();
         }
         levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
-        if(Model.getCurrentTutorialSize()<= 1){
+        if(ModelInformer.getCurrentTutorialSize()<= 1){
             levelEditorModule.getNextTutorialTextBtn().setDisable(true);
             levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
         }
-        else if(Model.getCurrentTutorialMessageIndex()==0)
+        else if(ModelInformer.getCurrentTutorialMessageIndex()==0)
             levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
-        else if(Model.getCurrentTutorialSize()-1== Model.getCurrentTutorialMessageIndex())
+        else if(ModelInformer.getCurrentTutorialSize()-1== ModelInformer.getCurrentTutorialMessageIndex())
             levelEditorModule.getNextTutorialTextBtn().setDisable(true);
         else {
             levelEditorModule.getNextTutorialTextBtn().setDisable(false);
             levelEditorModule.getPrevTutorialTextBtn().setDisable(false);
         }
-        levelEditorModule.getHasAiValueLbl().setText(Model.getDataFromCurrentLevel(LevelDataType.HAS_AI)+"");
+        levelEditorModule.getHasAiValueLbl().setText(ModelInformer.getDataFromCurrentLevel(LevelDataType.HAS_AI)+"");
 
-        levelEditorModule.toggleLevelIsSaved(!Model.currentLevelHasChanged());
+        levelEditorModule.toggleLevelIsSaved(!ModelInformer.currentLevelHasChanged());
 
-        if(Model.getCurrentIndex() == 0){
+        if(ModelInformer.getCurrentIndex() == 0){
             levelEditorModule.getMoveIndexDownBtn().setDisable(true);
         }
         else levelEditorModule.getMoveIndexDownBtn().setDisable(false);
-        if(Model.getCurrentIndex() == Model.getAmountOfLevels()-1){
+        if(ModelInformer.getCurrentIndex() == ModelInformer.getAmountOfLevels()-1){
             levelEditorModule.getMoveIndexUpBtn().setDisable(true);
         }
         else levelEditorModule.getMoveIndexUpBtn().setDisable(false);
@@ -664,11 +661,11 @@ public class View implements LevelChangeListener {
     public void updateAll() {
         selectedPointList = new ArrayList<>();
         selectedPointList.add(new Point(0, 0));
-        boolean hasAi =(boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
-        levelNameLabel.setText(Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"");
-        int plays = (int)Model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS);
+        boolean hasAi =(boolean) ModelInformer.getDataFromCurrentLevel(LevelDataType.HAS_AI);
+        levelNameLabel.setText(ModelInformer.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"");
+        int plays = (int)ModelInformer.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS);
         if(plays > 1)levelNameLabel.setText(levelNameLabel.getText()+" (will play "+plays+" times)");
-        ComplexStatement aiBehaviour = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
+        ComplexStatement aiBehaviour = (ComplexStatement)ModelInformer.getDataFromCurrentLevel(LevelDataType.AI_CODE);
         if (hasAi) {
             aiCodeArea.setVisible(true);
             if(sceneState == SceneState.LEVEL_EDITOR)clearAICodeBtn.setVisible(true);
@@ -680,16 +677,15 @@ public class View implements LevelChangeListener {
             clearAICodeBtn.setVisible(false);
         }
         codeArea.scrollTo(0);
-        drawMap((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
+        drawMap((GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA));
         if (sceneState == SceneState.LEVEL_EDITOR) {
             updateLevelEditorModule();
-            Platform.runLater(()->highlightInMap(selectedPointList));
         }
-        if (sceneState == SceneState.TUTORIAL && Model.getTutorialProgress()>-1) {
-            tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
+        if (sceneState == SceneState.TUTORIAL && ModelInformer.getTutorialProgress()>-1) {
+            tutorialGroup.setEntries((List<String>)ModelInformer.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         }
-        spellBookPane.updateSpellbookEntries(Model.getUnlockedStatementList());
-        if(Model.getBestTurnsOfLevel(Model.getCurrentId()) == -1) loadBestCodeBtn.setDisable(true);
+        spellBookPane.updateSpellbookEntries(ModelInformer.getUnlockedStatementList());
+        if(ModelInformer.getBestTurnsOfLevel(ModelInformer.getCurrentId()) == -1) loadBestCodeBtn.setDisable(true);
         else loadBestCodeBtn.setDisable(false);
     }
 
@@ -698,7 +694,7 @@ public class View implements LevelChangeListener {
 
         switch (levelChange.getLevelDataType()){
             case MAP_DATA:
-                GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                 drawMap(gameMap);
                 selectedPointList = pointListOutOfBounds();
                 if(sceneState == SceneState.LEVEL_EDITOR)
@@ -709,7 +705,7 @@ public class View implements LevelChangeListener {
             case IS_TUTORIAL:
                 if(levelChange.getLevelDataType().equals(LevelDataType.IS_TUTORIAL)){
                     if((boolean)levelChange.getNewValue())
-                        Platform.runLater(()->tutorialLevelOverviewPane.addLevelWithIndex(Model.getCurrentIndex()));
+                        Platform.runLater(()->tutorialLevelOverviewPane.addLevelWithIndex(ModelInformer.getCurrentIndex()));
                     else tutorialLevelOverviewPane.removeCurrentLevel();
                 }
             case TUTORIAL_LINES:
@@ -724,33 +720,33 @@ public class View implements LevelChangeListener {
                 }
                 break;
             case AI_CODE:
-                ComplexStatement aiBehaviour = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
-                boolean hasAI = (boolean)Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
+                ComplexStatement aiBehaviour = (ComplexStatement)ModelInformer.getDataFromCurrentLevel(LevelDataType.AI_CODE);
+                boolean hasAI = (boolean)ModelInformer.getDataFromCurrentLevel(LevelDataType.HAS_AI);
                 levelEditorModule.getHasAiValueLbl().setText("" + hasAI);
                 if (hasAI && aiBehaviour.getStatementListSize() == 0) {
                     aiCodeArea.updateCodeFields(aiBehaviour);
                     //THIS IS THE ONLY WORKING SOLUTION I FOUND FOR FINDING OUT POSITIONS OF NODES IN SCENE!!
-                    double d = getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX();
+                    double d = getMapGPane().localToScene(getMapGPane().getBoundsInLocal()).getMinX();
                     Platform.runLater(() -> {
                         for(Polyline p: highlights){
-                            p.setTranslateX(p.getTranslateX()-d+getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX());
+                            p.setTranslateX(p.getTranslateX()-d+ getMapGPane().localToScene(getMapGPane().getBoundsInLocal()).getMinX());
                         }});
                     aiCodeArea.setVisible(true);
                     clearAICodeBtn.setVisible(true);
                 } else if (!hasAI) {
                     //THIS IS THE ONLY WORKING SOLUTION I FOUND FOR FINDING OUT POSITIONS OF NODES IN SCENE!!
-                    double d = getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX();
+                    double d = getMapGPane().localToScene(getMapGPane().getBoundsInLocal()).getMinX();
                     aiCodeArea.updateCodeFields(new ComplexStatement());
                     Platform.runLater(() -> {
                         for(Polyline p: highlights){
-                            p.setTranslateX(p.getTranslateX()-d+getActualMapGPane().localToScene(getActualMapGPane().getBoundsInLocal()).getMinX());
+                            p.setTranslateX(p.getTranslateX()-d+ getMapGPane().localToScene(getMapGPane().getBoundsInLocal()).getMinX());
                         }});
                     aiCodeArea.setVisible(false);
                     clearAICodeBtn.setVisible(false);
                 }
                 break;
         }
-        String levelName = Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"";
+        String levelName = ModelInformer.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"";
         if(levelChange.getLevelDataType()==LevelDataType.LEVEL_NAME)levelName = levelChange.getOldValue()+"";
         if(tutorialLevelOverviewPane.containsLevel(levelName))tutorialLevelOverviewPane.updateLevel(levelName);
         if(levelOverviewPane.containsLevel(levelName))levelOverviewPane.updateLevel(levelName);
@@ -761,7 +757,7 @@ public class View implements LevelChangeListener {
     private List<Point> pointListOutOfBounds() {
         List<Point> output = new ArrayList<>();
         for(Point p : selectedPointList){
-            GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+            GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
             if(p.getX() >= gameMap.getBoundX()||p.getY() >= gameMap.getBoundY())continue;
             output.add(p);
         }
@@ -774,9 +770,8 @@ public class View implements LevelChangeListener {
 
 
     public void setSceneState(SceneState sceneState) {
-        Model.resetTutorialIndex();
         View.sceneState = sceneState;
-        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         switch (sceneState) {
             case START_SCREEN:
                 stage.getScene().setRoot(startScreen);
@@ -786,7 +781,7 @@ public class View implements LevelChangeListener {
                 prepareRootPane();
                 aiCodeArea.setEditable(true);
                 Platform.runLater(()->codeArea.select(0, Selection.END));
-                stage.getScene().setRoot(rootPane);
+                stage.getScene().setRoot(levelPane);
                 break;
             case LEVEL_SELECT:
                 stage.getScene().setRoot(levelOverviewPane);
@@ -803,28 +798,28 @@ public class View implements LevelChangeListener {
                 drawMap(gameMap);
                 prepareRootPane();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
-                stage.getScene().setRoot(rootPane);
+                stage.getScene().setRoot(levelPane);
                 break;
             case TUTORIAL:
                 drawMap(gameMap);
-                if(Model.getTutorialProgress()==-1){
+                if(ModelInformer.getTutorialProgress()==-1){
                     isIntroduction = true;
                 }
                 prepareRootPane();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
 
-                stage.getScene().setRoot(rootPane);
+                stage.getScene().setRoot(levelPane);
                 break;
 
         }
     }
 
     private void prepareRootPane() {
-        rootPane = new StackPane();
-        rootPane.setPrefSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
+        levelPane = new StackPane();
+        levelPane.setPrefSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
         HBox contentHBox = new HBox();
-        rightVBox = new VBox();
-        centerVBox = new VBox();
+        VBox rightVBox = new VBox();
+        VBox centerVBox = new VBox();
         rightVBox.setAlignment(Pos.TOP_RIGHT);
         knightsLeftVBox.setAlignment(Pos.TOP_RIGHT);
 
@@ -836,14 +831,14 @@ public class View implements LevelChangeListener {
         bottomHBox.setAlignment(Pos.BOTTOM_CENTER);
         switch (sceneState) {
             case LEVEL_EDITOR:
-                HBox editorCenterHBox = new HBox(knightsLeftVBox, new VBox(actualMapGPane), new VBox(levelEditorModule.getRightVBox()));
+                HBox editorCenterHBox = new HBox(knightsLeftVBox, new VBox(mapGPane), new VBox(levelEditorModule.getRightVBox()));
                 editorCenterHBox.autosize();
                 editorCenterHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
                 editorCenterHBox.setAlignment(Pos.TOP_CENTER);
                 centerVBox.getChildren().addAll(levelEditorModule.getBottomHBox(), editorCenterHBox);
                 centerVBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/2);
                 baseContentVBox.getChildren().add(levelEditorModule.getTopHBox());
-                levelEditorModule.getTutorialVBox().setVisible((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
+                levelEditorModule.getTutorialVBox().setVisible((boolean)ModelInformer.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
                 updateLevelEditorModule();
                 break;
             case LEVEL_SELECT:
@@ -851,8 +846,8 @@ public class View implements LevelChangeListener {
             case TUTORIAL_LEVEL_SELECT:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case PLAY:
-                removeHighlights();
-                HBox centerHBox = new HBox(knightsLeftVBox, actualMapGPane);
+                removeMapHighlights();
+                HBox centerHBox = new HBox(knightsLeftVBox, mapGPane);
                 centerHBox.autosize();
                 centerHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
                 centerHBox.setAlignment(Pos.TOP_CENTER);
@@ -861,14 +856,14 @@ public class View implements LevelChangeListener {
             case START_SCREEN:
                 throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case TUTORIAL:
-                removeHighlights();
-                centerHBox = new HBox(knightsLeftVBox, actualMapGPane);
+                removeMapHighlights();
+                centerHBox = new HBox(knightsLeftVBox, mapGPane);
                 centerHBox.autosize();
                 centerHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
                 centerHBox.setAlignment(Pos.TOP_CENTER);
                 centerVBox.getChildren().addAll(levelNameLabel,centerHBox);
 
-                if(Model.getTutorialProgress()==-1){
+                if(ModelInformer.getTutorialProgress()==-1){
                     isIntroduction = true;
                     tutorialGroup.activateIntroduction();
                     btnExecute.setMouseTransparent(true);
@@ -880,7 +875,7 @@ public class View implements LevelChangeListener {
                 if(isIntroduction){
                     tutorialGroup.setEntries(Util.StringListFromArray(TUTORIAL_LINES));
                 }
-                else tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
+                else tutorialGroup.setEntries((List<String>)ModelInformer.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
                 break;
         }
         contentHBox.getChildren().addAll(leftVBox, centerVBox, rightVBox);
@@ -891,7 +886,7 @@ public class View implements LevelChangeListener {
         bottomHBox.setPickOnBounds(false);
         bottomHBox.setMaxHeight(BUTTON_SIZE);
 
-        rootPane.autosize();
+        levelPane.autosize();
         baseContentVBox.autosize();
         contentHBox.autosize();
         centerVBox.autosize();
@@ -904,10 +899,10 @@ public class View implements LevelChangeListener {
         bottomHBox.setTranslateY(-GameConstants.SCREEN_HEIGHT/50);
 
         baseContentVBox.getChildren().addAll(contentHBox);
-        rootPane.getChildren().add(baseContentVBox);
+        levelPane.getChildren().add(baseContentVBox);
         if (getCurrentSceneState() == SceneState.TUTORIAL) {
 
-            rootPane.getChildren().add(tutorialGroup);
+            levelPane.getChildren().add(tutorialGroup);
 
 
             StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
@@ -915,17 +910,17 @@ public class View implements LevelChangeListener {
                 StackPane.setAlignment(tutorialGroup, Pos.CENTER);}
             StackPane.setMargin(tutorialGroup, new Insets(5));
         }
-        rootPane.getChildren().add(bottomHBox );
-        rootPane.getChildren().add(spellBookPane);
+        levelPane.getChildren().add(bottomHBox );
+        levelPane.getChildren().add(spellBookPane);
         spellBookPane.setVisible(false);
-        rootPane.setBackground(brickBackground);
+        levelPane.setBackground(brickBackground);
     }
 
-    private void removeHighlights() {
+    private void removeMapHighlights() {
         highlightInMap(new ArrayList<>());
     }
 
-    public static Image getImageFromMap(GameMap originalMap) {
+    static Image getImageFromMap(GameMap originalMap) {
         GridPane gridPane = new GridPane();
 
         StackPane[][] stackpaneField = getStackPaneFieldFromMap(originalMap,Util.getAllPointsIn(new Point(0,0),new Point(originalMap.getBoundX(),originalMap.getBoundY())));
@@ -1026,7 +1021,7 @@ public class View implements LevelChangeListener {
             codeArea.getSelectedCodeField().requestFocus();
 
         boolean isVisible = getSpellBookPane().isVisible();
-        getActualMapGPane().setMouseTransparent(isVisible);
+        getMapGPane().setMouseTransparent(isVisible);
         if(getCurrentSceneState() == SceneState.LEVEL_EDITOR){
             getCellItemSelectionPane().setMouseTransparent(isVisible);
             getCellTypeSelectionPane().setMouseTransparent(isVisible);
@@ -1045,7 +1040,7 @@ public class View implements LevelChangeListener {
         backBtn.setDisable(b);
         speedSlider.setDisable(b);
         showSpellBookBtn.setDisable(b);
-        loadBestCodeBtn.setDisable(Model.getBestLocOfLevel(Model.getCurrentId())>-1 && b);
+        loadBestCodeBtn.setDisable(ModelInformer.getBestLocOfLevel(ModelInformer.getCurrentId())==-1 || b);
         clearCodeBtn.setDisable(b);
         btnExecute.setDisable(b);
         btnReset.setDisable(!b);
@@ -1085,7 +1080,7 @@ public class View implements LevelChangeListener {
 
     public void deselect() {
         for (Polyline highlight: highlights) {
-            rootPane.getChildren().remove(highlight);
+            levelPane.getChildren().remove(highlight);
         }
     }
 
@@ -1095,7 +1090,7 @@ public class View implements LevelChangeListener {
 
     public void leaveIntroductions() {
         tutorialGroup.leaveIntroduction();
-        tutorialGroup.setEntries((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
+        tutorialGroup.setEntries((List<String>)ModelInformer.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
         isIntroduction = false;
 
@@ -1115,7 +1110,7 @@ public class View implements LevelChangeListener {
         switch (getTutorialGroup().getCurrentIndex()){
             case n:
                 removeEffectsOfControlElements();
-                actualMapGPane.setEffect(dropShadow);
+                mapGPane.setEffect(dropShadow);
                 break;
             case n+1:
                 removeEffectsOfControlElements();
@@ -1155,7 +1150,7 @@ public class View implements LevelChangeListener {
 
     private void removeEffectsOfControlElements() {
         getBackBtn().setEffect(null);
-        actualMapGPane.setEffect(null);
+        mapGPane.setEffect(null);
         knightsLeftVBox.setEffect(null);
         getBtnExecute().setEffect(null);
         getSpeedSlider().setEffect(null);
@@ -1166,12 +1161,12 @@ public class View implements LevelChangeListener {
 
     public void updateTutorialMessage() {
         if(getCurrentSceneState()==SceneState.LEVEL_EDITOR){
-            levelEditorModule.getTutorialTextArea().setText(Model.getCurrentTutorialMessage());
-            levelEditorModule.getTutorialNumberValueLbl().setText(Model.getCurrentTutorialMessageIndex()+"");
-            if(Model.getCurrentTutorialSize()>Model.getCurrentTutorialMessageIndex()+1)levelEditorModule.getNextTutorialTextBtn().setDisable(false);
+            levelEditorModule.getTutorialTextArea().setText(ModelInformer.getCurrentTutorialMessage());
+            levelEditorModule.getTutorialNumberValueLbl().setText(ModelInformer.getCurrentTutorialMessageIndex()+"");
+            if(ModelInformer.getCurrentTutorialSize()>ModelInformer.getCurrentTutorialMessageIndex()+1)levelEditorModule.getNextTutorialTextBtn().setDisable(false);
         }else {
-            tutorialGroup.getCurrentTutorialMessage().setText(Model.getCurrentTutorialMessage());
-            if(Model.getCurrentTutorialSize()>Model.getCurrentTutorialMessageIndex()+1)tutorialGroup.getNextBtn().setDisable(false);
+            tutorialGroup.getCurrentTutorialMessage().setText(ModelInformer.getCurrentTutorialMessage());
+            if(ModelInformer.getCurrentTutorialSize()>ModelInformer.getCurrentTutorialMessageIndex()+1)tutorialGroup.getNextBtn().setDisable(false);
         }
     }
 }

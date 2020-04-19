@@ -1,31 +1,45 @@
 package main.model.statement.Condition;
 
-import main.model.statement.Expression.ExpressionTree;
+import main.model.statement.Expression.Expression;
 
 public class ConditionLeaf implements Condition {
 
-    private ExpressionTree leftTree;
-    private ExpressionTree rightTree;
+    private Expression leftExpression;
+    private Expression rightExpression;
     private BooleanType simpleConditionType;
-    private ConditionType conditionType;
 
-    public ConditionLeaf(ExpressionTree leftTree, BooleanType simpleConditionType, ExpressionTree rightTree) {
-        conditionType = ConditionType.SINGLE;
-        this.leftTree = leftTree;
-        this.rightTree = rightTree;
+    public ConditionLeaf(Expression leftTree, BooleanType simpleConditionType, Expression rightTree) {
+        this.leftExpression = leftTree;
+        this.rightExpression = rightTree;
         this.simpleConditionType = simpleConditionType;
     }
 
-    public ExpressionTree getLeftTree(){
-        return leftTree;
+    public Expression getLeftExpression(){
+        return leftExpression;
     }
-    public ExpressionTree getRightTree(){
-        return rightTree;
+    public Expression getRightExpression(){
+        return rightExpression;
     }
+    public BooleanType getSimpleConditionType(){
+        return simpleConditionType;
+    }
+
+    @Override
+    public boolean isLeaf() {
+        return true;
+    }
+
+    @Override
+    public ConditionType getConditionType() {
+        return ConditionType.SINGLE;
+    }
+
     @Override
     public String getText(){
-        String output = "" + leftTree.getText();
+        String output = "" + leftExpression.getText();
         switch (simpleConditionType){
+            case SIMPLE:
+                return output;
             case EQ:
                 output += " == ";
                 break;
@@ -35,8 +49,6 @@ public class ConditionLeaf implements Condition {
             case LE:
                 output += " < ";
                 break;
-            case SIMPLE:
-                return output;
             case GR_EQ:
                 output += " >= ";
                 break;
@@ -50,29 +62,7 @@ public class ConditionLeaf implements Condition {
                 output += ".";
                 break;
         }
-        return output + rightTree.getText();
+        return output + rightExpression.getText();
 
     }
-
-    @Override
-    public boolean isLeaf() {
-        return true;
-    }
-
-    public BooleanType getSimpleConditionType(){
-        return simpleConditionType;
-    }
-
-    @Override
-    public ConditionType getConditionType() {
-        return conditionType;
-    }
-//    public ConditionTree getLeftCondition() throws IllegalAccessException {
-//        throw new IllegalAccessException("You cannot use this Method on a ConditionLeaf");
-//    }
-//
-//    public ConditionTree getRightCondition() throws IllegalAccessException {
-//
-//        throw new IllegalAccessException("You cannot use this Method on a ConditionLeaf");
-//    }
 }

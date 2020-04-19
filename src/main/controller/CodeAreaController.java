@@ -12,7 +12,7 @@ import main.model.LevelDataType;
 import main.model.Model;
 import main.model.statement.ComplexStatement;
 import main.parser.CodeParser;
-import main.utility.GameConstants;
+import main.model.GameConstants;
 import main.utility.SimpleEventListener;
 import main.utility.Util;
 import main.view.*;
@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 public class CodeAreaController implements SimpleEventListener {
 
     private View view;
+    private Model model;
     private int currentIndex = 0;
     private boolean addBefore = false;
     private boolean isError = false;
@@ -37,8 +38,9 @@ public class CodeAreaController implements SimpleEventListener {
     // Maybe a feature for future versions: Select Multiple CodeFields
 //    private SimpleSet<Integer> selectedIndexSet = new SimpleSet<>();
 
-    public CodeAreaController(View view) {
+    public CodeAreaController(View view,Model model) {
         this.view = view;
+        this.model = model;
 
         CodeArea.getInstance(CodeAreaType.PLAYER).addListener(this);
         CodeArea.getInstance(CodeAreaType.AI).addListener(this);
@@ -61,7 +63,7 @@ public class CodeAreaController implements SimpleEventListener {
             // upon reactivation the CodeArea will be recreated
             else {
                 needsRecreation = true;
-                handleCodeFieldEvent(currentCodeArea.getAllText(), currentCodeArea);
+                handleCodeFieldEvent(currentCodeArea.getAllCode(), currentCodeArea);
             }
             currentCodeArea.setIconActive(compilerActive);
             disableControlElements(!compilerActive,currentCodeArea);
@@ -112,7 +114,7 @@ public class CodeAreaController implements SimpleEventListener {
         currentCodeField.setOnMousePressed(event -> {
             if(View.getCurrentSceneState() != SceneState.LEVEL_EDITOR && currentCodeArea.isAi())return;
             if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
-            else view.getAICodeArea().deselectAll();
+            else view.getAiCodeArea().deselectAll();
 
             needsRecreation = false;
             needToIncreaseCurrentIndex = false;
@@ -124,7 +126,7 @@ public class CodeAreaController implements SimpleEventListener {
             showError = true;
 
             if(compilerActive)
-                handleCodeFieldEvent(currentCodeArea.getAllText(),currentCodeArea);
+                handleCodeFieldEvent(currentCodeArea.getAllCode(),currentCodeArea);
 
             if(!currentCodeArea.isEditable() )return;
             if(!isError){
@@ -154,7 +156,7 @@ public class CodeAreaController implements SimpleEventListener {
             addBefore = false;
             showError = false;
             needToIncreaseCurrentIndex = false;
-            List<String> codeLines = currentCodeArea.getAllText();
+            List<String> codeLines = currentCodeArea.getAllCode();
             String forVariablePatternString = " *for *\\( *int +("+GameConstants.VARIABLE_NAME_REGEX+")(.+\\{)$";
             currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
 
@@ -241,10 +243,10 @@ public class CodeAreaController implements SimpleEventListener {
                      * until their usage or necessity is clear to me
                      */
 
-//                    Matcher matcherMethodDec = Pattern.compile(GameConstants.METHOD_DECLARATION_REGEX).matcher(currentCodeField.getText());
+//                    Matcher matcherMethodDec = Pattern.compile(GameConstants.METHOD_DECLARATION_REGEX).matcher(currentCodeField.getCode());
 //                    if(matcherMethodDec.matches()){
 //                        textAfterBracket = matcherMethodDec.group(6);
-//                        codeLines.set(currentIndex, currentCodeField.getText().replaceAll("\\{.++", "{"));
+//                        codeLines.set(currentIndex, currentCodeField.getCode().replaceAll("\\{.++", "{"));
 //                    }
 //                    else
                     if (matcherSimple.matches()) {
@@ -453,7 +455,7 @@ public class CodeAreaController implements SimpleEventListener {
         Label errorLabel = currentCodeArea.isAi() ? view.getErrorLabelAI() : view.getErrorLabel();
         errorLabel.setVisible(false);
         if(currentCodeArea.isAi())view.getCodeArea().deselectAll();
-        else view.getAICodeArea().deselectAll();
+        else view.getAiCodeArea().deselectAll();
         try {
             ComplexStatement behaviour = CodeParser.parseProgramCode(codeLines,currentCodeArea.getCodeAreaType());
             disableControlElements(false, currentCodeArea);
@@ -465,7 +467,7 @@ public class CodeAreaController implements SimpleEventListener {
             // this will ensure that the current status of the AI is always tracked as a LevelChange
             // not necessary for PlayerCode
             if(currentCodeArea.isAi())
-                Model.changeCurrentLevel(LevelDataType.AI_CODE,behaviour);
+                model.changeCurrentLevel(LevelDataType.AI_CODE,behaviour);
             if(needsRecreation) {
                 currentCodeArea.updateCodeFields(behaviour);
                 setAllHandlersForCodeArea(currentCodeArea);
@@ -496,7 +498,7 @@ public class CodeAreaController implements SimpleEventListener {
         view.getBtnExecute().setDisable(b);
         view.getStoreCodeBtn().setDisable(b);
         if(codeArea.isAi())view.getCodeArea().setDisable(b);
-        else if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR) view.getAICodeArea().setDisable(b);
+        else if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR) view.getAiCodeArea().setDisable(b);
         if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR && codeArea.isAi())
             view.getLevelEditorModule().getSaveLevelBtn().setDisable(b);
     }

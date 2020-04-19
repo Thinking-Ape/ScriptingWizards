@@ -1,15 +1,12 @@
 package main.model.statement;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class StatementIterator {
 
-    StatementIterator childIterator;
-    ComplexStatement complexStatement;
-    int counter;
+    private StatementIterator childIterator;
+    private ComplexStatement complexStatement;
+    private int counter;
 
-    public StatementIterator(ComplexStatement complexStatement, boolean isChild){
+    StatementIterator(ComplexStatement complexStatement, boolean isChild){
         this.complexStatement = complexStatement;
         counter = isChild ? -1 : 0;
     }
@@ -33,23 +30,14 @@ public class StatementIterator {
             if(childIterator == null){
                 childIterator = new StatementIterator((ComplexStatement)currentStatement, true);
             }
-//            else if (childIterator.isAtMax() && (childIterator.complexStatement.statementType == StatementType.IF||childIterator.complexStatement.statementType == StatementType.ELSE)){
-//                counter++;
-//                childIterator = null;
-//                return next();
-//            }
-            Statement output = childIterator.next();
-            if(output == null){
+            Statement nextStatement = childIterator.next();
+            if(nextStatement == null){
                 childIterator = null;
                 counter++;
             }
-            else return output;
+            else return nextStatement;
             return next();
         }
-    }
-
-    private boolean isAtMax() {
-        return counter >= complexStatement.getStatementListSize();
     }
 
     public void skip(int depth){

@@ -9,14 +9,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Translate;
 import main.model.LevelChange;
-import main.model.Model;
-import main.model.enums.CellContent;
-import main.model.enums.ItemType;
+import main.model.ModelInformer;
+import main.model.gamemap.enums.CellContent;
+import main.model.gamemap.enums.ItemType;
 import main.model.gamemap.GameMap;
-import main.utility.GameConstants;
+import main.model.GameConstants;
 import main.utility.Util;
 import java.util.List;
-import static main.utility.GameConstants.*;
+import static main.model.GameConstants.*;
 
 
 public class LevelEditorModule {
@@ -172,7 +172,7 @@ public class LevelEditorModule {
         }
         bottomHBox.setAlignment(Pos.TOP_CENTER);
         topHBox.setAlignment(Pos.BASELINE_CENTER);
-        if(Model.getAmountOfLevels()==1)deleteLevelBtn.setDisable(true);
+        if(ModelInformer.getAmountOfLevels()==1)deleteLevelBtn.setDisable(true);
     }
 
     void update(LevelChange change) {
@@ -210,7 +210,7 @@ public class LevelEditorModule {
                 requiredLevelsLView.getItems().clear();
                 List<Integer> requiredLevels = (List<Integer>)change.getNewValue();
                 for (Integer requiredLevel : requiredLevels) {
-                    requiredLevelsLView.getItems().add(Model.getNameOfLevelWithId(requiredLevel));
+                    requiredLevelsLView.getItems().add(ModelInformer.getNameOfLevelWithId(requiredLevel));
                 }
                 break;
             case IS_TUTORIAL:
@@ -344,7 +344,7 @@ public class LevelEditorModule {
         return maxKnightsValueLbl;
     }
 
-    public void setDisableAllLevelBtns(boolean b) {
+    public void setDisableAllEditorBtns(boolean b) {
         deleteLevelBtn.setDisable(b);
         openLevelBtn.setDisable(b);
         newLevelBtn.setDisable(b);

@@ -1,8 +1,8 @@
-package main.model.enums;
+package main.model.gamemap.enums;
 
 import main.utility.Util;
 
-public enum CFlag {
+public enum CellFlag {
     OPEN(false),
     INVERTED(false),
     TRIGGERED(false),
@@ -22,12 +22,12 @@ public enum CFlag {
     HELPER_FLAG(true);
     boolean isTemporary;
 
-    CFlag(boolean isTemporary) {
+    CellFlag(boolean isTemporary) {
         this.isTemporary = isTemporary;
     }
 
-    public static CFlag getValueFrom(String text) {
-        for(CFlag flag : values()){
+    public static CellFlag getValueFrom(String text) {
+        for(CellFlag flag : values()){
             if(flag.name().toUpperCase().equals(text)){return flag;}
         }
         return null;

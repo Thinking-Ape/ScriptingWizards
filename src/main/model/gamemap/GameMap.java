@@ -1,28 +1,23 @@
 package main.model.gamemap;
 
-import main.model.enums.*;
-import main.utility.GameConstants;
+import main.model.gamemap.enums.*;
+import main.model.GameConstants;
 import main.utility.Point;
 import main.utility.SimpleSet;
 
 import java.util.*;
 
-import static main.utility.GameConstants.NO_ENTITY;
+import static main.model.GameConstants.NO_ENTITY;
 
 public class GameMap {
 
-//    private PropertyChangeSupport changeSupport;
     private Cell[][] cellArray2D;
-    private Map<String,Point> entityCellMap;
     private Set<Point> changedCellPoints;
 
     public GameMap(Cell[][] cellArray2D){
         if(cellArray2D.length == 0) throw new IllegalArgumentException("Cannot have a boundX of 0!");
-     this.cellArray2D = cloneArray(cellArray2D);
-//     this.changeSupport = new PropertyChangeSupport(this);
-//     changeSupport.addPropertyChangeListener(pCL);
-     entityCellMap = new HashMap<>();
-     changedCellPoints = new SimpleSet<>();
+        this.cellArray2D = cloneArray(cellArray2D);
+        changedCellPoints = new SimpleSet<>();
     }
 
     private Cell[][] cloneArray(Cell[][] originalState) {
@@ -38,7 +33,7 @@ public class GameMap {
     public GameMap copy(){
         GameMap cloneMap = new GameMap(cellArray2D);
         cloneMap.changedCellPoints = new SimpleSet<>(changedCellPoints);
-         cloneMap.entityCellMap = new HashMap<>(this.entityCellMap);
+//         cloneMap.entityCellMap = new HashMap<>(this.entityCellMap);
          return cloneMap;
     }
 
@@ -113,7 +108,12 @@ public class GameMap {
     }
 
     public Point getEntityPosition(String name) {
-       return entityCellMap.getOrDefault(name, null);
+        for(int x = 0; x < getBoundX(); x++){
+            for(int y = 0; y < getBoundY(); y++){
+                if(getCellAtXYClone(x, y).getEntity().getName().equals(name))return new Point(x,y );
+            }
+        }
+        return new Point(-1, -1);
     }
 
     public void setItem(int x, int y, ItemType item) {
@@ -154,11 +154,11 @@ public class GameMap {
         Point p = new Point(x, y);
     }
 
-    public void setFlag(int x, int y, CFlag flag, boolean t1) {
+    public void setFlag(int x, int y, CellFlag flag, boolean t1) {
         setFlag(new Point(x, y), flag, t1);
     }
 
-    public boolean cellHasFlag(int x, int y, CFlag flag) {
+    public boolean cellHasFlag(int x, int y, CellFlag flag) {
         return cellArray2D[x][y].hasFlag(flag);
     }
 
@@ -182,10 +182,10 @@ public class GameMap {
         Entity entity = cell.getEntity();
         if(entity==NO_ENTITY){
             if(cell.getItem()==ItemType.KEY)
-                cell = cell.getMutation(CFlag.KEY_DESTROYED,true);
+                cell = cell.getMutation(CellFlag.KEY_DESTROYED,true);
 
             else if(cell.getItem()!=ItemType.NONE)
-                cell = cell.getMutation(CFlag.ITEM_DESTROYED,true);
+                cell = cell.getMutation(CellFlag.ITEM_DESTROYED,true);
             cell = cell.getMutation(ItemType.NONE);
             cellArray2D[x][y] = cell;
             return;
@@ -193,20 +193,19 @@ public class GameMap {
         if(GameConstants.DEBUG)System.out.println(cell.getEntity().getEntityType().getDisplayName() +" "+ cell.getEntity().getName()+" died!");
 //        ecMapKill(cell.getEntity().getName());
         if(entity.getEntityType()== EntityType.KNIGHT)
-            cell = cell.getMutation(CFlag.KNIGHT_DEATH,true);
+            cell = cell.getMutation(CellFlag.KNIGHT_DEATH,true);
         else if(entity.getEntityType()==EntityType.SKELETON)
-            cell = cell.getMutation(CFlag.SKELETON_DEATH,true);
+            cell = cell.getMutation(CellFlag.SKELETON_DEATH,true);
         cellArray2D[x][y] = cell;
 //        changeSupport.firePropertyChange(cell.getEntity().getEntityType().getDisplayName()+"Death",null,new Point(x,y));
         removeEntity(x,y);
-//        if(cellArray2D[x][y].hasFlag(CFlag.KNIGHT_DEATH)){
+//        if(cellArray2D[x][y].hasFlag(CellFlag.KNIGHT_DEATH)){
         setItem(x,y,entity.getItem());
-        entityCellMap.remove(entity.getName());
+//        entityCellMap.remove(entity.getName());
 //        }
     }
 
     public void removeEntity(int x, int y) {
-
         Entity e = cellArray2D[x][y].getEntity();
         if (e == NO_ENTITY) return;
         setEntity(x,y,NO_ENTITY);
@@ -221,7 +220,7 @@ public class GameMap {
     }
 
     public Entity getEntity(Point ecMapGet) {//TODO: sloppy Point vs x,y??
-        if(ecMapGet== null)return NO_ENTITY;
+        if(ecMapGet== null||ecMapGet.getX() == -1 || ecMapGet.getY() ==-1)return NO_ENTITY;
         return cellArray2D[ecMapGet.getX()][ecMapGet.getY()].getEntity();
     }
 
@@ -282,7 +281,7 @@ public class GameMap {
 //        Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
     }
 
-    public boolean cellHasFlag(Point targetPoint, CFlag open) {
+    public boolean cellHasFlag(Point targetPoint, CellFlag open) {
         return cellHasFlag(targetPoint.getX(), targetPoint.getY(), open);
     }
 
@@ -296,12 +295,12 @@ public class GameMap {
         if(cellArray2D[targetPos.getX()][targetPos.getY()].getEntity()==actorEntity)return;
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         cellArray2D[targetPos.getX()][targetPos.getY()] = oldCell.getMutation(actorEntity);
-        if(entityCellMap.containsKey(actorEntity.getName()))entityCellMap.replace(actorEntity.getName(),targetPos);
-        else entityCellMap.put(actorEntity.getName(), targetPos);
+//        if(entityCellMap.containsKey(actorEntity.getName()))entityCellMap.replace(actorEntity.getName(),targetPos);
+//        else entityCellMap.put(actorEntity.getName(), targetPos);
         changedCellPoints.add(targetPos);
     }
 
-    public void setFlag(Point targetPos, CFlag flag, boolean b) {
+    public void setFlag(Point targetPos, CellFlag flag, boolean b) {
         GameMap oldMap = this.copy();
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()];
         if(oldCell.hasFlag(flag) == b)return;
@@ -343,10 +342,6 @@ public class GameMap {
         setEntity(spawnPoint, entity);
     }
 
-    public List<String> getEntityNames() {
-        return new ArrayList<>(entityCellMap.keySet());
-    }
-
 //    public gamemap getSwappedEntityMap(String name, String beaconName) {
 //        //TODO: set Entity -> map
 //        gamemap output = this.copy();
@@ -362,33 +357,39 @@ public class GameMap {
 //    }
 
     public Entity getEntity(String name) {
-        return getEntity(entityCellMap.getOrDefault(name, null));
+        return getEntity(getEntityPosition(name));
     }
 
     public int getAmountOfEntities(EntityType entityType) {
-        return (int)entityCellMap.keySet().stream().filter(entity -> getEntity(entity).getEntityType() == entityType).count();
+        int output = 0;
+        for (Cell[] cellRow : cellArray2D) {
+            for (Cell cell : cellRow) {
+                if(cell.getEntity()!=NO_ENTITY && cell.getEntity().getEntityType() == entityType)output++;
+            }
+        }
+        return output;
     }
 
     public void clearFlags(int x, int y) {
-        for(CFlag flag : CFlag.values())
+        for(CellFlag flag : CellFlag.values())
             setFlag(x, y, flag, false);
     }
 
     public boolean isGateWrongDirection(Point actorPoint, Point targetPoint) {
         Entity actorEntity = getEntity(actorPoint);
         if(getContentAtXY(targetPoint)== CellContent.GATE){
-            if((actorEntity.getDirection()== Direction.NORTH||actorEntity.getDirection()==Direction.SOUTH)&&!cellHasFlag(targetPoint, CFlag.TURNED))return true;
-            if((actorEntity.getDirection()==Direction.WEST||actorEntity.getDirection()==Direction.EAST)&&cellHasFlag(targetPoint, CFlag.TURNED))return true;
+            if((actorEntity.getDirection()== Direction.NORTH||actorEntity.getDirection()==Direction.SOUTH)&&!cellHasFlag(targetPoint, CellFlag.TURNED))return true;
+            if((actorEntity.getDirection()==Direction.WEST||actorEntity.getDirection()==Direction.EAST)&&cellHasFlag(targetPoint, CellFlag.TURNED))return true;
         }
         if(getContentAtXY(actorPoint)== CellContent.GATE){
-            if((actorEntity.getDirection()==Direction.NORTH||actorEntity.getDirection()==Direction.SOUTH)&&!cellHasFlag(actorPoint, CFlag.TURNED))return true;
-            if((actorEntity.getDirection()==Direction.WEST||actorEntity.getDirection()==Direction.EAST)&&cellHasFlag(actorPoint, CFlag.TURNED))return true;
+            if((actorEntity.getDirection()==Direction.NORTH||actorEntity.getDirection()==Direction.SOUTH)&&!cellHasFlag(actorPoint, CellFlag.TURNED))return true;
+            if((actorEntity.getDirection()==Direction.WEST||actorEntity.getDirection()==Direction.EAST)&&cellHasFlag(actorPoint, CellFlag.TURNED))return true;
         }
         return false;
     }
 
     public boolean gateIsOpen(Point targetPos) {
-        return cellHasFlag(targetPos, CFlag.OPEN)^cellHasFlag(targetPos, CFlag.INVERTED);
+        return cellHasFlag(targetPos, CellFlag.OPEN)^cellHasFlag(targetPos, CellFlag.INVERTED);
     }
 
 //    public void removeAllListeners() {

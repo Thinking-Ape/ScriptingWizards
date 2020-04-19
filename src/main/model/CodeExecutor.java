@@ -3,28 +3,26 @@ package main.model;
 import main.model.gamemap.Cell;
 import main.model.gamemap.Entity;
 import main.model.gamemap.GameMap;
-import main.model.enums.*;
+import main.model.gamemap.enums.*;
 import main.model.statement.*;
 import main.model.statement.Expression.ExpressionTree;
-import main.utility.GameConstants;
 import main.utility.Point;
 import main.utility.Variable;
-import main.model.enums.VariableType;
+import main.utility.VariableType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import main.model.statement.Condition.*;
 
-import static main.utility.GameConstants.NO_ENTITY;
+import static main.model.GameConstants.NO_ENTITY;
 
 public abstract class CodeExecutor {
+
     private static GameMap currentGameMap;
     private static boolean hasWon=false;
     private static boolean hasLost = false;
-
     private static boolean skeletonWasSpawned;
     private static boolean knightWasSpawned;
 
@@ -33,10 +31,10 @@ public abstract class CodeExecutor {
         if(!isPlayer)skeletonWasSpawned = false;
         else knightWasSpawned = false;
         currentGameMap  = gameMap;
-        boolean method_Called = false;
+        boolean methodWasCalled = false;
         if(statement.getStatementType()== StatementType.METHOD_CALL) {
             MethodCall evaluatedMethodCall = (MethodCall)statement;
-            method_Called = true;
+            methodWasCalled = true;
             executeMethodCall(evaluatedMethodCall,isPlayer);
         }
         else if(statement.getStatementType()== StatementType.DECLARATION || statement.getStatementType()== StatementType.ASSIGNMENT) {
@@ -51,11 +49,12 @@ public abstract class CodeExecutor {
                 }
             }
             if(var.getVariableType() == VariableType.KNIGHT){
-                method_Called = true;
+                methodWasCalled = true;
                 String name = assignment.getVariable().getName();
                 Direction direction = null;
-                if(assignment.getVariable().getValue().getRightNode()!=null)
-                    direction= Direction.getValueFromString(var.getValue().getRightNode().getText());
+                ExpressionTree expressionTree = ((ExpressionTree)var.getValue());
+                if(expressionTree.getRightNode()!=null)
+                    direction= Direction.getValueFromString(expressionTree.getRightNode().getText());
                 if(direction == null)
                     direction = Direction.NORTH;
 
@@ -71,21 +70,22 @@ public abstract class CodeExecutor {
 
             }else if(var.getVariableType() == VariableType.SKELETON){
                 if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
-                method_Called = true;
+                methodWasCalled = true;
                 if(currentGameMap.getEnemySpawnList().size()==0)return true;
                 String name = var.getName();
                 Direction direction = Direction.NORTH;
-                if(assignment.getVariable().getValue().getRightNode()!= null)
-                    direction = Direction.getValueFromString(var.getValue().getRightNode().getText());
+                ExpressionTree expressionTree = ((ExpressionTree)var.getValue());
+                if(expressionTree.getRightNode()!= null)
+                    direction = Direction.getValueFromString(expressionTree.getRightNode().getText());
                 String spawnId = "";
-                if(var.getValue().getRightNode() != null){
-                    String s =var.getValue().getRightNode().getText();
+                if(expressionTree.getRightNode() != null){
+                    String s =expressionTree.getRightNode().getText();
                     if(s.matches(".*,.*")){
 
                         direction = Direction.valueOf(s.split(",")[0]);
                         spawnId =s.split(",")[1];
                     }
-                    else direction = Direction.getValueFromString(var.getValue().getRightNode().getText());
+                    else direction = Direction.getValueFromString(expressionTree.getRightNode().getText());
 
                 }
                 if(direction == null)direction = Direction.NORTH;
@@ -108,7 +108,7 @@ public abstract class CodeExecutor {
             }
 
         }
-        return method_Called;
+        return methodWasCalled;
     }
 
 
@@ -119,7 +119,7 @@ public abstract class CodeExecutor {
         CellContent targetContent = currentGameMap.getContentAtXY(targetPos);
         if(actorEntity.getItem() == ItemType.KEY&&targetContent == CellContent.EXIT){
             currentGameMap.setEntityItem(actorPos,ItemType.NONE);
-            currentGameMap.setFlag(targetPos, CFlag.OPEN, true);
+            currentGameMap.setFlag(targetPos, CellFlag.OPEN, true);
             hasWon = true;
             return;
         }
@@ -127,19 +127,19 @@ public abstract class CodeExecutor {
 //            beaconEntity = actorEntity;
 //        }
         if((actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD)&&GameConstants.ACTION_WITHOUT_CONSEQUENCE){
-            currentGameMap.setFlag(actorPos , CFlag.ACTION,true );
+            currentGameMap.setFlag(actorPos , CellFlag.ACTION,true );
             //this will have the effect that the target cell will be drawn, even though it did not change
-            if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name),CFlag.HELPER_FLAG,true);
+            if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.HELPER_FLAG,true);
         }
         if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CellContent.DIRT){
             currentGameMap.setContent(targetPos, CellContent.PATH);
-            currentGameMap.setFlag(actorPos, CFlag.ACTION, true );
-            currentGameMap.setFlag(targetPos, CFlag.DIRT_REMOVED, true );
+            currentGameMap.setFlag(actorPos, CellFlag.ACTION, true );
+            currentGameMap.setFlag(targetPos, CellFlag.DIRT_REMOVED, true );
         }
         if(actorEntity.getItem() == ItemType.SWORD&&(currentGameMap.getEntity(targetPos) != NO_ENTITY||currentGameMap.getItem(targetPos)!=ItemType.NONE)){
             if(currentGameMap.getItem(targetPos) == ItemType.BOULDER)return;
             currentGameMap.kill(targetPos); //TODO: maybe -> targetCell.kill();??
-            currentGameMap.setFlag(actorPos, CFlag.ACTION, true );
+            currentGameMap.setFlag(actorPos, CellFlag.ACTION, true );
         }
 
     }
@@ -197,22 +197,22 @@ public abstract class CodeExecutor {
         Entity actorEntity = currentGameMap.getEntity(actorPoint);
         Point targetPoint = currentGameMap.getTargetPoint(name,forwards);
 
-        boolean isOpen = currentGameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CFlag.INVERTED);
+        boolean isOpen = currentGameMap.cellHasFlag(targetPoint, CellFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CellFlag.INVERTED);
         if(currentGameMap.isGateWrongDirection(actorPoint, targetPoint))return;
         if((currentGameMap.getContentAtXY(targetPoint).isTraversable()||isOpen) && currentGameMap.isCellFree(targetPoint)){
             CellContent targetContent =currentGameMap.getContentAtXY(targetPoint);
             currentGameMap.removeEntity(actorPoint);
             currentGameMap.setEntity(targetPoint,  actorEntity );
 
-            if(targetContent== CellContent.TRAP && currentGameMap.cellHasFlag(targetPoint,CFlag.ARMED)){
+            if(targetContent== CellContent.TRAP && currentGameMap.cellHasFlag(targetPoint, CellFlag.ARMED)){
                 currentGameMap.kill(targetPoint);
             }
 
             if(targetContent == CellContent.PRESSURE_PLATE){
-                currentGameMap.setFlag(targetPoint,CFlag.TRIGGERED,true);
+                currentGameMap.setFlag(targetPoint, CellFlag.TRIGGERED,true);
             }
             if(currentGameMap.getContentAtXY(actorPoint) == CellContent.PRESSURE_PLATE){
-                currentGameMap.setFlag(actorPoint,CFlag.TRIGGERED,false);
+                currentGameMap.setFlag(actorPoint, CellFlag.TRIGGERED,false);
             }
 //            output = targetCell;
         }
@@ -227,9 +227,9 @@ public abstract class CodeExecutor {
             nameList = new ArrayList<>(Arrays.asList(matcher.group(1).split(",")));
         }
         for(String name : nameList){
-//            if(!isPlayer) System.out.println(methodCall.getText()+" "+name);
+//            if(!isPlayer) System.out.println(methodCall.getCode()+" "+name);
         Point position = currentGameMap.getEntityPosition(name);
-        if(position == null ){
+        if(position.getX() == -1 ){
             if(isPlayer&& currentGameMap.getAmountOfEntities(EntityType.KNIGHT) == 0)hasLost=true;
             continue;
         }
@@ -240,13 +240,13 @@ public abstract class CodeExecutor {
                 // Can't attack with an item in hand
                 if(currentGameMap.getEntity(name).getItem()!=ItemType.NONE)break;
                 if(GameConstants.ACTION_WITHOUT_CONSEQUENCE){
-                    currentGameMap.setFlag(position , CFlag.ACTION,true );
+                    currentGameMap.setFlag(position , CellFlag.ACTION,true );
                     //this will have the effect that the target cell will be drawn, even though it did not change
-                    if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name),CFlag.ACTION,true);
+                    if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.ACTION,true);
                 }
 //                if(gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY ||gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY)break;
                 if(!(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)&&!(currentGameMap.getItem(currentGameMap.getTargetPoint(name)) == ItemType.BOULDER))
-                    currentGameMap.setFlag(position , CFlag.ACTION,true );
+                    currentGameMap.setFlag(position , CellFlag.ACTION,true );
                 currentGameMap.kill(currentGameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
                 break;
 
@@ -257,7 +257,7 @@ public abstract class CodeExecutor {
                 tryToMoveCell(name,false); //TODO: stattdessen mit getTargetPoint()?
                 break;
             case TURN:
-                tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightCondition().getText()));
+                tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightCondition().getCode()));
                 break;
             case USE_ITEM:
                 if(currentGameMap.getEntity(position).getItem()==ItemType.NONE)break;

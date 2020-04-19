@@ -1,7 +1,5 @@
 package main.model.statement;
 
-import main.utility.GameConstants;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

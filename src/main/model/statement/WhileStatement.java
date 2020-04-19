@@ -11,7 +11,7 @@ public class WhileStatement extends ComplexStatement {
     }
 
     @Override
-    public String getText() {
+    public String getCode() {
         return "while("+condition.getText()+") {";
     }
 

@@ -3,9 +3,8 @@ package main.view;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.text.Font;
 import javafx.util.Duration;
-import main.utility.GameConstants;
+import main.model.GameConstants;
 
 public class SpellBookLabel extends Label {
 
@@ -52,8 +51,8 @@ public class SpellBookLabel extends Label {
 //                typeTooltip.setWrapText(true);
 //                int i = 0;
 //                for(VariableType vT : VariableType.values()){
-//                    if (i == 0) typeTooltip.setText(typeTooltip.getText()+ vT.getName());
-//                    else typeTooltip.setText(typeTooltip.getText()+", " + vT.getName());
+//                    if (i == 0) typeTooltip.setText(typeTooltip.getCode()+ vT.getName());
+//                    else typeTooltip.setText(typeTooltip.getCode()+", " + vT.getName());
 //                    i++;
 //                }
 //                variableTypeLabel.setTooltip(typeTooltip);

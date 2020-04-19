@@ -1,76 +1,78 @@
 package main.model;
 
-import main.model.enums.CFlag;
-import main.model.enums.CellContent;
-import main.model.enums.ItemType;
+import main.model.gamemap.enums.CellFlag;
+import main.model.gamemap.enums.CellContent;
+import main.model.gamemap.enums.ItemType;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.model.statement.StatementIterator;
-import main.utility.GameConstants;
 import main.utility.Util;
 
 import java.util.*;
 
-import static main.utility.GameConstants.FALSE_STATEMENT;
-import static main.utility.GameConstants.NO_ENTITY;
+import static main.model.GameConstants.FALSE_STATEMENT;
+import static main.model.GameConstants.NO_ENTITY;
 
-public abstract class Model {
-    private static List<Level> levelList = new ArrayList<>();
-    private static int currentLevelIndex = 0;
-    private static LevelChangeSender levelChangeSender;
+public class Model {
+    private List<Level> levelList = new ArrayList<>();
+    private int currentLevelIndex = 0;
 
-    private static List<Integer> unlockedLevelIdList = new ArrayList<>();
-    private static List<String> unlockedStatementsList = new ArrayList<>();
-    private static GameMap currentMap;
-    private static ComplexStatement playerBehaviour;
+    private LevelChangeSender levelChangeSender;
+    private List<Integer> unlockedLevelIdList = new ArrayList<>();
+    private List<String> unlockedStatementsList = new ArrayList<>();
+    private GameMap currentMap;
+    private ComplexStatement playerBehaviour;
 
-    private static int turnsTaken = 0;
-    private static int skeletonsSpawned = 0;
-    private static int knightsSpawned = 0;
-    private static boolean isLost = false;
-    private static boolean isWon = false;
-    private static boolean aiFinished = false;
-    private static boolean isStackOverflow = false;
+    private int turnsTaken = 0;
+    private int skeletonsSpawned = 0;
+    private int knightsSpawned = 0;
+    private boolean isLost = false;
+    private boolean isWon = false;
+    private boolean aiFinished = false;
+    private boolean isStackOverflow = false;
 
-    private static Map<Integer,List<String>> bestCodeMap;
-    private static Map<Integer,Integer> bestTurnsMap;
-    private static Map<Integer,Integer> bestLOCMap;
-    private static int tutorialProgress = -1;
+    private Map<Integer,List<String>> bestCodeMap;
+    private Map<Integer,Integer> bestTurnsMap;
+    private Map<Integer,Integer> bestLOCMap;
+    private int tutorialProgress = -1;
 
-    private static int currentTutorialMessageIndex = 0;
+    private int currentTutorialMessageIndex = 0;
 
-    private static StatementIterator playerIterator;
-    private static StatementIterator aiIterator;
+    private StatementIterator playerIterator;
+    private StatementIterator aiIterator;
 
-    private static CodeEvaluator playerEvaluator;
-    private static CodeEvaluator aiEvaluator;
+    private CodeEvaluator playerEvaluator;
+    private CodeEvaluator aiEvaluator;
 
-    // attempt to ensure aps with random outcomes are not cheated
-    private static Map<Integer,List<Integer>> aiLineRandIntMap = new HashMap<>();
-    private static int currentRound = 1;
+    // attempt to ensure levels with random outcomes are not completed by chance
+    private Map<Integer,List<Integer>> aiLineRandIntMap = new HashMap<>();
+    private int currentRound = 1;
+
+    private static Model modelSingleton = null;
+
+    public static Model getInstance(){
+        if(modelSingleton == null) modelSingleton = new Model();
+        return modelSingleton;
+    }
 
     //needs to be run AFTER Levels have been added!
-    public static void init(Map<Integer,List<String>> bestCodeMap, Map<Integer,Integer> bestTurnsMap, Map<Integer,Integer> bestLOCMap, int tutorialProgress,
-                            List<Integer> unlockedLevelsList, List<String> unlockedStatementsList ){
-        Model.bestCodeMap = bestCodeMap;
-        Model.bestLOCMap = bestLOCMap;
-        Model.bestTurnsMap = bestTurnsMap;
-        Model.tutorialProgress = tutorialProgress;
-        Model.unlockedLevelIdList = unlockedLevelsList;
-        if(unlockedLevelsList.size()==0)unlockedLevelsList.add(levelList.get(0).getId());
-        Model.unlockedStatementsList = unlockedStatementsList;
+    public void init(Map<Integer,List<String>> bestCodeMap, Map<Integer,Integer> bestTurnsMap, Map<Integer,Integer> bestLOCMap, int tutorialProgress,
+                     List<Integer> unlockedLevelsList, List<String> unlockedStatementsList ){
+        this.bestCodeMap = bestCodeMap;
+        this.bestLOCMap = bestLOCMap;
+        this.bestTurnsMap = bestTurnsMap;
+        this.tutorialProgress = tutorialProgress;
+        this.unlockedLevelIdList = unlockedLevelsList;
+        if(unlockedLevelsList.size()==0)unlockedLevelsList.add(levelList.get(0).getID());
+        this.unlockedStatementsList = unlockedStatementsList;
     }
 
-    private static Level getCurrentLevel() {
-        return levelList.get(currentLevelIndex);
-    }
-
-    public static void addLevelLast(Level level, boolean isNew) {
+    public void addLevelLast(Level level, boolean isNew) {
         addLevel(levelList.size(),level,isNew);
     }
-    private static  void addLevel(int i,Level level, boolean isNew){
+    private void addLevel(int i,Level level, boolean isNew){
         if(i == levelList.size())levelList.add(level);
         else levelList.add(i,level);
         if(isNew) {
@@ -79,21 +81,21 @@ public abstract class Model {
         }
     }
 
-    public static void selectLevel(int index) {
+    public void selectLevel(int index) {
         currentLevelIndex = index;
         currentTutorialMessageIndex = 0;
         currentMap = getCurrentLevel().getOriginalMapCopy();
         levelChangeSender.levelChanged(false);
     }
-    public static void selectLevel(String name){
+    public void selectLevel(String name){
         selectLevel(getIndexOfLevelInList(name));
     }
 
-    public static void removeCurrentLevel() {
+    public void removeCurrentLevel() {
         for(Level l : levelList){
             List<Integer> reqLevels = new ArrayList<>();
             for(int id : l.getRequiredLevelIdsCopy()){
-                if(id != getCurrentLevel().getId())reqLevels.add(id);
+                if(id != getCurrentLevel().getID())reqLevels.add(id);
             }
             l.setRequiredLevelIds(reqLevels);
         }
@@ -106,33 +108,13 @@ public abstract class Model {
         selectLevel(currentLevelIndex);
     }
 
-    public static int getAmountOfLevels() {
-        return levelList.size();
-    }
-
-    public static int getIndexOfLevelInList(String levelName) {
-        for(int i = 0; i < levelList.size(); i++){
-            Level l = levelList.get(i);
-            if(l.getName().equals(levelName))return i;
-        }
-        return -1;
-    }
-    public static int getIndexOfLevelWithId(int id) {
-        if(id == -1)return -1;
-        for(int i = 0; i < levelList.size(); i++){
-            Level l = levelList.get(i);
-            if(l.getId()==id)return i;
-        }
-        return -1;
-    }
-
-    public static void initLevelChangeListener(LevelChangeListener levelChangeListener) {
+    public void initLevelChangeListener(LevelChangeListener levelChangeListener) {
        if(levelChangeSender == null) levelChangeSender = new LevelChangeSender(levelChangeListener);
        else throw new IllegalStateException("LevelChangeSender has already been initialized!");
     }
 
 
-    public static void reloadCurrentLevel() {
+    public void reloadCurrentLevel() {
         if(levelChangeSender.isLevelNew()){
             removeCurrentLevel();
         }
@@ -142,10 +124,10 @@ public abstract class Model {
         }
     }
 
-    private static void updateLevelValues(LevelDataType levelDataType, Object value) {
+    private void updateLevelValues(LevelDataType levelDataType, Object value) {
         switch (levelDataType){
             case AMOUNT_OF_RERUNS:
-                getCurrentLevel().setAmountOfReruns((int)value);
+                getCurrentLevel().setAmountOfPlays((int)value);
                 break;
             case LEVEL_INDEX:
                 int oldIndex = (int)value;
@@ -186,7 +168,7 @@ public abstract class Model {
         }
     }
 
-    private static void moveCurrentLevel(int targetIndex) {
+    private void moveCurrentLevel(int targetIndex) {
         int step = 1;
         if(targetIndex<currentLevelIndex)step = -1;
         for(int i = currentLevelIndex; i != targetIndex; i+=step){
@@ -195,25 +177,25 @@ public abstract class Model {
         }
     }
 
-    private static void moveCurrentLevelDown() {
+    private void moveCurrentLevelDown() {
         Level tempLevel = levelList.get(currentLevelIndex-1);
         levelList.set(currentLevelIndex-1, getCurrentLevel());
         levelList.set(currentLevelIndex, tempLevel);
         currentLevelIndex--;
     }
 
-    private static void moveCurrentLevelUp() {
+    private void moveCurrentLevelUp() {
         Level tempLevel = levelList.get(currentLevelIndex+1);
         levelList.set(currentLevelIndex+1, getCurrentLevel());
         levelList.set(currentLevelIndex, tempLevel);
         currentLevelIndex++;
     }
 
-    public static void changeCurrentLevel(LevelDataType levelDataType, Object newValue){
+    public void changeCurrentLevel(LevelDataType levelDataType, Object newValue){
         Object oldValue = null;
         switch (levelDataType){
             case AMOUNT_OF_RERUNS:
-                oldValue = getCurrentLevel().getAmountOfReruns();
+                oldValue = getCurrentLevel().getAmountOfPlays();
                 break;
             case LEVEL_INDEX:
                 oldValue = currentLevelIndex;
@@ -243,7 +225,7 @@ public abstract class Model {
                 oldValue = getCurrentLevel().isTutorial();
                 break;
             case TUTORIAL_LINES:
-                oldValue = getCurrentLevel().getTutorialEntryListCopy();
+                oldValue = getCurrentLevel().getTutorialMessagesCopy();
                 break;
             case LEVEL_NAME:
                 oldValue = getCurrentLevel().getName();
@@ -262,11 +244,7 @@ public abstract class Model {
         levelChangeSender.addLevelChange(levelChange);
     }
 
-    public static boolean currentLevelHasChanged() {
-        return levelChangeSender.hasChanged() || levelChangeSender.isLevelNew();
-    }
-
-    public static Map<LevelDataType,LevelChange> getAndConfirmCurrentChanges() {
+    public Map<LevelDataType,LevelChange> getAndConfirmCurrentChanges() {
         Map<LevelDataType,LevelChange> output = levelChangeSender.getAndConfirmChanges();
         if(output.containsKey(LevelDataType.IS_TUTORIAL)){
             if((boolean)output.get(LevelDataType.IS_TUTORIAL).getNewValue())
@@ -275,87 +253,26 @@ public abstract class Model {
         return output;
     }
 
-    public static int getCurrentIndex() {
-        return currentLevelIndex;
-    }
-
-    public static Object getDataFromLevelWithIndex(LevelDataType dataType, int index){
-        Level level = levelList.get(index);
-        switch (dataType){
-            case AMOUNT_OF_RERUNS:
-                return level.getAmountOfReruns();
-            case LEVEL_INDEX:
-                return index;
-            case MAX_KNIGHTS:
-                return level.getMaxKnights();
-            case MAP_DATA:
-                return level.getOriginalMapCopy();
-            case AI_CODE:
-                return level.getAIBehaviourCopy();
-            case LOC_TO_STARS:
-                return level.getLocToStarsCopy();
-            case TURNS_TO_STARS:
-                return level.getTurnsToStarsCopy();
-            case REQUIRED_LEVELS:
-                return level.getRequiredLevelIdsCopy();
-            case IS_TUTORIAL:
-                return level.isTutorial();
-            case TUTORIAL_LINES:
-                return level.getTutorialEntryListCopy();
-            case LEVEL_NAME:
-                return level.getName();
-            case HAS_AI:
-                return level.hasAi();
-        }
-        return null;
-    }
-    public static Object getDataFromCurrentLevel(LevelDataType dataType){
-        return getDataFromLevelWithIndex(dataType, currentLevelIndex);
-    }
-
-    public static void nextTutorialMessage() {
-        if(currentTutorialMessageIndex < getCurrentLevel().getTutorialEntryListCopy().size()-1)
+    public void nextTutorialMessage() {
+        if(currentTutorialMessageIndex < getCurrentLevel().getTutorialMessagesCopy().size()-1)
             currentTutorialMessageIndex++;
     }
 
-    public static int getCurrentTutorialMessageIndex() {
-        return currentTutorialMessageIndex;
-    }
-
-    public static void prevTutorialMessage() {
+    public void prevTutorialMessage() {
         if(currentTutorialMessageIndex >0)
             currentTutorialMessageIndex--;
     }
 
-    public static int getCurrentTutorialSize() {
-        return getCurrentLevel().getTutorialEntryListCopy().size();
-    }
-
-    public static List<String> getUnlockedStatementList() {
-        return new ArrayList<>(unlockedStatementsList);
-    }
-
-    public static String getNameOfLevelWithIndex(int i) {
-        return levelList.get(i).getName();
-    }
-
-    public static boolean hasLevelWithName(String t1) {
-        for(Level l : levelList){
-            if(l.getName().equals(t1))return true;
-        }
-        return false;
-    }
-
-    public static Statement[] executeTurn() {
+    public Statement[] executeTurn() {
         turnsTaken++;
         int noStackOverflow = 0;
         removeTemporaryFlags();
-        boolean method_Called_Player = false, method_Called_AI = false;
+        boolean playerCalledMethod = false, aiCalledMethod = false;
         Statement playerStatement = null;
         Statement aiStatement = null;
         isStackOverflow = false;
 
-        while(!method_Called_Player && !isWon && !isLost) {
+        while(!playerCalledMethod && !isWon && !isLost) {
             Statement evaluatedStatement;
             playerStatement = playerIterator.next();
             evaluatedStatement = playerEvaluator.evaluateStatement(playerStatement);
@@ -375,19 +292,20 @@ public abstract class Model {
             if(evaluatedStatement.isComplex())continue;
 
             boolean canSpawnKnights = getAmountOfKnightsSpawned() < getCurrentLevel().getMaxKnights();
-            method_Called_Player = CodeExecutor.executeBehaviour(evaluatedStatement,currentMap, true, canSpawnKnights);
+            playerCalledMethod = CodeExecutor.executeBehaviour(evaluatedStatement,currentMap, true, canSpawnKnights);
             if(CodeExecutor.knightWasSpawned())knightsSpawned++;
             isWon = CodeExecutor.hasWon();
             isLost = CodeExecutor.hasLost() || isLost;
             // this should be impossible!
             if(currentMap.findSpawn().getX() != -1)
             // no need to set the flag more than once!
-            if(!currentMap.cellHasFlag(currentMap.findSpawn(), CFlag.DEACTIVATED))
+            if(!currentMap.cellHasFlag(currentMap.findSpawn(), CellFlag.DEACTIVATED))
             if(getAmountOfKnightsSpawned() == getCurrentLevel().getMaxKnights())
-            currentMap.setFlag(currentMap.findSpawn(), CFlag.DEACTIVATED,true);
+            currentMap.setFlag(currentMap.findSpawn(), CellFlag.DEACTIVATED,true);
         }
-        if(getCurrentLevel().hasAi() && GameConstants.IS_AI_ACTIVE)
-        while(!method_Called_AI && !isWon && !aiFinished) {
+        boolean hasAI = getCurrentLevel().hasAi();
+        if(hasAI && GameConstants.IS_AI_ACTIVE)
+        while(!aiCalledMethod && !isWon && !aiFinished) {
             Statement evaluatedStatement;
             aiStatement = aiIterator.next();
             evaluatedStatement = aiEvaluator.evaluateStatement(aiStatement);
@@ -407,17 +325,17 @@ public abstract class Model {
             // If the evaluated Statement is complex there is nothing to execute!
             if(evaluatedStatement.isComplex())continue;
 
-            method_Called_AI = CodeExecutor.executeBehaviour(evaluatedStatement,currentMap,false, false);
+            aiCalledMethod = CodeExecutor.executeBehaviour(evaluatedStatement,currentMap,false, false);
             if(CodeExecutor.skeletonWasSpawned())skeletonsSpawned++;
         }
         applyGameLogicToCells();
         return new Statement[]{playerStatement,aiStatement};
     }
     
-    private static void removeTemporaryFlags() {
+    private void removeTemporaryFlags() {
         for(int x = 0; x < currentMap.getBoundX(); x++)for(int y = 0; y < currentMap.getBoundY(); y++){
             final Cell cell = currentMap.getCellAtXYClone(x,y);
-            for(CFlag flag : CFlag.values()){
+            for(CellFlag flag : CellFlag.values()){
                 if(flag.isTemporary() && cell.hasFlag(flag))
                     currentMap.setFlag(x, y, flag,false);
             }
@@ -425,21 +343,21 @@ public abstract class Model {
     }
 
 
-    private static void applyGameLogicToCells() {
+    private void applyGameLogicToCells() {
         for(int x = 0; x < currentMap.getBoundX(); x++)
             for(int y = 0; y < currentMap.getBoundY(); y++) {
                 final Cell cell = currentMap.getCellAtXYClone(x,y);
                 CellContent content = currentMap.getContentAtXY(x,y);
                 if (content == CellContent.PRESSURE_PLATE) {
-                    boolean invertedAndNotFree = (cell.getEntity() == NO_ENTITY && cell.getItem() != ItemType.BOULDER) && cell.hasFlag(CFlag.INVERTED);
-                    boolean notInvertedAndFree = (cell.getEntity() != NO_ENTITY || cell.getItem() == ItemType.BOULDER) && !cell.hasFlag(CFlag.INVERTED);
-                    if (invertedAndNotFree || notInvertedAndFree) currentMap.setFlag(x, y, CFlag.TRIGGERED, true);
-                    else currentMap.setFlag(x, y, CFlag.TRIGGERED, false);
+                    boolean invertedAndNotFree = (cell.getEntity() == NO_ENTITY && cell.getItem() != ItemType.BOULDER) && cell.hasFlag(CellFlag.INVERTED);
+                    boolean notInvertedAndFree = (cell.getEntity() != NO_ENTITY || cell.getItem() == ItemType.BOULDER) && !cell.hasFlag(CellFlag.INVERTED);
+                    if (invertedAndNotFree || notInvertedAndFree) currentMap.setFlag(x, y, CellFlag.TRIGGERED, true);
+                    else currentMap.setFlag(x, y, CellFlag.TRIGGERED, false);
                 }
 
                 if (content == CellContent.ENEMY_SPAWN) {
                     if(CodeExecutor.skeletonWasSpawned()){
-                        currentMap.setFlag(x, y, CFlag.CHANGE_COLOR, true);
+                        currentMap.setFlag(x, y, CellFlag.CHANGE_COLOR, true);
                     }
                 }
             }
@@ -449,72 +367,45 @@ public abstract class Model {
             boolean notAllTriggered = false;
             if(content == CellContent.GATE){
                 for (int i = 0; i < cell.getLinkedCellsSize();i++){
-                    if(!currentMap.findCellWithId(currentMap.getLinkedCellId(x,y,i)).hasFlag(CFlag.TRIGGERED)){
-                        if(!currentMap.cellHasFlag(x, y, CFlag.INVERTED))
+                    if(!currentMap.findCellWithId(currentMap.getLinkedCellId(x,y,i)).hasFlag(CellFlag.TRIGGERED)){
+                        if(!currentMap.cellHasFlag(x, y, CellFlag.INVERTED))
                             currentMap.kill(x,y);
 
-                        currentMap.setFlag(x,y,CFlag.OPEN,false);
+                        currentMap.setFlag(x,y, CellFlag.OPEN,false);
                         notAllTriggered = true;
                     }
                 }
                 if(!notAllTriggered&&cell.getLinkedCellsSize()>0){
-                    if(currentMap.cellHasFlag(x, y, CFlag.INVERTED))
+                    if(currentMap.cellHasFlag(x, y, CellFlag.INVERTED))
                         currentMap.kill(x,y);
-                    currentMap.setFlag(x,y,CFlag.OPEN,true);
+                    currentMap.setFlag(x,y, CellFlag.OPEN,true);
                 }
             }
 
             if(cell.getContent() == CellContent.TRAP && currentMap.getItem(x,y) != ItemType.BOULDER){
-                if(cell.hasFlag(CFlag.PREPARING)&&cell.hasFlag(CFlag.ARMED))
+                if(cell.hasFlag(CellFlag.PREPARING)&&cell.hasFlag(CellFlag.ARMED))
                     throw new IllegalStateException("A cell is not allowed to have more than 1 of these flags: armed or preparing!");
-                if(cell.hasFlag(CFlag.PREPARING)){
-                    currentMap.setFlag(x,y,CFlag.PREPARING,false);
-                    currentMap.setFlag(x,y,CFlag.ARMED,true);
+                if(cell.hasFlag(CellFlag.PREPARING)){
+                    currentMap.setFlag(x,y, CellFlag.PREPARING,false);
+                    currentMap.setFlag(x,y, CellFlag.ARMED,true);
                     currentMap.kill(x,y);
-                }else if(cell.hasFlag(CFlag.ARMED)){
-                    currentMap.setFlag(x,y,CFlag.ARMED,false);
-                } else currentMap.setFlag(x,y,CFlag.PREPARING,true);}
+                }else if(cell.hasFlag(CellFlag.ARMED)){
+                    currentMap.setFlag(x,y, CellFlag.ARMED,false);
+                } else currentMap.setFlag(x,y, CellFlag.PREPARING,true);}
         }
     }
 
-    public static void setCurrentPlayerBehaviour(ComplexStatement playerBehaviour) {
-        playerIterator = new StatementIterator(playerBehaviour, false);
-        playerEvaluator = new CodeEvaluator(true);
-        Model.playerBehaviour = playerBehaviour;
+    public void setCurrentPlayerBehaviour(ComplexStatement playerBehaviour) {
+        this.playerBehaviour = playerBehaviour;
     }
 
-
-    public static boolean isLost() {
-        return isLost;
-    }
-
-    public static boolean aiIsFinished() {
-        return aiFinished;
-    }
-
-    public static boolean isWon() {
-        return isWon;
-    }
-
-    public static int getTurnsTaken() {
-        return turnsTaken;
-    }
-
-    public static boolean isStackOverflow() {
-        return isStackOverflow;
-    }
-
-    public static int getAmountOfKnightsSpawned() {
-        return knightsSpawned;
-    }
-
-    public static void reset() {
+    public void reset() {
         resetForNextRound();
         aiLineRandIntMap = new HashMap<>();
         currentRound = 1;
     }
 
-    public static void resetForNextRound() {
+    public void resetForNextRound() {
         turnsTaken = 0;
         knightsSpawned = 0;
         skeletonsSpawned = 0;
@@ -526,11 +417,7 @@ public abstract class Model {
         CodeExecutor.reset();
     }
 
-    public static int getAmountOfSkeletonsSpawned() {
-        return skeletonsSpawned;
-    }
-
-    public static void updateUnlockedLevelsList(boolean isEditor) {
+    public void updateUnlockedLevelsList(boolean isEditor) {
 
         int foundLevels = 0;
         // If the current level was saved from within the LevelEditor -> Maybe Required Levels was changed
@@ -539,7 +426,7 @@ public abstract class Model {
         if(isEditor) {
             int requiredLevelsSize = 0;
             for(Integer id : getCurrentLevel().getRequiredLevelIdsCopy()){
-                if (Model.getIndexOfLevelWithId(id) < Model.getCurrentIndex())requiredLevelsSize++;
+                if (this.getIndexOfLevelWithId(id) < this.getCurrentIndex())requiredLevelsSize++;
             }
              if(getCurrentLevel().isTutorial())return;
             for (Integer s : getCurrentLevel().getRequiredLevelIdsCopy()) {
@@ -566,7 +453,7 @@ public abstract class Model {
             for(Level l : levelList){
                 int requiredLevelsSize = 0;
                 for(Integer id : l.getRequiredLevelIdsCopy()){
-                    if (Model.getIndexOfLevelWithId(id) < Model.getIndexOfLevelWithId(l.getId()))requiredLevelsSize++;
+                    if (this.getIndexOfLevelWithId(id) < this.getIndexOfLevelWithId(l.getID()))requiredLevelsSize++;
                 }
                 foundLevels = 0;
                 // Count all unlocked levels that have a score > -1 (Have been solved already) and are required for a given level
@@ -578,17 +465,17 @@ public abstract class Model {
                 }
                 // Doesnt apply to tutorials
                 if(foundLevels >=  requiredLevelsSize&& !l.isTutorial())
-                    if(!unlockedLevelIdList.contains(l.getId())) unlockedLevelIdList.add(l.getId());
+                    if(!unlockedLevelIdList.contains(l.getID())) unlockedLevelIdList.add(l.getID());
                 // Unlock next tutorial if this level is a tutorial
                 // A check whether this level is a tutorial is not needed as in that case (getNextTutorialIndex()==i) is false
                 if((l.isTutorial() && getNextTutorialIndex()==i))
-                    if(!unlockedLevelIdList.contains(l.getId())) unlockedLevelIdList.add(l.getId());
+                    if(!unlockedLevelIdList.contains(l.getID())) unlockedLevelIdList.add(l.getID());
                 i++;
             }
         }
     }
 
-    public static boolean putStatsIfBetter(int loc, int turns, double nStars) {
+    public boolean putStatsIfBetter(int loc, int turns, double nStars) {
         int bestLoc = -1;
         int bestTurns = -1;
         if(bestLOCMap.containsKey(getCurrentId())){
@@ -612,20 +499,7 @@ public abstract class Model {
         return true;
     }
 
-    public static int getTutorialProgress() {
-        return tutorialProgress;
-    }
-
-    public static List<String> getCurrentlyBestCode() {
-        return getBestCodeOfLevel(currentLevelIndex);
-    }
-
-    public static List<Integer> getUnlockedLevelIds() {
-        List<Integer> unlockedLevelIds = new ArrayList<>(unlockedLevelIdList);
-        return unlockedLevelIds;
-    }
-
-    public static void resetScoreOfCurrentLevel() {
+    public void resetScoreOfCurrentLevel() {
         if(bestLOCMap.containsKey(getCurrentId())){
             bestLOCMap.replace(getCurrentId(),-1);
         } else bestLOCMap.put(getCurrentId(),-1);
@@ -639,48 +513,85 @@ public abstract class Model {
         } else bestCodeMap.put(getCurrentId(),new ArrayList<>());
     }
 
-    public static int getBestLocOfLevel(int i) {
+    public void resetTutorialIndex() {
+        currentTutorialMessageIndex = 0;
+    }
+
+    public void initIteratorsAndEvaluators(ComplexStatement playerBehaviour,ComplexStatement aiBehaviour) {
+        aiIterator = aiBehaviour.iterator();
+        aiEvaluator = new CodeEvaluator(false,modelSingleton);
+        playerIterator = playerBehaviour.iterator();
+        playerEvaluator = new CodeEvaluator(true,modelSingleton);
+    }
+
+    public void increaseTutorialMessageIndex() {
+        currentTutorialMessageIndex++;
+    }
+    public void decreaseTutorialMessageIndex() {
+        currentTutorialMessageIndex--;
+    }
+
+    public void resetLevelNew() {
+        levelChangeSender.resetLevelNew();
+    }
+
+    public void addLevelAtCurrentPos(Level level, boolean b) {
+        if(currentLevelIndex == levelList.size()-1)addLevelLast(level, b);
+        else addLevel(getCurrentIndex()+1, level, b);
+    }
+
+    public void setTutorialProgress(int nextIndex) {
+        tutorialProgress = nextIndex;
+    }
+
+    public void increaseCurrentRound() {
+        currentRound++;
+    }
+
+    // Getters
+
+    public int getTutorialProgress() {
+        return tutorialProgress;
+    }
+
+    public List<String> getCurrentlyBestCode() {
+        return getBestCodeOfLevel(currentLevelIndex);
+    }
+
+    public List<Integer> getUnlockedLevelIds() {
+        List<Integer> unlockedLevelIds = new ArrayList<>(unlockedLevelIdList);
+        return unlockedLevelIds;
+    }
+
+    public int getBestLocOfLevel(int i) {
         int output = -1;
         if(bestLOCMap.get(i)!=null)output = bestLOCMap.get(i);
         return output;
     }
 
-    public static int getBestTurnsOfLevel(int i) {
+    public int getBestTurnsOfLevel(int i) {
         int output = -1;
         if(bestTurnsMap.get(i)!=null)output = bestTurnsMap.get(i);
         return output;
     }
 
-    public static GameMap getCurrentMap(){
+    public GameMap getCurrentMapCopy(){
         return currentMap.copy();
     }
 
-    public static void addUnlockedStatement(String unlock) {
-        if(!unlockedStatementsList.contains(unlock))unlockedStatementsList.add(unlock);
-    }
-
-    public static List<String> getBestCodeOfLevel(int i) {
+    public List<String> getBestCodeOfLevel(int i) {
         return bestCodeMap.get(i);
     }
 
-    public static boolean isCurrentLevelNew() {
+    public boolean isCurrentLevelNew() {
         return levelChangeSender.isLevelNew();
     }
 
-    public static String getCurrentTutorialMessage() {
-        return getCurrentLevel().getTutorialEntryListCopy().get(currentTutorialMessageIndex);
+    public String getCurrentTutorialMessage() {
+        return getCurrentLevel().getTutorialMessagesCopy().get(currentTutorialMessageIndex);
     }
 
-    public static void resetTutorialIndex() {
-        currentTutorialMessageIndex = 0;
-    }
-
-    public static void initAiIteratorAndEvaluator(ComplexStatement aiBehaviour) {
-        aiIterator = new StatementIterator(aiBehaviour, false);
-        aiEvaluator = new CodeEvaluator(false);
-    }
-
-    public static int getAmountOfTutorials() {
+    public int getAmountOfTutorials() {
         int output = 0;
         for(Level l : levelList){
             if(l.isTutorial())output++;
@@ -688,7 +599,7 @@ public abstract class Model {
         return output;
     }
 
-    public static int getNextTutorialIndex() {
+    public int getNextTutorialIndex() {
         int output = 0;
         for(Level l : levelList){
                 if(l.isTutorial()&&output>currentLevelIndex)return output;
@@ -697,70 +608,51 @@ public abstract class Model {
         return -1;
     }
 
-    public static void increaseTutorialMessageIndex() {
-        currentTutorialMessageIndex++;
-    }
-    public static void decreaseTutorialMessageIndex() {
-        currentTutorialMessageIndex--;
-    }
 
-    public static void resetLevelNew() {
-        levelChangeSender.resetLevelNew();
-    }
-
-    public static void addLevelAtCurrentPos(Level level, boolean b) {
-        if(currentLevelIndex == levelList.size()-1)addLevelLast(level, b);
-        else addLevel(getCurrentIndex()+1, level, b);
-    }
-
-    public static void setTutorialProgress(int nextIndex) {
-        tutorialProgress = nextIndex;
-    }
-
-    public static Integer createUniqueId() {
-        int maxId = levelList.get(0).getId();
+    public Integer createUniqueId() {
+        int maxId = levelList.get(0).getID();
         for(Level l : levelList){
-            if(l.getId() > maxId)maxId = l.getId();
+            if(l.getID() > maxId)maxId = l.getID();
         }
         return maxId+1;
     }
 
-    public static String getNameOfLevelWithId(int levelId) {
+    public String getNameOfLevelWithId(int levelId) {
         if(levelId == -1)return null;
         for(Level l : levelList){
-            if(l.getId() == levelId)return l.getName();
+            if(l.getID() == levelId)return l.getName();
         }
         return null;
     }
 
-    public static Integer getIdOfLevelWithName(String levelName) {
+    public Integer getIdOfLevelWithName(String levelName) {
         for(Level l : levelList){
-            if(l.getName().equals(levelName))return l.getId();
+            if(l.getName().equals(levelName))return l.getID();
         }
         return -1;
     }
 
-    public static List<Integer> getOrderedIds() {
+    List<Integer> getOrderedIds() {
         List<Integer> output = new ArrayList<>();
         for(Level l : levelList){
-            output.add(l.getId());
+            output.add(l.getID());
         }
         return output;
     }
 
-    public static Integer getCurrentId() {
-        return getCurrentLevel().getId();
+    public Integer getCurrentId() {
+        return getCurrentLevel().getID();
     }
 
-    public static List<String> getCurrentRequiredLevels() {
+    public List<String> getCurrentRequiredLevels() {
         List<String> output = new ArrayList<>();
         for(Integer id : getCurrentLevel().getRequiredLevelIdsCopy()){
-            if(Model.getIndexOfLevelWithId(id) < currentLevelIndex)output.add(getNameOfLevelWithId(id));
+            if(this.getIndexOfLevelWithId(id) < currentLevelIndex)output.add(getNameOfLevelWithId(id));
         }
         return output;
     }
 
-    public static int getDifferentRandomNumberEachTime(int bnd1, int bnd2) {
+    int getDifferentRandomNumberEachTime(int bnd1, int bnd2) {
         int currentAIIndex = aiIterator.getCurrentIndex();
         int output;
         if(aiLineRandIntMap.containsKey(currentAIIndex)){
@@ -776,12 +668,139 @@ public abstract class Model {
         return output;
     }
 
-    public static int getCurrentRound() {
+    public int getCurrentRound() {
         return currentRound;
     }
 
-    public static void increaseCurrentRound() {
-        currentRound++;
+
+    public boolean isLost() {
+        return isLost;
     }
 
+    public boolean aiIsFinished() {
+        return aiFinished;
+    }
+
+    public boolean isWon() {
+        return isWon;
+    }
+
+    public int getTurnsTaken() {
+        return turnsTaken;
+    }
+
+    public boolean isStackOverflow() {
+        return isStackOverflow;
+    }
+
+    int getAmountOfKnightsSpawned() {
+        return knightsSpawned;
+    }
+    int getAmountOfSkeletonsSpawned() {
+        return skeletonsSpawned;
+    }
+
+
+    public int getCurrentIndex() {
+        return currentLevelIndex;
+    }
+
+    public Object getDataFromLevelWithIndex(LevelDataType dataType, int index){
+        Level level = levelList.get(index);
+        switch (dataType){
+            case AMOUNT_OF_RERUNS:
+                return level.getAmountOfPlays();
+            case LEVEL_INDEX:
+                return index;
+            case MAX_KNIGHTS:
+                return level.getMaxKnights();
+            case MAP_DATA:
+                return level.getOriginalMapCopy();
+            case AI_CODE:
+                return level.getAIBehaviourCopy();
+            case LOC_TO_STARS:
+                return level.getLocToStarsCopy();
+            case TURNS_TO_STARS:
+                return level.getTurnsToStarsCopy();
+            case REQUIRED_LEVELS:
+                return level.getRequiredLevelIdsCopy();
+            case IS_TUTORIAL:
+                return level.isTutorial();
+            case TUTORIAL_LINES:
+                return level.getTutorialMessagesCopy();
+            case LEVEL_NAME:
+                return level.getName();
+            case HAS_AI:
+                return level.hasAi();
+        }
+        return null;
+    }
+    public Object getDataFromCurrentLevel(LevelDataType dataType){
+        return getDataFromLevelWithIndex(dataType, currentLevelIndex);
+    }
+
+    public int getCurrentTutorialMessageIndex() {
+        return currentTutorialMessageIndex;
+    }
+
+    public int getCurrentTutorialSize() {
+        return getCurrentLevel().getTutorialMessagesCopy().size();
+    }
+
+    public List<String> getUnlockedStatementList() {
+        return new ArrayList<>(unlockedStatementsList);
+    }
+
+    String getNameOfLevelWithIndex(int i) {
+        return levelList.get(i).getName();
+    }
+
+    public boolean hasLevelWithName(String t1) {
+        for(Level l : levelList){
+            if(l.getName().equals(t1))return true;
+        }
+        return false;
+    }
+
+    public int getAmountOfLevels() {
+        return levelList.size();
+    }
+
+    int getIndexOfLevelInList(String levelName) {
+        for(int i = 0; i < levelList.size(); i++){
+            Level l = levelList.get(i);
+            if(l.getName().equals(levelName))return i;
+        }
+        return -1;
+    }
+    public int getIndexOfLevelWithId(int id) {
+        if(id == -1)return -1;
+        for(int i = 0; i < levelList.size(); i++){
+            Level l = levelList.get(i);
+            if(l.getID()==id)return i;
+        }
+        return -1;
+    }
+
+    public boolean currentLevelHasChanged() {
+        return levelChangeSender.hasChanged() || levelChangeSender.isLevelNew();
+    }
+    private Level getCurrentLevel() {
+        return levelList.get(currentLevelIndex);
+    }
+
+    public int getAmountOfCompletedLevels() {
+        int amountOfCompletedLevels = 0;
+        for(int id : getUnlockedLevelIds()){
+            if(bestLOCMap.get(id)>-1 && bestTurnsMap.get(id)>-1)amountOfCompletedLevels++;
+        }
+        return amountOfCompletedLevels;
+    }
+
+    public void updateUnlockedStatements() {
+        for(String unlock : playerEvaluator.getUnlockedStatements()){
+            if(this.unlockedStatementsList.contains(unlock))continue;
+            this.unlockedStatementsList.add(unlock);
+        }
+    }
 }

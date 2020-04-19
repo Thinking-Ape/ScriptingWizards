@@ -1,7 +1,7 @@
 package main.model.statement.Condition;
 
-import main.model.statement.Expression.ExpressionTree;
-import main.utility.GameConstants;
+import main.model.statement.Expression.Expression;
+import main.model.GameConstants;
 import main.utility.Util;
 import static main.model.statement.Condition.ConditionType.*;
 
@@ -66,12 +66,12 @@ public interface Condition {
             if(simpleConditionType== BooleanType.SIMPLE) continue;
             if(i == code.length()-1)throw new IllegalArgumentException(code + " lacks an argument");
             int j = simpleConditionType.getSecondCharacter() == GameConstants.ANY_CHAR ? 1 : 2;
-            ExpressionTree leftTree = ExpressionTree.expressionTreeFromString(code.substring(0,i));
-            ExpressionTree rightTree = ExpressionTree.expressionTreeFromString(code.substring(i+j));
+            Expression leftTree = Expression.expressionFromString(code.substring(0,i));
+            Expression rightTree = Expression.expressionFromString(code.substring(i+j));
             return new ConditionLeaf(leftTree,simpleConditionType,rightTree);
 
         }
-        ExpressionTree expressionTree = ExpressionTree.expressionTreeFromString(code);
+        Expression expressionTree = Expression.expressionFromString(code);
         return  new ConditionLeaf(expressionTree, BooleanType.SIMPLE,null);
     }
     boolean isLeaf();

@@ -3,7 +3,7 @@ package main.view;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.TextField;
 import javafx.scene.transform.Translate;
-import main.utility.GameConstants;
+import main.model.GameConstants;
 
 public class CodeField extends TextField {
 

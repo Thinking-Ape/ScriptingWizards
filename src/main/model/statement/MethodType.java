@@ -1,9 +1,11 @@
-package main.model.enums;
+package main.model.statement;
+
+import main.utility.VariableType;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static main.model.enums.VariableType.*;
+import static main.utility.VariableType.*;
 
 
 public enum MethodType {

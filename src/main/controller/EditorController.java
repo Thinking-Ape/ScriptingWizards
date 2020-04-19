@@ -12,18 +12,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import main.model.LevelChange;
-import main.model.LevelDataType;
+import main.model.*;
 import main.model.gamemap.Cell;
 import main.model.gamemap.GameMap;
-import main.model.Level;
-import main.model.Model;
-import main.model.enums.CellContent;
-import main.model.enums.CFlag;
-import main.model.enums.ItemType;
+import main.model.gamemap.enums.CellContent;
+import main.model.gamemap.enums.CellFlag;
+import main.model.gamemap.enums.ItemType;
 import main.model.statement.ComplexStatement;
 import main.model.statement.SimpleStatement;
-import main.utility.GameConstants;
+import main.model.GameConstants;
 import main.parser.JSONParser;
 import main.utility.Point;
 import main.utility.SimpleEventListener;
@@ -38,11 +35,13 @@ import java.util.List;
 public class EditorController implements SimpleEventListener {
 
     private View view;
+    private Model model;
 
     private boolean actionEventFiring = true;
 
-    public EditorController(View view){
+    public EditorController(View view,Model model){
         this.view = view;
+        this.model = model;
         view.addListener(this);
     }
 
@@ -60,7 +59,7 @@ public class EditorController implements SimpleEventListener {
     }
 
     public void setEditorHandlers() {
-        if((boolean)Model.getDataFromCurrentLevel(LevelDataType.HAS_AI))view.getLevelEditorModule().getHasAiValueLbl().setText(""+true);
+        if((boolean)model.getDataFromCurrentLevel(LevelDataType.HAS_AI))view.getLevelEditorModule().getHasAiValueLbl().setText(""+true);
         else view.getLevelEditorModule().getHasAiValueLbl().setText(""+false);
         setHandlersForMapCells();
         setHandlersForCellTypeButtons();
@@ -68,7 +67,7 @@ public class EditorController implements SimpleEventListener {
         for(Point p : view.getSelectedPointList()){
             int k = p.getX();
             int h = p.getY();
-            GameMap gameMapClone = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+            GameMap gameMapClone = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
             //END OF TODO
 
             int cellId  = gameMapClone.getCellID(k,h);
@@ -95,8 +94,8 @@ public class EditorController implements SimpleEventListener {
             Dialog<ButtonType> editTutorialDialog = new Dialog<>();
             String text = "";
 
-            List<String> tutLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
-            if(Model.getCurrentTutorialSize() > 0) text = tutLines.get(Model.getCurrentTutorialMessageIndex());
+            List<String> tutLines = (List<String>)model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
+            if(model.getCurrentTutorialSize() > 0) text = tutLines.get(model.getCurrentTutorialMessageIndex());
             TextArea tutorialTextArea = new TextArea();
             tutorialTextArea.setMaxSize(GameConstants.TEXTFIELD_WIDTH, GameConstants.TEXTFIELD_WIDTH/2.0);
             tutorialTextArea.setFont(GameConstants.BIG_FONT);
@@ -115,20 +114,20 @@ public class EditorController implements SimpleEventListener {
             Optional<ButtonType> o  = editTutorialDialog.showAndWait();
             tutorialTextArea.requestFocus();
             if(o.isPresent()&& o.get() == ButtonType.OK){
-                tutLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
+                tutLines = (List<String>)model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
                 String tutorialText = tutorialTextArea.getText();
-                tutLines.set(Model.getCurrentTutorialMessageIndex(),tutorialText.trim());
-                Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
+                tutLines.set(model.getCurrentTutorialMessageIndex(),tutorialText.trim());
+                model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
             }
         });
 
         view.getLevelEditorModule().getDeleteTutorialTextBtn().setOnAction(evt -> {
             Optional<ButtonType> o  = new Alert(Alert.AlertType.NONE,"Do you really want to delete this tutorial text?",ButtonType.OK, ButtonType.CANCEL).showAndWait();
             if(o.isPresent()&& o.get() == ButtonType.OK){
-                List<String> tutLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
-                tutLines.remove(Model.getCurrentTutorialMessageIndex());
-                Model.decreaseTutorialMessageIndex();
-                Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
+                List<String> tutLines = (List<String>)model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
+                tutLines.remove(model.getCurrentTutorialMessageIndex());
+                model.decreaseTutorialMessageIndex();
+                model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
             }
         });
 
@@ -138,18 +137,18 @@ public class EditorController implements SimpleEventListener {
                 return;
             }
 
-            List<String> tutLines = (List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
-            tutLines.add(Model.getCurrentTutorialMessageIndex()+1,"");
-            Model.increaseTutorialMessageIndex();
-            Model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
+            List<String> tutLines = (List<String>)model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
+            tutLines.add(model.getCurrentTutorialMessageIndex()+1,"");
+            model.increaseTutorialMessageIndex();
+            model.changeCurrentLevel(LevelDataType.TUTORIAL_LINES,tutLines);
             view.getLevelEditorModule().getDeleteTutorialTextBtn().setDisable(false);
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
 
         });
 
         view.getLevelEditorModule().getPrevTutorialTextBtn().setOnAction(evt -> {
-            Model.prevTutorialMessage();
-            int index = Model.getCurrentTutorialMessageIndex();
+            model.prevTutorialMessage();
+            int index = model.getCurrentTutorialMessageIndex();
             view.updateTutorialMessage();
             view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(false);
             if(index == 0){
@@ -157,37 +156,42 @@ public class EditorController implements SimpleEventListener {
             }
         });
         view.getLevelEditorModule().getNextTutorialTextBtn().setOnAction(evt -> {
-            Model.nextTutorialMessage();
-            int index = Model.getCurrentTutorialMessageIndex();
+            model.nextTutorialMessage();
+            int index = model.getCurrentTutorialMessageIndex();
             view.updateTutorialMessage();
             view.getLevelEditorModule().getPrevTutorialTextBtn().setDisable(false);
-            if(index+1 == ((List<String>)Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES)).size()){
+            if(index+1 == ((List<String>)model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES)).size()){
                 view.getLevelEditorModule().getNextTutorialTextBtn().setDisable(true);
             }
         });
 
         view.getLevelEditorModule().getSaveLevelBtn().setOnAction(event -> {
-            saveChanges(Model.getAndConfirmCurrentChanges());
+            saveChanges(model.getAndConfirmCurrentChanges());
         });
         view.getLevelEditorModule().getOpenLevelBtn().setOnAction(event -> {
-            if(Model.currentLevelHasChanged())
+            if(model.currentLevelHasChanged())
                 showSavingDialog();
 
             ChoiceDialog<String> levelsToOpenDialog = new ChoiceDialog<>();
-            for (int i = 0; i < Model.getAmountOfLevels(); i++) {
-                levelsToOpenDialog.getItems().add(Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i)+"");
+            for (int i = 0; i < model.getAmountOfLevels(); i++) {
+                levelsToOpenDialog.getItems().add(model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i)+"");
             }
-            String levelName = (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
+            String levelName = (String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
             levelsToOpenDialog.setSelectedItem(levelName);
             Optional<String> s = levelsToOpenDialog.showAndWait();
-            s.ifPresent(Model::selectLevel);
+            s.ifPresent(s1 -> {
+                model.selectLevel(s1);
+                Platform.runLater(() -> {
+                    view.highlightInMap(List.of(new Point(0,0)));
+                });
+            });
         });
         view.getLevelEditorModule().getDeleteLevelBtn().setOnAction(event -> {
 
             Alert deleteAlert = new Alert(Alert.AlertType.NONE, "You are about to permanently delete this level!", ButtonType.OK,ButtonType.CANCEL);
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
-                String levelName = (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
+                String levelName = (String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
                 view.getLevelOverviewPane().removeCurrentLevel();
                 if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
                 view.getTutorialLevelOverviewPane().removeCurrentLevel();
@@ -196,9 +200,13 @@ public class EditorController implements SimpleEventListener {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Model.removeCurrentLevel();
+                model.removeCurrentLevel();
             }
-            if(Model.getAmountOfLevels()==1)view.getLevelEditorModule().getDeleteLevelBtn().setDisable(true);
+            if(model.getAmountOfLevels()==1)view.getLevelEditorModule().getDeleteLevelBtn().setDisable(true);
+
+            Platform.runLater(() -> {
+                view.highlightInMap(List.of(new Point(0,0)));
+            });
         });
         view.getLevelEditorModule().getResetLevelScoresBtn().setOnAction(event -> {
 
@@ -206,7 +214,7 @@ public class EditorController implements SimpleEventListener {
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
                 Alert infoAlert;
-                Model.resetScoreOfCurrentLevel();
+                model.resetScoreOfCurrentLevel();
                 infoAlert = new Alert(Alert.AlertType.NONE, "Score was reset!", ButtonType.OK);
                 infoAlert.showAndWait();
 
@@ -218,11 +226,14 @@ public class EditorController implements SimpleEventListener {
             Alert deleteAlert = new Alert(Alert.AlertType.NONE, "You are about to reload this level! Unsaved changes will be discarded!", ButtonType.OK,ButtonType.CANCEL);
             Optional<ButtonType> btnType =deleteAlert.showAndWait();
             if(btnType.isPresent() && btnType.get() == ButtonType.OK){
-                    Model.reloadCurrentLevel();
+                model.reloadCurrentLevel();
+                Platform.runLater(() -> {
+                    view.highlightInMap(List.of(new Point(0,0)));
+                });
             }
         });
         view.getLevelEditorModule().getNewLevelBtn().setOnAction(event -> {
-            if(Model.currentLevelHasChanged())showSavingDialog();
+            if(model.currentLevelHasChanged())showSavingDialog();
             Dialog<ButtonType> newLevelDialog = new Dialog<>();
             TextField nameTField = new TextField();
             TextField heightTField = new TextField();
@@ -231,7 +242,7 @@ public class EditorController implements SimpleEventListener {
             widthTField.setText(3+"");
             nameTField.textProperty().addListener((observableValue, s, t1) -> {
 
-                if(Model.hasLevelWithName(t1)){
+                if(model.hasLevelWithName(t1)){
                     newLevelDialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
                     newLevelDialog.setContentText("This level already exists!");
                 }
@@ -275,24 +286,25 @@ public class EditorController implements SimpleEventListener {
                 Integer[] locToStars = new Integer[2];
                 locToStars[0] = 0;
                 locToStars[1] = 0;
-                int id = Model.createUniqueId();
-                Model.addLevelAtCurrentPos(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new ArrayList<>(),1,(boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex()),new ArrayList<>(),id,1),true); //TODO!
+                int id = model.createUniqueId();
+                model.addLevelAtCurrentPos(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new ArrayList<>(),1,(boolean)model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,model.getCurrentIndex()),new ArrayList<>(),id,1),true); //TODO!
                 // There ain't no spawn when creating a new Level!
                 view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
                 view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());
                 view.getLevelEditorModule().getDeleteLevelBtn().setDisable(false);
+                Platform.runLater(() -> view.highlightInMap(List.of(new Point(0,0))));
             }
 
         });
 
         view.getLevelEditorModule().getCopyLevelBtn().setOnAction(event -> {
-            if(Model.currentLevelHasChanged())showSavingDialog();
-            String name = Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"_Copy";
-            if(Model.hasLevelWithName(name)){
+            if(model.currentLevelHasChanged())showSavingDialog();
+            String name = model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"_Copy";
+            if(model.hasLevelWithName(name)){
                 new Alert(Alert.AlertType.INFORMATION,"This level already exists!").showAndWait();
                 return;
             }
-            GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+            GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
 
             int height = gameMap.getBoundY();
             int width = gameMap.getBoundX();
@@ -302,49 +314,50 @@ public class EditorController implements SimpleEventListener {
                     map[i][j] = gameMap.getCellAtXYClone(i, j);
                 }
             }
-            ComplexStatement complexStatement = (ComplexStatement)Model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
-            Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
-            Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
-            List<Integer> requiredLevelsList = (List<Integer>) Model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS);
+            ComplexStatement complexStatement = (ComplexStatement)model.getDataFromCurrentLevel(LevelDataType.AI_CODE);
+            Integer[] turnsToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
+            Integer[] locToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
+            List<Integer> requiredLevelsList = (List<Integer>) model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS);
 
-            List<String> tutorialEntries = (List<String>) Model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
-            int maxKnights = (int) Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
-            boolean isTutorial = (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
-            boolean hasAI = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
-            int id =Model.createUniqueId();
-            Model.addLevelAtCurrentPos(new Level(name,map,complexStatement,turnsToStars,locToStars,requiredLevelsList,maxKnights,isTutorial,tutorialEntries,id,1),true);
+            List<String> tutorialEntries = (List<String>) model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
+            int maxKnights = (int) model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
+            boolean isTutorial = (boolean) model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
+            boolean hasAI = (boolean) model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
+            int id =model.createUniqueId();
+            model.addLevelAtCurrentPos(new Level(name,map,complexStatement,turnsToStars,locToStars,requiredLevelsList,maxKnights,isTutorial,tutorialEntries,id,1),true);
 
             view.getLevelEditorModule().getDeleteLevelBtn().setDisable(false);
-            if(((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
+            if(((GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
                 view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
             }
             else view.getLevelEditorModule().getSaveLevelBtn().setDisable(false);
             view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAI);
+            Platform.runLater(() -> view.highlightInMap(List.of(new Point(0,0))));
         });
 
 
         view.getLevelEditorModule().getEditRequiredLevelsBtn().setOnAction(this::handleEditRequiredLevelsBtn);
         view.getLevelEditorModule().getMoveIndexDownBtn().setOnAction(actionEvent -> {
-            int currentLevelIndex = Model.getCurrentIndex();
+            int currentLevelIndex = model.getCurrentIndex();
             if(currentLevelIndex == 0){
                 return;
             }
-            if((boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,currentLevelIndex-1) &&
-                    !(boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
+            if((boolean)model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,currentLevelIndex-1) &&
+                    !(boolean) model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
                 new Alert(Alert.AlertType.NONE,"Can't move Level down, as Challenge Levels must not come in between Tutorial Levels",ButtonType.OK).showAndWait();
-            else Model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex-1);
+            else model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex-1);
             view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(false);
         });
         view.getLevelEditorModule().getMoveIndexUpBtn().setOnAction(actionEvent -> {
-            int currentLevelIndex = Model.getCurrentIndex();
-            if(currentLevelIndex == Model.getAmountOfLevels()-1){
+            int currentLevelIndex = model.getCurrentIndex();
+            if(currentLevelIndex == model.getAmountOfLevels()-1){
                 return;
             }
 
-            if(Model.getNextTutorialIndex()==-1 && (boolean) Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
+            if(model.getNextTutorialIndex()==-1 && (boolean) model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
                 new Alert(Alert.AlertType.NONE,"Can't move Level up, as Tutorial Levels must not come after a Challenge Level",ButtonType.OK).showAndWait();
-            else Model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex+1);
-//            if(currentLevelIndex == Model.getAmountOfLevels()-2)view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(true);
+            else model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex+1);
+//            if(currentLevelIndex == model.getAmountOfLevels()-2)view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(true);
             view.getLevelEditorModule().getMoveIndexDownBtn().setDisable(false);
         });
         view.getLevelEditorModule().getEditLvlBtn().setOnAction(event -> {
@@ -369,14 +382,14 @@ public class EditorController implements SimpleEventListener {
             formatSlider(widthSlider,GameConstants.MIN_LEVEL_SIZE,GameConstants.MAX_LEVEL_SIZE);
             formatSlider(maxKnightsSlider,1,GameConstants.MAX_KNIGHTS_AMOUNT);
             formatSlider(amountOfPlaysSlider,1,GameConstants.MAX_AMOUNT_OF_RUNS);
-            GameMap currentMapClone = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+            GameMap currentMapClone = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
             heightSlider.setValue(currentMapClone.getBoundY());
             widthSlider.setValue(currentMapClone.getBoundX());
-            maxKnightsSlider.setValue((int)Model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
-            amountOfPlaysSlider.setValue((int)Model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS));
+            maxKnightsSlider.setValue((int)model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
+            amountOfPlaysSlider.setValue((int)model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS));
             //TODO:
-            Integer[] locToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
-            Integer[] turnsToStars = (Integer[]) Model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
+            Integer[] locToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
+            Integer[] turnsToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
             TextField loc2StarsTField = new TextField(locToStars[0]+"");
             TextField loc3StarsTField = new TextField(locToStars[1]+"");
             TextField turns2StarsTField = new TextField(turnsToStars[0]+"");
@@ -387,12 +400,12 @@ public class EditorController implements SimpleEventListener {
             CheckBox isTutorialCheckBox = new CheckBox();
             HBox hBox = new HBox(sizeVBox,sliderVBox,new VBox(new Label("*** max. Turns: "),new Label("** max. Turns: ")),new VBox(turns3StarsTField,turns2StarsTField),new VBox(new Label("*** max. LoC: "),new Label("** max. LoC: ")),new VBox(loc3StarsTField,loc2StarsTField),
                     new Label("Has AI"),hasAiCheckBox,new Label("Is Tutorial"),isTutorialCheckBox);
-            boolean currentLevelHasAI = (boolean) Model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
+            boolean currentLevelHasAI = (boolean) model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
             hasAiCheckBox.setSelected(currentLevelHasAI);
-            boolean currentLevelIsTut = (boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
+            boolean currentLevelIsTut = (boolean)model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
             isTutorialCheckBox.setSelected(currentLevelIsTut);
-            boolean prevLevelIsTut = Model.getCurrentIndex() ==0 || (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex()-1);
-            boolean nextLevelIsTut = Model.getCurrentIndex() != Model.getAmountOfLevels()-1 && (boolean)Model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,Model.getCurrentIndex() +1);
+            boolean prevLevelIsTut = model.getCurrentIndex() ==0 || (boolean)model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,model.getCurrentIndex()-1);
+            boolean nextLevelIsTut = model.getCurrentIndex() != model.getAmountOfLevels()-1 && (boolean)model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,model.getCurrentIndex() +1);
             // allow only those levels to be a tutorial whose predecessor is a tutorial to avoid weird required level dependencies!
             if(!prevLevelIsTut||nextLevelIsTut)isTutorialCheckBox.setDisable(true);
             changeLvlDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
@@ -408,31 +421,31 @@ public class EditorController implements SimpleEventListener {
                 //TODO!!!!
                 currentMapClone.changeHeight(height);
                 currentMapClone.changeWidth(width);
-                Model.changeCurrentLevel(LevelDataType.MAP_DATA,currentMapClone);
-                Model.changeCurrentLevel(LevelDataType.MAX_KNIGHTS,(int)maxKnightsSlider.getValue());
-                Model.changeCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS,(int)amountOfPlaysSlider.getValue());
-                Model.changeCurrentLevel(LevelDataType.LOC_TO_STARS,new Integer[]{Integer.valueOf(loc2StarsTField.getText()),Integer.valueOf(loc3StarsTField.getText())});
-                Model.changeCurrentLevel(LevelDataType.TURNS_TO_STARS,new Integer[]{Integer.valueOf(turns2StarsTField.getText()),Integer.valueOf(turns3StarsTField.getText())});
-                Model.changeCurrentLevel(LevelDataType.IS_TUTORIAL,isTutorialCheckBox.isSelected());
-                if(!hasAiCheckBox.isSelected())Model.changeCurrentLevel(LevelDataType.AI_CODE,new ComplexStatement());
-                else if(!(boolean)Model.getDataFromCurrentLevel(LevelDataType.HAS_AI)){
+                model.changeCurrentLevel(LevelDataType.MAP_DATA,currentMapClone);
+                model.changeCurrentLevel(LevelDataType.MAX_KNIGHTS,(int)maxKnightsSlider.getValue());
+                model.changeCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS,(int)amountOfPlaysSlider.getValue());
+                model.changeCurrentLevel(LevelDataType.LOC_TO_STARS,new Integer[]{Integer.valueOf(loc2StarsTField.getText()),Integer.valueOf(loc3StarsTField.getText())});
+                model.changeCurrentLevel(LevelDataType.TURNS_TO_STARS,new Integer[]{Integer.valueOf(turns2StarsTField.getText()),Integer.valueOf(turns3StarsTField.getText())});
+                model.changeCurrentLevel(LevelDataType.IS_TUTORIAL,isTutorialCheckBox.isSelected());
+                if(!hasAiCheckBox.isSelected())model.changeCurrentLevel(LevelDataType.AI_CODE,new ComplexStatement());
+                else if(!(boolean)model.getDataFromCurrentLevel(LevelDataType.HAS_AI)){
                     ComplexStatement complexStatement = new ComplexStatement();
                     complexStatement.addSubStatement(new SimpleStatement());
-                    Model.changeCurrentLevel(LevelDataType.AI_CODE,complexStatement);
+                    model.changeCurrentLevel(LevelDataType.AI_CODE,complexStatement);
                 }
 //                view.inform(Event.LEVEL_CHANGED);
-//                view.setAiCodeArea(new CodeArea(Model.getCurrentLevel().getAIBehaviourCopy()));
-//                view.getAICodeArea().draw();
+//                view.setAiCodeArea(new CodeArea(model.getCurrentLevel().getAIBehaviourCopy()));
+//                view.getAiCodeArea().draw();
                 setEditorHandlers();
             }
         });
 
     view.getLevelEditorModule().getChangeLvlNameBtn().setOnAction(event -> {
         Dialog<ButtonType> changeLvlNameDialog = new Dialog<>();
-        TextField nameTField = new TextField((String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
+        TextField nameTField = new TextField((String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
 
             nameTField.textProperty().addListener((observableValue, s, t1) -> {
-                if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Za-zäÄöÖüÜß_]+(\\d[A-Za-zäÄöÖüÜß_])*")){
+                if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Za-zäÄöÖüÜß_]+((\\d|[A-Za-zäÄöÖüÜß_ ])*(\\d|[A-Za-zäÄöÖüÜß_]))?")){
                     nameTField.setText(s);
                 }
             });
@@ -443,7 +456,7 @@ public class EditorController implements SimpleEventListener {
 
         Optional<ButtonType> o  = changeLvlNameDialog.showAndWait();
         if(o.isPresent()&& o.get() == ButtonType.OK){
-            Model.changeCurrentLevel(LevelDataType.LEVEL_NAME,nameTField.getText());
+            model.changeCurrentLevel(LevelDataType.LEVEL_NAME,nameTField.getText());
         }
     });
 }
@@ -453,28 +466,28 @@ public class EditorController implements SimpleEventListener {
 
         try {
 //            JSONParser.saveLevel(level);
-            if(Model.isCurrentLevelNew()){
+            if(model.isCurrentLevelNew()){
                 JSONParser.saveCurrentLevel( );
-                Platform.runLater(()->Model.resetLevelNew());
+                Platform.runLater(()->model.resetLevelNew());
             }
-            else JSONParser.saveLevelChanges(changes, (String)Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
-//            JSONParser.saveIndexAndRequiredLevels(Model.getLevelListCopy());
-            Model.updateUnlockedLevelsList(true);
-            if(!Model.getUnlockedLevelIds().contains(Model.getCurrentId())){
+            else JSONParser.saveLevelChanges(changes, (String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
+//            JSONParser.saveIndexAndRequiredLevels(model.getLevelListCopy());
+            model.updateUnlockedLevelsList(true);
+            if(!model.getUnlockedLevelIds().contains(model.getCurrentId())){
                 view.getTutorialLevelOverviewPane().removeCurrentLevel();
                 view.getLevelOverviewPane().removeCurrentLevel();
             } else {
-                String levelName = Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"";
-                if((boolean)Model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL)){
+                String levelName = model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"";
+                if((boolean)model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL)){
                     if(view.getTutorialLevelOverviewPane().containsLevel(levelName))
                         view.getTutorialLevelOverviewPane().updateLevel(levelName);
-                    else view.getTutorialLevelOverviewPane().addLevelWithIndex(Model.getCurrentIndex());
+                    else view.getTutorialLevelOverviewPane().addLevelWithIndex(model.getCurrentIndex());
                 }
                 else {
 
                     if(view.getLevelOverviewPane().containsLevel(levelName))
-                        view.getLevelOverviewPane().updateLevel(Model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"");
-                    else view.getLevelOverviewPane().addLevelWithIndex(Model.getCurrentIndex());
+                        view.getLevelOverviewPane().updateLevel(model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"");
+                    else view.getLevelOverviewPane().addLevelWithIndex(model.getCurrentIndex());
                 }
             }
 //            Platform.runLater(() ->{
@@ -495,17 +508,17 @@ public class EditorController implements SimpleEventListener {
         Alert savingAlert = new Alert(Alert.AlertType.NONE, "This level has unsaved changes! Do you want to save them?", ButtonType.YES,ButtonType.NO);
         Optional<ButtonType> btnType =savingAlert.showAndWait();
         if(btnType.isPresent() && btnType.get() == ButtonType.YES){
-            if(((GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
-                Model.reloadCurrentLevel();
+            if(((GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
+                model.reloadCurrentLevel();
                 Alert alert = new Alert(Alert.AlertType.NONE,"You cannot save a level without a spawn!",ButtonType.OK);
                 alert.setTitle("Alert!");
                 alert.setHeaderText("");
                 alert.showAndWait();
             }
-            else saveChanges(Model.getAndConfirmCurrentChanges());
+            else saveChanges(model.getAndConfirmCurrentChanges());
         }
         else if(btnType.isPresent()){
-            Model.reloadCurrentLevel();
+            model.reloadCurrentLevel();
         }
     }
 
@@ -533,23 +546,23 @@ public class EditorController implements SimpleEventListener {
                 textField.setText(textField.getText().substring(1));
             }
             if(t1.length() > 3)textField.setText(s);
-//            if(Integer.valueOf(textField.getText())>GameConstants.MAX_LEVEL_SIZE)
+//            if(Integer.valueOf(textField.getCode())>GameConstants.MAX_LEVEL_SIZE)
 //                textField.setText(""+GameConstants.MAX_LEVEL_SIZE);
 
-//            if(Integer.valueOf(textField.getText())<GameConstants.MIN_LEVEL_SIZE)
+//            if(Integer.valueOf(textField.getCode())<GameConstants.MIN_LEVEL_SIZE)
 //                textField.setText(""+GameConstants.MIN_LEVEL_SIZE);
         });}
     }
 
     void setHandlersForMapCells() {
-        int columnC = view.getActualMapGPane().getColumnCount();
-        int rowC = view.getActualMapGPane().getRowCount();
+        int columnC = view.getMapGPane().getColumnCount();
+        int rowC = view.getMapGPane().getRowCount();
         for(int x = 0; x < columnC; x++){
             for(int y = 0; y < rowC; y++){
                 //TODO: 2-dim array?
-                StackPane stackPane = (StackPane) view.getActualMapGPane().getChildren().get(x*rowC+y);
+                StackPane stackPane = (StackPane) view.getMapGPane().getChildren().get(x*rowC+y);
 
-                final GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                final GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                 final CellContent content = gameMap.getContentAtXY(x,y);
                 final int k = x;
                 final int h = y;
@@ -581,7 +594,7 @@ public class EditorController implements SimpleEventListener {
                     changeEditorModuleDependingOnCellContent(selectedList);
                 });}}
                 view.getLevelEditorModule().getRemoveLinkedCellBtn().setOnAction(actionEvent -> {
-                    final GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                    final GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                     if(view.getSelectedPointList().size() > 1)return;
                     int id;
                     int index = 0;
@@ -594,7 +607,7 @@ public class EditorController implements SimpleEventListener {
                     int size = view.getLinkedCellsListView().getItems().size();
                     view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
                     gameMap.removeCellLinkedId(view.getSelectedPointList().get(0).getX(),view.getSelectedPointList().get(0).getY(),id);
-                    Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                    model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                     if(view.getLinkedCellsListView().getItems().size()==0){
                         view.getLinkedCellsListView().setVisible(false);
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
@@ -612,11 +625,11 @@ public class EditorController implements SimpleEventListener {
                 view.getLevelEditorModule().getChangeCellIdBtn().setOnKeyPressed(event->{
                     event.consume();
                     if(view.getCodeArea().getSelectedCodeField() != null)view.getCodeArea().getSelectedCodeField().requestFocus();
-                    if(view.getAICodeArea().getSelectedCodeField() != null)view.getAICodeArea().getSelectedCodeField().requestFocus();
+                    if(view.getAiCodeArea().getSelectedCodeField() != null)view.getAiCodeArea().getSelectedCodeField().requestFocus();
                 });
 
                 view.getLevelEditorModule().getChangeCellIdBtn().setOnAction(event->{
-                    final GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                    final GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                     if(view.getSelectedPointList().size() > 1) return;
                     Dialog<ButtonType> newLevelDialog = new Dialog<>();
                     TextField idTField = new TextField();
@@ -631,38 +644,38 @@ public class EditorController implements SimpleEventListener {
                             //TODO: unify and correctify!
                             int id = -1;
                             if(!idTField.getText().equals("")) id = Integer.valueOf(idTField.getText());
-    //                            int old_id = Model.getCurrentLevel().getOriginalMapCopy()[view.getSelectedColumn()][view.getSelectedRow()].getCellId();
+    //                            int old_id = model.getCurrentLevel().getOriginalMapCopy()[view.getSelectedColumn()][view.getSelectedRow()].getCellId();
                             int x = view.getSelectedPointList().get(0).getX();
                             int y = view.getSelectedPointList().get(0).getY();
                             if(gameMap.testIfIdIsUnique(id)){
                                 gameMap.deleteOldCellIdFromLinkedIds(gameMap.getCellID(x,y ));
                                 gameMap.setCellId(x,y,id);
                                 view.getLevelEditorModule().getCellIdValueLbl().setText(id!=-1 ? ""+id : "NONE");
-                                Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                                model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                             }
                             else new Alert(Alert.AlertType.NONE,"Id "+id+" already in use",ButtonType.OK).showAndWait();
                         }
                     }
                 });
                 view.getLevelEditorModule().getIsInvertedCBox().setOnAction(evt -> {
-                    GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                    GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                     if(view.getSelectedPointList().size()!=1)return;
                     int column = view.getSelectedPointList().get(0).getX();
                     int  row = view.getSelectedPointList().get(0).getY();
-                    gameMap.setFlag(column, row, CFlag.INVERTED,view.getLevelEditorModule().getIsInvertedCBox().isSelected());
-                    Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                    gameMap.setFlag(column, row, CellFlag.INVERTED,view.getLevelEditorModule().getIsInvertedCBox().isSelected());
+                    model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                 });
                 view.getLevelEditorModule().getIsTurnedCBox().setOnAction(evt -> {
-                    GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                    GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                     if(view.getSelectedPointList().size()!=1)return;
                     int column = view.getSelectedPointList().get(0).getX();
                     int  row = view.getSelectedPointList().get(0).getY();
-                    gameMap.setFlag(column, row, CFlag.TURNED,view.getLevelEditorModule().getIsTurnedCBox().isSelected());
-                    Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                    gameMap.setFlag(column, row, CellFlag.TURNED,view.getLevelEditorModule().getIsTurnedCBox().isSelected());
+                    model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                 });
                 view.getLevelEditorModule().getAddLinkedCellBtn().setOnAction(actionEvent -> {
                     if( view.getSelectedPointList().size() > 1) return;
-                    GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+                    GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                     ChoiceDialog<Integer> idsDialog = new ChoiceDialog<>();
                     for(int x2 = 0; x2 < gameMap.getBoundX();x2++){
                         for(int y2 = 0; y2 < gameMap.getBoundY();y2++){
@@ -682,7 +695,7 @@ public class EditorController implements SimpleEventListener {
                             boolean cellHasLinkedId = gameMap.cellHasLinkedCellId(column,row,s.get());
                             if (!cellHasLinkedId) {
                                 gameMap.addLinkedCellId(column,row,s.get());
-                                Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                                model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                                 //TODO: duplicate code in view.getLevelEditorModule().getRemoveLinkedCellBtn().setOnAction(actionEvent -> {
                                 int size = view.getLinkedCellsListView().getItems().size();
                                 view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
@@ -717,7 +730,7 @@ public class EditorController implements SimpleEventListener {
             return;
         }
         view.setAllCellButtonsDisabled(false);
-        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         boolean traversable = true;
         boolean noItem = true;
         CellContent content = null;
@@ -758,37 +771,37 @@ public class EditorController implements SimpleEventListener {
             ChoiceBox<String> choiceBox = view.getLevelEditorModule().getTrapChoiceBox();
             choiceBox.getItems().clear();
             choiceBox.getItems().add(0,"Unarmed");
-            choiceBox.getItems().add(1,CFlag.PREPARING.getDisplayName());
-            choiceBox.getItems().add(2,CFlag.ARMED.getDisplayName());
-//            if(map.cellHasFlag(x,y,CFlag.UNARMED)) choiceBox.getSelectionModel().select(0);
-            if(gameMap.cellHasFlag(x,y,CFlag.PREPARING)) choiceBox.getSelectionModel().select(1);
-            else if(gameMap.cellHasFlag(x,y,CFlag.ARMED)) choiceBox.getSelectionModel().select(2);
+            choiceBox.getItems().add(1, CellFlag.PREPARING.getDisplayName());
+            choiceBox.getItems().add(2, CellFlag.ARMED.getDisplayName());
+//            if(map.cellHasFlag(x,y,CellFlag.UNARMED)) choiceBox.getSelectionModel().select(0);
+            if(gameMap.cellHasFlag(x,y, CellFlag.PREPARING)) choiceBox.getSelectionModel().select(1);
+            else if(gameMap.cellHasFlag(x,y, CellFlag.ARMED)) choiceBox.getSelectionModel().select(2);
             else {
                 choiceBox.getSelectionModel().select(0);
             }
             choiceBox.setOnHidden(evt -> {
                 // .setOnHidden fires twice for some reason??! this is a workaround!
                 if(toggleActionEventFiring())return;
-                CFlag flag = CFlag.getValueFrom(choiceBox.getValue().toUpperCase());
-//                map.setFlag(x, y, CFlag.UNARMED,false);
-                gameMap.setFlag(x, y, CFlag.PREPARING,false);
-                gameMap.setFlag(x, y, CFlag.ARMED,false );
+                CellFlag flag = CellFlag.getValueFrom(choiceBox.getValue().toUpperCase());
+//                map.setFlag(x, y, CellFlag.UNARMED,false);
+                gameMap.setFlag(x, y, CellFlag.PREPARING,false);
+                gameMap.setFlag(x, y, CellFlag.ARMED,false );
                 if(flag != null)gameMap.setFlag(x, y, flag,true );
-                if(flag == CFlag.ARMED)gameMap.setItem(x, y, ItemType.NONE);
-                Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                if(flag == CellFlag.ARMED)gameMap.setItem(x, y, ItemType.NONE);
+                model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
             });
         }
         else if(content == CellContent.PRESSURE_PLATE||content == CellContent.ENEMY_SPAWN){
             view.getLevelEditorModule().activateCellIDHBox(content == CellContent.PRESSURE_PLATE);
-            view.getLevelEditorModule().getIsInvertedCBox().setSelected(gameMap.cellHasFlag(x,y,CFlag.INVERTED));
+            view.getLevelEditorModule().getIsInvertedCBox().setSelected(gameMap.cellHasFlag(x,y, CellFlag.INVERTED));
         }
 
         else if(content == CellContent.GATE){
             view.getLevelEditorModule().activateLinkedCellBtns();
-            view.getLevelEditorModule().getIsTurnedCBox().setSelected(gameMap.cellHasFlag(x,y,CFlag.TURNED));
+            view.getLevelEditorModule().getIsTurnedCBox().setSelected(gameMap.cellHasFlag(x,y, CellFlag.TURNED));
 
 
-            view.getLevelEditorModule().getIsInvertedCBox().setSelected(gameMap.cellHasFlag(x,y,CFlag.INVERTED));
+            view.getLevelEditorModule().getIsInvertedCBox().setSelected(gameMap.cellHasFlag(x,y, CellFlag.INVERTED));
 
             ListView<Integer> listView =  view.getLevelEditorModule().getLinkedCellListView();
             listView.getItems().clear();
@@ -807,7 +820,7 @@ public class EditorController implements SimpleEventListener {
             }
         }else view.getLevelEditorModule().deactivateCellDetails();
 //        if(view.getCodeArea().getSelectedCodeField()!=null && !view.getCodeArea().isDisabled())view.getCodeArea().getSelectedCodeField().requestFocus();
-//        else if(view.getAICodeArea().getSelectedCodeField()!=null && !view.getAICodeArea().isDisabled())view.getAICodeArea().getSelectedCodeField().requestFocus();
+//        else if(view.getAiCodeArea().getSelectedCodeField()!=null && !view.getAiCodeArea().isDisabled())view.getAiCodeArea().getSelectedCodeField().requestFocus();
     }
 
     private boolean toggleActionEventFiring() {
@@ -818,7 +831,7 @@ public class EditorController implements SimpleEventListener {
     private void setHandlersForCellTypeButtons() {
         int columnC = view.getCellTypeSelectionPane().getColumnCount();
         int rowC = view.getCellTypeSelectionPane().getRowCount();
-        GameMap gameMap = (GameMap)Model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         for(int i = 0; i < columnC; i++) for(int j = 0; j < rowC; j++){
             if(i*rowC+j > view.getCellTypeSelectionPane().getChildren().size()-1)return;
             Button btn = (Button) view.getCellTypeSelectionPane().getChildren().get(i*rowC+j);
@@ -850,7 +863,7 @@ public class EditorController implements SimpleEventListener {
                 }
                 changeEditorModuleDependingOnCellContent(view.getSelectedPointList());}
                 gameMap.setMultipleContents(view.getSelectedPointList(),content);
-                Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                 if(gameMap.findSpawn().getX()==-1){
                     view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
                 } else {
@@ -877,7 +890,7 @@ public class EditorController implements SimpleEventListener {
                     setHandlersForMapCells();
                 }
                 gameMap.setMultipleItems(view.getSelectedPointList(), item);
-                Model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
+                model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
             });
 
         }
@@ -887,10 +900,10 @@ public class EditorController implements SimpleEventListener {
         Dialog<ButtonType> chooseRequiredLvlsDialog = new Dialog<>();
         ListView<String> requiredLevelsListView = new ListView<>();
         requiredLevelsListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        for (int i = 0; i < Model.getCurrentIndex(); i++) {
-            requiredLevelsListView.getItems().add(Model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, i)+"");
+        for (int i = 0; i < model.getCurrentIndex(); i++) {
+            requiredLevelsListView.getItems().add(model.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME, i)+"");
         }
-        for (String requiredLevelName : Model.getCurrentRequiredLevels()) {
+        for (String requiredLevelName : model.getCurrentRequiredLevels()) {
             int i = 0;
             for (String s : requiredLevelsListView.getItems()) {
                 if (s.equals(requiredLevelName)) {
@@ -908,13 +921,13 @@ public class EditorController implements SimpleEventListener {
             List<Integer> requiredLevelNames = new ArrayList<>();
             for (int i = 0; i < requiredLevelsListView.getItems().size(); i++) {
                 if (requiredLevelsListView.getSelectionModel().isSelected(i))
-                    requiredLevelNames.add(Model.getIdOfLevelWithName(requiredLevelsListView.getItems().get(i)));
+                    requiredLevelNames.add(model.getIdOfLevelWithName(requiredLevelsListView.getItems().get(i)));
             }
-            Model.changeCurrentLevel(LevelDataType.REQUIRED_LEVELS,requiredLevelNames);
+            model.changeCurrentLevel(LevelDataType.REQUIRED_LEVELS,requiredLevelNames);
         }
 
         view.getLevelEditorModule().getRequiredLevelsLView().getItems().clear();
-        view.getLevelEditorModule().getRequiredLevelsLView().getItems().addAll(Model.getCurrentRequiredLevels());
+        view.getLevelEditorModule().getRequiredLevelsLView().getItems().addAll(model.getCurrentRequiredLevels());
     }
 
     @Override

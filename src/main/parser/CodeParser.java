@@ -1,18 +1,20 @@
 package main.parser;
 
-import main.model.enums.CellContent;
-import main.model.enums.Direction;
-import main.model.enums.EntityType;
-import main.model.enums.ItemType;
-import main.model.enums.MethodType;
-import main.model.enums.VariableType;
+import main.model.VariableScope;
+import main.model.gamemap.enums.CellContent;
+import main.model.gamemap.enums.Direction;
+import main.model.gamemap.enums.EntityType;
+import main.model.gamemap.enums.ItemType;
+import main.model.statement.MethodType;
+import main.utility.VariableType;
 import main.model.statement.*;
 import main.model.statement.Condition.Condition;
 import main.model.statement.Condition.ConditionLeaf;
 import main.model.statement.Condition.ConditionTree;
+import main.model.statement.Expression.Expression;
 import main.model.statement.Expression.ExpressionTree;
 import main.model.statement.Expression.ExpressionType;
-import main.utility.GameConstants;
+import main.model.GameConstants;
 import main.utility.Util;
 import main.utility.Variable;
 import main.view.CodeAreaType;
@@ -34,8 +36,8 @@ public abstract class CodeParser {
     private static Variable currentForVariable;
     private static VariableScope variableScope;
 
-    public static ComplexStatement parseProgramCode(List<String> lines) {
-        return parseProgramCode(lines, CodeAreaType.PLAYER);
+    public static ComplexStatement parseProgramCode(List<String> codeLines) {
+        return parseProgramCode(codeLines, CodeAreaType.PLAYER);
     }
 
     /** Will try to convert the first given Parameter into a ComplexStatement consisting of multiple Substatements
@@ -84,7 +86,7 @@ public abstract class CodeParser {
                     depthStatementMap.put(depth, (ComplexStatement) statement);
 
                 depthStatementMap.get(depth - 1).addSubStatement(statement);
-                if(depth > GameConstants.MAX_DEPTH)throw new IllegalStateException("You are not allowed to have a greater depth than "+ GameConstants.MAX_DEPTH +"!");
+                if(depth > GameConstants.MAX_STATEMENT_DEPTH)throw new IllegalStateException("You are not allowed to have a greater depth than "+ GameConstants.MAX_STATEMENT_DEPTH +"!");
                 depth++;
                 variableScope.setCurrentDepth(depth-1);
                 if(statement.getStatementType() == StatementType.FOR){
@@ -269,7 +271,7 @@ public abstract class CodeParser {
             case COLLECT:
             case CAN_MOVE:
             case IS_ALIVE:
-                if(!parameters.equals(""))throw new IllegalArgumentException("This method doesnt have parameters!");
+                if(!parameters.equals(""))throw new IllegalArgumentException("Method "+ mType.getName()+" doesnt have parameters!");
                 return;
             case HAS_ITEM:
                 ItemType item = ItemType.getValueFromName(parameters);
@@ -326,7 +328,7 @@ public abstract class CodeParser {
         if(operation.equals("++"))valueString = varName+"+1";
         if(operation.equals("--"))valueString = varName+"-1";
         valueString = valueString.trim();
-        ExpressionTree valueTree = ExpressionTree.expressionTreeFromString(valueString);
+        Expression valueTree = Expression.expressionFromString(valueString);
         if(variableScope.getVariable(varName)==null)throw new IllegalArgumentException("Variable "+ varName+ " is not in scope!");
         VariableType variableType = variableScope.getVariable(varName).getVariableType();
         if(variableType == VariableType.BOOLEAN && !valueString.equals("")){
@@ -346,7 +348,7 @@ public abstract class CodeParser {
         if(valueString == null)valueString = "";
         if(!varName.matches(GameConstants.WHOLE_VARIABLE_NAME_REGEX))throw new IllegalArgumentException("Variable name "+ varName+ " is illegal!");
         valueString = valueString.trim();
-        ExpressionTree valueTree = ExpressionTree.expressionTreeFromString(valueString);
+        Expression valueTree = Expression.expressionFromString(valueString);
 
         boolean valueNotEmpty = !valueString.equals("");
         VariableType variableType = VariableType.getVariableTypeFromString(variableTypeString);
@@ -381,8 +383,10 @@ public abstract class CodeParser {
         switch (variableType){
             case INT:
                 if(value.matches("[+-]?\\d+"))return;
-                ExpressionTree tree = ExpressionTree.expressionTreeFromString(value);
-                if(tree.getRightNode()!=null){
+                Expression expression = Expression.expressionFromString(value);
+
+                if(!expression.isLeaf()){
+                    ExpressionTree tree = (ExpressionTree)expression;
                     if(value.matches(GameConstants.RAND_INT_REGEX)){
                         String lowerBound = tree.getRightNode().getText().split(",")[0];
                         String upperBound = tree.getRightNode().getText().split(",")[1];
@@ -416,15 +420,15 @@ public abstract class CodeParser {
                         case LE_EQ:
                         case GR:
                         case LE:
-                            ExpressionTree leftTree = conditionLeaf.getLeftTree();
-                            ExpressionTree rightTree = conditionLeaf.getRightTree();
+                            Expression leftTree = conditionLeaf.getLeftExpression();
+                            Expression rightTree = conditionLeaf.getRightExpression();
                             testForCorrectValueType(VariableType.INT,leftTree.getText());
                             testForCorrectValueType(VariableType.INT,rightTree.getText());
                             return;
                         case NEQ:
                         case EQ:
-                            leftTree = conditionLeaf.getLeftTree();
-                            rightTree = conditionLeaf.getRightTree();
+                            leftTree = conditionLeaf.getLeftExpression();
+                            rightTree = conditionLeaf.getRightExpression();
                             switch (leftTree.getExpressionType()){
                                 case ADD:
                                 case SUB:
@@ -452,58 +456,71 @@ public abstract class CodeParser {
                             }
                             break;
                         case CAL:
-                            MethodType mt = MethodType.getMethodTypeFromCall(conditionLeaf.getRightTree().getText());
+                            MethodType mt = MethodType.getMethodTypeFromCall(conditionLeaf.getRightExpression().getText());
                             if(mt== null){
-                                if(MethodType.getMethodTypeFromCall(conditionLeaf.getRightTree().getText()+"()")!=null)
+                                if(MethodType.getMethodTypeFromCall(conditionLeaf.getRightExpression().getText()+"()")!=null)
                                     throw new IllegalArgumentException("You might have forgotten brackets: " + conditionLeaf.getText());
-                                else throw new IllegalArgumentException("Unknown Method:" + conditionLeaf.getRightTree().getText());
+                                else throw new IllegalArgumentException("Unknown Method:" + conditionLeaf.getRightExpression().getText());
                             }
                             if(mt.getOutputType()== VariableType.BOOLEAN){
-                                testForCorrectParameters(conditionLeaf.getRightTree().getRightNode().getText(), mt);
+                                Expression expression1 = conditionLeaf.getRightExpression();
+                                if(expression1.isLeaf())throw new IllegalArgumentException("This MethodCall is invalid!");
+
+                                testForCorrectParameters(((ExpressionTree)expression1).getRightNode().getText(), mt);
                                 return;
                             }
                     }
                 }
                 return;
             case KNIGHT:
+                Expression expression1 = Expression.expressionFromString(value);
                 if(!value.matches(variableType.getAllowedRegex())){
-                    tree = ExpressionTree.expressionTreeFromString(value);
-                    if(tree.getRightNode() != null && variableScope.getVariable(tree.getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)return;
+                    if(!expression1.isLeaf()) {
+                        ExpressionTree tree = (ExpressionTree)expression1;
+                        if (variableScope.getVariable(tree.getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)
+                            return;
+                    }
                     throw new IllegalArgumentException(value + " is not a valid Knight constructor!");
                 }
-                ExpressionTree expressionTree = ExpressionTree.expressionTreeFromString(value);
-                if(!expressionTree.getRightNode().getText().equals("")){
-                    testForCorrectValueType(VariableType.DIRECTION,expressionTree.getRightNode().getText());
-                }
+                if(!expression1.isLeaf()) {
+                    ExpressionTree tree = (ExpressionTree)expression1;
+                if(!tree.getRightNode().getText().equals("")){
+                    testForCorrectValueType(VariableType.DIRECTION,tree.getRightNode().getText());
+                }}
                 break;
             case SKELETON:
                 //TODO
                 if(!value.matches(variableType.getAllowedRegex())){
-                    tree = ExpressionTree.expressionTreeFromString(value);
-                    if(tree.getRightNode() != null) {
+                    expression1 = Expression.expressionFromString(value);
+                    if(!expression1.isLeaf()) {
+                        ExpressionTree tree = (ExpressionTree)expression1;
                         boolean varDirValid = variableScope.getVariable(tree.getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION;
                         boolean dirValid = tree.getRightNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
                         if(varDirValid || dirValid)return;
                         // 2 Parameters
-                        if(tree.getRightNode().getLeftNode() != null && tree.getRightNode().getRightNode() != null){
-                            varDirValid = variableScope.getVariable(tree.getRightNode().getLeftNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getLeftNode().getText()).getVariableType() == VariableType.DIRECTION;
-                            dirValid = tree.getRightNode().getLeftNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
-                            boolean varIntValid = variableScope.getVariable(tree.getRightNode().getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getRightNode().getText()).getVariableType() == VariableType.INT;
-                            boolean intValid = tree.getRightNode().getLeftNode().getText().matches(VariableType.INT.getAllowedRegex());
+                        if(!tree.getRightNode().isLeaf()){
+                            ExpressionTree tree2 = (ExpressionTree)tree.getRightNode();
+                            varDirValid = variableScope.getVariable(tree2.getLeftNode().getText()) != null && variableScope.getVariable(tree2.getLeftNode().getText()).getVariableType() == VariableType.DIRECTION;
+                            dirValid = tree2.getLeftNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
+                            boolean varIntValid = variableScope.getVariable(tree2.getRightNode().getText()) != null && variableScope.getVariable(tree2.getRightNode().getText()).getVariableType() == VariableType.INT;
+                            boolean intValid = tree2.getLeftNode().getText().matches(VariableType.INT.getAllowedRegex());
                             if((varDirValid || dirValid) && (varIntValid || intValid))return;
                         }
                     }
                     throw new IllegalArgumentException(value + " is not a valid Skeleton constructor!");
                 }
 
-                expressionTree = ExpressionTree.expressionTreeFromString(value);
+                expression1 = Expression.expressionFromString(value);
+                if(!expression1.isLeaf()){
+                    ExpressionTree expressionTree = (ExpressionTree)expression1;
                 if(!expressionTree.getRightNode().getText().equals("")){
-                    if(expressionTree.getRightNode().getRightNode()!=null){
-                        testForCorrectValueType(VariableType.DIRECTION,expressionTree.getRightNode().getLeftNode().getText());
-                        testForCorrectValueType(VariableType.INT,expressionTree.getRightNode().getRightNode().getText());
+                    if(!expressionTree.getRightNode().isLeaf()){
+                        ExpressionTree rightTree = (ExpressionTree)expressionTree.getRightNode();
+                        testForCorrectValueType(VariableType.DIRECTION,rightTree.getLeftNode().getText());
+                        testForCorrectValueType(VariableType.INT,rightTree.getRightNode().getText());
                     }
                     else testForCorrectValueType(VariableType.DIRECTION,expressionTree.getRightNode().getText());
-                }
+                }}
                 break;
             case DIRECTION:
                 Direction dir = Direction.getValueFromString(value);
@@ -526,7 +543,9 @@ public abstract class CodeParser {
                 else return;
             case ARMY:
                 if(!value.matches(variableType.getAllowedRegex())){
-                    tree = ExpressionTree.expressionTreeFromString(value);
+                    Expression exp = Expression.expressionFromString(value);
+                    if(exp.isLeaf())throw new IllegalArgumentException("Your Army needs parameters!");
+                    ExpressionTree tree = (ExpressionTree)exp;
                     if(tree.getRightNode() == null)throw new IllegalArgumentException("Your Army needs parameters!");
                     String[] parameters =tree.getRightNode().getText().split(",");
                     if(checkForDoppelgangers(parameters))throw  new IllegalArgumentException("You shall not add the same Entity more than once!");
@@ -581,33 +600,35 @@ public abstract class CodeParser {
                 case LE:
                 case NEQ:
                 case EQ:
-                    checkExpressionTreeForUnknownVars(conditionLeaf.getLeftTree());
-                    checkExpressionTreeForUnknownVars(conditionLeaf.getRightTree());
+                    checkExpressionTreeForUnknownVars(conditionLeaf.getLeftExpression());
+                    checkExpressionTreeForUnknownVars(conditionLeaf.getRightExpression());
                     return;
                 case CAL:
-                    if(variableScope.getVariable(conditionLeaf.getLeftTree().getText())==null)throw new IllegalArgumentException("Variable "+conditionLeaf.getLeftTree().getText() + " not in scope!");
-                    checkExpressionTreeForUnknownVars(conditionLeaf.getLeftTree());
-                    if(conditionLeaf.getRightTree().getLeftNode() == null)throw new IllegalArgumentException(conditionLeaf.getRightTree().getText() + " is not a valid Method!");
-                    MethodType mT = MethodType.getMethodTypeFromName(conditionLeaf.getRightTree().getLeftNode().getText());
-                    if(mT==null)throw new IllegalArgumentException("No such Method " + conditionLeaf.getRightTree().getLeftNode().getText()+"!");
-                    if(mT.getOutputType()!=VariableType.BOOLEAN)throw new IllegalArgumentException("Method " + conditionLeaf.getLeftTree().getText()+" has illegal type!");
-                    testForCorrectParameters(conditionLeaf.getRightTree().getRightNode().getText(), mT);
+                    if(variableScope.getVariable(conditionLeaf.getLeftExpression().getText())==null)throw new IllegalArgumentException("Variable "+conditionLeaf.getLeftExpression().getText() + " not in scope!");
+                    checkExpressionTreeForUnknownVars(conditionLeaf.getLeftExpression());
+                    ExpressionTree rightNode = (ExpressionTree)conditionLeaf.getRightExpression();
+                    if(rightNode.getLeftNode() == null)throw new IllegalArgumentException(conditionLeaf.getRightExpression().getText() + " is not a valid Method!");
+                    Expression leftNode = conditionLeaf.getLeftExpression();
+                    MethodType mT = MethodType.getMethodTypeFromName(rightNode.getLeftNode().getText());
+                    if(mT==null)throw new IllegalArgumentException("No such Method " + leftNode.getText()+"!");
+                    if(mT.getOutputType()!=VariableType.BOOLEAN)throw new IllegalArgumentException("Method " + conditionLeaf.getLeftExpression().getText()+" has illegal type!");
+                    testForCorrectParameters(rightNode.getRightNode().getText(), mT);
                     return;
             }
         }
         throw new IllegalArgumentException(condition.getText() + " is not allowed to stand here!");
     }
 
-    private static void checkExpressionTreeForUnknownVars(ExpressionTree valueTree) {
+    private static void checkExpressionTreeForUnknownVars(Expression valueTree) {
         if(valueTree.getDepth()==1 && valueTree.getText().split(",").length > 1){
             for(String s : valueTree.getText().split(","))
-                checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(s));
+                checkExpressionTreeForUnknownVars(Expression.expressionFromString(s));
             return;
         }
         if(valueTree.getText().matches(" *"))return;
         if(valueTree.getExpressionType() != ExpressionType.SIMPLE){
-            checkExpressionTreeForUnknownVars(valueTree.getRightNode());
-            checkExpressionTreeForUnknownVars(valueTree.getLeftNode());
+            checkExpressionTreeForUnknownVars(((ExpressionTree)valueTree).getRightNode());
+            checkExpressionTreeForUnknownVars(((ExpressionTree)valueTree).getLeftNode());
         }
         else{
             if(valueTree.getText().matches("new .*\\(.*\\)"))return;
@@ -618,7 +639,7 @@ public abstract class CodeParser {
             if(currentForVariable != null && valueTree.getText().equals(currentForVariable.getName())) return;
             if(valueTree.getText().split("\\.").length > 1){
                 for(String s : valueTree.getText().split("\\."))
-                    checkExpressionTreeForUnknownVars(ExpressionTree.expressionTreeFromString(s));
+                    checkExpressionTreeForUnknownVars(Expression.expressionFromString(s));
                 return;
             }
         }

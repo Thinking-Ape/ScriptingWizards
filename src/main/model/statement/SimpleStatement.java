@@ -2,60 +2,35 @@ package main.model.statement;
 
 import java.util.List;
 
-public class SimpleStatement implements Statement {
-
-//    int depth;
-    StatementType statementType;
-    ComplexStatement parentStatement;
+public class SimpleStatement extends Statement {
 
     SimpleStatement(StatementType statementType) {
-//        this.expressionTree = new ExpressionTree(new ExpressionLeaf(variable,depth+1), ExpressionType.SINGLE,new ExpressionLeaf(value,depth+1),depth);
         this.statementType = statementType;
-//        this.depth = depth;
     }
     public SimpleStatement() {
-//        this.expressionTree = new ExpressionTree(new ExpressionLeaf(variable,depth+1), ExpressionType.SINGLE,new ExpressionLeaf(value,depth+1),depth);
         this.statementType = StatementType.SIMPLE;
-//        this.depth = depth;
-    }
-
-    @Override
-    public ComplexStatement getParentStatement() {
-        return parentStatement;
-    }
-
-    @Override
-    public void setParentStatement(ComplexStatement parentStatement) {
-        this.parentStatement = parentStatement;
     }
 
     public int getActualSize() {
-        return getText().equals("") ? 0 : 1;
+        return getCode().equals("") ? 0 : 1;
     }
 
-    public StatementType getStatementType() {
-        return statementType;
+    @Override
+    public String getAllText() {
+        return getCode();
     }
-
     public int getDepth(){
         return parentStatement == null ? 1 : parentStatement.getDepth() + 1;
     }
 
-
     @Override
-    public String getText() {
+    public String getCode() {
         return "";
     }
 
     @Override
     public List<String> getCodeLines() {
-        return List.of(getText());
-    }
-
-
-    @Override
-    public String print() {
-        return getText();
+        return List.of(getCode());
     }
 
 

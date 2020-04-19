@@ -1,7 +1,7 @@
 package main.main;
 
-import main.model.enums.CellContent;
-import main.model.enums.VariableType;
+import main.model.gamemap.enums.CellContent;
+import main.utility.VariableType;
 import main.utility.Util;
 
 import java.util.ArrayList;

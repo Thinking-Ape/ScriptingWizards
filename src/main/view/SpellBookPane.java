@@ -7,14 +7,15 @@ import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import main.model.statement.MethodType;
 import main.model.statement.StatementType;
-import main.model.enums.*;
-import main.utility.GameConstants;
-import main.model.enums.VariableType;
+import main.model.gamemap.enums.*;
+import main.model.GameConstants;
+import main.utility.VariableType;
 
 import java.util.List;
 
-import static main.utility.GameConstants.*;
+import static main.model.GameConstants.*;
 
 public class SpellBookPane extends VBox {
 

@@ -7,7 +7,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
-import main.utility.GameConstants;
+import main.model.GameConstants;
 import main.utility.Util;
 
 

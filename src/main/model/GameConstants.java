@@ -1,26 +1,23 @@
-package main.utility;
+package main.model;
 
 import javafx.scene.effect.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import main.model.gamemap.Entity;
-import main.model.enums.EntityType;
+import main.model.gamemap.enums.EntityType;
 import main.model.statement.ComplexStatement;
-
-//import javax.swing.text.html.ImageView;
 import java.awt.*;
 import java.nio.file.Paths;
 import java.util.Random;
 
 public abstract class GameConstants {
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final String VERSION = "1.5c";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
     public static final char ANY_CHAR = '?';
     public static final double TICK_SPEED = 0.65;
-    public static final boolean SHOW_BOOLEAN_METHODS = false;
     public static final double TEXTFIELD_HEIGHT = SCREEN_HEIGHT/43;
     public static final double TEXTFIELD_WIDTH = SCREEN_WIDTH/5;
     public static final int CODE_OFFSET = 10;
@@ -34,7 +31,7 @@ public abstract class GameConstants {
     public static final int MAX_LEVEL_SIZE = 15;
     public static final int MIN_LEVEL_SIZE = 3;
     public static final double MAX_GAMEMAP_SIZE = SCREEN_HEIGHT/1.6;
-    public static final int MAX_DEPTH = 4;
+    public static final int MAX_STATEMENT_DEPTH = 4;
     public static final boolean SHOW_TUTORIAL_LEVELS_IN_PLAY = false;
     public static final boolean IS_FULLSCREEN = false;
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
@@ -42,7 +39,6 @@ public abstract class GameConstants {
     public static final double PLAY_CELL_SIZE_FACTOR = 1.2;
     public static final Entity NO_ENTITY = new Entity("", null, EntityType.NONE);
     public final static ComplexStatement FALSE_STATEMENT = new ComplexStatement();
-//    public static final boolean EXECUTE_IF_IS_COMMAND = true;
     public static final String TOOLTIP_VARIABLE_NAME = "Reference this variable via this name.";
     public static final String TOOLTIP_BOOLEAN = "True, false, a boolean variable, boolean method call or comparisons of int:\n" +
             "a and b are int Variables:" +
@@ -116,16 +112,6 @@ public abstract class GameConstants {
     public static final String DOWN_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Down_Btn.png";
     public static final Effect GLOW_BTN_EFFECT = new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.WHITE);
 
-    public static final String LEVEL_NAME_PROPERTY_NAME = "LevelName";
-    public static final String MAX_KNIGHTS_PROPERTY_NAME = "MaxKnights";
-    public static final String INDEX_PROPERTY_NAME = "Index";
-    public static final String IS_TUTORIAL_PROPERTY_NAME = "IsTutorial";
-    public static final String TURNS_TO_STARS_2_PROPERTY_NAME = "TurnsToStars2";
-    public static final String LOC_TO_STARS_2_PROPERTY_NAME = "LocToStars2";
-    public static final String TURNS_TO_STARS_3_PROPERTY_NAME = "TurnsToStars3";
-    public static final String LOC_TO_STARS_3_PROPERTY_NAME = "LocToStars3";
-    public static final String CURRENT_TUTORIAL_MESSAGE_PROPERTY_NAME = "CurrentTutorialMessage";
-    public static final String CURRENT_TUTORIAL_INDEX_PROPERTY_NAME = "CurrentTutorialIndex";
     public static final String LEVEL_IS_SAVED_STYLE = "-fx-background-color: rgba(150,255,150,0.75)";
     public static final String LEVEL_NOT_SAVED_STYLE = "-fx-background-color: rgba(255,150,150,0.75)";
     public static final int MAX_TUTORIAL_LINES = 6;
@@ -137,8 +123,6 @@ public abstract class GameConstants {
             "F5:\t\t\tActivate or deactivate the compiler in order to edit the whole CodeArea even if there are errors\n"+
             "Ctrl+R:\t\tIf the current Codefield contains a declaration, you may rename that variable";
     public static final String SIMPLE_STATEMENT_REGEX = "^([^{]+\\.[^{]+ *\\( *[^{]* *\\) *|[^{()]+ *[^{()]+? *= *[^{()]+?|[^{()]+ *[^{()]+?);(.++)$";
-    // only void? "^ *(void) +("+VARIABLE_NAME_REGEX+") *\\((|[a-zA-z]+ +"+VARIABLE_NAME_REGEX+"|([a-zA-z]+ +"+VARIABLE_NAME_REGEX+" *, *)+([a-zA-z]+ +"+VARIABLE_NAME_REGEX+"))\\) *\\{(.*)$";
-//    public static final String METHOD_DECLARATION_REGEX = "^ *([a-zA-Z]+) +("+VARIABLE_NAME_REGEX+") *\\((|[a-zA-z]+ +"+VARIABLE_NAME_REGEX+"|([a-zA-z]+ +"+VARIABLE_NAME_REGEX+" *, *)+([a-zA-z]+ +"+VARIABLE_NAME_REGEX+"))\\) *\\{(.*)$";
     public static final String COMPLEX_STATEMENT_REGEX = "^([ a-z]+ *\\( *[^{]+?\\) *\\{|else *\\{)(.*)$";
     public static final String FOR_INNER_REGEX = "^ *+(.+?) *+; *+(.+?) *+; *+(.+?) *+$";
     public static final String VARIABLE_NAME_REGEX = "[a-zA-Z_][a-zA-Z_0-9]*";
@@ -148,11 +132,7 @@ public abstract class GameConstants {
     public static final String BG_LIGHT_TILE_PATH ="file:"+IMAGES_PATH+"Background_Tile_Light.png";
     public static final String BOOLEAN_REGEX = "^\\(?!? *([^{}&|!]+ *| *([^{}&|!]+ *(&&|\\|\\|) *!?)+[^{}&|!]+)\\)?$";
     public static final int MAX_AMOUNT_OF_RUNS = 3;
+    public static final double KEYFRAME_DURATION = 0.8;
 //    public static final String CONDITION_REGEX = "^ *+"+VARIABLE_NAME_REGEX+"(\\|\\||&&|<|>|>=|<=|!=|==) *+$";
-
-//    public static final int MAX_CHARS_PER_CODEFIELD = 50;
-
-    //abhängig vom canvas...
-    //public static final int CELL_SIZE =
 
 }

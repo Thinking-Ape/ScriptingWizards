@@ -1,7 +1,8 @@
-package main.model.enums;
+package main.utility;
 
-import main.utility.GameConstants;
-import main.utility.Util;
+import main.model.gamemap.enums.CellContent;
+import main.model.gamemap.enums.EntityType;
+import main.model.gamemap.enums.ItemType;
 
 public enum VariableType {
     INT("int","^-?\\d+$"),

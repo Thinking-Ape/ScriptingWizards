@@ -1,4 +1,4 @@
-package main.model.statement;
+package main.model;
 
 import main.utility.Variable;
 
@@ -9,8 +9,8 @@ import java.util.Map;
 
 public class VariableScope {
 
-    Map<Integer, List<Variable>> depthVariableListMap;
-    int currentDepth;
+    private Map<Integer, List<Variable>> depthVariableListMap;
+    private int currentDepth;
 
     public VariableScope(){
         depthVariableListMap = new HashMap<>();

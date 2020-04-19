@@ -2,9 +2,10 @@ package main.model;
 
 import main.model.gamemap.Entity;
 import main.model.gamemap.GameMap;
-import main.model.enums.*;
+import main.model.gamemap.enums.*;
 import main.model.statement.*;
 import main.model.statement.Condition.*;
+import main.model.statement.Expression.Expression;
 import main.model.statement.Expression.ExpressionLeaf;
 import main.model.statement.Expression.ExpressionTree;
 import main.model.statement.Expression.ExpressionType;
@@ -19,25 +20,18 @@ public class CodeEvaluator {
 
     private Statement currentStatement;
     private VariableScope variableScope;
-    private List<ForStatement> declaredForStatements;
+    private List<String> unlockedStatements;
+//    private List<ForStatement> declaredForStatements;
     private boolean isPlayer;
+//    private Model model;
 
-//    private static CodeEvaluator aiEvaluator;
-//    private static CodeEvaluator playerEvaluator;
-//
-//    public static CodeEvaluator getInstance(boolean isAI){
-//        if(isAI){
-//            if(aiEvaluator == null)aiEvaluator = new CodeEvaluator();
-//            return aiEvaluator;
-//        }
-//        else{
-//            if(playerEvaluator == null)playerEvaluator = new CodeEvaluator();
-//            return playerEvaluator;
-//        }
-//    }
-    public CodeEvaluator(boolean isPlayer){
+
+    //TODO: Model reference shouldnt be needed!
+    public CodeEvaluator(boolean isPlayer,Model model){
+//        this.model = model;
         variableScope = new VariableScope();
-        declaredForStatements = new ArrayList<>();
+        unlockedStatements = new ArrayList<>();
+//        declaredForStatements = new ArrayList<>();
         this.isPlayer = isPlayer;
     }
 
@@ -64,16 +58,14 @@ public class CodeEvaluator {
             case COMPLEX:
                 break;
             case SIMPLE:
-                if(GameConstants.DEBUG)System.out.println("You have unlocked the following: "+statement.getText());
+                if(GameConstants.DEBUG)System.out.println("You have unlocked the following: "+statement.getCode());
                 return;
         }
         if(statement.getStatementType().equals(StatementType.FOR)){
-            Model.addUnlockedStatement(VariableType.INT.getName());
+            unlockedStatements.add(VariableType.INT.getName());
         }
-        Model.addUnlockedStatement(unlock);
-        for(String s : unlock2){
-            Model.addUnlockedStatement(s);
-        }
+        unlockedStatements.add(unlock);
+        unlockedStatements.addAll(unlock2);
     }
 
     private List<String> getUnlockedBooleanMethodsFromStatement( Condition condition) {
@@ -97,7 +89,7 @@ public class CodeEvaluator {
         return output;
     }
 
-    public Statement evaluateStatement(Statement statement) {
+    Statement evaluateStatement(Statement statement) {
         currentStatement = statement;
         if(currentStatement==null)return null;
         Condition condition = new ConditionLeaf(null, BooleanType.SIMPLE, null);
@@ -107,16 +99,15 @@ public class CodeEvaluator {
         if(isPlayer)updateUnlocks(currentStatement);
         variableScope.setCurrentDepth(statement.getDepth()-1);
         switch (currentStatement.getStatementType()){
-            //TODO: statementDepth map, List<Variable> in every statement, new Variable -> statemnetDepthMap.get(currentDepth -1).addVariable(variable) -> add also to substatements
             case COMPLEX:
                 break;
             case FOR:
                 ForStatement forStatement = (ForStatement)currentStatement;
-                if(!declaredForStatements.contains(forStatement)){
+                if(!variableScope.containsVariable(forStatement.getDeclaration().getVariable().getName())){
                     Variable forVariable =  forStatement.getDeclaration().getVariable();
                     ExpressionLeaf value = new ExpressionLeaf(evaluateNumericalExpression(forVariable.getValue())+"");
                     variableScope.addVariable(new Variable(VariableType.INT,forVariable.getName(),value));
-                    declaredForStatements.add(forStatement);
+//                    declaredForStatements.add(forStatement);
                 }
                 else{
                     Variable forVariable =  forStatement.getAssignment().getVariable();
@@ -125,9 +116,8 @@ public class CodeEvaluator {
                 }
                 if(!testCondition(condition)){
                     variableScope.removeVariable(forStatement.getDeclaration().getVariable().getName());
-                    declaredForStatements.remove(forStatement);
+//                    declaredForStatements.remove(forStatement);
                     currentStatement = GameConstants.FALSE_STATEMENT;
-//                    forStatement.resetVariables(true);
                 }
                 break;
             case WHILE:
@@ -159,7 +149,7 @@ public class CodeEvaluator {
 //                Variable var = variableScope.getVariable(mC.getObjectName());
 //                VariableType variableType = var.getVariableType();
 //                if(variableType == VariableType.ARMY){
-//                    Matcher matcher = Pattern.compile("^ *new *Army(\\(.*\\)) *$").matcher(var.getValue().getText());
+//                    Matcher matcher = Pattern.compile("^ *new *Army(\\(.*\\)) *$").matcher(var.getValue().getCode());
 //                    if(matcher.matches()){
 //                        varNames = matcher.group(1);
 //                    }
@@ -167,7 +157,7 @@ public class CodeEvaluator {
 
 //                Variable object = variableScope.getVariable(mC.getObjectName());
 //                if(object.getVariableType() == VariableType.KNIGHT ||object.getVariableType() == VariableType.SKELETON)
-//                if(Model.getCurrentMap().getEntityPosition(mC.getObjectName()) == null){
+//                if(Model.getCurrentMapCopy().getEntityPosition(mC.getObjectName()) == null){
 //                    currentStatement = new SimpleStatement();
 //                    break;
 //                }
@@ -205,18 +195,20 @@ public class CodeEvaluator {
                 }
                 currentStatement = new MethodCall(mC.getMethodType(), objectName, newParameters);
                 break;
+            //TODO: Method? + Assignemnt
             case DECLARATION:
+
                 Assignment declaration = (Assignment)currentStatement;
                 Variable variable = declaration.getVariable();
                 VariableType variableType = variable.getVariableType();
                 String varNames = variable.getName();
-                ExpressionTree value = declaration.getVariable().getValue();
+                Expression value = declaration.getVariable().getValue();
                 value = evaluateVariable(value.getText());
                 if(variableType == VariableType.INT){
-                    value = ExpressionTree.expressionTreeFromString(evaluateNumericalExpression(value)+"");
+                    value = Expression.expressionFromString(evaluateNumericalExpression(value)+"");
                 }
                 else if(variableType == VariableType.BOOLEAN){
-                    value = ExpressionTree.expressionTreeFromString(testCondition(Condition.getConditionFromString(value.getText()))+"");
+                    value = Expression.expressionFromString(testCondition(Condition.getConditionFromString(value.getText()))+"");
                 }
 
                 String valueString =value.getText();
@@ -228,7 +220,7 @@ public class CodeEvaluator {
                         direction = evaluateVariable(direction).getText();
                         valueString = "new Knight("+direction+")";
                     }
-                    currentStatement = new Assignment(varNames, variableType, ExpressionTree.expressionTreeFromString(valueString), true);
+                    currentStatement = new Assignment(varNames, variableType, Expression.expressionFromString(valueString), true);
                 }
                 else if(declaration.getVariable().getVariableType() == VariableType.SKELETON) {
                     Matcher skeletonMatcher = Pattern.compile(VariableType.SKELETON.getAllowedRegex()).matcher(valueString);
@@ -245,7 +237,7 @@ public class CodeEvaluator {
                             valueString = valueString.replace(directionAndId[1],id+"");
                         }
                     }
-                    currentStatement = new Assignment(varNames, variableType, ExpressionTree.expressionTreeFromString(valueString), true);
+                    currentStatement = new Assignment(varNames, variableType, Expression.expressionFromString(valueString), true);
                 }
                 if(!variableScope.containsVariable(variable.getName()))variableScope.addVariable(new Variable(variableType,varNames,value));
                 else
@@ -267,9 +259,9 @@ public class CodeEvaluator {
                         break;
                     case BOOLEAN:
                         Condition condition1 = evaluateVariablesInCondition(Condition.getConditionFromString(assignment.getVariable().getValue().getText()));
-                        ExpressionTree value2 = assignment.getVariable().getValue();
-                        if(condition1 != null)value2 = ExpressionTree.expressionTreeFromString(condition1.getText());
-                        value2 = ExpressionTree.expressionTreeFromString(testCondition(Condition.getConditionFromString(value2.getText()))+"");
+                        Expression value2 = assignment.getVariable().getValue();
+                        if(condition1 != null)value2 = Expression.expressionFromString(condition1.getText());
+                        value2 = Expression.expressionFromString(testCondition(Condition.getConditionFromString(value2.getText()))+"");
                         variable2 = new Variable(variableType,varNames,value2);
 
                         break;
@@ -280,7 +272,7 @@ public class CodeEvaluator {
                                 direction = evaluateVariable(direction).getText();
                                 valueString = "new Knight("+direction+")";
                             }
-                            variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
+                            variable2 = new Variable(variableType, varNames, Expression.expressionFromString(valueString));
                             break;
                     case SKELETON:
                         Matcher skeletonMatcher = Pattern.compile(VariableType.SKELETON.getAllowedRegex()).matcher(valueString);
@@ -297,7 +289,7 @@ public class CodeEvaluator {
                                 valueString = valueString.replace(directionAndId[1],id+"");
                             }
                         }
-                        variable2 = new Variable(variableType, varNames, ExpressionTree.expressionTreeFromString(valueString));
+                        variable2 = new Variable(variableType, varNames, Expression.expressionFromString(valueString));
                     case VOID:
                         break;
                 }
@@ -328,26 +320,27 @@ public class CodeEvaluator {
             return new ConditionTree(leftTree, conditionFromString.getConditionType(), rightTree);
         }
         else {
-            ExpressionTree leftTree = null;
-            ExpressionTree rightTree = null;
+            Expression leftTree = null;
+            Expression rightTree = null;
             ConditionLeaf leaf = (ConditionLeaf) conditionFromString;
-            if(leaf.getLeftTree()!= null){
-                if(leaf.getSimpleConditionType() == BooleanType.CAL)leftTree = leaf.getLeftTree();
-                else leftTree = evaluateVariablesInExpressionTree(leaf.getLeftTree());
+            if(leaf.getLeftExpression()!= null){
+                if(leaf.getSimpleConditionType() == BooleanType.CAL)leftTree = leaf.getLeftExpression();
+                else leftTree = evaluateVariablesInExpressionTree(leaf.getLeftExpression());
             }
-            if(leaf.getRightTree()!= null)rightTree = evaluateVariablesInExpressionTree(leaf.getRightTree());
+            if(leaf.getRightExpression()!= null)rightTree = evaluateVariablesInExpressionTree(leaf.getRightExpression());
             return new ConditionLeaf(leftTree, leaf.getSimpleConditionType(), rightTree);
 
         }
     }
 
-    private ExpressionTree evaluateVariablesInExpressionTree(ExpressionTree tree) {
-        if(tree instanceof ExpressionLeaf){
-            return evaluateVariable(tree.getText());
+    private Expression evaluateVariablesInExpressionTree(Expression expression) {
+        if(expression.isLeaf()){
+            return evaluateVariable(expression.getText());
         }
         else{
-            ExpressionTree leftTree = tree.getLeftNode();
-            ExpressionTree rightTree = tree.getRightNode();
+            ExpressionTree tree = (ExpressionTree)expression;
+            Expression leftTree = tree.getLeftNode();
+            Expression rightTree = tree.getRightNode();
             if(tree.getLeftNode() != null){
                 leftTree = evaluateVariablesInExpressionTree(leftTree);
             }
@@ -359,7 +352,7 @@ public class CodeEvaluator {
         }
     }
 
-    private ExpressionTree evaluateVariable(String value) {
+    private Expression evaluateVariable(String value) {
         if(variableScope.containsVariable(value))
             return evaluateVariable(variableScope.getVariable(value).getValue().getText());
         else return new ExpressionLeaf(value);
@@ -368,7 +361,7 @@ public class CodeEvaluator {
     /** Evaluates whether a given Condition Object should represent a true or false boolean in regards to
      *  the current map
      */
-    public boolean testCondition(Condition condition) {
+    private boolean testCondition(Condition condition) {
         if(condition == null)return true;
         if(condition.getConditionType() == ConditionType.SINGLE){
             return evaluateBooleanExpression((ConditionLeaf)condition);
@@ -396,14 +389,14 @@ public class CodeEvaluator {
      *
      * @param numericalExpression An ExpressionTree representing a mathematical term
      */
-    private int evaluateNumericalExpression(ExpressionTree numericalExpression) {
+    private int evaluateNumericalExpression(Expression numericalExpression) {
         if(numericalExpression.getText().matches(" *"))throw new IllegalArgumentException("A mathematical term cant be blank!");
         if(numericalExpression.getExpressionType() == ExpressionType.SIMPLE){
             return evaluateIntVariable(numericalExpression.getText());
         }
         // if the above is false the ExpressionTree must be a term with at least one operator
-        int leftEvaluated = evaluateNumericalExpression(numericalExpression.getLeftNode());
-        int rightEvaluated = evaluateNumericalExpression(numericalExpression.getRightNode());
+        int leftEvaluated = evaluateNumericalExpression(((ExpressionTree)numericalExpression).getLeftNode());
+        int rightEvaluated = evaluateNumericalExpression(((ExpressionTree)numericalExpression).getRightNode());
         switch (numericalExpression.getExpressionType()){
             case ADD:
                 return leftEvaluated + rightEvaluated;
@@ -427,13 +420,13 @@ public class CodeEvaluator {
         variableString = variableString.trim();
         Matcher randomMatcher = Pattern.compile(GameConstants.RAND_INT_REGEX).matcher(variableString);
         if(randomMatcher.matches()){
-            int bnd1 =evaluateNumericalExpression(ExpressionTree.expressionTreeFromString(randomMatcher.group(1)));
-            int bnd2 =evaluateNumericalExpression(ExpressionTree.expressionTreeFromString(randomMatcher.group(2)));
+            int bnd1 =evaluateNumericalExpression(Expression.expressionFromString(randomMatcher.group(1)));
+            int bnd2 =evaluateNumericalExpression(Expression.expressionFromString(randomMatcher.group(2)));
             // my randInt method doesnt care for which number is bigger
 
             int output =  Util.getRandIntWithout(bnd1, bnd2, new ArrayList<>());
-            if(!isPlayer && (int)Model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS)>1){
-                output =  Model.getDifferentRandomNumberEachTime(bnd1,bnd2);
+            if(!isPlayer && (int)ModelInformer.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS)>1){
+                output =  ModelInformer.getDifferentRandomNumberEachTime(bnd1,bnd2);
             }
             return output;
         }
@@ -453,14 +446,16 @@ public class CodeEvaluator {
      *  knight.targetsCell(EXIT) or contain comparisons, but it cannot contain any &&, || or !.
      */
     private boolean evaluateBooleanExpression(ConditionLeaf conditionLeaf) {
-        ExpressionTree leftTree = conditionLeaf.getLeftTree();
-        ExpressionTree rightTree = conditionLeaf.getRightTree();
+        Expression leftTree = conditionLeaf.getLeftExpression();
+        Expression rightTree = conditionLeaf.getRightExpression();
         // whether the ConditionLeaf represents a MethodCall such as knight.targetsCell(EXIT)
         if(conditionLeaf.getSimpleConditionType() == BooleanType.CAL){
             String objectName = leftTree.getText();
+            if(rightTree.isLeaf())throw new IllegalArgumentException("A method call can't be an ExpressionLeaf!");
+            ExpressionTree tree = (ExpressionTree)rightTree;
             // if the method does not have parameters it will not have 2 further ExpressionTrees
-            String methodName = rightTree.getLeftNode() == null ? rightTree.getText().substring(0,rightTree.getText().length()-2) : rightTree.getLeftNode().getText();
-            String parameters = rightTree.getRightNode() == null ? "" : rightTree.getRightNode().getText();
+            String methodName = tree.getLeftNode() == null ? tree.getText().substring(0,rightTree.getText().length()-2) : tree.getLeftNode().getText();
+            String parameters = tree.getRightNode() == null ? "" : tree.getRightNode().getText();
             //if(GameConstants.SHOW_BOOLEAN_METHODS)System.out.println(objectName+"."+methodName+"("+parameters+")");
             return evaluateBooleanMethodCall(objectName,methodName,parameters);
         }
@@ -547,7 +542,7 @@ public class CodeEvaluator {
      * @param parameterString Possible parameters
      */
     private boolean evaluateBooleanMethodCall(String objectName, String methodName, String parameterString) {
-        GameMap currentGameMap = Model.getCurrentMap();
+        GameMap currentGameMap = ModelInformer.getCurrentMapCopy();
         Variable variable = variableScope.getVariable(objectName);
         if(variable == null)throw new IllegalArgumentException("Variable "+objectName +" does not exist!");
         VariableType vType = variable.getVariableType();
@@ -560,7 +555,7 @@ public class CodeEvaluator {
             for(int i = 0; i < nameList.length; i++){
                 objectName = nameList[i];
                 Point actorPoint = currentGameMap.getEntityPosition(objectName);
-                if(actorPoint == null){
+                if(actorPoint == null|| actorPoint.getX() == -1){
                     deadEntities++;
                     if(deadEntities == nameList.length){
                         return false;
@@ -587,7 +582,7 @@ public class CodeEvaluator {
                     case CAN_MOVE:
                         if(currentGameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;
                         // ^ means XOR. Java allows this boolean operator. I currently do not!
-                        boolean eitherOpenOrInverted = (currentGameMap.cellHasFlag(targetPoint, CFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CFlag.INVERTED));
+                        boolean eitherOpenOrInverted = (currentGameMap.cellHasFlag(targetPoint, CellFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CellFlag.INVERTED));
                         output = output && (currentGameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || eitherOpenOrInverted));
                         continue;
                     case HAS_ITEM:
@@ -598,7 +593,7 @@ public class CodeEvaluator {
                         output = output && (targetContent == CellContent.getValueFromName(parameterString));
                         continue;
                     case TARGET_IS_DANGER:
-                        output = output && (currentGameMap.cellHasFlag(targetPoint,CFlag.PREPARING)|| currentGameMap.cellHasFlag(targetPoint,CFlag.ARMED));
+                        output = output && (currentGameMap.cellHasFlag(targetPoint, CellFlag.PREPARING)|| currentGameMap.cellHasFlag(targetPoint, CellFlag.ARMED));
                         //||!(targetEntity.getEntityType()!= EntityType.SKELETON) <- Skeletons no longer kill you when you walk into them
                         continue;
                     case TARGETS_ENTITY:
@@ -610,7 +605,6 @@ public class CodeEvaluator {
                         else output = output && (currentGameMap.getItem(targetPoint)==ItemType.getValueFromName(parameterString));
                         continue;
                     // has become pretty useless after deleting executeIf
-
                     case IS_LOOKING:
                         output = output && ((actorEntity.getDirection() == Direction.getValueFromString(parameterString)));
                         continue;
@@ -621,5 +615,8 @@ public class CodeEvaluator {
             return output;
         }
         throw new IllegalStateException(objectName + " has wrong variable type!");
+    }
+    public List<String> getUnlockedStatements(){
+        return new ArrayList<>(unlockedStatements);
     }
 }

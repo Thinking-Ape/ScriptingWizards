@@ -1,4 +1,4 @@
-package main.model.enums;
+package main.model.gamemap.enums;
 
 public enum Direction {
     NORTH,

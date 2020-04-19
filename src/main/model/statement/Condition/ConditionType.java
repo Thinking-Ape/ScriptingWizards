@@ -1,6 +1,6 @@
 package main.model.statement.Condition;
 
-import main.utility.GameConstants;
+import main.model.GameConstants;
 
 /** Whether the respective Condition consists of multiple Conditions linked with && or || or whether it is a Negation or
  * none of those

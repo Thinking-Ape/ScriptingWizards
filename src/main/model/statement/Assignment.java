@@ -1,7 +1,7 @@
 package main.model.statement;
 
-import main.model.enums.VariableType;
-import main.model.statement.Expression.ExpressionTree;
+import main.utility.VariableType;
+import main.model.statement.Expression.Expression;
 import main.utility.Variable;
 
 
@@ -9,7 +9,7 @@ public class Assignment extends SimpleStatement {
 
     private Variable variable;
 
-    public Assignment(String variableName, VariableType variableType, ExpressionTree value,boolean isDeclaration) {
+    public Assignment(String variableName, VariableType variableType, Expression value, boolean isDeclaration) {
         super(isDeclaration ? StatementType.DECLARATION : StatementType.ASSIGNMENT);
 
        this.variable = new Variable(variableType,variableName,value);
@@ -20,7 +20,7 @@ public class Assignment extends SimpleStatement {
     }
 
     @Override
-    public String getText(){
+    public String getCode(){
         VariableType variableType = variable.getVariableType();
         String vTypeString =  statementType == StatementType.ASSIGNMENT ? "" : variableType.getName()+" ";
         if(variable.getValue().getText().matches(" *"))return vTypeString+ variable.getName()+";";

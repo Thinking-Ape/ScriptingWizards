@@ -1,6 +1,6 @@
 package main.model.statement.Expression;
 
-import main.utility.GameConstants;
+import main.model.GameConstants;
 
 public enum ExpressionType {
 

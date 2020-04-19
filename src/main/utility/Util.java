@@ -9,22 +9,15 @@ import javafx.scene.control.TextArea;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import main.model.LevelDataType;
-import main.model.gamemap.Cell;
-import main.model.Model;
-import main.model.enums.CFlag;
-import main.model.enums.CellContent;
+import main.model.GameConstants;
+import main.model.ModelInformer;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class Util {
@@ -427,7 +420,7 @@ public abstract class Util {
     }
 
     public static Effect getEffect(int i, boolean isEntity) {
-        double opacityChange = Model.getCurrentRound()>1 ? -0.5 : 0;
+        double opacityChange = ModelInformer.getCurrentRound()>1 ? -0.5 : 0;
         if(!isEntity)opacityChange = 0;
         //just random numbers
         // color to similar

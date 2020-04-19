@@ -12,10 +12,6 @@ public class ConditionTree implements Condition {
         this.conditionType = operatorType;
     }
 
-    @Override
-    public ConditionType getConditionType() {
-        return conditionType;
-    }
 
     public Condition getLeftCondition() {
         return leftNode;
@@ -25,6 +21,10 @@ public class ConditionTree implements Condition {
         return rightNode;
     }
 
+    @Override
+    public ConditionType getConditionType() {
+        return conditionType;
+    }
 
     @Override
     public String getText() {

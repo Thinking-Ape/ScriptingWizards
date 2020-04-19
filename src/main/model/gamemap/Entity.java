@@ -3,10 +3,11 @@ package main.model.gamemap;
 // an interface for classes that use Behaviour
 // maybe make abstract class instead?
 
-import main.model.enums.Direction;
-import main.model.enums.EntityType;
-import main.model.enums.ItemType;
-import main.utility.GameConstants;
+import main.model.gamemap.enums.Direction;
+import main.model.gamemap.enums.EntityType;
+import main.model.gamemap.enums.ItemType;
+import static main.model.gamemap.enums.ItemType.NONE;
+import static main.model.GameConstants.NO_ENTITY;
 
 //maybe no use at all?? -> instead behavior map in level
 public class Entity {
@@ -14,12 +15,16 @@ public class Entity {
     private String name;
     private Direction direction;
     private EntityType entityType;
-    private ItemType item;
+    private ItemType item = NONE;
 
     public Entity(String name, Direction direction, EntityType entityType){
         this.name = name;
         this.direction = direction;
         this.entityType =entityType;
+    }
+    private  Entity(String name, Direction direction, EntityType entityType, ItemType item){
+        this(name,direction,entityType);
+        this.item = item;
     }
 
     public Direction getDirection(){
@@ -50,9 +55,14 @@ public class Entity {
     public boolean equals(Object obj) {
         if(obj instanceof Entity){
             Entity entity = (Entity)obj;
-            if(this == GameConstants.NO_ENTITY && entity == this)return true;
+            if(this == NO_ENTITY && entity == this)return true;
             return name.equals(entity.name) && direction.equals(entity.direction) && entityType.equals(entity.entityType) && item.equals(entity.item) ;
         }
         return super.equals(obj);
+    }
+
+    public Entity copy(){
+        if(this == NO_ENTITY)return this;
+        return new Entity(name, direction, entityType,item);
     }
 }

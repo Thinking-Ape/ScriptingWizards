@@ -1,23 +1,22 @@
 package main.utility;
 
-import main.model.enums.*;
-import main.model.statement.ComplexStatement;
-import main.model.statement.Expression.ExpressionTree;
+import main.model.gamemap.enums.*;
+import main.model.statement.Expression.Expression;
 
-import static main.model.enums.EntityType.NONE;
+import static main.model.gamemap.enums.EntityType.NONE;
 
 public class Variable {
     private String name;
-    private ExpressionTree value;
+    private Expression value;
     private VariableType variableType;
 
     public Variable (Variable v){
         this.name = v.name;
         this.variableType = v.variableType;
-        this.value = ExpressionTree.expressionTreeFromString(v.value.getText());
+        this.value = Expression.expressionFromString(v.value.getText());
     }
 
-    public Variable( VariableType variableType,String variableName, ExpressionTree value) {
+    public Variable( VariableType variableType,String variableName, Expression value) {
         this.name = variableName.trim();
         if(Direction.getValueFromString(name)!=null || ItemType.getValueFromName(name) != ItemType.NONE || CellContent.getValueFromName(name) != null || EntityType.getValueFromName(name) != NONE || name.equals("AROUND")|| name.equals("LEFT")|| name.equals("RIGHT"))
             throw new IllegalArgumentException("A variable must not be named: " + name + "!" );
@@ -26,7 +25,7 @@ public class Variable {
     }
 
     public String getName(){return name;}
-    public ExpressionTree getValue() {
+    public Expression getValue() {
         return value;
     }
 
@@ -44,14 +43,14 @@ public class Variable {
 
     }
 
-    public void update(ExpressionTree value) {
+    public void update(Expression value) {
         //TODO: check whether value has the correct type!
         this.value = value;
     }
 //    public static ExpressionTree evaluateVariable(String varName, ComplexStatement parentStatement) {
 //        Variable variable = parentStatement.getVariable(varName);
-//        if(variable == null)return ExpressionTree.expressionTreeFromString(varName);
-//        if(parentStatement.getVariable(variable.getValue().getText())!=null)return evaluateVariable(variable.getValue().getText(),parentStatement);
+//        if(variable == null)return ExpressionTree.expressionFromString(varName);
+//        if(parentStatement.getVariable(variable.getValue().getCode())!=null)return evaluateVariable(variable.getValue().getCode(),parentStatement);
 //        else return variable.getValue();
 //    }
 }

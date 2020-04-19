@@ -19,14 +19,13 @@ public class Level {
     private int maxKnights;
     private boolean isTutorial;
     private ComplexStatement aiBehaviour;
-    private int amountOfReruns;
-    private final int id;
-
+    private int amountOfPlays;
+    private final int ID;
 
     public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, List<Integer> requiredLevelIds, int maxKnights,
                  boolean isTutorial, List<String> tutorialEntryList, int id, int amountOfReruns) {
-        this.amountOfReruns = amountOfReruns;
-        this.id=id;
+        this.amountOfPlays = amountOfReruns;
+        this.ID =id;
         this.name =name;
         this.maxKnights = maxKnights;
         this.isTutorial = isTutorial;
@@ -45,30 +44,25 @@ public class Level {
         else tutorialMessages.add("");
     }
 
-
     public ComplexStatement getAIBehaviourCopy() {
         return aiBehaviour.copy(CodeAreaType.AI);
     }
 
-    public void setAiBehaviour(ComplexStatement aiBehaviour) {
+    void setAiBehaviour(ComplexStatement aiBehaviour) {
         this.aiBehaviour = aiBehaviour;
     }
 
-    public void setName(String name) {
+    void setName(String name) {
         this.name = name;
     }
-
-
 
     public boolean hasAi() {
         return aiBehaviour.getStatementListSize() > 0;
     }
 
-
     public GameMap getOriginalMapCopy(){
         return originalMap.copy();
     }
-
 
     public String getName() {
         return name;
@@ -85,16 +79,16 @@ public class Level {
         return new Integer[]{turnsToStars[0], turnsToStars[1]};
     }
 
-    public void setLocToStars(Integer[] locToStars) {
+    void setLocToStars(Integer[] locToStars) {
         this.locToStars = locToStars;
 
     }
 
-    public void setTurnsToStars(Integer[] turnsToStars) {
+    void setTurnsToStars(Integer[] turnsToStars) {
         this.turnsToStars = turnsToStars;
     }
 
-    public void setRequiredLevelIds(List<Integer> requiredLevelNames) {
+    void setRequiredLevelIds(List<Integer> requiredLevelNames) {
         this.requiredLevelIds = requiredLevelNames;
     }
 
@@ -102,45 +96,39 @@ public class Level {
         return maxKnights;
     }
 
-    public void setMaxKnights(int maxKnights) {
+    void setMaxKnights(int maxKnights) {
         this.maxKnights = maxKnights;
     }
 
-    public boolean isTutorial() {
+    boolean isTutorial() {
         return isTutorial;
     }
 
-    public void setIsTutorial(boolean isTut) {
+    void setIsTutorial(boolean isTut) {
         isTutorial= isTut;
     }
 
-
-    public Integer getId(){
-        return id;
+    public Integer getID(){
+        return ID;
     }
 
-    public List<String> getTutorialEntryListCopy() {
+    public List<String> getTutorialMessagesCopy() {
         return new ArrayList<>(tutorialMessages);
     }
 
-
-    public void setGameMap(GameMap value) {
+    void setGameMap(GameMap value) {
         originalMap = value;
     }
 
-    public void setTutorialMessages(List<String> tutorialMessages) {
+    void setTutorialMessages(List<String> tutorialMessages) {
         this.tutorialMessages = tutorialMessages;
     }
 
-    public void removeRequiredLevelId(Integer id) {
-        requiredLevelIds.remove(id);
+    public int getAmountOfPlays() {
+        return amountOfPlays;
     }
 
-    public int getAmountOfReruns() {
-        return amountOfReruns;
-    }
-
-    public void setAmountOfReruns(int value) {
-        amountOfReruns = value;
+    void setAmountOfPlays(int value) {
+        amountOfPlays = value;
     }
 }

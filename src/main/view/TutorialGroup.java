@@ -14,8 +14,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
-import main.model.Model;
-import main.utility.GameConstants;
+import main.model.ModelInformer;
+import main.model.GameConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,7 @@ public class TutorialGroup extends Group {
         prevBtn.setGraphic(prevIV);
         nextBtn.setGraphic(nextIV);
 
-        if(Model.getTutorialProgress() == -1){
+        if(ModelInformer.getTutorialProgress() == -1){
 
             nextBtn.setStyle("-fx-background-color: white;" +
                     "-fx-base: transparent;");

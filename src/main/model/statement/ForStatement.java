@@ -1,20 +1,11 @@
 package main.model.statement;
 
 import main.model.statement.Condition.Condition;
-import main.utility.SimpleSet;
-import main.utility.Variable;
-
-import java.util.Iterator;
 
 
 public class ForStatement extends ComplexStatement {
     private Assignment declaration;
     private Assignment assignment;
-
-    @Override
-    public StatementType getStatementType() {
-        return statementType;
-    }
 
     public  ForStatement (Assignment declaration, Condition condition, Assignment assignment) {
         super();
@@ -24,16 +15,15 @@ public class ForStatement extends ComplexStatement {
         this.declaration.setParentStatement(this);
         this.condition = condition;
         statementType = StatementType.FOR;
-        counter = -2;
     }
 
     @Override
-    public String getText() {
+    public String getCode() {
         String output ="";
         output += "for(";
-        output += declaration.getText();
+        output += declaration.getCode();
         output += condition.getText()+";";
-        output += assignment.getText().replaceAll(";", "");
+        output += assignment.getCode().replaceAll(";", "");
         output += ") {";
         return output;
     }

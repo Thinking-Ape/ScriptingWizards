@@ -14,7 +14,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Translate;
 import main.model.statement.SimpleStatement;
-import main.utility.GameConstants;
+import main.model.GameConstants;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.utility.SimpleEventListener;
@@ -23,8 +23,8 @@ import main.utility.Util;
 
 import java.util.*;
 
-import static main.utility.GameConstants.MAX_CODE_LINES;
-import static main.utility.GameConstants.SMALL_BUTTON_SIZE;
+import static main.model.GameConstants.MAX_CODE_LINES;
+import static main.model.GameConstants.SMALL_BUTTON_SIZE;
 
 public class CodeArea extends VBox {
 
@@ -43,7 +43,6 @@ public class CodeArea extends VBox {
 
     private static CodeArea playerCodeArea;
     private static CodeArea aiCodeArea;
-    private static CodeArea methodCodeArea;
 
     private SimpleEventSender eventSender;
 
@@ -55,9 +54,6 @@ public class CodeArea extends VBox {
             case AI:
                 if(aiCodeArea == null)aiCodeArea = new CodeArea( CodeAreaType.AI);
                 return aiCodeArea;
-            case METHOD_CREATOR:
-                if(methodCodeArea == null)methodCodeArea = new CodeArea( CodeAreaType.METHOD_CREATOR);
-                return methodCodeArea;
         }
         throw new IllegalStateException("CodeAreaType "+codeAreaType+" has not been implemented yet!");
     }
@@ -126,7 +122,7 @@ public class CodeArea extends VBox {
         List<CodeField> output = new ArrayList<>();
         for(int i = 0; i < complexStatement.getStatementListSize(); i++){
             statement = complexStatement.getSubStatement(i);
-            output.add(new CodeField(statement.getText(),statement.getDepth(),isEditable));
+            output.add(new CodeField(statement.getCode(),statement.getDepth(),isEditable));
             if(statement.isComplex()){
                 output.addAll(getCodeFieldsFromStatement((ComplexStatement)statement));
                 output.add(new CodeField("}",statement.getDepth(),false));
@@ -135,7 +131,7 @@ public class CodeArea extends VBox {
         return output;
     }
 
-    private List<StackPane> getRectanglesFromList(List<CodeField> codeFieldList){
+    private List<StackPane> getRectanglesFromCodeFieldList(List<CodeField> codeFieldList){
         List<StackPane> output = new ArrayList<>();
 
         for (CodeField codeField : codeFieldList) {
@@ -154,7 +150,7 @@ public class CodeArea extends VBox {
     }
 
     private void draw(){
-        List<StackPane> rectStackList = getRectanglesFromList(codeFieldList);
+        List<StackPane> rectStackList = getRectanglesFromCodeFieldList(codeFieldList);
         codeVBox.getChildren().clear();
         rectVBox.getChildren().clear();
         int bound = getScrollAmount();
@@ -187,7 +183,7 @@ public class CodeArea extends VBox {
     }
 
 
-    public List<String> getAllText() {
+    public List<String> getAllCode() {
         List<String> output= new ArrayList<>();
         for(CodeField codeField : codeFieldList){
             output.add(codeField.getText());
