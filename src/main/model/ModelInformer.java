@@ -163,4 +163,8 @@ public abstract class ModelInformer {
     public static int getDifferentRandomNumberEachTime(int bnd1, int bnd2) {
         return model.getDifferentRandomNumberEachTime(bnd1, bnd2);
     }
+
+    public static boolean isEditorUnlocked() {
+        return model.isEditorUnlocked();
+    }
 }

@@ -120,6 +120,13 @@ public class JSONObject {
         if(keyValueMap.get(name) instanceof Boolean)return (boolean)keyValueMap.get(name);
         else throw  new IllegalArgumentException("Value to name: "+ name + " is no boolean!");
     }
+    public boolean getBoolean(String name, boolean defaultBool) {
+        if(keyValueMap.containsKey(name)){
+            if(keyValueMap.get(name) instanceof Boolean)return (boolean)keyValueMap.get(name);
+            else throw  new IllegalArgumentException("Value to name: "+ name + " is no boolean!");
+        }
+        else return defaultBool;
+    }
     public String toString(){
         StringBuilder output = new StringBuilder("{");
         for(String key : keyValueMap.keySet()){

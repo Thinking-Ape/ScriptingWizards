@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 public abstract class GameConstants {
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     public static final String VERSION = "1.5c";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
@@ -75,7 +75,7 @@ public abstract class GameConstants {
     , "You can navigate these messages by holding down the Alt-Key and pressing either the right or left arrow key!"
     , "If you want to escape from here you will need to summon magic Knights to do your bidding! The dungeon is filled with traps and these Knights will ensure you may leave it unhurt..."
     ,"Below this tutorial field is the game map."
-    , "To the left of it you can see how many Knights you have avaiable for the current Level."
+    , "To the left of it you can see how many Knights you have available for the current Level."
 
     ,"At the bottom of your screen you can see multiple interactable elements:"
     , "The first one is the Back Button:\n" + "It will bring you back to the previous menu"
@@ -130,9 +130,10 @@ public abstract class GameConstants {
     public static final int MAX_KNIGHTS_AMOUNT = 5;
     public static final String BG_DARK_TILE_PATH ="file:"+IMAGES_PATH+"Background_Tile_Dark.png";
     public static final String BG_LIGHT_TILE_PATH ="file:"+IMAGES_PATH+"Background_Tile_Light.png";
-    public static final String BOOLEAN_REGEX = "^\\(?!? *([^{}&|!]+ *| *([^{}&|!]+ *(&&|\\|\\|) *!?)+[^{}&|!]+)\\)?$";
+    public static final String BOOLEAN_REGEX = "^\\(?!? *([^{}&|]+ *| *([^{}&|]+ *(&&|\\|\\|) *!?)+[^{}&|]+)\\)?$";
     public static final int MAX_AMOUNT_OF_RUNS = 3;
     public static final double KEYFRAME_DURATION = 0.8;
+    public static final String REASON_SINGLE_EQUAL_SIGN = "you might need to replace '=' with '=='!";
 //    public static final String CONDITION_REGEX = "^ *+"+VARIABLE_NAME_REGEX+"(\\|\\||&&|<|>|>=|<=|!=|==) *+$";
 
 }

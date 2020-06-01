@@ -27,7 +27,7 @@ public class CodeEvaluator {
 
 
     //TODO: Model reference shouldnt be needed!
-    public CodeEvaluator(boolean isPlayer,Model model){
+    public CodeEvaluator(boolean isPlayer){
 //        this.model = model;
         variableScope = new VariableScope();
         unlockedStatements = new ArrayList<>();
@@ -89,7 +89,7 @@ public class CodeEvaluator {
         return output;
     }
 
-    Statement evaluateStatement(Statement statement) {
+    public Statement evaluateStatement(Statement statement) {
         currentStatement = statement;
         if(currentStatement==null)return null;
         Condition condition = new ConditionLeaf(null, BooleanType.SIMPLE, null);
@@ -203,14 +203,14 @@ public class CodeEvaluator {
                 VariableType variableType = variable.getVariableType();
                 String varNames = variable.getName();
                 Expression value = declaration.getVariable().getValue();
-                value = evaluateVariable(value.getText());
-                if(variableType == VariableType.INT){
-                    value = Expression.expressionFromString(evaluateNumericalExpression(value)+"");
+                if(!value.getText().equals("")) {
+                    value = evaluateVariable(value.getText());
+                    if (variableType == VariableType.INT) {
+                        value = Expression.expressionFromString(evaluateNumericalExpression(value) + "");
+                    } else if (variableType == VariableType.BOOLEAN) {
+                        value = Expression.expressionFromString(testCondition(Condition.getConditionFromString(value.getText())) + "");
+                    }
                 }
-                else if(variableType == VariableType.BOOLEAN){
-                    value = Expression.expressionFromString(testCondition(Condition.getConditionFromString(value.getText()))+"");
-                }
-
                 String valueString =value.getText();
                         //TODO: no!
                 if(declaration.getVariable().getVariableType() == VariableType.KNIGHT){
@@ -618,5 +618,11 @@ public class CodeEvaluator {
     }
     public List<String> getUnlockedStatements(){
         return new ArrayList<>(unlockedStatements);
+    }
+
+    public Variable getVariableCopyWithName(String varName){
+        Variable actualVar = variableScope.getVariable(varName);
+        if(actualVar == null)return null;
+        return new Variable(actualVar);
     }
 }

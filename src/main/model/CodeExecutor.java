@@ -27,7 +27,7 @@ public abstract class CodeExecutor {
     private static boolean knightWasSpawned;
 
 
-    static boolean executeBehaviour(Statement statement, GameMap gameMap, boolean isPlayer, boolean canSpawnKnights) {
+    public static boolean executeBehaviour(Statement statement, GameMap gameMap, boolean isPlayer, boolean canSpawnKnights) {
         if(!isPlayer)skeletonWasSpawned = false;
         else knightWasSpawned = false;
         currentGameMap  = gameMap;

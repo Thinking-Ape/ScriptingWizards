@@ -498,4 +498,63 @@ public class GameMap {
                 if(cellArray2D[i][j].hasLinkedCellId(id))cellArray2D[i][j].removeLinkedCellId(id);
             }
     }
+
+    public void printMap(){
+        for(int i = 0; i < cellArray2D[0].length;i++){
+            for(int j = 0; j < cellArray2D.length;j++){
+                Cell c = cellArray2D[j][i];
+                String s = "";
+                switch (c.getContent()) {
+                    case WALL:
+                        s = "[ ]";
+                        break;
+                    case PATH:
+                        s = " _ ";
+                        break;
+                    case EXIT:
+                        s = " X ";
+                        break;
+                    case TRAP:
+                        s = " T ";
+                        break;
+                    case SPAWN:
+                        s = " S ";
+                        break;
+                    case ENEMY_SPAWN:
+                        s = " E ";
+                        break;
+                    case DIRT:
+                        s =  " D ";
+                        break;
+                    case PRESSURE_PLATE:
+                        s = " P ";
+                        break;
+                    case GATE:
+                        s = " G ";
+                        break;
+                    default:
+                        s = "   ";
+                        break;
+                }
+                if (c.getEntity() != NO_ENTITY) {
+                    switch (c.getEntity().getDirection()) {
+                        case NORTH:
+                            s = " ^ ";
+                            break;
+                        case EAST:
+                            s = " > ";
+                            break;
+                        case SOUTH:
+                            s = " v ";
+                            break;
+                        case WEST:
+                            s = " < ";
+                            break;
+                    }
+                }
+                System.out.print(s);
+            }
+            System.out.println();
+        }
+    }
 }

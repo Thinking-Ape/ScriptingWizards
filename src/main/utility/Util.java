@@ -465,4 +465,11 @@ public abstract class Util {
         return output / turnsList.size();
     }
 
+    public static String getConditionInvalidString(String condition, String reason) {
+        return "Condition: \""+condition + "\" is invalid, because: "+reason;
+    }
+
+    public static String getIllegalVariableString(String variableName) {
+        return "Variable Name: \""+variableName + "\" is illegal! You may only use names starting with a letter and only including letters and numbers!";
+    }
 }

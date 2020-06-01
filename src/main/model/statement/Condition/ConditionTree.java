@@ -31,11 +31,11 @@ public class ConditionTree implements Condition {
         String leftNodeText="";
         if(leftNode != null){
             leftNodeText = leftNode.getText();
-            if(leftNode.getConditionType() != ConditionType.SINGLE) leftNodeText = "(" + leftNodeText + ")";
+            if(leftNode.getConditionType() != ConditionType.SINGLE && leftNode.getConditionType() != ConditionType.NEGATION) leftNodeText = "(" + leftNodeText + ")";
         }
         if(rightNode == null)return leftNodeText;
         String rightNodeText = rightNode.getText();
-        if(rightNode.getConditionType() != ConditionType.SINGLE && rightNode.getConditionType()!= ConditionType.NEGATION) rightNodeText = "(" + rightNodeText + ")";
+        if(!rightNode.isLeaf()|| ((ConditionLeaf)rightNode).getSimpleConditionType() != BooleanType.SIMPLE ||(rightNode.getConditionType() != ConditionType.SINGLE && rightNode.getConditionType()!= ConditionType.NEGATION)) rightNodeText = "(" + rightNodeText + ")";
         switch (conditionType){
             case AND:
                 return leftNodeText + " && " + rightNodeText;

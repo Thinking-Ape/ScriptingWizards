@@ -802,9 +802,6 @@ public class View implements LevelChangeListener {
                 break;
             case TUTORIAL:
                 drawMap(gameMap);
-                if(ModelInformer.getTutorialProgress()==-1){
-                    isIntroduction = true;
-                }
                 prepareRootPane();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
 
@@ -865,6 +862,7 @@ public class View implements LevelChangeListener {
 
                 if(ModelInformer.getTutorialProgress()==-1){
                     isIntroduction = true;
+                    clearCodeBtn.setDisable(true);
                     tutorialGroup.activateIntroduction();
                     btnExecute.setMouseTransparent(true);
                     codeArea.setDisable(true);
@@ -1093,7 +1091,7 @@ public class View implements LevelChangeListener {
         tutorialGroup.setEntries((List<String>)ModelInformer.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
         isIntroduction = false;
-
+        clearCodeBtn.setDisable(false);
         btnExecute.setMouseTransparent(false);
         codeArea.setDisable(false);
         speedSlider.setMouseTransparent(false);

@@ -107,7 +107,7 @@ Version 1.2d:
     - Speech Bubble will now be scaled according to Screen Size
 Version 1.2c:
     - fixed a bug where variables from inside a for-loop would not be recognized inside another for-loop
-    - level-select is now always avaiable in tutorial after finishing the first level
+    - level-select is now always available in tutorial after finishing the first level
     - level entries in levelOverviewPanes are now updated properly
     - changed requirements to unlock certain levels
     - game no longer crashes when .css cannot be loaded

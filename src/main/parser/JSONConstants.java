@@ -27,4 +27,5 @@ public abstract class JSONConstants {
     public static final String LINKED_CELL_IDS = "linkedIds";
     public static final String ORDER = "order";
     public static final String AMOUNT_OF_RERUNS = "reruns";
+    public static final String EDITOR_UNLOCKED = "editorUnlocked";
 }

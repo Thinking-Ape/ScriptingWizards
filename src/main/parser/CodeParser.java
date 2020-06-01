@@ -6,7 +6,7 @@ import main.model.gamemap.enums.Direction;
 import main.model.gamemap.enums.EntityType;
 import main.model.gamemap.enums.ItemType;
 import main.model.statement.MethodType;
-import main.utility.VariableType;
+import main.utility.*;
 import main.model.statement.*;
 import main.model.statement.Condition.Condition;
 import main.model.statement.Condition.ConditionLeaf;
@@ -15,8 +15,6 @@ import main.model.statement.Expression.Expression;
 import main.model.statement.Expression.ExpressionTree;
 import main.model.statement.Expression.ExpressionType;
 import main.model.GameConstants;
-import main.utility.Util;
-import main.utility.Variable;
 import main.view.CodeAreaType;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,7 +104,7 @@ public abstract class CodeParser {
             }
             lastStatement = statement;
         }
-        if(depth != 1)throw new IllegalStateException("Unbalanced amount of brackets!");
+        if(depth != 1)throw new UnbalancedAmountOfBracketsException();
         return behaviour;
     }
 
@@ -226,9 +224,9 @@ public abstract class CodeParser {
         char lastChar = code.charAt(code.length()-1);
         if(lastChar!=';' && lastChar!='{'){
             Statement tempStatement2 = parseString(code + "{");
-            if(tempStatement2 != null) throw new IllegalArgumentException("You might have forgotten a '{'");
+            if(tempStatement2 != null) throw new NoCurlyBracketException();
             Statement tempStatement1 =  parseString(code+";");
-            if(tempStatement1 != null) throw new IllegalArgumentException("You might have forgotten a ';'!");
+            if(tempStatement1 != null) throw new NoSemicolonException();
         }
         if(code.matches("^ *[a-zA-Z]+\\(.*\\) *; *$"))throw new IllegalArgumentException("Your MethodCall might need an object!");
         return null;
@@ -324,7 +322,7 @@ public abstract class CodeParser {
 
 
     private static Assignment parseAssignment(String varName, String operation, String valueString) {
-        if(!varName.matches(GameConstants.WHOLE_VARIABLE_NAME_REGEX))throw new IllegalArgumentException("Variable name "+ varName+ " is illegal!");
+        if(!varName.matches(GameConstants.WHOLE_VARIABLE_NAME_REGEX))throw new IllegalVariableNameException(varName);
         if(operation.equals("++"))valueString = varName+"+1";
         if(operation.equals("--"))valueString = varName+"-1";
         valueString = valueString.trim();
@@ -346,7 +344,7 @@ public abstract class CodeParser {
 
     private static Assignment parseDeclaration(String variableTypeString, String varName, String valueString) {
         if(valueString == null)valueString = "";
-        if(!varName.matches(GameConstants.WHOLE_VARIABLE_NAME_REGEX))throw new IllegalArgumentException("Variable name "+ varName+ " is illegal!");
+        if(!varName.matches(GameConstants.WHOLE_VARIABLE_NAME_REGEX))throw new IllegalVariableNameException(varName);
         valueString = valueString.trim();
         Expression valueTree = Expression.expressionFromString(valueString);
 
@@ -364,16 +362,16 @@ public abstract class CodeParser {
         Variable variable = new Variable(variableType, varName, valueTree);
         boolean isSkeleton = variable.getVariableType() == VariableType.SKELETON;
         boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
-        if(isPlayerCode && (isSkeleton ))throw new IllegalArgumentException("You are not allowed to create Enemy Creatures as Player");
+        if(isPlayerCode && (isSkeleton ))throw new StatementNotAllowedException();
         boolean isKnight = variable.getVariableType() == VariableType.KNIGHT;
-        if(!isPlayerCode && isKnight )throw new IllegalArgumentException("You are not allowed to create Player Creatures as Enemy");
+        if(!isPlayerCode && isKnight )throw new StatementNotAllowedException();
         Assignment declaration = new Assignment(varName.trim(),variableType,valueTree,true);
         return declaration;
     }
 
    private static void testForCorrectValueType(VariableType variableType, String value) {
         value = value.trim();
-        if(value.equals(""))throw new IllegalArgumentException("You cannot have an empty value!");
+        if(value.equals(""))throw new VariableNotInitializedException();
         Variable v = variableScope.getVariable(value);
         if(v!=null){
             if(v.getVariableType() != variableType)throw new IllegalArgumentException(value + " has the wrong type!");
@@ -592,6 +590,7 @@ public abstract class CodeParser {
             ConditionLeaf conditionLeaf = (ConditionLeaf)condition;
             switch(conditionLeaf.getSimpleConditionType()){
                 case SIMPLE:
+                    if(condition.getText().matches("[^=]+=[^=]+")) throw new InvalidConditionException(condition.getText(),GameConstants.REASON_SINGLE_EQUAL_SIGN);
                     if(variableScope.getVariable(condition.getText())==null) throw new IllegalArgumentException("Boolean Variable "+condition.getText()+" not in scope!");
                     return;
                 case GR_EQ:

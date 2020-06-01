@@ -38,8 +38,9 @@ public class Main extends Application {
         Map<Integer,Integer> bestTurnsMap = JSONParser.getBestTurnsForLevels(levelList);
         Map<Integer,Integer> bestLOCMap = JSONParser.getBestLocForLevels(levelList);
         List<String> unlockedStatementList = JSONParser.getUnlockedStatementList();
+        boolean isEditorUnlocked = JSONParser.isEditorUnlocked();
 
-        model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelIdList,unlockedStatementList);
+        model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelIdList,unlockedStatementList,isEditorUnlocked);
 
         if(GameConstants.DEBUG)  Tester.runTests();
 

@@ -44,7 +44,7 @@ public class Controller {
         new CodeAreaController(view,model);
         editorController = new EditorController(view,model);
         // If DEBUG is disabled the LevelEditor Button is only available if all Levels have been unlocked
-        if(model.getAmountOfCompletedLevels() < model.getAmountOfLevels())view.getStartScreen().getLvlEditorBtn().setDisable(!GameConstants.DEBUG);
+        if(model.getAmountOfCompletedLevels() < model.getAmountOfLevels())view.getStartScreen().getLvlEditorBtn().setDisable(!(GameConstants.DEBUG || model.isEditorUnlocked()));
         // Key Input should automatically be passed on to player CodeArea to make it easier to use
         view.getStage().getScene().setOnKeyPressed(event -> {
             if (!(view.getStage().getScene().getFocusOwner() instanceof CodeField)) {
@@ -439,11 +439,11 @@ public class Controller {
                     String winString = "You have won!" + "\nYou earned " + (int) nStars + (Math.round(nStars) != (int) nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (") + turns + " Turns, " + loc + " Lines of Code)";
 
                     boolean isTutorial = (boolean) model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
-                    int nextIndex = model.getNextTutorialIndex();
                     // This only to stop levels with enemies from having differently colored SpawnPoints in LevelOverview
                     model.reset();
                     String nextLevelName;
                     if (isTutorial && View.getCurrentSceneState() == SceneState.TUTORIAL) {
+                        int nextIndex = model.getNextTutorialIndex();
                         if (newResultIsBetter)
                             view.getTutorialLevelOverviewPane().updateCurrentLevel();
                         minIndex = nextIndex - 1 > minIndex ? nextIndex - 1 : minIndex;
@@ -463,7 +463,6 @@ public class Controller {
                             }
                             if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
                             else view.getStartScreen().getPlayBtn().setDisable(false);
-                            view.getStartScreen().getLvlEditorBtn().setDisable(false);
                         }
                     } else if (View.getCurrentSceneState() == SceneState.PLAY) {
                         if (newResultIsBetter)
@@ -474,6 +473,8 @@ public class Controller {
                             if(view.getLevelOverviewPane().containsLevel(model.getNameOfLevelWithId(id)) || (boolean)model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i))continue;
                             view.getLevelOverviewPane().addLevelWithIndex(i);
                         }
+                        if(model.getAmountOfLevels() == model.getAmountOfCompletedLevels())model.unlockEditor();
+                        view.getStartScreen().getLvlEditorBtn().setDisable(!model.isEditorUnlocked());
                     }
 
 

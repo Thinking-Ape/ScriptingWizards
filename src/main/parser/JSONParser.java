@@ -179,7 +179,7 @@ public abstract class JSONParser {
         }
             complexStatement =  CodeParser.parseProgramCode(aiLines, CodeAreaType.AI);
         }
-        assert spawn.getX()!=-1;
+//        assert spawn.getX()!=-1;
         JSONArray turnsToStarsArray = jsonObject.getJSONArray(JSONConstants.TURNS_TO_STARS,new JSONArray());
         Integer[] turnsToStars = new Integer[turnsToStarsArray.length()];
         fillArrayFromJSON(turnsToStars,turnsToStarsArray,true);
@@ -553,6 +553,7 @@ public abstract class JSONParser {
             orderJSONArray.put(i);
         }
         dataJSONObject.put(JSONConstants.UNLOCKED_STATEMENTS,jsonArray);
+        dataJSONObject.put(JSONConstants.EDITOR_UNLOCKED,ModelInformer.isEditorUnlocked());
         dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, ModelInformer.getTutorialProgress());
         dataJSONObject.put(JSONConstants.ORDER, orderJSONArray);
         int skips = 0;
@@ -644,20 +645,7 @@ public abstract class JSONParser {
         }
     }
 
-//    private static void correctIndexes() throws IOException {
-//        for(File file : levelFileList) {
-//            Path levelFilePath = Path.of(GameConstants.LEVEL_ROOT_PATH,file.getName());
-//            String jsonString = String.join("", Files.readAllLines(levelFilePath));
-//            JSONObject jsonObject = new JSONObject(jsonString);
-//            String name = file.getName().replaceAll("\\.json", "");
-//            int newIndex = ModelInformer.getIndexOfLevelInList(name);
-////            int index = jsonObject.getInt(JSONConstants.ID);
-//            jsonObject.put(JSONConstants.ID, newIndex);
-//            try (FileWriter fileWriter = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+name+".json")) {
-//                fileWriter.write(jsonObject.toString());
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
+    public static boolean isEditorUnlocked() {
+        return dataJSONObject.getBoolean(JSONConstants.EDITOR_UNLOCKED, false);
+    }
 }

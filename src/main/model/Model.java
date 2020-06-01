@@ -51,6 +51,7 @@ public class Model {
     private int currentRound = 1;
 
     private static Model modelSingleton = null;
+    private boolean editorUnlocked;
 
     public static Model getInstance(){
         if(modelSingleton == null) modelSingleton = new Model();
@@ -59,7 +60,7 @@ public class Model {
 
     //needs to be run AFTER Levels have been added!
     public void init(Map<Integer,List<String>> bestCodeMap, Map<Integer,Integer> bestTurnsMap, Map<Integer,Integer> bestLOCMap, int tutorialProgress,
-                     List<Integer> unlockedLevelsList, List<String> unlockedStatementsList ){
+                     List<Integer> unlockedLevelsList, List<String> unlockedStatementsList, boolean editorUnlocked){
         this.bestCodeMap = bestCodeMap;
         this.bestLOCMap = bestLOCMap;
         this.bestTurnsMap = bestTurnsMap;
@@ -67,6 +68,7 @@ public class Model {
         this.unlockedLevelIdList = unlockedLevelsList;
         if(unlockedLevelsList.size()==0)unlockedLevelsList.add(levelList.get(0).getID());
         this.unlockedStatementsList = unlockedStatementsList;
+        this.editorUnlocked = editorUnlocked;
     }
 
     public void addLevelLast(Level level, boolean isNew) {
@@ -519,9 +521,9 @@ public class Model {
 
     public void initIteratorsAndEvaluators(ComplexStatement playerBehaviour,ComplexStatement aiBehaviour) {
         aiIterator = aiBehaviour.iterator();
-        aiEvaluator = new CodeEvaluator(false,modelSingleton);
+        aiEvaluator = new CodeEvaluator(false);//,modelSingleton);
         playerIterator = playerBehaviour.iterator();
-        playerEvaluator = new CodeEvaluator(true,modelSingleton);
+        playerEvaluator = new CodeEvaluator(true);//,modelSingleton);
     }
 
     public void increaseTutorialMessageIndex() {
@@ -796,11 +798,18 @@ public class Model {
         }
         return amountOfCompletedLevels;
     }
+    public boolean isEditorUnlocked() {
+        return editorUnlocked;
+    }
 
     public void updateUnlockedStatements() {
         for(String unlock : playerEvaluator.getUnlockedStatements()){
             if(this.unlockedStatementsList.contains(unlock))continue;
             this.unlockedStatementsList.add(unlock);
         }
+    }
+
+    public void unlockEditor() {
+        editorUnlocked = true;
     }
 }

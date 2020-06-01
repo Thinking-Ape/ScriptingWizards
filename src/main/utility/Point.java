@@ -23,4 +23,8 @@ public class Point {
         }
         return  super.equals(o);
     }
+
+    public String getText(){
+        return "("+x+","+y+")";
+    }
 }
