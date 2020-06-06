@@ -67,4 +67,13 @@ public class VariableScope {
             }
         }
     }
+
+    public List<String> getNameListAtDepth() {
+        List<String> output = new ArrayList<>();
+        if(!depthVariableListMap.containsKey(currentDepth))return output;
+        for(Variable v : depthVariableListMap.get(currentDepth)){
+            output.add(v.getName());
+        }
+        return output;
+    }
 }

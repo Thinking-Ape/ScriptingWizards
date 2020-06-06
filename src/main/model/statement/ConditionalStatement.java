@@ -1,5 +1,6 @@
 package main.model.statement;
 
+import main.model.GameConstants;
 import main.model.statement.Condition.Condition;
 
 public class ConditionalStatement extends ComplexStatement {
@@ -23,9 +24,7 @@ public class ConditionalStatement extends ComplexStatement {
         if(this.statementType == StatementType.ELSE){
             this.isActive = isActive;
         }
-        //TODO: handle exception?
-        else
-        System.out.println("This should not have happened");
+        else if(GameConstants.DEBUG) System.err.println("Tried to activate a non-else statement!");
     }
 
 

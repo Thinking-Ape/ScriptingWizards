@@ -60,8 +60,8 @@ public class Controller {
         view.getSpellBookPane().getShowShortcutsBtn().setOnAction(evt -> {
             Alert a = new Alert(Alert.AlertType.NONE, GameConstants.SHORTCUT_INFORMATION, ButtonType.CLOSE);
             double widthFactor = 1.75;
-            a.setWidth(GameConstants.TEXTFIELD_WIDTH * widthFactor);
-            a.getDialogPane().setMinWidth(GameConstants.TEXTFIELD_WIDTH * widthFactor);
+            a.setWidth(GameConstants.CODEFIELD_WIDTH * widthFactor);
+            a.getDialogPane().setMinWidth(GameConstants.CODEFIELD_WIDTH * widthFactor);
             a.showAndWait();
         });
         view.getSpellBookPane().getMoveBtn().setOnMouseDragged(evt -> {
@@ -342,7 +342,7 @@ public class Controller {
         Dialog<ButtonType> deleteDialog = new Dialog<>();
         Label deleteLabel = new Label("You are going to remove all code! Are you sure?");
         deleteLabel.setAlignment(Pos.CENTER);
-        deleteLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
+        deleteLabel.setMinWidth(GameConstants.CODEFIELD_WIDTH);
         deleteLabel.setTextAlignment(TextAlignment.CENTER);
 
 
@@ -358,6 +358,11 @@ public class Controller {
         }
     }
 
+    /** Controls what happens when the Execute/Pause Button is pressed. To execute code for the current level, this
+     * button must be pressed. It will then turn into a Pause Button and will toggle between resuming and pausing the
+     * execution of code upon further button presses.
+     *
+     */
     private void setExecuteHandler() {
 
         ((ImageView) view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
@@ -439,7 +444,7 @@ public class Controller {
                     String winString = "You have won!" + "\nYou earned " + (int) nStars + (Math.round(nStars) != (int) nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (") + turns + " Turns, " + loc + " Lines of Code)";
 
                     boolean isTutorial = (boolean) model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
-                    // This only to stop levels with enemies from having differently colored SpawnPoints in LevelOverview
+                    // This is only to stop levels with enemies from having differently colored SpawnPoints in LevelOverview
                     model.reset();
                     String nextLevelName;
                     if (isTutorial && View.getCurrentSceneState() == SceneState.TUTORIAL) {
@@ -506,7 +511,9 @@ public class Controller {
         });
     }
 
-
+    /** Toggles between pausing and resuming the execution of code upon pressing the Execute Button
+     *
+     */
     private void setPauseAndRunHandler() {
         view.getBtnExecute().setOnAction(evt -> {
             timeline.pause();
@@ -535,7 +542,7 @@ public class Controller {
 
         Label winLabel = new Label(winString);
         winLabel.setAlignment(Pos.CENTER);
-        winLabel.setMinWidth(GameConstants.TEXTFIELD_WIDTH);
+        winLabel.setMinWidth(GameConstants.CODEFIELD_WIDTH);
         winLabel.setStyle("-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);");
         winLabel.setTextAlignment(TextAlignment.CENTER);
         winLabel.setFont(GameConstants.BIGGEST_FONT);

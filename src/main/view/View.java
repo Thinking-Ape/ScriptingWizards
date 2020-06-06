@@ -104,11 +104,11 @@ public class View implements LevelChangeListener {
         levelNameLabel.setStyle("-fx-background-color: lightgray");
         errorLabel.setStyle("-fx-text-fill: red;-fx-background-color: white");
         errorLabel.setFont(GameConstants.BIG_FONT);
-        errorLabel.setMaxWidth(GameConstants.TEXTFIELD_WIDTH);
+        errorLabel.setMaxWidth(GameConstants.CODEFIELD_WIDTH);
         errorLabel.setVisible(false);
         errorLabelAI.setStyle("-fx-text-fill: red;-fx-background-color: white");
         errorLabelAI.setFont(GameConstants.BIG_FONT);
-        errorLabelAI.setMaxWidth(GameConstants.TEXTFIELD_WIDTH);
+        errorLabelAI.setMaxWidth(GameConstants.CODEFIELD_WIDTH);
         errorLabelAI.setVisible(false);
 
         selectedPointList = new ArrayList<>();
@@ -118,7 +118,6 @@ public class View implements LevelChangeListener {
         this.startScreen = new StartScreen();
         tutorialGroup = new TutorialGroup();
 
-        //TODO: why only one scene? Did the others not work?
         Scene startScene = new Scene(startScreen);
 
         Background startBackground = new Background(new BackgroundImage(new Image("file:resources/images/Project_Background.png", SCREEN_WIDTH, SCREEN_HEIGHT, true, true), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, BackgroundSize.DEFAULT));
@@ -312,7 +311,6 @@ public class View implements LevelChangeListener {
     }
 
     private static StackPane[][] getStackPaneFieldFromMap(GameMap map, Set<Point> pointSet) {
-        //TODO: cell_size = calculateCellSize
         calculateCellSize();
         File folder = new File(Paths.get(GameConstants.ROOT_PATH + "/images").toString());
         File[] listOfFiles = folder.listFiles();
@@ -351,7 +349,6 @@ public class View implements LevelChangeListener {
                     if(cell.getEntity().getItem()!= ItemType.NONE && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
                     if(cell.hasFlag(CellFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_"+number))entityName+="_Action_"+number;
                     ImageView entityImageView = getEntityImageView( cell,entityName);
-                    //TODO: ImageViews durch Methoden einzeln generieren!
 
                     ImageView actionImageView = null;
                     if(cell.hasFlag(CellFlag.ACTION) && contentImageMap.containsKey(entityName))
@@ -427,7 +424,7 @@ public class View implements LevelChangeListener {
         ImageView imageView = new ImageView(contentImageMap.get(entityName));
         imageView.setFitWidth(cell_size);
         imageView.setFitHeight(cell_size);
-        //COLOR EXPERIMENT:
+        //the following lines will adapt the color of the newly spawned knight to differ from previous knights
         int knightCount = ModelInformer.getAmountOfKnightsSpawned();
         if(cell.getEntity().getEntityType() == EntityType.KNIGHT){
             entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(knightCount-1,true));
@@ -437,8 +434,6 @@ public class View implements LevelChangeListener {
             entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(skeletonCount-1,true));
         }
         imageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
-
-        //END OF COLOR EXPERIMENT
 
         return imageView;
     }
@@ -490,8 +485,15 @@ public class View implements LevelChangeListener {
         return imageView;
     }
 
+    /** Will change the size of the cells of the game map as shown in the GUI depending on:
+     * - size of the map
+     * - whether the current mode is either (Play or Tutorial) or Editor (in Editor they are smaller because of more
+     * interactive elements)
+     *
+     */
     private static void calculateCellSize() {
         GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+        // cell_size = (Constant representing the maximal map size) / max(height,width);
         cell_size = gameMap.getBoundY() > gameMap.getBoundX() ?
                 GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundY()) : GameConstants.MAX_GAMEMAP_SIZE / ((double) gameMap.getBoundX());
 
@@ -536,17 +538,16 @@ public class View implements LevelChangeListener {
             highlight.getPoints().addAll(doubles);
             highlight.setStroke(Color.WHITE);
             highlight.setSmooth(true);
-            highlight.setStrokeWidth(2);
+            highlight.setStrokeWidth(GameConstants.HIGHLIGHT_STROKE_WIDTH);
             highlight.setStrokeType(StrokeType.INSIDE);
 
             levelPane.getChildren().add(highlight);
             StackPane.setAlignment(highlight, Pos.TOP_LEFT);
             mapGPane.autosize();
             highlight.autosize();
-            //TODO: +10 wegen Border
             mapGPane.layout();
-            highlight.setTranslateX(mapGPane.localToScene(mapGPane.getBoundsInLocal()).getMinX()+highlight.getLayoutBounds().getMinX()+10);
-            highlight.setTranslateY(mapGPane.localToScene(mapGPane.getBoundsInLocal()).getMinY()+highlight.getLayoutBounds().getMinY()+10);
+            highlight.setTranslateX(mapGPane.localToScene(mapGPane.getBoundsInLocal()).getMinX()+highlight.getLayoutBounds().getMinX()+GameConstants.BORDER_WIDTH);
+            highlight.setTranslateY(mapGPane.localToScene(mapGPane.getBoundsInLocal()).getMinY()+highlight.getLayoutBounds().getMinY()+GameConstants.BORDER_WIDTH);
             highlights.add(highlight);
         }
     }
@@ -586,7 +587,6 @@ public class View implements LevelChangeListener {
     public void setAllCellButtonsDisabled(boolean b) {
         for (Node n : levelEditorModule.getCellTypeSelectionGPane().getChildren()) {
             Button btn = (Button) n;
-//            if (!btn.getCode().equals(CellContent.EMPTY.getDisplayName()) && !btn.getCode().equals(CellContent.WALL.getDisplayName()))
             btn.setDisable(b);
         }
         for (Node n : levelEditorModule.getCellItemSelectionGPane().getChildren()) {
@@ -599,6 +599,10 @@ public class View implements LevelChangeListener {
         return levelEditorModule.getCellItemSelectionGPane();
     }
 
+    /** Will be called whenever data in model represented exclusively in LevelEditor has changed. Will adapt the
+     * LevelEditorModule (a part of the GUI in LevelEditor) to represent this data.
+     *
+     */
     private void updateLevelEditorModule() {
         GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         levelEditorModule.getWidthValueLbl().setText("" + gameMap.getBoundX());
@@ -657,6 +661,11 @@ public class View implements LevelChangeListener {
         else levelEditorModule.getMoveIndexUpBtn().setDisable(false);
     }
 
+    /** Will be called every time a different level is displayed. Updates the current GUI in any Gamemode (Tutorial,
+     * Challenges or Editor) to the current level. Is not responsible for changes in the game map while code is being
+     * executed.
+     *
+     */
     @Override
     public void updateAll() {
         selectedPointList = new ArrayList<>();
@@ -689,6 +698,10 @@ public class View implements LevelChangeListener {
         else loadBestCodeBtn.setDisable(false);
     }
 
+    /** Will be called when the current level is changed in the level editor. Adapts the GUI to these changes.
+     *
+     * @param levelChange cannot be null
+     */
     @Override
     public void updateTemporaryChanges(LevelChange levelChange) {
 
@@ -768,7 +781,11 @@ public class View implements LevelChangeListener {
         return startScreen;
     }
 
-
+    /** Changes the current SceneState. Also changes the GUI accordingly as this should always happen together.
+     * This makes sure that the scene state is always coherent with what is shown!
+     *
+     * @param sceneState cannot be null
+     */
     public void setSceneState(SceneState sceneState) {
         View.sceneState = sceneState;
         GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
@@ -778,7 +795,7 @@ public class View implements LevelChangeListener {
                 break;
             case LEVEL_EDITOR:
                 drawMap(gameMap);
-                prepareRootPane();
+                prepareLevelPane();
                 aiCodeArea.setEditable(true);
                 Platform.runLater(()->codeArea.select(0, Selection.END));
                 stage.getScene().setRoot(levelPane);
@@ -796,22 +813,25 @@ public class View implements LevelChangeListener {
                 break;
             case PLAY:
                 drawMap(gameMap);
-                prepareRootPane();
+                prepareLevelPane();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
                 stage.getScene().setRoot(levelPane);
                 break;
             case TUTORIAL:
                 drawMap(gameMap);
-                prepareRootPane();
+                prepareLevelPane();
                 Platform.runLater(()->codeArea.select(0, Selection.END));
-
                 stage.getScene().setRoot(levelPane);
                 break;
 
         }
     }
 
-    private void prepareRootPane() {
+    /** Adapts the current Level-GUI according to the current SceneState. Is only called if the current SceneState is
+     * either LEVEL_EDITOR, PLAY or TUTORIAL
+     *
+     */
+    private void prepareLevelPane() {
         levelPane = new StackPane();
         levelPane.setPrefSize(GameConstants.SCREEN_WIDTH, GameConstants.SCREEN_HEIGHT);
         HBox contentHBox = new HBox();
@@ -830,33 +850,32 @@ public class View implements LevelChangeListener {
             case LEVEL_EDITOR:
                 HBox editorCenterHBox = new HBox(knightsLeftVBox, new VBox(mapGPane), new VBox(levelEditorModule.getRightVBox()));
                 editorCenterHBox.autosize();
-                editorCenterHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
+                editorCenterHBox.setSpacing(GameConstants.CODEFIELD_HEIGHT /1.5);
                 editorCenterHBox.setAlignment(Pos.TOP_CENTER);
                 centerVBox.getChildren().addAll(levelEditorModule.getBottomHBox(), editorCenterHBox);
-                centerVBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/2);
+                centerVBox.setSpacing(GameConstants.CODEFIELD_HEIGHT /2);
                 baseContentVBox.getChildren().add(levelEditorModule.getTopHBox());
                 levelEditorModule.getTutorialVBox().setVisible((boolean)ModelInformer.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
                 updateLevelEditorModule();
                 break;
+            case START_SCREEN:
             case LEVEL_SELECT:
-                throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case TUTORIAL_LEVEL_SELECT:
-                throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
+                //This should not be possible;
+                throw new IllegalStateException("Illegal State! Method was called although SceneState"+sceneState.name()+" should not coincide with a call of this Method!");
             case PLAY:
                 removeMapHighlights();
                 HBox centerHBox = new HBox(knightsLeftVBox, mapGPane);
                 centerHBox.autosize();
-                centerHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
+                centerHBox.setSpacing(GameConstants.CODEFIELD_HEIGHT /1.5);
                 centerHBox.setAlignment(Pos.TOP_CENTER);
                 centerVBox.getChildren().addAll(levelNameLabel, centerHBox);
                 break;
-            case START_SCREEN:
-                throw new IllegalStateException("Missing error message please TODO! see View -> prepareRootPane()");
             case TUTORIAL:
                 removeMapHighlights();
                 centerHBox = new HBox(knightsLeftVBox, mapGPane);
                 centerHBox.autosize();
-                centerHBox.setSpacing(GameConstants.TEXTFIELD_HEIGHT/1.5);
+                centerHBox.setSpacing(GameConstants.CODEFIELD_HEIGHT /1.5);
                 centerHBox.setAlignment(Pos.TOP_CENTER);
                 centerVBox.getChildren().addAll(levelNameLabel,centerHBox);
 
@@ -918,13 +937,18 @@ public class View implements LevelChangeListener {
         highlightInMap(new ArrayList<>());
     }
 
-    static Image getImageFromMap(GameMap originalMap) {
+    /**
+     * Creates a small Icon from a GameMap to display in Level Selection. This Method is costly! Minimize usage!
+     * @param originalMap
+     * @return
+     */
+    static Image getIconFromMap(GameMap originalMap) {
         GridPane gridPane = new GridPane();
 
-        StackPane[][] stackpaneField = getStackPaneFieldFromMap(originalMap,Util.getAllPointsIn(new Point(0,0),new Point(originalMap.getBoundX(),originalMap.getBoundY())));
+        StackPane[][] stackPaneField = getStackPaneFieldFromMap(originalMap,Util.getAllPointsIn(new Point(0,0),new Point(originalMap.getBoundX(),originalMap.getBoundY())));
         for(int y = 0; y < originalMap.getBoundY(); y++)
             for(int x = 0; x < originalMap.getBoundX(); x++)
-                gridPane.add(stackpaneField[x][y],x,y);
+                gridPane.add(stackPaneField[x][y],x,y);
         gridPane.autosize();
         int dimension = gridPane.getHeight() > gridPane.getWidth() ? (int) Math.round(gridPane.getHeight()) : (int) Math.round(gridPane.getWidth());
         BufferedImage bufferedImage = new BufferedImage(dimension, dimension, BufferedImage.TYPE_INT_ARGB);
@@ -932,34 +956,7 @@ public class View implements LevelChangeListener {
         Image image = SwingFXUtils.toFXImage(bufferedImage, new WritableImage(dimension, dimension));
 
 
-        return makeTransparent(image);
-    }
-
-    private static Image makeTransparent(Image inputImage) {
-        int W = (int) inputImage.getWidth();
-        int H = (int) inputImage.getHeight();
-        WritableImage outputImage = new WritableImage(W, H);
-        PixelReader reader = inputImage.getPixelReader();
-        PixelWriter writer = outputImage.getPixelWriter();
-        for (int y = 0; y < H; y++) {
-            for (int x = 0; x < W; x++) {
-                int argb = reader.getArgb(x, y);
-
-                int r = (argb >> 16) & 0xFF;
-                int g = (argb >> 8) & 0xFF;
-                int b = argb & 0xFF;
-
-                if (r >= 0xFF
-                        && g >= 0xFF
-                        && b >= 0xFF) {
-                    argb &= 0x00FFFFFF;
-                }
-
-                writer.setArgb(x, y, argb);
-            }
-        }
-
-        return outputImage;
+        return Util.makeTransparent(image);
     }
 
     public LevelOverviewPane getLevelOverviewPane() {
@@ -1034,16 +1031,16 @@ public class View implements LevelChangeListener {
         return spellBookPane;
     }
 
-    public void setNodesDisableWhenRunning(boolean b) {
-        backBtn.setDisable(b);
-        speedSlider.setDisable(b);
-        showSpellBookBtn.setDisable(b);
-        loadBestCodeBtn.setDisable(ModelInformer.getBestLocOfLevel(ModelInformer.getCurrentId())==-1 || b);
-        clearCodeBtn.setDisable(b);
-        btnExecute.setDisable(b);
-        btnReset.setDisable(!b);
-        codeArea.setDisable(b);
-        aiCodeArea.setDisable(b);
+    public void setNodesDisableWhenRunning(boolean isRunning) {
+        backBtn.setDisable(isRunning);
+        speedSlider.setDisable(isRunning);
+        showSpellBookBtn.setDisable(isRunning);
+        loadBestCodeBtn.setDisable(ModelInformer.getBestLocOfLevel(ModelInformer.getCurrentId())==-1 || isRunning);
+        clearCodeBtn.setDisable(isRunning);
+        btnExecute.setDisable(isRunning);
+        btnReset.setDisable(!isRunning);
+        codeArea.setDisable(isRunning);
+        aiCodeArea.setDisable(isRunning);
     }
 
     public TutorialGroup getTutorialGroup() {
@@ -1104,6 +1101,8 @@ public class View implements LevelChangeListener {
 
     public void highlightButtons() {
         Effect dropShadow = new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.YELLOW);
+        // marks the index of the introduction tutorial messages where the Wizard starts to explain the respective GUI
+        // Elements
         final int n = 3;
         switch (getTutorialGroup().getCurrentIndex()){
             case n:

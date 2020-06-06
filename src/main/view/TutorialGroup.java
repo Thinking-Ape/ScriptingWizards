@@ -72,7 +72,7 @@ public class TutorialGroup extends Group {
         currentTutorialMessage.setMouseTransparent(true);
         currentTutorialMessage.setStyle("-fx-background-color: transparent;" +
                 "-fx-base: transparent;");
-        currentTutorialMessage.setMaxSize(GameConstants.TEXTFIELD_WIDTH, GameConstants.TEXTFIELD_WIDTH/2.0);
+        currentTutorialMessage.setMaxSize(GameConstants.CODEFIELD_WIDTH, GameConstants.CODEFIELD_WIDTH /2.0);
         currentTutorialMessage.setFont(GameConstants.BIG_FONT);
         ImageView bubble_IView = new ImageView(new Image("file:resources/images/Speech_Bubble.png"));
         bubble_IView.setFitHeight(bubble_IView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
@@ -101,7 +101,7 @@ public class TutorialGroup extends Group {
         vb.setPickOnBounds(false);
         StackPane.setAlignment(currentTutorialMessage, Pos.BOTTOM_CENTER);
         navigationHBox.setAlignment(Pos.TOP_RIGHT);
-        vb.setSpacing(GameConstants.TEXTFIELD_HEIGHT);
+        vb.setSpacing(GameConstants.CODEFIELD_HEIGHT);
         hb = new HBox(vb,wizard);
         hb.setAlignment(Pos.BOTTOM_RIGHT);
         hb.setPickOnBounds(false);

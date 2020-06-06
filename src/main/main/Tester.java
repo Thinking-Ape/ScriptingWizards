@@ -1,6 +1,9 @@
 package main.main;
 
 import main.model.gamemap.enums.CellContent;
+import main.test.CodeEvaluatorTest;
+import main.test.CodeExecutorTest;
+import main.test.CodeParserTest;
 import main.utility.VariableType;
 import main.utility.Util;
 
@@ -10,11 +13,6 @@ import java.util.List;
 public abstract class Tester {
 
     public static void runTests(){
-//        int i1 = 0;
-//        int i2 = i1;
-//        boolean b = i2 == 0;
-//        i2 = 1;
-//        System.out.println(b);
         int i = 0;
         System.out.println("aha" + i++);
         System.out.println("aha" + i);
@@ -45,16 +43,13 @@ public abstract class Tester {
         System.out.println(stringListA.equals(stringListA));
         System.out.println(stringListA.equals(stringListC));
         System.out.println(stringListA.equals(stringListD));
+        new CodeEvaluatorTest().testEvaluateStatement();
+        new CodeParserTest().testParseProgramCode();
+        new CodeExecutorTest().testExecuteBehaviour();
+
+        System.out.println(Util.dist("allo".toCharArray(),"hallo".toCharArray()));
+        System.out.println(Util.dist("hall".toCharArray(),"hallo".toCharArray()));
+        System.out.println(Util.dist("eag".toCharArray(),"hallo".toCharArray()));
+        System.out.println(Util.dist("wa".toCharArray(),"wait".toCharArray()));
     }
-
-
-//    public static CodeBoxCompound evaluateCodeBox(String... codeList ) throws IllegalAccessException {
-//        OldCodeParser codeParser = new OldCodeParser();
-//        ComplexStatement behaviour = codeParser.parseProgramCode(codeList);
-//        return new CodeBoxCompound(behaviour);
-//    }
-//    public static CodeArea evaluateCodeBox(String... codeList ) {
-//        ComplexStatement behaviour = OldCodeParser.parseProgramCode(Arrays.asList(codeList));
-//        return new CodeArea(behaviour,true,false);
-//    }
 }

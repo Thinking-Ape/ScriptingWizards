@@ -21,20 +21,13 @@ public class CodeEvaluator {
     private Statement currentStatement;
     private VariableScope variableScope;
     private List<String> unlockedStatements;
-//    private List<ForStatement> declaredForStatements;
     private boolean isPlayer;
-//    private Model model;
 
-
-    //TODO: Model reference shouldnt be needed!
     public CodeEvaluator(boolean isPlayer){
-//        this.model = model;
         variableScope = new VariableScope();
         unlockedStatements = new ArrayList<>();
-//        declaredForStatements = new ArrayList<>();
         this.isPlayer = isPlayer;
     }
-
 
     private void updateUnlocks(Statement statement) {
 
@@ -80,7 +73,6 @@ public class CodeEvaluator {
                     output.addAll(getUnlockedBooleanMethodsFromStatement(Condition.getConditionFromString(v.getValue().getText())));
                 }
             }
-
         m = Pattern.compile(".*?([a-zA-Z]+)\\(.*\\).*?").matcher(condition.getText());
         if(m.matches())
             for(int i = 1; i< m.groupCount()+1;i++){
@@ -107,7 +99,6 @@ public class CodeEvaluator {
                     Variable forVariable =  forStatement.getDeclaration().getVariable();
                     ExpressionLeaf value = new ExpressionLeaf(evaluateNumericalExpression(forVariable.getValue())+"");
                     variableScope.addVariable(new Variable(VariableType.INT,forVariable.getName(),value));
-//                    declaredForStatements.add(forStatement);
                 }
                 else{
                     Variable forVariable =  forStatement.getAssignment().getVariable();
@@ -116,7 +107,6 @@ public class CodeEvaluator {
                 }
                 if(!testCondition(condition)){
                     variableScope.removeVariable(forStatement.getDeclaration().getVariable().getName());
-//                    declaredForStatements.remove(forStatement);
                     currentStatement = GameConstants.FALSE_STATEMENT;
                 }
                 break;
@@ -581,7 +571,7 @@ public class CodeEvaluator {
                         continue;
                     case CAN_MOVE:
                         if(currentGameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;
-                        // ^ means XOR. Java allows this boolean operator. I currently do not!
+                        // ^ means XOR. Java allows this boolean operator. I currently do not ingame!
                         boolean eitherOpenOrInverted = (currentGameMap.cellHasFlag(targetPoint, CellFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CellFlag.INVERTED));
                         output = output && (currentGameMap.isCellFree(targetPoint) && (targetContent.isTraversable() || eitherOpenOrInverted));
                         continue;

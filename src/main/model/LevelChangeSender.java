@@ -73,13 +73,4 @@ public class LevelChangeSender {
         levelNew = false;
         levelChangeListener.updateAll();
     }
-
-//    public void setListener(LevelChangeListener levelChangeListener){
-//        this.levelChangeListener = levelChangeListener;
-//    }
-//
-//    public void clearListener(){
-//        levelChangeListener = null;
-//    }
-
 }

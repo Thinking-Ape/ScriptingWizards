@@ -18,7 +18,7 @@ import static main.utility.VariableType.KNIGHT;
 public class CodeExecutorTest {
 
     @Test
-    public void executeBehaviour() {
+    public void testExecuteBehaviour() {
         simpleTest();
         System.out.println(TestConstants.SUCCESS_STRING);
     }
@@ -29,8 +29,10 @@ public class CodeExecutorTest {
         gameMap.printMap();
         Assignment spawnKnight = new Assignment("k", KNIGHT, Expression.expressionFromString("new Knight()"), true);
         MethodCall moveKnight = new MethodCall(MethodType.MOVE,"k","");
-        MethodCall turnKnight = new MethodCall(MethodType.TURN,"k","LEFT");
-        System.out.println("Testing code:\n" +spawnKnight.getAllText().trim()+"\n"+moveKnight.getAllText().trim()+"\n"+turnKnight.getAllText().trim()+"\n"+moveKnight.getAllText().trim());
+        MethodCall turnKnightLeft = new MethodCall(MethodType.TURN,"k","LEFT");
+        MethodCall turnKnightRight = new MethodCall(MethodType.TURN,"k","RIGHT");
+        MethodCall turnKnightAround = new MethodCall(MethodType.TURN,"k","AROUND");
+        System.out.println("Testing code:\n" +spawnKnight.getAllText().trim()+"\n"+moveKnight.getAllText().trim()+"\n"+turnKnightLeft.getAllText().trim()+"\n"+moveKnight.getAllText().trim());
         System.out.println("Expecting: Knight spawns at (1,2), moves to (1,1) and then turns LEFT, looking WEST");
         printResult("");
         Point spawn = gameMap.findSpawn();
@@ -51,8 +53,8 @@ public class CodeExecutorTest {
         Assert.assertEquals(gameMap.getEntityPosition("k"), target);
         System.out.println("Entity at "+spawn.getText()+" is: \""+ gameMap.getEntity(new Point(1, 2)).getName() + "\" and should be \"\"");
         Assert.assertEquals(gameMap.getEntity(spawn), GameConstants.NO_ENTITY);
-        System.out.println("... executing Code: " +turnKnight.getAllText().trim());
-        CodeExecutor.executeBehaviour(turnKnight, gameMap, true, true);
+        System.out.println("... executing Code: " +turnKnightLeft.getAllText().trim());
+        CodeExecutor.executeBehaviour(turnKnightLeft, gameMap, true, true);
         Assert.assertEquals(gameMap.getEntityPosition("k"), target);
         System.out.println("Entity "+gameMap.getEntity(target).getName()+" looks towards: \""+ gameMap.getEntity(target).getDirection().name() + "\" and should be \"WEST\"");
         Assert.assertEquals(gameMap.getEntity("k").getDirection(), Direction.WEST);
@@ -60,6 +62,18 @@ public class CodeExecutorTest {
         CodeExecutor.executeBehaviour(moveKnight, gameMap, true, true);
         System.out.println("Entity at "+target.getText()+" is: \""+ gameMap.getEntity(target).getName() + "\" and should be \"k\"");
         Assert.assertEquals(gameMap.getEntityPosition("k"), target);
+        System.out.println("... executing Code: " +turnKnightRight.getAllText().trim());
+        CodeExecutor.executeBehaviour(turnKnightRight, gameMap, true, true);
+        System.out.println("Entity "+gameMap.getEntity(target).getName()+" looks towards: \""+ gameMap.getEntity(target).getDirection().name() + "\" and should be \"NORTH\"");
+        Assert.assertEquals(gameMap.getEntity("k").getDirection(), Direction.NORTH);
+        System.out.println("... executing Code: " +turnKnightAround.getAllText().trim());
+        CodeExecutor.executeBehaviour(turnKnightAround, gameMap, true, true);
+        System.out.println("Entity "+gameMap.getEntity(target).getName()+" looks towards: \""+ gameMap.getEntity(target).getDirection().name() + "\" and should be \"SOUTH\"");
+        Assert.assertEquals(gameMap.getEntity("k").getDirection(), Direction.SOUTH);
+        System.out.println("... executing Code: " +turnKnightAround.getAllText().trim());
+        CodeExecutor.executeBehaviour(turnKnightAround, gameMap, true, true);
+        System.out.println("Entity "+gameMap.getEntity(target).getName()+" looks towards: \""+ gameMap.getEntity(target).getDirection().name() + "\" and should be \"NORTH\"");
+        Assert.assertEquals(gameMap.getEntity("k").getDirection(), Direction.NORTH);
         gameMap.printMap();
     }
     private void printResult(String s) {

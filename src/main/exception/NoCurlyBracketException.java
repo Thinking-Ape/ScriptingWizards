@@ -1,4 +1,4 @@
-package main.utility;
+package main.exception;
 
 public class NoCurlyBracketException extends IllegalArgumentException {
     public static final String errorMessage = "You might have forgotten a curly bracket!";

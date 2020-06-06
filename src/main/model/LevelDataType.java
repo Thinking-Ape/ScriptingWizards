@@ -5,8 +5,6 @@ public enum LevelDataType {
     LEVEL_INDEX,
     MAX_KNIGHTS,
     MAP_DATA,
-//    MAP_HEIGHT,
-//    MAP_WIDTH,
     AI_CODE,
     HAS_AI,
     LOC_TO_STARS,
@@ -15,14 +13,7 @@ public enum LevelDataType {
     IS_TUTORIAL,
     TUTORIAL_LINES,
     AMOUNT_OF_RERUNS,
-//    UNLOCKED_STATEMENTS,
-//    TUTORIAL_PROGRESS,
-//    BEST_CODE,
-//    BEST_LOC,
-//    BEST_TURNS,
     LEVEL_NAME;
-//    LEVEL_CREATION,
-//    LEVEL_CHANGE ;
 
 
 
@@ -30,7 +21,6 @@ public enum LevelDataType {
         for(LevelDataType levelDataType : LevelDataType.values()){
             if(changeTypeString.equals(levelDataType.name()))return levelDataType;
         }
-        //TODO: better solution?
         return null;
     }
 

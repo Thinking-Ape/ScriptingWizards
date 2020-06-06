@@ -96,7 +96,6 @@ public abstract class JSONParser {
         fillJSONArrayWithObjects(locToStarsArray,locToStars);
         JSONArray turnsToStarsArray = new JSONArray();
         fillJSONArrayWithObjects(turnsToStarsArray,turnsToStars);
-//        levelJSONObject.put("name",level.getDisplayName());
         if(requiredLevelsArray.length() > 0)
         levelJSONObject.put(JSONConstants.REQUIRED_LEVELS,requiredLevelsArray);
         levelJSONObject.put(JSONConstants.LOC_TO_STARS,locToStarsArray);
@@ -143,12 +142,10 @@ public abstract class JSONParser {
         String jsonString = String.join("", Files.readAllLines(filePath));
         JSONObject jsonObject = new JSONObject(jsonString);
         boolean isTutorial = jsonObject.getBoolean(JSONConstants.IS_TUTORIAL);
-        Point spawn = new Point(-1,-1);
 
         JSONArray mapLines = jsonObject.getJSONArray(JSONConstants.MAP_DATA,null);
 
         Cell[][] originalState = new Cell[mapLines.getJSONArray(0).length()][mapLines.length()];
-        List<Point> enemySpawnList = new ArrayList<>();
         for (int row = 0; row < mapLines.length(); row++) {
 
             JSONArray mapLine = mapLines.getJSONArray(row);
@@ -179,7 +176,6 @@ public abstract class JSONParser {
         }
             complexStatement =  CodeParser.parseProgramCode(aiLines, CodeAreaType.AI);
         }
-//        assert spawn.getX()!=-1;
         JSONArray turnsToStarsArray = jsonObject.getJSONArray(JSONConstants.TURNS_TO_STARS,new JSONArray());
         Integer[] turnsToStars = new Integer[turnsToStarsArray.length()];
         fillArrayFromJSON(turnsToStars,turnsToStarsArray,true);
@@ -253,13 +249,12 @@ public abstract class JSONParser {
         for(int i = 0; i< levelFileList.length;i++){
             levelList.add(null);
         }
-        //TODO:
         List<Integer> ordering = getOrderingFromData();
         for(File file : levelFileList){
             Level level = parseLevelJSON(file.getName());
             int index = -1;
             for(int i = 0; i < ordering.size();i++){
-                if(level.getID() == ordering.get(i))index = i;
+                if(level.getID().equals(ordering.get(i)))index = i;
             }
             levelList.set(index,level);
         }
@@ -389,19 +384,14 @@ public abstract class JSONParser {
         return output;
     }
 
-    //TODO: not complete yet and should be divided into mltiple methods!
     public static void saveLevelChanges(Map<LevelDataType,LevelChange> changes, String levelName) throws IOException {
         // All Levelfiles
         assert levelFileList != null;
-        int newIndex = -1;
-        int oldIndex = -1;
-        int step = 1;
-
         Path levelFilePath = Path.of(GameConstants.LEVEL_ROOT_PATH,levelName+".json");
 
-        String jsonString = "";
+        String jsonString;
 
-        String oldName = levelName;
+        String oldName;
         if(changes.containsKey(LEVEL_NAME)) {
             oldName = (String)changes.get(LEVEL_NAME).getOldValue();
             changeLevelFileName(oldName,levelName);
@@ -464,7 +454,6 @@ public abstract class JSONParser {
         }
         if(changes.containsKey(MAP_DATA)) {
             GameMap gameMap = (GameMap)changes.get(MAP_DATA).getNewValue();
-            //TODO: more Methods
             JSONArray mapLines = new JSONArray();
             for(int y = 0; y < gameMap.getBoundY(); y++){
 
@@ -517,7 +506,6 @@ public abstract class JSONParser {
 
         dataJSONString = String.join("", Files.readAllLines(dataFilePath));
         dataJSONObject = new JSONObject(dataJSONString);
-//        }
     }
 
     public static Map<Integer, List<String>> getBestCodeForLevels(List<Level> levels) {
@@ -556,7 +544,6 @@ public abstract class JSONParser {
         dataJSONObject.put(JSONConstants.EDITOR_UNLOCKED,ModelInformer.isEditorUnlocked());
         dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, ModelInformer.getTutorialProgress());
         dataJSONObject.put(JSONConstants.ORDER, orderJSONArray);
-        int skips = 0;
         List<Integer> unlockedLevelIds =ModelInformer.getUnlockedLevelIds();
         List<Integer> lockedIndexes = new ArrayList<>();
 
@@ -576,7 +563,6 @@ public abstract class JSONParser {
         }
         for(int i = 0; i < unlockedLevelIds.size(); i++){
             int id = unlockedLevelIds.get(i);
-//            int index = ModelInformer.getIndexOfLevelWithId(id);
             int loc = ModelInformer.getBestLocOfLevel(id);
             int turns = ModelInformer.getBestTurnsOfLevel(id);
             List<String> code  = ModelInformer.getBestCodeOfLevel(id);

@@ -12,14 +12,17 @@ import java.util.Random;
 
 public abstract class GameConstants {
     public static final boolean DEBUG = true;
-    public static final String VERSION = "1.5c";
+    public static final String VERSION = "1.5d";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+    public static final double HEIGHT_RATIO = SCREEN_HEIGHT/1080.0;
+    public static final double WIDTH_RATIO = SCREEN_WIDTH/1920.0;
     public static final char ANY_CHAR = '?';
     public static final double TICK_SPEED = 0.65;
-    public static final double TEXTFIELD_HEIGHT = SCREEN_HEIGHT/43;
-    public static final double TEXTFIELD_WIDTH = SCREEN_WIDTH/5;
+    public static final double CODEFIELD_HEIGHT = SCREEN_HEIGHT/43;
+    public static final double CODEFIELD_WIDTH = SCREEN_WIDTH/5;
+    public static final double TEXTFIELD_WIDTH = 50*WIDTH_RATIO;
     public static final int CODE_OFFSET = 10;
     public static final boolean IS_AI_ACTIVE = true;
     public static final String RAND_INT_REGEX = "randInt\\((.*),(.*)\\)";
@@ -90,8 +93,6 @@ public abstract class GameConstants {
     public static final Font CODE_FONT = new Font("Arial",GameConstants.FONT_SIZE);
     public static final Font BIG_FONT = new Font("System Regular",GameConstants.BIG_FONT_SIZE);
     public static final Font BIGGEST_FONT = new Font("Arial",GameConstants.BIGGEST_FONT_SIZE);
-    public static final double HEIGHT_RATIO = SCREEN_HEIGHT/1080.0;
-    public static final double WIDTH_RATIO = SCREEN_WIDTH/1920.0;
     public static final Font CHALLENGER_FONT = new Font("Times New Roman",CHALLENGER_FONT_SIZE);
     public static final String RED_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Red_Script_Icon.png";
     public static final String BLUE_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Blue_Script_Icon.png";
@@ -134,6 +135,8 @@ public abstract class GameConstants {
     public static final int MAX_AMOUNT_OF_RUNS = 3;
     public static final double KEYFRAME_DURATION = 0.8;
     public static final String REASON_SINGLE_EQUAL_SIGN = "you might need to replace '=' with '=='!";
+    public static final double BORDER_WIDTH = 10;
+    public static final double HIGHLIGHT_STROKE_WIDTH = 2;
 //    public static final String CONDITION_REGEX = "^ *+"+VARIABLE_NAME_REGEX+"(\\|\\||&&|<|>|>=|<=|!=|==) *+$";
 
 }

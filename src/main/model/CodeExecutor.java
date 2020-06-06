@@ -123,9 +123,6 @@ public abstract class CodeExecutor {
             hasWon = true;
             return;
         }
-//        if(actorEntity.getItem() == ItemType.BEACON){
-//            beaconEntity = actorEntity;
-//        }
         if((actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD)&&GameConstants.ACTION_WITHOUT_CONSEQUENCE){
             currentGameMap.setFlag(actorPos , CellFlag.ACTION,true );
             //this will have the effect that the target cell will be drawn, even though it did not change
@@ -214,9 +211,7 @@ public abstract class CodeExecutor {
             if(currentGameMap.getContentAtXY(actorPoint) == CellContent.PRESSURE_PLATE){
                 currentGameMap.setFlag(actorPoint, CellFlag.TRIGGERED,false);
             }
-//            output = targetCell;
         }
-//        return output;
     }
 
     private static void executeMethodCall(MethodCall methodCall, boolean isPlayer) {
@@ -227,51 +222,49 @@ public abstract class CodeExecutor {
             nameList = new ArrayList<>(Arrays.asList(matcher.group(1).split(",")));
         }
         for(String name : nameList){
-//            if(!isPlayer) System.out.println(methodCall.getCode()+" "+name);
-        Point position = currentGameMap.getEntityPosition(name);
-        if(position.getX() == -1 ){
-            if(isPlayer&& currentGameMap.getAmountOfEntities(EntityType.KNIGHT) == 0)hasLost=true;
-            continue;
-        }
-        switch (methodCall.getMethodType()){
-            case ATTACK:
-                if(isPlayer)throw new IllegalStateException("You cannot attack as Player!");
+            Point position = currentGameMap.getEntityPosition(name);
+            if(position.getX() == -1 ){
+                if(isPlayer&& currentGameMap.getAmountOfEntities(EntityType.KNIGHT) == 0)hasLost=true;
+                continue;
+            }
+            switch (methodCall.getMethodType()){
+                case ATTACK:
+                    if(isPlayer)throw new IllegalStateException("You cannot attack as Player!");
 
-                // Can't attack with an item in hand
-                if(currentGameMap.getEntity(name).getItem()!=ItemType.NONE)break;
-                if(GameConstants.ACTION_WITHOUT_CONSEQUENCE){
-                    currentGameMap.setFlag(position , CellFlag.ACTION,true );
-                    //this will have the effect that the target cell will be drawn, even though it did not change
-                    if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.ACTION,true);
-                }
-//                if(gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY ||gameMap.getEntity(gameMap.getTargetPoint(name)) == NO_ENTITY)break;
-                if(!(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)&&!(currentGameMap.getItem(currentGameMap.getTargetPoint(name)) == ItemType.BOULDER))
-                    currentGameMap.setFlag(position , CellFlag.ACTION,true );
-                currentGameMap.kill(currentGameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
-                break;
+                    // Can't attack with an item in hand
+                    if(currentGameMap.getEntity(name).getItem()!=ItemType.NONE)break;
+                    if(GameConstants.ACTION_WITHOUT_CONSEQUENCE){
+                        currentGameMap.setFlag(position , CellFlag.ACTION,true );
+                        //this will have the effect that the target cell will be drawn, even though it did not change
+                        if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.ACTION,true);
+                    }
+                    if(!(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)&&!(currentGameMap.getItem(currentGameMap.getTargetPoint(name)) == ItemType.BOULDER))
+                        currentGameMap.setFlag(position , CellFlag.ACTION,true );
+                    currentGameMap.kill(currentGameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
+                    break;
 
-            case MOVE:
-                tryToMoveCell(name,true); //TODO: stattdessen mit getTargetPoint()?
-                break;
-            case BACK_OFF:
-                tryToMoveCell(name,false); //TODO: stattdessen mit getTargetPoint()?
-                break;
-            case TURN:
-                tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightCondition().getCode()));
-                break;
-            case USE_ITEM:
-                if(currentGameMap.getEntity(position).getItem()==ItemType.NONE)break;
-                tryToUseItem(position);
-                break;
-            case COLLECT:
-                tryToCollect(position);
-                break;
-            case DROP_ITEM:
-                if(currentGameMap.getEntity(position).getItem()==ItemType.NONE)break;
-                tryToDropItem(position);
-                break;
+                case MOVE:
+                    tryToMoveCell(name,true); //TODO: stattdessen mit getTargetPoint()?
+                    break;
+                case BACK_OFF:
+                    tryToMoveCell(name,false); //TODO: stattdessen mit getTargetPoint()?
+                    break;
+                case TURN:
+                    tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightCondition().getCode()));
+                    break;
+                case USE_ITEM:
+                    if(currentGameMap.getEntity(position).getItem()==ItemType.NONE)break;
+                    tryToUseItem(position);
+                    break;
+                case COLLECT:
+                    tryToCollect(position);
+                    break;
+                case DROP_ITEM:
+                    if(currentGameMap.getEntity(position).getItem()==ItemType.NONE)break;
+                    tryToDropItem(position);
+                    break;
 
-        }
+            }
         }
     }
 

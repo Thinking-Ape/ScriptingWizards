@@ -7,18 +7,15 @@ import main.model.gamemap.enums.ItemType;
 public enum VariableType {
     INT("int","^-?\\d+$"),
     VOID("void",""),
-    KNIGHT("Knight","^new +Knight\\( *+(.*?) *+\\)$"),       // oder auch alles zu Entity zusammenfassen?? und dann aber EntityType abprüfen?
+    KNIGHT("Knight","^new +Knight\\( *+(.*?) *+\\)$"),
     SKELETON("Skeleton","^new +Skeleton\\( *+(.*|(.+?),-?\\d+) *+\\)$"),
     DIRECTION ("Direction","^(NORTH|SOUTH|EAST|WEST)$"),
-    TURN_DIRECTION ("TurnDirection","^(LEFT|RIGHT|AROUND)$"),
+    TURN_DIRECTION ("TurnDirection","^((LEFT)|(RIGHT)|(AROUND))$"),
     CELL_CONTENT("CellContent", "^"+Util.getRegEx(CellContent.values())+"$"),
     ITEM_TYPE("ItemType", "^"+Util.getRegEx(ItemType.values())+"$"),
     ENTITY_TYPE("EntityType", "^"+Util.getRegEx(EntityType.values())+"$"),
     ARMY("Army","^new Army\\( *+(.+|(.+?,)+.+) *+\\)$"),
     BOOLEAN("boolean","^(true|false)$"),
-    //THIS MUST BE THE LAST ENTRY BECAUSE OF A CIRCULAR REFERENCE TO METHODTYPE!!!!
-//    COMMAND("Command",MethodType.getAllActionRegex()),
-
     ;
 
     final private String name;

@@ -24,10 +24,6 @@ public abstract class Expression {
         if(parameterMatcher.matches()){
             return new ExpressionTree(expressionFromString(parameterMatcher.group(1)),ExpressionType.PAR, expressionFromString(parameterMatcher.group(2)));
         }
-//        Pair<ExpressionType,Integer> expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.CAL);
-//        if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
-//            return expressionTreeWithType(code, expressionTypeAtPos);
-//        }
         Pair<ExpressionType,Integer> expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.ADD,ExpressionType.SUB);
         if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){
             return expressionTreeWithType(code, expressionTypeAtPos);
@@ -41,7 +37,6 @@ public abstract class Expression {
         if(matcher.matches()){
             return new ExpressionTree(new ExpressionLeaf(matcher.group(1)),ExpressionType.SIMPLE, expressionFromString(matcher.group(2)));
         }
-//        else System.out.println(code);
         return new ExpressionLeaf(code);
     }
 

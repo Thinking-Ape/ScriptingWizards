@@ -1,4 +1,6 @@
-package main.utility;
+package main.exception;
+
+import main.utility.Util;
 
 public class InvalidConditionException extends IllegalArgumentException {
     public String errorMessage;

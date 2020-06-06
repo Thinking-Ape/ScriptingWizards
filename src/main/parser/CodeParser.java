@@ -1,5 +1,6 @@
 package main.parser;
 
+import main.exception.*;
 import main.model.VariableScope;
 import main.model.gamemap.enums.CellContent;
 import main.model.gamemap.enums.Direction;
@@ -108,7 +109,6 @@ public abstract class CodeParser {
         return behaviour;
     }
 
-    //TODO:!!!
     /** Tests whether an else-Statement is allowed at this position and returns the respective boolean
      *
      * @param depth the depth of the current else-Statement
@@ -214,7 +214,6 @@ public abstract class CodeParser {
                         String operation = matcher.group(2);
                         String value = matcher.group(3);
                         Assignment assignment = parseAssignment(varName,operation,value);
-                        //TODO:
                         if(assignment == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
                         return assignment;
                     }
@@ -238,14 +237,14 @@ public abstract class CodeParser {
         if(objectName == null)throw new IllegalArgumentException("You're lacking an object for your Method!");
         if(objectName.matches(" *"))throw new IllegalArgumentException("You cant have an empty object!");
         boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
-        if(variableScope.getVariable(objectName) == null)throw new IllegalArgumentException("Variable "+ objectName+" not in scope");
+        if(variableScope.getVariable(objectName) == null)throw new NotInScopeException(objectName,variableScope);
         if(variableScope.getVariable(objectName).getValue().getText().equals(""))throw new IllegalArgumentException("Variable "+ objectName+" has not been initialized");
         if(variableScope.getVariable(objectName).getVariableType() != VariableType.ARMY){
             if(isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.KNIGHT)throw new IllegalArgumentException("Object "+objectName+ " must be a Knight");
             if(!isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.SKELETON)throw new IllegalArgumentException("Object "+objectName+ " must be a Skeleton");
         }
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
-        if(mType == null) throw new IllegalArgumentException("Method " + methodName + " is not a valid method!");
+        if(mType == null) throw new MethodUnknownException(methodName);
         testForCorrectParameters(parameterString, mType);
         // Makes lines such as: knight.targetsCell(EXIT); illegal (they need the condition context!)
         if(mType.getOutputType() != VariableType.VOID) throw new IllegalArgumentException("Method " + methodName + " cannot stand here!");
@@ -269,7 +268,7 @@ public abstract class CodeParser {
             case COLLECT:
             case CAN_MOVE:
             case IS_ALIVE:
-                if(!parameters.equals(""))throw new IllegalArgumentException("Method "+ mType.getName()+" doesnt have parameters!");
+                if(!parameters.equals(""))throw new IllegalParameterException(mType,parameters);
                 return;
             case HAS_ITEM:
                 ItemType item = ItemType.getValueFromName(parameters);
@@ -316,8 +315,7 @@ public abstract class CodeParser {
                 }
                 break;
         }
-        if(parameters.equals("")) throw new IllegalArgumentException("Method "+ mType.getName()+" needs parameters!");
-        throw new IllegalArgumentException(parameters+" is not a correct parameter!");
+        throw new IllegalParameterException(mType,parameters);
     }
 
 
@@ -327,7 +325,7 @@ public abstract class CodeParser {
         if(operation.equals("--"))valueString = varName+"-1";
         valueString = valueString.trim();
         Expression valueTree = Expression.expressionFromString(valueString);
-        if(variableScope.getVariable(varName)==null)throw new IllegalArgumentException("Variable "+ varName+ " is not in scope!");
+        if(variableScope.getVariable(varName)==null)throw new NotInScopeException(varName,variableScope);
         VariableType variableType = variableScope.getVariable(varName).getVariableType();
         if(variableType == VariableType.BOOLEAN && !valueString.equals("")){
             Condition condition = Condition.getConditionFromString(valueString);
@@ -458,7 +456,7 @@ public abstract class CodeParser {
                             if(mt== null){
                                 if(MethodType.getMethodTypeFromCall(conditionLeaf.getRightExpression().getText()+"()")!=null)
                                     throw new IllegalArgumentException("You might have forgotten brackets: " + conditionLeaf.getText());
-                                else throw new IllegalArgumentException("Unknown Method:" + conditionLeaf.getRightExpression().getText());
+                                else throw new MethodUnknownException(conditionLeaf.getRightExpression().getText());
                             }
                             if(mt.getOutputType()== VariableType.BOOLEAN){
                                 Expression expression1 = conditionLeaf.getRightExpression();
@@ -522,22 +520,22 @@ public abstract class CodeParser {
                 break;
             case DIRECTION:
                 Direction dir = Direction.getValueFromString(value);
-                if(dir == null)throw new IllegalArgumentException(value + " is no Direction!");
+                if(dir == null)throw new IllegalParameterException(variableType,value);
                 else return;
             case TURN_DIRECTION:
-                if(!value.matches(variableType.getAllowedRegex()))throw new IllegalArgumentException(value + " is no TurnDirection!");
+                if(!value.matches(variableType.getAllowedRegex()))throw new IllegalParameterException(variableType,value);
                 else return;
             case CELL_CONTENT:
                 CellContent content = CellContent.getValueFromName(value);
-                if(content == null)throw new IllegalArgumentException(value + " is no CellContent!");
+                if(content == null)throw new IllegalParameterException(variableType,value);
                 else return;
             case ITEM_TYPE:
                 ItemType itemType = ItemType.getValueFromName(value);
-                if(itemType == ItemType.NONE)throw new IllegalArgumentException(value + " is no ItemType!");
+                if(itemType == ItemType.NONE)throw new IllegalParameterException(variableType,value);
                 else return;
             case ENTITY_TYPE:
                 EntityType entityType = EntityType.getValueFromName(value);
-                if(entityType == EntityType.NONE)throw new IllegalArgumentException(value + " is no EntityType!");
+                if(entityType == EntityType.NONE)throw new IllegalParameterException(variableType,value);
                 else return;
             case ARMY:
                 if(!value.matches(variableType.getAllowedRegex())){
@@ -591,7 +589,7 @@ public abstract class CodeParser {
             switch(conditionLeaf.getSimpleConditionType()){
                 case SIMPLE:
                     if(condition.getText().matches("[^=]+=[^=]+")) throw new InvalidConditionException(condition.getText(),GameConstants.REASON_SINGLE_EQUAL_SIGN);
-                    if(variableScope.getVariable(condition.getText())==null) throw new IllegalArgumentException("Boolean Variable "+condition.getText()+" not in scope!");
+                    if(variableScope.getVariable(condition.getText())==null) throw new NotInScopeException(condition.getText(),variableScope);
                     return;
                 case GR_EQ:
                 case LE_EQ:
@@ -603,10 +601,10 @@ public abstract class CodeParser {
                     checkExpressionTreeForUnknownVars(conditionLeaf.getRightExpression());
                     return;
                 case CAL:
-                    if(variableScope.getVariable(conditionLeaf.getLeftExpression().getText())==null)throw new IllegalArgumentException("Variable "+conditionLeaf.getLeftExpression().getText() + " not in scope!");
+                    if(variableScope.getVariable(conditionLeaf.getLeftExpression().getText())==null)throw new NotInScopeException(conditionLeaf.getLeftExpression().getText(),variableScope);
                     checkExpressionTreeForUnknownVars(conditionLeaf.getLeftExpression());
                     ExpressionTree rightNode = (ExpressionTree)conditionLeaf.getRightExpression();
-                    if(rightNode.getLeftNode() == null)throw new IllegalArgumentException(conditionLeaf.getRightExpression().getText() + " is not a valid Method!");
+                    if(rightNode.getLeftNode() == null)throw new MethodUnknownException(conditionLeaf.getRightExpression().getText());
                     Expression leftNode = conditionLeaf.getLeftExpression();
                     MethodType mT = MethodType.getMethodTypeFromName(rightNode.getLeftNode().getText());
                     if(mT==null)throw new IllegalArgumentException("No such Method " + leftNode.getText()+"!");

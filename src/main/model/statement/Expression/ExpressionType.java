@@ -15,7 +15,6 @@ public enum ExpressionType {
 
    ExpressionType(char c1){
         this.c1 = c1;
-//        this.c2 = c2;
     }
     private final char c1;
 
@@ -23,7 +22,6 @@ public enum ExpressionType {
     public static ExpressionType getExpressionTypeFromChars(char c1){
         for(ExpressionType expressionType : values()){
             if(c1 == expressionType.getFirstCharacter()){
-//                if(expressionType.getSecondCharacter() == GameConstants.ANY_CHAR || c2 == expressionType.getSecondCharacter()) return expressionType;
                 return expressionType;
             }
         }

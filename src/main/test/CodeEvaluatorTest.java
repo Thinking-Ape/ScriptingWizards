@@ -16,7 +16,7 @@ import static main.test.TestConstants.SUCCESS_STRING;
 public class CodeEvaluatorTest {
 
     @Test
-    public void evaluateStatement() {
+    public void testEvaluateStatement() {
         testForLoop();
         System.out.println(SUCCESS_STRING);
         testIfStatement();

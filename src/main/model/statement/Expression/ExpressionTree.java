@@ -18,7 +18,6 @@ public class ExpressionTree extends Expression{
     public Expression getRightNode() {
         return rightNode;
     }
-    //public int getDepth(){return depth;}
     public String getText(){
         String leftNodeText = leftNode.getText();
         String rightNodeText = rightNode.getText();
@@ -26,12 +25,11 @@ public class ExpressionTree extends Expression{
             leftNodeText = "("+leftNode.getText()+")";
         // parameters are put in brackets twice else!
         if(!rightNode.isLeaf() && !rightNodeText.matches(".*,.*"))
-            rightNodeText = "("+rightNode.getText()+")"; // && expressionType!= ExpressionType.CAL)
+            rightNodeText = "("+rightNode.getText()+")";
         switch (getExpressionType()){
             case ADD:
                 return "" + leftNodeText + " + " + rightNodeText+"";
             case SUB:
-//                if(leftNodeText.equals("")) return "-"+rightNodeText;
                 return "" + leftNodeText + " - " + rightNodeText+"";
             case DIV:
                 return "" + leftNodeText + " / " + rightNodeText+"";

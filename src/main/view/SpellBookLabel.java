@@ -46,26 +46,5 @@ public class SpellBookLabel extends Label {
                 this.setStyle("-fx-background-color: white");
                 break;
         }
-//                Label variableTypeLabel = new Label("<VariableType>");
-//                Tooltip typeTooltip = new Tooltip("One of the following: ");
-//                typeTooltip.setWrapText(true);
-//                int i = 0;
-//                for(VariableType vT : VariableType.values()){
-//                    if (i == 0) typeTooltip.setText(typeTooltip.getCode()+ vT.getName());
-//                    else typeTooltip.setText(typeTooltip.getCode()+", " + vT.getName());
-//                    i++;
-//                }
-//                variableTypeLabel.setTooltip(typeTooltip);
-//
-//                Label variableNameLabel = new Label("<VariableName>");
-//                Tooltip nameTooltip = new Tooltip("The name of the variable.");
-//                variableNameLabel.setTooltip(nameTooltip);
-//
-//                Label equalsLabel = new Label(" = ");
-//
-//                Label valueLabel = new Label("<VariableValue>");
-//                Tooltip valueTooltip = new Tooltip("The value of the variable:\nint : a whole number, randInt(<lowestValue>,<highestValue>) or any oth int method call\nboolean : true, false or a boolean method call\nKnight : new Knight(<direction>), where <direction> can be either NORTH, SOUTH, WEST or EAST");
-//
-//                this.getChildren().addAll(variableTypeLabel,variableNameLabel,equalsLabel);
     }
 }

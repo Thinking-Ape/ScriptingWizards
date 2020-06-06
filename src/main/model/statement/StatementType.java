@@ -4,20 +4,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public enum StatementType {
-    //TODO: isUnlocked not used
     // visit https://regex101.com/ for more info!
     WHILE("^ *while *\\( *+(.+?) *+\\) *\\{ *$",false),
     FOR("^ *for *\\( *+(.+?) *+\\) *\\{ *$",false),
     IF("^ *if *\\( *+(.+?) *+\\) *\\{ *$",false),
     ELSE("^ *else( +if *\\( *+(.+?) *+\\) *+)? *+\\{ *+$",false),
     METHOD_CALL("^ *(([^ ]+?)\\.)([^ ]+?) *+\\( *+(.*) *+\\) *; *$",true),
-//    METHOD_DECLARATION(GameConstants.METHOD_DECLARATION_REGEX,false),
     DECLARATION("^ *+([^ =]+?) +([^ ]+?) *+(|= *+(.+?) *+); *$",false),
     ASSIGNMENT("^ *+([^ =]+?) *+(= *+(.+?)|\\+\\+|--) *; *$",false),
     COMPLEX(".*",true),
     SIMPLE(" *",true)
     ;
-    private String regex;
+    private final String regex;
     private boolean isUnlocked;
 
     StatementType(String regex,boolean isUnlocked){

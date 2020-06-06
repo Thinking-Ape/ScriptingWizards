@@ -4,8 +4,12 @@ import main.model.gamemap.enums.*;
 import main.model.GameConstants;
 import main.utility.Point;
 import main.utility.SimpleSet;
+import main.utility.Util;
+import main.utility.VariableType;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static main.model.GameConstants.NO_ENTITY;
 
@@ -33,7 +37,6 @@ public class GameMap {
     public GameMap copy(){
         GameMap cloneMap = new GameMap(cellArray2D);
         cloneMap.changedCellPoints = new SimpleSet<>(changedCellPoints);
-//         cloneMap.entityCellMap = new HashMap<>(this.entityCellMap);
          return cloneMap;
     }
 
@@ -129,29 +132,15 @@ public class GameMap {
     }
 
     public void addLinkedCellId(int x, int y, int integer) {
-
-        GameMap oldMap = this.copy();
-        Cell oldCell = cellArray2D[x][y].copy();
         cellArray2D[x][y].addLinkedCellId(integer);
-        Cell newCell = cellArray2D[x][y].copy();
-        Point p = new Point(x, y);
     }
 
     public void setCellId(int x, int y, int id) {
-        GameMap oldMap = this.copy();
-//        changeSupport.firePropertyChange("cellId", cellArray2D[x][y].getCellId(),id);
-        Cell oldCell = cellArray2D[x][y].copy();
         cellArray2D[x][y].setCellId(id);
-        Cell newCell = cellArray2D[x][y].copy();
-        Point p = new Point(x, y);
     }
 
     public void removeCellLinkedId(int x, int y, Integer s) {
-        GameMap oldMap = this.copy();
-        Cell oldCell = cellArray2D[x][y].copy();
         cellArray2D[x][y].removeLinkedCellId(s);
-        Cell newCell = cellArray2D[x][y].copy();
-        Point p = new Point(x, y);
     }
 
     public void setFlag(int x, int y, CellFlag flag, boolean t1) {
@@ -191,18 +180,13 @@ public class GameMap {
             return;
         }
         if(GameConstants.DEBUG)System.out.println(cell.getEntity().getEntityType().getDisplayName() +" "+ cell.getEntity().getName()+" died!");
-//        ecMapKill(cell.getEntity().getName());
         if(entity.getEntityType()== EntityType.KNIGHT)
             cell = cell.getMutation(CellFlag.KNIGHT_DEATH,true);
         else if(entity.getEntityType()==EntityType.SKELETON)
             cell = cell.getMutation(CellFlag.SKELETON_DEATH,true);
         cellArray2D[x][y] = cell;
-//        changeSupport.firePropertyChange(cell.getEntity().getEntityType().getDisplayName()+"Death",null,new Point(x,y));
         removeEntity(x,y);
-//        if(cellArray2D[x][y].hasFlag(CellFlag.KNIGHT_DEATH)){
         setItem(x,y,entity.getItem());
-//        entityCellMap.remove(entity.getName());
-//        }
     }
 
     public void removeEntity(int x, int y) {
@@ -252,13 +236,11 @@ public class GameMap {
     }
 
     public void setMultipleItems(List<Point> targetPosList, ItemType item) {
-        GameMap oldMap = this.copy();
         for(Point p : targetPosList){
             cellArray2D[p.getX()][p.getY()] = cellArray2D[p.getX()][p.getY()].getMutation(item);
         }
     }
     public void setItem(Point targetPos, ItemType item) {
-        GameMap oldMap = this.copy();
         if(item == null)throw new IllegalArgumentException("Item cannot be null!");
         if(cellArray2D[targetPos.getX()][targetPos.getY()].getItem()==item)return;
         cellArray2D[targetPos.getX()][targetPos.getY()] = cellArray2D[targetPos.getX()][targetPos.getY()].getMutation(item);
@@ -266,19 +248,14 @@ public class GameMap {
     }
 
     public void setContent(Point targetPos, CellContent content) {
-        GameMap oldMap = this.copy();
         if(cellArray2D[targetPos.getX()][targetPos.getY()].getContent()==content)return;
         cellArray2D[targetPos.getX()][targetPos.getY()] = cellArray2D[targetPos.getX()][targetPos.getY()].getMutation(content);
         changedCellPoints.add(targetPos);
     }
     public void setMultipleContents(List<Point> targetPosList, CellContent content) {
-        GameMap oldMap = this.copy();
         for(Point p : targetPosList){
             cellArray2D[p.getX()][p.getY()] = cellArray2D[p.getX()][p.getY()].getMutation(content);
         }
-//        Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
-//
-//        Cell newCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
     }
 
     public boolean cellHasFlag(Point targetPoint, CellFlag open) {
@@ -290,18 +267,14 @@ public class GameMap {
     }
 
     public void setEntity(Point targetPos, Entity actorEntity) {
-        GameMap oldMap = this.copy();
         if(actorEntity == null)throw new IllegalArgumentException("Entity shall not be null! Use NO_ENTITY instead");
         if(cellArray2D[targetPos.getX()][targetPos.getY()].getEntity()==actorEntity)return;
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()].copy();
         cellArray2D[targetPos.getX()][targetPos.getY()] = oldCell.getMutation(actorEntity);
-//        if(entityCellMap.containsKey(actorEntity.getName()))entityCellMap.replace(actorEntity.getName(),targetPos);
-//        else entityCellMap.put(actorEntity.getName(), targetPos);
         changedCellPoints.add(targetPos);
     }
 
     public void setFlag(Point targetPos, CellFlag flag, boolean b) {
-        GameMap oldMap = this.copy();
         Cell oldCell = cellArray2D[targetPos.getX()][targetPos.getY()];
         if(oldCell.hasFlag(flag) == b)return;
         cellArray2D[targetPos.getX()][targetPos.getY()] = oldCell.getMutation(flag, b);
@@ -311,17 +284,6 @@ public class GameMap {
     public int getCellID(Point spawnPoint) {
         return getCellID(spawnPoint.getX(), spawnPoint.getY());
     }
-
-
-    /*@Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        Pair<Point,Cell> pair = (Pair<Point, Cell>) evt.getNewValue();
-        cellArray2D[pair.getKey().getX()][pair.getKey().getY()] = pair.getValue();
-    }*/
-
-//    public void initLevelChangeListener(PropertyChangeListener listener) {
-//        this.changeSupport.addPropertyChangeListener(listener);
-//    }
 
     public ItemType getItem(Point targetPoint) {
         return cellArray2D[targetPoint.getX()][targetPoint.getY()].getItem();
@@ -341,20 +303,6 @@ public class GameMap {
         entity.setItem(item);
         setEntity(spawnPoint, entity);
     }
-
-//    public gamemap getSwappedEntityMap(String name, String beaconName) {
-//        //TODO: set Entity -> map
-//        gamemap output = this.copy();
-//        Point p1 = output.entityCellMap.get(name);
-//        Point p2 = output.entityCellMap.get(beaconName);
-//        output.entityCellMap.replace(beaconName, p1);
-//        output.entityCellMap.replace(name, p2);
-//        Entity replacer = output.getEntity(p1);
-//        Entity beacon = output.getEntity(p2);
-//        output.setEntity(p2, replacer);
-//        output.setEntity(p1, beacon);
-//        return output;
-//    }
 
     public Entity getEntity(String name) {
         return getEntity(getEntityPosition(name));
@@ -392,52 +340,25 @@ public class GameMap {
         return cellHasFlag(targetPos, CellFlag.OPEN)^cellHasFlag(targetPos, CellFlag.INVERTED);
     }
 
-//    public void removeAllListeners() {
-//        changeSupport = new PropertyChangeSupport(this);
-//    }
 
     public void changeEntityDirection(Point actorPoint, String direction) {
-        GameMap oldMap = this.copy();
         Entity entity = getEntity(actorPoint);
-        switch (entity.getDirection()){
-            case NORTH:
-                if(direction.equals("LEFT"))
-                    entity.setDirection(Direction.WEST);
-                else if(direction.equals("RIGHT"))
-                    entity.setDirection(Direction.EAST);
-                else if(direction.equals("AROUND"))
-                    entity.setDirection(Direction.SOUTH);
-                break;
-            case SOUTH:
-                if(direction.equals("LEFT"))
-                    entity.setDirection(Direction.EAST);
-                else if(direction.equals("RIGHT"))
-                    entity.setDirection(Direction.WEST);
-                else if(direction.equals("AROUND"))
-                    entity.setDirection(Direction.NORTH);
-                break;
-            case EAST:
-                if(direction.equals("LEFT"))
-                    entity.setDirection(Direction.NORTH);
-                else if(direction.equals("RIGHT"))
-                    entity.setDirection(Direction.SOUTH);
-                else if(direction.equals("AROUND"))
-                    entity.setDirection(Direction.WEST);
-                break;
-            case WEST:
-                if(direction.equals("LEFT"))
-                    entity.setDirection(Direction.SOUTH);
-                else if(direction.equals("RIGHT"))
-                    entity.setDirection(Direction.NORTH);
-                else if(direction.equals("AROUND"))
-                    entity.setDirection(Direction.EAST);
-                break;
-        }
+        Matcher m = Pattern.compile(VariableType.TURN_DIRECTION.getAllowedRegex()).matcher(direction);
+        int directionInt = entity.getDirection().ordinal();
+        if(!m.matches())throw new IllegalStateException("It should not have been possible to pass a different direction-String! "+direction +" is invalid!");
+            // m.group(2) == LEFT => previous direction
+        else if(m.group(2)!=null)directionInt -= 1;
+            // m.group(3) == RIGHT => next direction
+        else if(m.group(3)!=null)directionInt += 1;
+            // m.group(4) == AROUND => direction after next direction
+        else if(m.group(4)!=null)directionInt += Direction.values().length/2;
+        // modulo in case directionInt is out of bounds
+        directionInt= Util.modulo(directionInt,Direction.values().length);
+        entity.setDirection(Direction.values()[directionInt]);
         changedCellPoints.add(actorPoint);
     }
 
     public void setEntityItem(Point actorPoint, ItemType item) {
-        GameMap oldMap = this.copy();
         Entity entity = getEntity(actorPoint);
         entity.setItem(item);
         changedCellPoints.add(actorPoint);
@@ -499,6 +420,7 @@ public class GameMap {
             }
     }
 
+    // An alternative, more graphic way to visualize the current map
     public void printMap(){
         for(int i = 0; i < cellArray2D[0].length;i++){
             for(int j = 0; j < cellArray2D.length;j++){

@@ -1,3 +1,7 @@
+Version 1.5d:
+    - adjusted level difficulties
+    - now stores whether level editor was unlocked in data.json
+    - more bugfixes
 Version 1.5c:
     - load best code button is now only available if code is stored for that level
     - level editor will now only be available if all levels have been completed

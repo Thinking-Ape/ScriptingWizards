@@ -46,7 +46,7 @@ public class Model {
     private CodeEvaluator playerEvaluator;
     private CodeEvaluator aiEvaluator;
 
-    // attempt to ensure levels with random outcomes are not completed by chance
+    // used to ensure levels with random outcomes are not completed by chance
     private Map<Integer,List<Integer>> aiLineRandIntMap = new HashMap<>();
     private int currentRound = 1;
 
@@ -194,7 +194,7 @@ public class Model {
     }
 
     public void changeCurrentLevel(LevelDataType levelDataType, Object newValue){
-        Object oldValue = null;
+        Object oldValue;
         switch (levelDataType){
             case AMOUNT_OF_RERUNS:
                 oldValue = getCurrentLevel().getAmountOfPlays();
@@ -521,9 +521,9 @@ public class Model {
 
     public void initIteratorsAndEvaluators(ComplexStatement playerBehaviour,ComplexStatement aiBehaviour) {
         aiIterator = aiBehaviour.iterator();
-        aiEvaluator = new CodeEvaluator(false);//,modelSingleton);
+        aiEvaluator = new CodeEvaluator(false);
         playerIterator = playerBehaviour.iterator();
-        playerEvaluator = new CodeEvaluator(true);//,modelSingleton);
+        playerEvaluator = new CodeEvaluator(true);
     }
 
     public void increaseTutorialMessageIndex() {
@@ -548,6 +548,18 @@ public class Model {
 
     public void increaseCurrentRound() {
         currentRound++;
+    }
+
+
+    public void updateUnlockedStatements() {
+        for(String unlock : playerEvaluator.getUnlockedStatements()){
+            if(this.unlockedStatementsList.contains(unlock))continue;
+            this.unlockedStatementsList.add(unlock);
+        }
+    }
+
+    public void unlockEditor() {
+        editorUnlocked = true;
     }
 
     // Getters
@@ -802,14 +814,4 @@ public class Model {
         return editorUnlocked;
     }
 
-    public void updateUnlockedStatements() {
-        for(String unlock : playerEvaluator.getUnlockedStatements()){
-            if(this.unlockedStatementsList.contains(unlock))continue;
-            this.unlockedStatementsList.add(unlock);
-        }
-    }
-
-    public void unlockEditor() {
-        editorUnlocked = true;
-    }
 }

@@ -18,7 +18,6 @@ import static main.model.GameConstants.*;
 
 
 public class LevelOverviewPane extends VBox {
-    //TODO!!!
     private ListView<LevelEntry> levelListView = new ListView<>();
     private Button playBtn = new Button();
     private Button backBtn = new Button();
@@ -49,7 +48,7 @@ public class LevelOverviewPane extends VBox {
         challengesLbl.setStyle("-fx-background-color: lightgrey");
         this.getChildren().addAll(challengesLbl,levelListView,hBox);
         this.setAlignment(Pos.CENTER);
-        this.setSpacing(TEXTFIELD_HEIGHT);
+        this.setSpacing(CODEFIELD_HEIGHT);
     }
 
     public ListView<LevelEntry> getLevelListView(){
@@ -67,10 +66,6 @@ public class LevelOverviewPane extends VBox {
 
     public void updateUnlockedLevels() {
         levelListView.getItems().clear();
-        double width=0;
-//        String[] levelNames =JSONParser.getUnlockedLevelIds();
-//        String[] sortedLevelNames = new String[levelNames.length];
-        int k = 0;
         for(int levelId : ModelInformer.getUnlockedLevelIds()){
             int i = ModelInformer.getIndexOfLevelWithId(levelId);
             int loc =ModelInformer.getBestLocOfLevel(levelId);
@@ -80,11 +75,10 @@ public class LevelOverviewPane extends VBox {
             Integer[] turnsToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
             Integer[] locToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
             double nStars = Util.calculateStars(turns,loc,turnsToStars,locToStars);
-            //TODO: improve -> see make view static
             GameMap gameMap = (GameMap) ModelInformer.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
-            // View.getImageFromMap(gameMap) is an intensive calculation!
-            // Dont call this too often!
-            LevelEntry le = new LevelEntry(View.getImageFromMap(gameMap),levelName,
+            // View.getIconFromMap(gameMap) is an intensive calculation!
+            // Dont call this too often, because View.getIconFromMap(gameMap) is costly!
+            LevelEntry le = new LevelEntry(View.getIconFromMap(gameMap),levelName,
                     getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
             le.autosize();
             boolean isTut = (boolean)ModelInformer.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,i);
@@ -96,7 +90,7 @@ public class LevelOverviewPane extends VBox {
         }
     }
     public void addLevelWithIndex(int i){
-        Image image = View.getImageFromMap((GameMap)ModelInformer.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i));
+        Image image = View.getIconFromMap((GameMap)ModelInformer.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i));
         Integer[] turnsToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
         Integer[] locToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
 //        double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars)
@@ -115,7 +109,7 @@ public class LevelOverviewPane extends VBox {
 
     private void updateWidth(LevelEntry le) {
         double width = levelListView.getMaxWidth();
-        width = le.getMaxWidth()+GameConstants.TEXTFIELD_HEIGHT*2 > width ? le.getMaxWidth()+GameConstants.TEXTFIELD_HEIGHT*2 : width;
+        width = le.getMaxWidth()+GameConstants.CODEFIELD_HEIGHT *2 > width ? le.getMaxWidth()+GameConstants.CODEFIELD_HEIGHT *2 : width;
         levelListView.setMaxWidth(width);
     }
 
@@ -154,9 +148,6 @@ public class LevelOverviewPane extends VBox {
         int currentIndex = ModelInformer.getCurrentIndex();
         Integer[] turnsToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,currentIndex);
         Integer[] locToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,currentIndex);
-//        double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars)
-        boolean hasAI = (boolean)ModelInformer.getDataFromLevelWithIndex(LevelDataType.HAS_AI,currentIndex);
-        int maxKnights = (int)ModelInformer.getDataFromLevelWithIndex(LevelDataType.MAX_KNIGHTS,currentIndex);
         int id = ModelInformer.getIdOfLevelWithName(levelName);
         int loc =ModelInformer.getBestLocOfLevel(id);
         int turns =ModelInformer.getBestTurnsOfLevel(id);

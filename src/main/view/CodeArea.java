@@ -99,8 +99,8 @@ public class CodeArea extends VBox {
         iconIView.setFitWidth(SMALL_BUTTON_SIZE);
         iconIView.setFitHeight(SMALL_BUTTON_SIZE);
 
-        hb1.setPrefWidth(GameConstants.TEXTFIELD_WIDTH);
-        hb2.setPrefWidth(GameConstants.TEXTFIELD_WIDTH);
+        hb1.setPrefWidth(GameConstants.CODEFIELD_WIDTH);
+        hb2.setPrefWidth(GameConstants.CODEFIELD_WIDTH);
         hb1.setPickOnBounds(false);
         hb2.setPickOnBounds(false);
 
@@ -140,7 +140,7 @@ public class CodeArea extends VBox {
             rectStackPane.setAlignment(Pos.CENTER_LEFT);
             for (int j = 1; j <= depth; j++) {
                 double xTranslate = GameConstants.CODE_OFFSET * (j - 1);
-                Rectangle rectangle = new Rectangle(GameConstants.TEXTFIELD_WIDTH - xTranslate, GameConstants.TEXTFIELD_HEIGHT, Util.getColorFromDepth(j));
+                Rectangle rectangle = new Rectangle(GameConstants.CODEFIELD_WIDTH - xTranslate, GameConstants.CODEFIELD_HEIGHT, Util.getColorFromDepth(j));
                 rectangle.getTransforms().add(new Translate(xTranslate, 0, 0));
                 rectStackPane.getChildren().add(rectangle);
             }
@@ -378,12 +378,6 @@ public class CodeArea extends VBox {
         return scrollAmount;
     }
 
-    //TODO:
-    public void markCodeFields(Set<Integer> indexSet) {
-        for(Integer i : indexSet){
-            codeFieldList.get(i).setStyle("-fx-background-color: lightblue");
-        }
-    }
     public void updateCodeFields(ComplexStatement behaviour){
         codeFieldList = getCodeFieldsFromStatement(behaviour);
         draw();
@@ -404,6 +398,7 @@ public class CodeArea extends VBox {
         eventSender = new SimpleEventSender(eventListener);
     }
     public void setIconActive(boolean active){
+        // Just some numbers for color adjustment, chosen by eye
         if(!active)iconIView.setEffect(new ColorAdjust(-0.5,-0.5,-0.5,-0.5));
         else iconIView.setEffect(null);
     }

@@ -1,5 +1,6 @@
 package main.test;
 
+import main.exception.*;
 import main.model.GameConstants;
 import main.model.statement.*;
 import main.parser.CodeParser;
@@ -15,7 +16,7 @@ import static main.test.TestConstants.SUCCESS_STRING;
 public class CodeParserTest {
 
     @Test
-    public void parseProgramCode() {
+    public void testParseProgramCode() {
         testKnightConstructor();
         System.out.println(SUCCESS_STRING);
         testNoSemicolon();
@@ -86,11 +87,11 @@ public class CodeParserTest {
     }
 
     private void testNoSemicolon() {
-        testForException("Knight k = new Knight()",NoSemicolonException.class, NoSemicolonException.errorMessage);
+        testForException("Knight k = new Knight()", NoSemicolonException.class, NoSemicolonException.errorMessage);
     }
 
     private void testNoCurlyBracket() {
-        testForException("if(true)",NoCurlyBracketException.class, NoCurlyBracketException.errorMessage);
+        testForException("if(true)", NoCurlyBracketException.class, NoCurlyBracketException.errorMessage);
     }
     private void testUnbalancedAmountOfBrackets() {
         testForException("if(true){",UnbalancedAmountOfBracketsException.class, UnbalancedAmountOfBracketsException.errorMessage);
@@ -98,14 +99,14 @@ public class CodeParserTest {
 
     private void testInvalidCondition() {
         String condString = "1=2";
-        testForException("if("+condString+"){",InvalidConditionException.class,Util.getConditionInvalidString(condString, GameConstants.REASON_SINGLE_EQUAL_SIGN));
+        testForException("if("+condString+"){", InvalidConditionException.class,Util.getConditionInvalidString(condString, GameConstants.REASON_SINGLE_EQUAL_SIGN));
     }
 
     private void testVariableNotInitialized() {
-        testForException("\"int i;\",\"if(i<5) {\"",VariableNotInitializedException.class,VariableNotInitializedException.errorMessage);
+        testForException("\"int i;\",\"if(i<5) {\"", VariableNotInitializedException.class,VariableNotInitializedException.errorMessage);
     }
     private void testNoValueVariable() {
-        testForException("int i&1;",IllegalVariableNameException.class,Util.getIllegalVariableString("i&1"));
+        testForException("int i&1;", IllegalVariableNameException.class,Util.getIllegalVariableString("i&1"));
     }
     private void testNoSkeletonAllowed() {
         testForException("Skeleton sk = new Skeleton();",StatementNotAllowedException.class,StatementNotAllowedException.errorMessage);

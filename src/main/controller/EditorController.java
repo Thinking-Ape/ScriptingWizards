@@ -63,13 +63,10 @@ public class EditorController implements SimpleEventListener {
         else view.getLevelEditorModule().getHasAiValueLbl().setText(""+false);
         setHandlersForMapCells();
         setHandlersForCellTypeButtons();
-        //TODO: make this section prettier -> look to setHandlersForMapCells
         for(Point p : view.getSelectedPointList()){
             int k = p.getX();
             int h = p.getY();
             GameMap gameMapClone = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
-            //END OF TODO
-
             int cellId  = gameMapClone.getCellID(k,h);
             if(cellId !=-1)view.getLevelEditorModule().getCellIdValueLbl().setText(cellId+"");
             else view.getLevelEditorModule().getCellIdValueLbl().setText("NONE");
@@ -97,14 +94,14 @@ public class EditorController implements SimpleEventListener {
             List<String> tutLines = (List<String>)model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
             if(model.getCurrentTutorialSize() > 0) text = tutLines.get(model.getCurrentTutorialMessageIndex());
             TextArea tutorialTextArea = new TextArea();
-            tutorialTextArea.setMaxSize(GameConstants.TEXTFIELD_WIDTH, GameConstants.TEXTFIELD_WIDTH/2.0);
+            tutorialTextArea.setMaxSize(GameConstants.CODEFIELD_WIDTH, GameConstants.CODEFIELD_WIDTH /2.0);
             tutorialTextArea.setFont(GameConstants.BIG_FONT);
             tutorialTextArea.setWrapText(true);
             tutorialTextArea.setText(text);
             editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
             editTutorialDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
             editTutorialDialog.getDialogPane().setContent(tutorialTextArea);
-            editTutorialDialog.getDialogPane().setMaxWidth(GameConstants.TEXTFIELD_WIDTH*1.05);
+            editTutorialDialog.getDialogPane().setMaxWidth(GameConstants.CODEFIELD_WIDTH *1.05);
             Platform.runLater(tutorialTextArea::requestFocus);
             tutorialTextArea.textProperty().addListener((observableValue, s, t1) ->{
                 // Cant have more than MAX_TUTORIAL_LINES lines of tutorial
@@ -238,8 +235,9 @@ public class EditorController implements SimpleEventListener {
             TextField nameTField = new TextField();
             TextField heightTField = new TextField();
             TextField widthTField = new TextField();
-            heightTField.setText(3+"");
-            widthTField.setText(3+"");
+            heightTField.setText(GameConstants.MIN_LEVEL_SIZE+"");
+            widthTField.setText(GameConstants.MIN_LEVEL_SIZE+"");
+            Util.setTextFieldWidth(heightTField,widthTField);
             nameTField.textProperty().addListener((observableValue, s, t1) -> {
 
                 if(model.hasLevelWithName(t1)){
@@ -287,8 +285,12 @@ public class EditorController implements SimpleEventListener {
                 locToStars[0] = 0;
                 locToStars[1] = 0;
                 int id = model.createUniqueId();
-                model.addLevelAtCurrentPos(new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new ArrayList<>(),1,(boolean)model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,model.getCurrentIndex()),new ArrayList<>(),id,1),true); //TODO!
-                // There ain't no spawn when creating a new Level!
+                // Automatically makes this level a tutorial if the current Level is a tutorial. This makes it impossible
+                // to create non-Tutorial levels between tutorials (which would end the tutorial prematurely)
+                boolean isTutorial = (boolean)model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,model.getCurrentIndex());
+                Level newLevel = new Level(nameTField.getText(),map,complexStatement,turnsToStars,locToStars,new ArrayList<>(),1,isTutorial,new ArrayList<>(),id,1);
+                model.addLevelAtCurrentPos(newLevel,true);
+                // There is no spawn when creating a new Level!
                 view.getLevelEditorModule().getSaveLevelBtn().setDisable(true);
                 view.getLevelEditorModule().getHasAiValueLbl().setText(""+hasAiCheckBox.isSelected());
                 view.getLevelEditorModule().getDeleteLevelBtn().setDisable(false);
@@ -344,7 +346,7 @@ public class EditorController implements SimpleEventListener {
             }
             if((boolean)model.getDataFromLevelWithIndex(LevelDataType.IS_TUTORIAL,currentLevelIndex-1) &&
                     !(boolean) model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
-                new Alert(Alert.AlertType.NONE,"Can't move Level down, as Challenge Levels must not come in between Tutorial Levels",ButtonType.OK).showAndWait();
+                new Alert(Alert.AlertType.NONE,"Can't move Level down, as Challenge Levels are not allowed to stand in between Tutorial Levels",ButtonType.OK).showAndWait();
             else model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex-1);
             view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(false);
         });
@@ -355,9 +357,8 @@ public class EditorController implements SimpleEventListener {
             }
 
             if(model.getNextTutorialIndex()==-1 && (boolean) model.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL))
-                new Alert(Alert.AlertType.NONE,"Can't move Level up, as Tutorial Levels must not come after a Challenge Level",ButtonType.OK).showAndWait();
+                new Alert(Alert.AlertType.NONE,"Can't move Level up, as Tutorial Levels are not allowed to stand after a Challenge Level",ButtonType.OK).showAndWait();
             else model.changeCurrentLevel(LevelDataType.LEVEL_INDEX,currentLevelIndex+1);
-//            if(currentLevelIndex == model.getAmountOfLevels()-2)view.getLevelEditorModule().getMoveIndexUpBtn().setDisable(true);
             view.getLevelEditorModule().getMoveIndexDownBtn().setDisable(false);
         });
         view.getLevelEditorModule().getEditLvlBtn().setOnAction(event -> {
@@ -387,7 +388,7 @@ public class EditorController implements SimpleEventListener {
             widthSlider.setValue(currentMapClone.getBoundX());
             maxKnightsSlider.setValue((int)model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
             amountOfPlaysSlider.setValue((int)model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS));
-            //TODO:
+
             Integer[] locToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
             Integer[] turnsToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
             TextField loc2StarsTField = new TextField(locToStars[0]+"");
@@ -396,6 +397,7 @@ public class EditorController implements SimpleEventListener {
             TextField turns3StarsTField = new TextField(turnsToStars[1]+"");
 
             addChangeListenerForIntTFields(loc2StarsTField,loc3StarsTField,turns2StarsTField,turns3StarsTField);
+            Util.setTextFieldWidth(loc2StarsTField,loc3StarsTField,turns2StarsTField,turns3StarsTField);
             CheckBox hasAiCheckBox = new CheckBox();
             CheckBox isTutorialCheckBox = new CheckBox();
             HBox hBox = new HBox(sizeVBox,sliderVBox,new VBox(new Label("*** max. Turns: "),new Label("** max. Turns: ")),new VBox(turns3StarsTField,turns2StarsTField),new VBox(new Label("*** max. LoC: "),new Label("** max. LoC: ")),new VBox(loc3StarsTField,loc2StarsTField),
@@ -418,7 +420,7 @@ public class EditorController implements SimpleEventListener {
                 int height = (int)heightSlider.getValue();
                 width = width > GameConstants.MAX_LEVEL_SIZE ? GameConstants.MAX_LEVEL_SIZE : width < GameConstants.MIN_LEVEL_SIZE ? GameConstants.MIN_LEVEL_SIZE:width;
                 height = height > GameConstants.MAX_LEVEL_SIZE ? GameConstants.MAX_LEVEL_SIZE : height < GameConstants.MIN_LEVEL_SIZE ? GameConstants.MIN_LEVEL_SIZE:height;
-                //TODO!!!!
+
                 currentMapClone.changeHeight(height);
                 currentMapClone.changeWidth(width);
                 model.changeCurrentLevel(LevelDataType.MAP_DATA,currentMapClone);
@@ -433,9 +435,6 @@ public class EditorController implements SimpleEventListener {
                     complexStatement.addSubStatement(new SimpleStatement());
                     model.changeCurrentLevel(LevelDataType.AI_CODE,complexStatement);
                 }
-//                view.inform(Event.LEVEL_CHANGED);
-//                view.setAiCodeArea(new CodeArea(model.getCurrentLevel().getAIBehaviourCopy()));
-//                view.getAiCodeArea().draw();
                 setEditorHandlers();
             }
         });
@@ -444,11 +443,11 @@ public class EditorController implements SimpleEventListener {
         Dialog<ButtonType> changeLvlNameDialog = new Dialog<>();
         TextField nameTField = new TextField((String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
 
-            nameTField.textProperty().addListener((observableValue, s, t1) -> {
-                if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Za-zäÄöÖüÜß_]+((\\d|[A-Za-zäÄöÖüÜß_ ])*(\\d|[A-Za-zäÄöÖüÜß_]))?")){
-                    nameTField.setText(s);
-                }
-            });
+        nameTField.textProperty().addListener((observableValue, s, t1) -> {
+            if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Za-zäÄöÖüÜß_]+((\\d|[A-Za-zäÄöÖüÜß_ ])*(\\d|[A-Za-zäÄöÖüÜß_]))?")){
+                nameTField.setText(s);
+            }
+        });
         HBox hBox = new HBox(new Label("Name:"),nameTField);
         changeLvlNameDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
         changeLvlNameDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
@@ -462,16 +461,13 @@ public class EditorController implements SimpleEventListener {
 }
 
     private void saveChanges(Map<LevelDataType, LevelChange> changes) {
-        //TODO: make it so this button cannot be clicked in this case!
 
         try {
-//            JSONParser.saveLevel(level);
             if(model.isCurrentLevelNew()){
                 JSONParser.saveCurrentLevel( );
                 Platform.runLater(()->model.resetLevelNew());
             }
             else JSONParser.saveLevelChanges(changes, (String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
-//            JSONParser.saveIndexAndRequiredLevels(model.getLevelListCopy());
             model.updateUnlockedLevelsList(true);
             if(!model.getUnlockedLevelIds().contains(model.getCurrentId())){
                 view.getTutorialLevelOverviewPane().removeCurrentLevel();
@@ -490,10 +486,8 @@ public class EditorController implements SimpleEventListener {
                     else view.getLevelOverviewPane().addLevelWithIndex(model.getCurrentIndex());
                 }
             }
-//            Platform.runLater(() ->{
-                if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
-                else view.getStartScreen().getPlayBtn().setDisable(false);
-//            });
+            if(view.getLevelOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
+            else view.getStartScreen().getPlayBtn().setDisable(false);
 
             Alert alert = new Alert(Alert.AlertType.NONE,"Level was saved!",ButtonType.OK);
             alert.setTitle("Success!");
@@ -505,7 +499,7 @@ public class EditorController implements SimpleEventListener {
     }
 
     public void showSavingDialog() {
-        Alert savingAlert = new Alert(Alert.AlertType.NONE, "This level has unsaved changes! Do you want to save them?", ButtonType.YES,ButtonType.NO);
+        Alert savingAlert = new Alert(Alert.AlertType.NONE, "This level contains unsaved changes! Do you want to save them?", ButtonType.YES,ButtonType.NO);
         Optional<ButtonType> btnType =savingAlert.showAndWait();
         if(btnType.isPresent() && btnType.get() == ButtonType.YES){
             if(((GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
@@ -536,7 +530,6 @@ public class EditorController implements SimpleEventListener {
 
     private void addChangeListenerForIntTFields(TextField... textFields) {
         for(TextField textField : textFields){
-            textField.setMaxWidth(50); //TODO: shouldnt be here!
             textField.textProperty().addListener((observableValue, s, t1) -> {
             if(!t1.matches("\\d+")){
                 if(s.matches("\\d+"))textField.setText(s);
@@ -546,11 +539,6 @@ public class EditorController implements SimpleEventListener {
                 textField.setText(textField.getText().substring(1));
             }
             if(t1.length() > 3)textField.setText(s);
-//            if(Integer.valueOf(textField.getCode())>GameConstants.MAX_LEVEL_SIZE)
-//                textField.setText(""+GameConstants.MAX_LEVEL_SIZE);
-
-//            if(Integer.valueOf(textField.getCode())<GameConstants.MIN_LEVEL_SIZE)
-//                textField.setText(""+GameConstants.MIN_LEVEL_SIZE);
         });}
     }
 
@@ -559,11 +547,9 @@ public class EditorController implements SimpleEventListener {
         int rowC = view.getMapGPane().getRowCount();
         for(int x = 0; x < columnC; x++){
             for(int y = 0; y < rowC; y++){
-                //TODO: 2-dim array?
                 StackPane stackPane = (StackPane) view.getMapGPane().getChildren().get(x*rowC+y);
 
                 final GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
-                final CellContent content = gameMap.getContentAtXY(x,y);
                 final int k = x;
                 final int h = y;
                 stackPane.setOnMousePressed(mouseEvent -> {
@@ -577,7 +563,6 @@ public class EditorController implements SimpleEventListener {
                         else selectedList.add(new Point(k,h));
                     }
                     else if(mouseEvent.isShiftDown()) {
-//                        selectedList.addAll();
                         selectedList.addAll(Util.getPointsInRectangle(view.getSelectedPointList().get(view.getSelectedPointList().size()-1),new Point(k, h)));
                     }
                     else selectedList.add(new Point(k,h));
@@ -605,21 +590,19 @@ public class EditorController implements SimpleEventListener {
                     }
                     view.getLinkedCellsListView().getItems().remove(index);
                     int size = view.getLinkedCellsListView().getItems().size();
-                    view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
+                    view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.CODEFIELD_HEIGHT : 3 * GameConstants.CODEFIELD_HEIGHT);
                     gameMap.removeCellLinkedId(view.getSelectedPointList().get(0).getX(),view.getSelectedPointList().get(0).getY(),id);
                     model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                     if(view.getLinkedCellsListView().getItems().size()==0){
                         view.getLinkedCellsListView().setVisible(false);
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
                     }
-//                    setEditorHandlers();
                 });
                 view.getLinkedCellsListView().setOnMouseClicked(event -> {
                     if(view.getLinkedCellsListView().getSelectionModel().getSelectedItem()!=null){
                         view.getLevelEditorModule().getRemoveLinkedCellBtn().setVisible(true);
                     }
                     else view.getLevelEditorModule().getRemoveLinkedCellBtn().setVisible(false);
-//                    setEditorHandlers();
                 });
 
                 view.getLevelEditorModule().getChangeCellIdBtn().setOnKeyPressed(event->{
@@ -634,6 +617,7 @@ public class EditorController implements SimpleEventListener {
                     Dialog<ButtonType> newLevelDialog = new Dialog<>();
                     TextField idTField = new TextField();
                     addChangeListenerForIntTFields(idTField);
+                    Util.setTextFieldWidth(idTField);
                     newLevelDialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
                     newLevelDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
                     newLevelDialog.getDialogPane().setContent(new HBox(new Label("Id:"),idTField));
@@ -641,10 +625,8 @@ public class EditorController implements SimpleEventListener {
                     Optional<ButtonType> o  = newLevelDialog.showAndWait();
                     if(o.isPresent()){
                         if (o.get() == ButtonType.OK) {
-                            //TODO: unify and correctify!
                             int id = -1;
                             if(!idTField.getText().equals("")) id = Integer.valueOf(idTField.getText());
-    //                            int old_id = model.getCurrentLevel().getOriginalMapCopy()[view.getSelectedColumn()][view.getSelectedRow()].getCellId();
                             int x = view.getSelectedPointList().get(0).getX();
                             int y = view.getSelectedPointList().get(0).getY();
                             if(gameMap.testIfIdIsUnique(id)){
@@ -698,7 +680,7 @@ public class EditorController implements SimpleEventListener {
                                 model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
                                 //TODO: duplicate code in view.getLevelEditorModule().getRemoveLinkedCellBtn().setOnAction(actionEvent -> {
                                 int size = view.getLinkedCellsListView().getItems().size();
-                                view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.TEXTFIELD_HEIGHT : 3 * GameConstants.TEXTFIELD_HEIGHT);
+                                view.getLinkedCellsListView().setMaxHeight(size <= 3 ? size * GameConstants.CODEFIELD_HEIGHT : 3 * GameConstants.CODEFIELD_HEIGHT);
                             }
                         }
                     }
@@ -732,7 +714,6 @@ public class EditorController implements SimpleEventListener {
         view.setAllCellButtonsDisabled(false);
         GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
         boolean traversable = true;
-        boolean noItem = true;
         CellContent content = null;
         for(Point p : points){
             int x = p.getX();
@@ -748,14 +729,11 @@ public class EditorController implements SimpleEventListener {
         }
 
         if(!traversable) view.setAllItemBtnsDisable(true);
-//        else view.setAllItemTypeButtonInActive();
         ItemType item = gameMap.getItem(points.get(0).getX(),points.get(0).getY());
         if(points.size() == 1 && item != ItemType.NONE){
             view.setItemButtonDisabled(item,true);
-//            view.setItemButtonDisabled(ItemType.NONE,false);
         }
         else view.setItemButtonDisabled(ItemType.NONE,true);
-        //TODO!!
         if(view.getSelectedPointList().size() > 1){
             view.setCContentButtonDisabled(CellContent.SPAWN,true);
             view.getLevelEditorModule().deactivateCellDetails();
@@ -773,7 +751,6 @@ public class EditorController implements SimpleEventListener {
             choiceBox.getItems().add(0,"Unarmed");
             choiceBox.getItems().add(1, CellFlag.PREPARING.getDisplayName());
             choiceBox.getItems().add(2, CellFlag.ARMED.getDisplayName());
-//            if(map.cellHasFlag(x,y,CellFlag.UNARMED)) choiceBox.getSelectionModel().select(0);
             if(gameMap.cellHasFlag(x,y, CellFlag.PREPARING)) choiceBox.getSelectionModel().select(1);
             else if(gameMap.cellHasFlag(x,y, CellFlag.ARMED)) choiceBox.getSelectionModel().select(2);
             else {
@@ -783,7 +760,6 @@ public class EditorController implements SimpleEventListener {
                 // .setOnHidden fires twice for some reason??! this is a workaround!
                 if(toggleActionEventFiring())return;
                 CellFlag flag = CellFlag.getValueFrom(choiceBox.getValue().toUpperCase());
-//                map.setFlag(x, y, CellFlag.UNARMED,false);
                 gameMap.setFlag(x, y, CellFlag.PREPARING,false);
                 gameMap.setFlag(x, y, CellFlag.ARMED,false );
                 if(flag != null)gameMap.setFlag(x, y, flag,true );
@@ -800,7 +776,6 @@ public class EditorController implements SimpleEventListener {
             view.getLevelEditorModule().activateLinkedCellBtns();
             view.getLevelEditorModule().getIsTurnedCBox().setSelected(gameMap.cellHasFlag(x,y, CellFlag.TURNED));
 
-
             view.getLevelEditorModule().getIsInvertedCBox().setSelected(gameMap.cellHasFlag(x,y, CellFlag.INVERTED));
 
             ListView<Integer> listView =  view.getLevelEditorModule().getLinkedCellListView();
@@ -811,16 +786,14 @@ public class EditorController implements SimpleEventListener {
                 listView.getItems().add(l,gameMap.getLinkedCellId(x,y,l));
             }
             if(linkedCellListSize>0){
-                listView.setMaxHeight(linkedCellListSize*GameConstants.TEXTFIELD_HEIGHT);
-                listView.setMaxWidth(GameConstants.TEXTFIELD_WIDTH/4);
+                listView.setMaxHeight(linkedCellListSize*GameConstants.CODEFIELD_HEIGHT);
+                listView.setMaxWidth(GameConstants.CODEFIELD_WIDTH /4);
                 view.getLinkedCellsListView().setVisible(true);
             }else {
                 view.getLinkedCellsListView().setVisible(false);
                 view.getLevelEditorModule().getRemoveLinkedCellBtn().setDisable(true);
             }
         }else view.getLevelEditorModule().deactivateCellDetails();
-//        if(view.getCodeArea().getSelectedCodeField()!=null && !view.getCodeArea().isDisabled())view.getCodeArea().getSelectedCodeField().requestFocus();
-//        else if(view.getAiCodeArea().getSelectedCodeField()!=null && !view.getAiCodeArea().isDisabled())view.getAiCodeArea().getSelectedCodeField().requestFocus();
     }
 
     private boolean toggleActionEventFiring() {
@@ -841,7 +814,6 @@ public class EditorController implements SimpleEventListener {
                 int column = p.getX();
                 int row = p.getY();
                 gameMap.clearFlags(column,row);
-                //TODO: darf es wirklich nur einen geben?
                 if(content == null) throw new IllegalStateException("Content: " + btn.getText().toUpperCase().replaceAll(" ", "_") + " doesnt exist!");
                 if(content == CellContent.SPAWN){
                     for(int x = 0; x < gameMap.getBoundX();x++){
@@ -880,15 +852,9 @@ public class EditorController implements SimpleEventListener {
             Button btn = (Button) view.getCellItemSelectionPane().getChildren().get(i*rowC+j);
             final ItemType item = ItemType.getValueFromName(btn.getText().toUpperCase());
             btn.setOnMousePressed(mouseEvent -> {
-                for(Point p : view.getSelectedPointList()) {
-                    int column = p.getX();
-                    int row = p.getY();
-
-                    CellContent content = gameMap.getContentAtXY(column, row);
-                    view.setAllItemBtnsDisable(false);
-                    view.setItemButtonDisabled(item,true);
-                    setHandlersForMapCells();
-                }
+                view.setAllItemBtnsDisable(false);
+                view.setItemButtonDisabled(item,true);
+                setHandlersForMapCells();
                 gameMap.setMultipleItems(view.getSelectedPointList(), item);
                 model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
             });

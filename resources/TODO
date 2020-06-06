@@ -22,7 +22,6 @@ IMPORTANT:
 - duplicate code in new lvl, open lvl, edit lvl?
 - add all VariableTypes enumerated in the enum
 - Why is every assignment parsed twice?? (codeparser -> parseassignment sout -> twice in commandline)
-- Status whether level is saved or if changes will be lost
 -reimplement saving mechanism? New class UnsavedData or similarly named
     OR
 -message upon saving: the following levels will be saved too, due to changes they are connected to
@@ -33,17 +32,10 @@ IMPORTANT:
 - merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
 -> figure out how to evaluate values of conditions and assignments!
 - newturns > turns but newlines < lines -> better? (not justifiable to give 2.5!)
-- schleusen level with and without an inverted gate
 - evil wizard explains level editor
 - leveleditor open with a dialog whether to open a level or create a new one
-- decide whether you should see animations if they dont do anything
-- only have one levelEdited in model representing what was done to the level in the current editor -> changes will be lost upon opening another level! -> JSONParser.save(Changes)
 - index bugged out -> might have to do with creating a new level and not saving it (maybe it was because I named it like the other level and it is case insensitive!!!!)
-- also new levels are always added last instead of in between -> change together with saving system
-- Enum for what data to retrieve from data.json! or save or delete
 - Refactorings: no Direction enum, Use the allowedRegexes (instead of .matches(LEFT|RIGHT|...), evaluation of statements, Interface COndition is DUMB!
-- Save only upon closing?? -> dynamic change system in model that is saved upon closing
-- put all the evaluating from the codeexecutor to the codeevaluator?
 - instead of unknown method it says variable not in scope
 - make Introduction Pane transparent, show first level and highlight every part of the screen one after the other (code section, spellbook)
 - create a clean event handling implementation!

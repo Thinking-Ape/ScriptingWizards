@@ -6,9 +6,13 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -16,6 +20,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import main.model.GameConstants;
 import main.model.ModelInformer;
+import main.model.gamemap.enums.TurnDirection;
+import main.model.statement.MethodType;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -397,25 +403,10 @@ public abstract class Util {
         return output;
     }
 
-    public static void printList(List<String> codeLines) {
-        for(String s : codeLines){
-            System.out.println(s);
-        }
-    }
-
-    public static <T> boolean listsEqual(List<T> list1, List<T> list2) {
-        if(list1.size()!=list2.size())return false;
-        boolean same = true;
-        for(int i = 0; i < list1.size();i++){
-            same = same && list1.get(i).equals(list2.get(i));
-        }
-        return same;
-    }
-
     public static boolean textIsTooLongForCodefield(String code, int depth) {
         Text text = new Text(code);
         text.setFont(GameConstants.CODE_FONT);
-        if(text.getLayoutBounds().getWidth() > GameConstants.TEXTFIELD_WIDTH-GameConstants.CODE_OFFSET*depth-GameConstants.SCREEN_WIDTH/110)return true;
+        if(text.getLayoutBounds().getWidth() > GameConstants.CODEFIELD_WIDTH -GameConstants.CODE_OFFSET*depth-GameConstants.SCREEN_WIDTH/110)return true;
         else return false;
     }
 
@@ -472,4 +463,131 @@ public abstract class Util {
     public static String getIllegalVariableString(String variableName) {
         return "Variable Name: \""+variableName + "\" is illegal! You may only use names starting with a letter and only including letters and numbers!";
     }
+
+    public static Image makeTransparent(Image inputImage) {
+        int W = (int) inputImage.getWidth();
+        int H = (int) inputImage.getHeight();
+        WritableImage outputImage = new WritableImage(W, H);
+        PixelReader reader = inputImage.getPixelReader();
+        PixelWriter writer = outputImage.getPixelWriter();
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                int argb = reader.getArgb(x, y);
+
+                int r = (argb >> 16) & 0xFF;
+                int g = (argb >> 8) & 0xFF;
+                int b = argb & 0xFF;
+
+                if (r >= 0xFF
+                        && g >= 0xFF
+                        && b >= 0xFF) {
+                    argb &= 0x00FFFFFF;
+                }
+
+                writer.setArgb(x, y, argb);
+            }
+        }
+
+        return outputImage;
+    }
+
+    public static void setTextFieldWidth(TextField... textFields) {
+        for(TextField textField : textFields){
+            textField.setMaxWidth(GameConstants.TEXTFIELD_WIDTH);
+        }
+    }
+
+    public static int modulo(int inputNumber, int modulo) {
+        if(inputNumber <0) return modulo(inputNumber+modulo,modulo);
+        return inputNumber%modulo;
+    }
+
+    public static String findNearestEntryWithMaxDist(String methodName, List<String> entries) {
+        int maxDist = 2;
+        String nearest = getNearestElementInList(methodName, entries);
+
+        int dist = dist(nearest.toCharArray(),methodName.toCharArray());
+        if(dist<=maxDist){
+            return nearest;
+        }
+        if(!methodName.equals(methodName.toUpperCase())){
+            return findNearestEntryWithMaxDist(methodName.toUpperCase(), entries);
+        }
+        return "";
+    }
+
+    private static String getNearestElementInList(String methodName, List<String> values) {
+        String minElement = values.get(0);
+
+        int minDistance = methodName.length();
+        for(String s : values){
+            if(minDistance < s.length())minDistance = s.length();
+        }
+        for(String value : values){
+
+            int distance = dist(value.toCharArray(),methodName.toCharArray());
+            if(distance < minDistance){
+                minDistance = distance;
+                minElement = value;
+            }
+        }
+        return minElement;
+    }
+    public static int dist( char[] s1, char[] s2 ) {
+
+        // memoize only previous line of distance matrix
+        int[] prev = new int[ s2.length + 1 ];
+
+        for( int j = 0; j < s2.length + 1; j++ ) {
+            prev[ j ] = j;
+        }
+
+        for( int i = 1; i < s1.length + 1; i++ ) {
+
+            // calculate current line of distance matrix
+            int[] curr = new int[ s2.length + 1 ];
+            curr[0] = i;
+
+            for( int j = 1; j < s2.length + 1; j++ ) {
+                int d1 = prev[ j ] + 1;
+                int d2 = curr[ j - 1 ] + 1;
+                int d3 = prev[ j - 1 ];
+                if ( s1[ i - 1 ] != s2[ j - 1 ] ) {
+                    d3 += 1;
+                }
+                curr[ j ] = Math.min( Math.min( d1, d2 ), d3 );
+            }
+
+            // define current line of distance matrix as previous
+            prev = curr;
+        }
+        return prev[ s2.length ];
+    }
+
+    public static <T> List<String> getNamesOfEnumValues(T[] values) {
+        List<String> names = new ArrayList<>();
+        for(T t : values){
+            names.add(t.toString());
+        }
+        return names;
+    }
+/*
+    public static int getApproxDistanceBetweenStrings(String shortString, String longString, int dist) {
+
+        if(longString.contains(shortString))return dist + longString.length() - shortString.length();
+        int minDist = longString.length();
+//        if(j < longString.length()){
+            for(int i = 0; i < shortString.length();i++){
+                int tempDist = minDist;
+                int index = i;
+                if(shortString.charAt(i) != longString.charAt(index)){
+                    String newValue = shortString.replaceFirst(shortString.substring(0, i+1), shortString.substring(0, i)+longString.charAt(index));
+                    tempDist = getApproxDistanceBetweenStrings(newValue, longString, dist+1);
+                }
+                if(minDist > tempDist) minDist = tempDist;
+            }
+            dist += minDist;
+//        }
+        return dist;
+    }*/
 }

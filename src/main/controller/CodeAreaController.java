@@ -122,16 +122,17 @@ public class CodeAreaController implements SimpleEventListener {
             // clicking the current CodeField will do nothing
             if(currentCodeArea.getSelectedCodeField() == currentCodeField)return;
 
-//            currentCodeArea.deselectAll();
             showError = true;
 
             if(compilerActive)
                 handleCodeFieldEvent(currentCodeArea.getAllCode(),currentCodeArea);
+            if(!currentCodeField.isEditable() ){
+                currentCodeArea.getSelectedCodeField().requestFocus();
+                return;
+            }
 
-            if(!currentCodeArea.isEditable() )return;
             if(!isError){
                 currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
-//                currentCodeArea.deselectAll();
                 currentCodeArea.select(currentCodeField, Selection.NONE);
             }
         });
@@ -149,13 +150,12 @@ public class CodeAreaController implements SimpleEventListener {
             if(compilerActive && event.isControlDown() && !currentCodeField.isEditable())
                 currentCodeArea.requestFocus();
             if(View.getCurrentSceneState() != SceneState.LEVEL_EDITOR && currentCodeArea.isAi())return;
-//            if (gameRunning){
-//                return;
-//            }
+
             needsRecreation = false;
             addBefore = false;
             showError = false;
             needToIncreaseCurrentIndex = false;
+
             List<String> codeLines = currentCodeArea.getAllCode();
             String forVariablePatternString = " *for *\\( *int +("+GameConstants.VARIABLE_NAME_REGEX+")(.+\\{)$";
             currentIndex = currentCodeArea.indexOfCodeField(currentCodeField);
@@ -239,7 +239,7 @@ public class CodeAreaController implements SimpleEventListener {
                     Matcher matcherSimple = Pattern.compile(simpleStatementRegex).matcher(currentCodeField.getText());
                     Matcher matcherComplex = Pattern.compile(complexStatementRegex).matcher(currentCodeField.getText());
 
-                    /* The following code lines are comments, because MethodDeclarations have been postponed
+                    /* The following code lines are comments, because MethodDeclarations have been postponed/cancelled
                      * until their usage or necessity is clear to me
                      */
 
@@ -262,8 +262,6 @@ public class CodeAreaController implements SimpleEventListener {
                         if (currentCodeArea.getBracketBalance() > 0) needsBrackets = true;
                     }
                     int scrollAmount = currentCodeArea.getScrollAmount() + 1;
-                    //TODO: dont understand this: < currentCodeArea.getSize() ? currentCodeArea.getScrollAmount() + 1 : currentCodeArea.getSize() - 1 - GameConstants.MAX_CODE_LINES;
-
                     if (needsBrackets) {
                         codeLines.add(currentIndex + 1, "}");
                     }

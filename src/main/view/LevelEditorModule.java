@@ -105,7 +105,7 @@ public class LevelEditorModule {
         Util.applyFontFormatRecursively(topHBox);
         isTurnedCBox.setStyle("-fx-background-color: white");
         isInvertedCBox.setStyle("-fx-background-color: white");
-        topHBox.setSpacing(TEXTFIELD_HEIGHT+5);
+        topHBox.setSpacing(CODEFIELD_HEIGHT +5);
         topHBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREY,null,Insets.EMPTY)));
         cellTypeVBox.setAlignment(Pos.CENTER);
         cellTypeVBox.setStyle("-fx-background-color: lightgray");
@@ -117,21 +117,21 @@ public class LevelEditorModule {
         cellItemVBox.setAlignment(Pos.TOP_CENTER);
         cellItemVBox.setStyle("-fx-background-color: lightgray");
         cellItemSelectionGPane.setAlignment(Pos.TOP_CENTER);
-        itemAndDetailHBox.setSpacing(TEXTFIELD_HEIGHT);
+        itemAndDetailHBox.setSpacing(CODEFIELD_HEIGHT);
         itemAndDetailHBox.setAlignment(Pos.TOP_CENTER);
         rightVBox.setAlignment(Pos.CENTER);
         rightVBox.setSpacing(BUTTON_SIZE/2);
         tutorialTextArea.setEditable(false);
-        tutorialTextArea.setMaxWidth(GameConstants.TEXTFIELD_WIDTH*0.8);
-        tutorialTextArea.setMinWidth(GameConstants.TEXTFIELD_WIDTH*0.8);
-        tutorialTextArea.setMaxHeight(TEXTFIELD_HEIGHT*7);
-        tutorialTextArea.setMinHeight(TEXTFIELD_HEIGHT*6);
+        tutorialTextArea.setMaxWidth(GameConstants.CODEFIELD_WIDTH *0.8);
+        tutorialTextArea.setMinWidth(GameConstants.CODEFIELD_WIDTH *0.8);
+        tutorialTextArea.setMaxHeight(CODEFIELD_HEIGHT *7);
+        tutorialTextArea.setMinHeight(CODEFIELD_HEIGHT *6);
         tutorialTextArea.setFont(new Font(tutorialTextArea.getFont().getName(), FONT_SIZE));
 
         tutorialTextArea.setMouseTransparent(true);
         tutorialTextArea.setWrapText(true);
-        linkedCellListView.setMaxWidth(TEXTFIELD_HEIGHT*2);
-        linkedCellListView.setMaxHeight(TEXTFIELD_HEIGHT);
+        linkedCellListView.setMaxWidth(CODEFIELD_HEIGHT *2);
+        linkedCellListView.setMaxHeight(CODEFIELD_HEIGHT);
         editTutHBox.setAlignment(Pos.TOP_CENTER);
         prevNextTutHBox.setAlignment(Pos.TOP_CENTER);
         cellDetailVBox.setAlignment(Pos.TOP_CENTER);
@@ -139,13 +139,13 @@ public class LevelEditorModule {
 
         prevTutorialTextBtn.setDisable(true);
 
-        requiredLevelsLView.setMaxHeight(TEXTFIELD_HEIGHT*1.2);
-        requiredLevelsLView.setMinHeight(TEXTFIELD_HEIGHT*1.2);
-        requiredLevelsLView.setMaxWidth(TEXTFIELD_WIDTH*0.5);
-        requiredLevelsLView.setMinWidth(TEXTFIELD_WIDTH*0.5);
+        requiredLevelsLView.setMaxHeight(CODEFIELD_HEIGHT *1.2);
+        requiredLevelsLView.setMinHeight(CODEFIELD_HEIGHT *1.2);
+        requiredLevelsLView.setMaxWidth(CODEFIELD_WIDTH *0.5);
+        requiredLevelsLView.setMinWidth(CODEFIELD_WIDTH *0.5);
         requiredLevelsLabel.setFont(new Font(requiredLevelsLabel.getFont().getName(),GameConstants.FONT_SIZE));
-        requiredLVBOX.getTransforms().add(new Translate(0,-TEXTFIELD_HEIGHT*0.8,0));
-        topHBox.setMaxHeight(TEXTFIELD_HEIGHT*2);
+        requiredLVBOX.getTransforms().add(new Translate(0,-CODEFIELD_HEIGHT *0.8,0));
+        topHBox.setMaxHeight(CODEFIELD_HEIGHT *2);
         int i = 0;
         int j = 0;
         for (CellContent content : CellContent.values()){

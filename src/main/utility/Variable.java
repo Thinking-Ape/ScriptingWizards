@@ -44,13 +44,6 @@ public class Variable {
     }
 
     public void update(Expression value) {
-        //TODO: check whether value has the correct type!
         this.value = value;
     }
-//    public static ExpressionTree evaluateVariable(String varName, ComplexStatement parentStatement) {
-//        Variable variable = parentStatement.getVariable(varName);
-//        if(variable == null)return ExpressionTree.expressionFromString(varName);
-//        if(parentStatement.getVariable(variable.getValue().getCode())!=null)return evaluateVariable(variable.getValue().getCode(),parentStatement);
-//        else return variable.getValue();
-//    }
 }

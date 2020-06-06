@@ -21,10 +21,10 @@ public class CodeField extends TextField {
         this.setFont(GameConstants.CODE_FONT);
         this.getTransforms().add(new Translate((depth-1)*GameConstants.CODE_OFFSET,0,0));
         resetStyle();
-        this.setMaxHeight(GameConstants.TEXTFIELD_HEIGHT);
-        this.setMaxWidth(GameConstants.TEXTFIELD_WIDTH-GameConstants.CODE_OFFSET*depth);
-        this.setMinHeight(GameConstants.TEXTFIELD_HEIGHT);
-        this.setMinWidth(GameConstants.TEXTFIELD_WIDTH-GameConstants.CODE_OFFSET*depth);
+        this.setMaxHeight(GameConstants.CODEFIELD_HEIGHT);
+        this.setMaxWidth(GameConstants.CODEFIELD_WIDTH -GameConstants.CODE_OFFSET*depth);
+        this.setMinHeight(GameConstants.CODEFIELD_HEIGHT);
+        this.setMinWidth(GameConstants.CODEFIELD_WIDTH -GameConstants.CODE_OFFSET*depth);
         this.autosize();
     }
 

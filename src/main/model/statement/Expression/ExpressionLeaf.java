@@ -4,7 +4,7 @@ public class ExpressionLeaf extends Expression {
 
     private String expression;
 
-    public ExpressionLeaf(String expression){//}, int depth){
+    public ExpressionLeaf(String expression){
         super(ExpressionType.SIMPLE);
         this.expression = expression.trim();
     }
