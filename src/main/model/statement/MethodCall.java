@@ -13,7 +13,7 @@ public class MethodCall extends SimpleStatement {
     public MethodCall(MethodType methodType,String objectName,String parameters){
         super(StatementType.METHOD_CALL);
         this.methodType = methodType;
-        this.expressionTree = new ExpressionTree(new ExpressionLeaf(objectName), ExpressionType.SIMPLE, Expression.expressionFromString(parameters)); //1,1,0 wen bisher vergesssen immer 0
+        this.expressionTree = new ExpressionTree(new ExpressionLeaf(objectName), ExpressionType.SIMPLE, Expression.expressionFromString(parameters));
     }
 
     public ExpressionTree getExpressionTree(){

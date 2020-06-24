@@ -313,6 +313,7 @@ public class Controller {
             Alert alert = new Alert(Alert.AlertType.NONE, "Do you really want to overwrite the current code?", ButtonType.OK, ButtonType.CANCEL);
             Optional<ButtonType> result = noCode ? null : alert.showAndWait();
             if (noCode || (result.isPresent() && result.get() == ButtonType.OK)) {
+                view.getCodeArea().scrollTo(0);
                 bestCode = model.getCurrentlyBestCode();
                 if (bestCode.size() != 0) {
                     view.getCodeArea().updateCodeFields(CodeParser.parseProgramCode(bestCode));

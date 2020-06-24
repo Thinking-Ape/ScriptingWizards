@@ -32,7 +32,6 @@ public class SpellBookPane extends VBox {
         spellListView.setPrefSize(SPELLBOOK_WIDTH, GameConstants.SPELLBOOK_HEIGHT);
         spellListView.setMaxSize(SPELLBOOK_WIDTH, GameConstants.SPELLBOOK_HEIGHT);
         // does actually belong here, as it is only concerned with visual effect and not with any functionality
-        // maybe add actual functionality later -> move to controller!
         spellListView.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume);
         showShortcutsBtn.setFont(MEDIUM_FONT);
         moveBtn.setFont(MEDIUM_FONT);
@@ -203,7 +202,7 @@ public class SpellBookPane extends VBox {
                 case IS_ALIVE:
                 case WAIT:
                 case DROP_ITEM:
-                case TARGET_IS_DANGER:
+                case TARGETS_DANGER:
                     break;
                 case TURN:
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<TurnDirection>","One of the following: LEFT, RIGHT or AROUND"));

@@ -888,7 +888,6 @@ public class View implements LevelChangeListener {
                     speedSlider.setMouseTransparent(true);
                     showSpellBookBtn.setMouseTransparent(true);
                 }
-                //TODO: move to controller?
                 if(isIntroduction){
                     tutorialGroup.setEntries(Util.StringListFromArray(TUTORIAL_LINES));
                 }

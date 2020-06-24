@@ -64,7 +64,6 @@ public class CodeEvaluator {
     private List<String> getUnlockedBooleanMethodsFromStatement( Condition condition) {
         List<String> output = new ArrayList<>();
         if(condition == null)return output;
-        //TODO: !!!UUUUURRRGH
         Matcher m = Pattern.compile(".*("+GameConstants.VARIABLE_NAME_REGEX+").*?").matcher(condition.getText());
         if(m.matches())
             for(int i = 1; i< m.groupCount()+1;i++){
@@ -134,32 +133,9 @@ public class CodeEvaluator {
                 else elseStatement.deactivateElse();
                 break;
             case METHOD_CALL:
-                //TODO: necessary?
                 MethodCall mC = (MethodCall)currentStatement;
-//                Variable var = variableScope.getVariable(mC.getObjectName());
-//                VariableType variableType = var.getVariableType();
-//                if(variableType == VariableType.ARMY){
-//                    Matcher matcher = Pattern.compile("^ *new *Army(\\(.*\\)) *$").matcher(var.getValue().getCode());
-//                    if(matcher.matches()){
-//                        varNames = matcher.group(1);
-//                    }
-//                }
-
-//                Variable object = variableScope.getVariable(mC.getObjectName());
-//                if(object.getVariableType() == VariableType.KNIGHT ||object.getVariableType() == VariableType.SKELETON)
-//                if(Model.getCurrentMapCopy().getEntityPosition(mC.getObjectName()) == null){
-//                    currentStatement = new SimpleStatement();
-//                    break;
-//                }
                 String newParameters = "";
                 switch (mC.getMethodType()){
-                    case MOVE:
-                    case USE_ITEM:
-                    case COLLECT:
-                    case CAN_MOVE:
-                    case BACK_OFF:
-                    case IS_ALIVE:
-                        break;
                     case HAS_ITEM:
                     case TARGETS_CELL:
                     case TARGETS_ITEM:
@@ -167,25 +143,24 @@ public class CodeEvaluator {
                     case TARGETS_ENTITY:
                         newParameters = evaluateVariable(mC.getParameters()[0]).getText();
                         break;
-                    case WAIT:
-                        break;
-                    case TARGET_IS_DANGER:
-                        break;
-                    case DROP_ITEM:
-                        break;
-                    case ATTACK:
-                        break;
-                    case IS_LOOKING:
+                    default:
                         break;
                 }
                 String objectName = mC.getObjectName();
+                if(variableScope.getVariable(objectName).getVariableType() == VariableType.KNIGHT)
+                    while(!variableScope.getVariable(objectName).getValue().getText().matches(VariableType.KNIGHT.getAllowedRegex())){
+                        objectName = variableScope.getVariable(objectName).getValue().getText();
+                    }
+                if(variableScope.getVariable(objectName).getVariableType() == VariableType.SKELETON)
+                    while(!variableScope.getVariable(objectName).getValue().getText().matches(VariableType.SKELETON.getAllowedRegex())){
+                        objectName = variableScope.getVariable(objectName).getValue().getText();
+                    }
                 if(variableScope.getVariable(mC.getObjectName()).getVariableType()==VariableType.ARMY){
                     objectName = evaluateVariable(objectName).getText().replaceAll(VariableType.ARMY.getAllowedRegex(), "$1");
                     if(objectName.contains(","))objectName="("+objectName+")";
                 }
                 currentStatement = new MethodCall(mC.getMethodType(), objectName, newParameters);
                 break;
-            //TODO: Method? + Assignemnt
             case DECLARATION:
 
                 Assignment declaration = (Assignment)currentStatement;
@@ -194,7 +169,8 @@ public class CodeEvaluator {
                 String varNames = variable.getName();
                 Expression value = declaration.getVariable().getValue();
                 if(!value.getText().equals("")) {
-                    value = evaluateVariable(value.getText());
+                    if(variableType != VariableType.KNIGHT &&variableType != VariableType.SKELETON)
+                        value = evaluateVariable(value.getText());
                     if (variableType == VariableType.INT) {
                         value = Expression.expressionFromString(evaluateNumericalExpression(value) + "");
                     } else if (variableType == VariableType.BOOLEAN) {
@@ -202,7 +178,6 @@ public class CodeEvaluator {
                     }
                 }
                 String valueString =value.getText();
-                        //TODO: no!
                 if(declaration.getVariable().getVariableType() == VariableType.KNIGHT){
                     Matcher knightMatcher = Pattern.compile(VariableType.KNIGHT.getAllowedRegex()).matcher(valueString);
                     if(knightMatcher.matches()){
@@ -210,6 +185,7 @@ public class CodeEvaluator {
                         direction = evaluateVariable(direction).getText();
                         valueString = "new Knight("+direction+")";
                     }
+
                     currentStatement = new Assignment(varNames, variableType, Expression.expressionFromString(valueString), true);
                 }
                 else if(declaration.getVariable().getVariableType() == VariableType.SKELETON) {
@@ -262,6 +238,9 @@ public class CodeEvaluator {
                                 direction = evaluateVariable(direction).getText();
                                 valueString = "new Knight("+direction+")";
                             }
+//                            else {
+//                                varNames = valueString;
+//                            }
                             variable2 = new Variable(variableType, varNames, Expression.expressionFromString(valueString));
                             break;
                     case SKELETON:
@@ -279,6 +258,9 @@ public class CodeEvaluator {
                                 valueString = valueString.replace(directionAndId[1],id+"");
                             }
                         }
+//                        else {
+//                            varNames = valueString;
+//                        }
                         variable2 = new Variable(variableType, varNames, Expression.expressionFromString(valueString));
                     case VOID:
                         break;
@@ -286,12 +268,6 @@ public class CodeEvaluator {
                 assert variable2 != null;
                 variableScope.updateVariable(variable2);
                 if(variableType == VariableType.KNIGHT ||variableType == VariableType.SKELETON ||variableType == VariableType.ARMY){
-                    if(variableType == VariableType.ARMY){
-                        Matcher matcher = Pattern.compile("^ *new *Army(\\(.*\\)) *$").matcher(variable2.getValue().getText());
-                        if(matcher.matches()){
-//                            varNames = matcher.group(1);
-                        }
-                    }
                     currentStatement = new Assignment(varNames, variableType, variable2.getValue(), false);
                 }
                 break;
@@ -536,7 +512,6 @@ public class CodeEvaluator {
         Variable variable = variableScope.getVariable(objectName);
         if(variable == null)throw new IllegalArgumentException("Variable "+objectName +" does not exist!");
         VariableType vType = variable.getVariableType();
-        //TODO: make better!
         if(vType == VariableType.KNIGHT||vType == VariableType.SKELETON || vType == VariableType.ARMY){
             String[] nameList = new String[]{objectName};
             if(vType == VariableType.ARMY)nameList = variable.getValue().getText().replaceAll(VariableType.ARMY.getAllowedRegex(), "$1").split(",");
@@ -566,7 +541,7 @@ public class CodeEvaluator {
                     case COLLECT:
                     case BACK_OFF:
                     case ATTACK:
-                        throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!"); //TODO: exceptions should occur in OldCodeParser
+                        throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!");
                     case IS_ALIVE:
                         continue;
                     case CAN_MOVE:
@@ -582,7 +557,7 @@ public class CodeEvaluator {
                     case TARGETS_CELL:
                         output = output && (targetContent == CellContent.getValueFromName(parameterString));
                         continue;
-                    case TARGET_IS_DANGER:
+                    case TARGETS_DANGER:
                         output = output && (currentGameMap.cellHasFlag(targetPoint, CellFlag.PREPARING)|| currentGameMap.cellHasFlag(targetPoint, CellFlag.ARMED));
                         //||!(targetEntity.getEntityType()!= EntityType.SKELETON) <- Skeletons no longer kill you when you walk into them
                         continue;

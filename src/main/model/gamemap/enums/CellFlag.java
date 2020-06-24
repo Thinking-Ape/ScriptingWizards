@@ -15,11 +15,9 @@ public enum CellFlag {
     KEY_DESTROYED(true),
     ITEM_DESTROYED(true),
     DIRT_REMOVED(true),
-    ACTION(true), //only used for SPAWN when there are no more knights to spawn!
-    //HURTING("Hurting"),
-    //COLLECTIBLE("Collectible");
+    ACTION(true),
     CHANGE_COLOR(true),
-    HELPER_FLAG(true);
+    HELPER_FLAG(true); //used to mark that a cell has changed
     boolean isTemporary;
 
     CellFlag(boolean isTemporary) {

@@ -5,6 +5,7 @@ import main.model.gamemap.Entity;
 import main.model.gamemap.GameMap;
 import main.model.gamemap.enums.*;
 import main.model.statement.*;
+import main.model.statement.Expression.Expression;
 import main.model.statement.Expression.ExpressionTree;
 import main.utility.Point;
 import main.utility.Variable;
@@ -52,17 +53,20 @@ public abstract class CodeExecutor {
                 methodWasCalled = true;
                 String name = assignment.getVariable().getName();
                 Direction direction = null;
+                Expression expression = var.getValue();
+                if(expression.isLeaf()) return false;
                 ExpressionTree expressionTree = ((ExpressionTree)var.getValue());
                 if(expressionTree.getRightNode()!=null)
                     direction= Direction.getValueFromString(expressionTree.getRightNode().getText());
+
                 if(direction == null)
                     direction = Direction.NORTH;
 
-
                 Point spawn = currentGameMap.findSpawn();
+                if(statement.getStatementType() == StatementType.ASSIGNMENT)
+                    currentGameMap.getEntity(name).deleteIdentity();
 
-                if(statement.getStatementType() == StatementType.ASSIGNMENT) currentGameMap.getEntity(name).deleteIdentity();
-                if(spawn.getX() != -1&&currentGameMap.getEntity(spawn)==NO_ENTITY && (canSpawnKnights||replaced)){
+                if(spawn.getX() != -1 && currentGameMap.getEntity(spawn)==NO_ENTITY && (canSpawnKnights||replaced)){
                     if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
                     currentGameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
                     knightWasSpawned = !replaced;
@@ -75,6 +79,7 @@ public abstract class CodeExecutor {
                 String name = var.getName();
                 Direction direction = Direction.NORTH;
                 ExpressionTree expressionTree = ((ExpressionTree)var.getValue());
+                if(!expressionTree.getText().matches(" *new *Skeleton\\(.*\\)")) return false;
                 if(expressionTree.getRightNode()!= null)
                     direction = Direction.getValueFromString(expressionTree.getRightNode().getText());
                 String spawnId = "";
@@ -126,7 +131,8 @@ public abstract class CodeExecutor {
         if((actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD)&&GameConstants.ACTION_WITHOUT_CONSEQUENCE){
             currentGameMap.setFlag(actorPos , CellFlag.ACTION,true );
             //this will have the effect that the target cell will be drawn, even though it did not change
-            if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.HELPER_FLAG,true);
+            if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)
+                currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.HELPER_FLAG,true);
         }
         if(actorEntity.getItem() == ItemType.SHOVEL&&targetContent == CellContent.DIRT){
             currentGameMap.setContent(targetPos, CellContent.PATH);
@@ -135,7 +141,7 @@ public abstract class CodeExecutor {
         }
         if(actorEntity.getItem() == ItemType.SWORD&&(currentGameMap.getEntity(targetPos) != NO_ENTITY||currentGameMap.getItem(targetPos)!=ItemType.NONE)){
             if(currentGameMap.getItem(targetPos) == ItemType.BOULDER)return;
-            currentGameMap.kill(targetPos); //TODO: maybe -> targetCell.kill();??
+            currentGameMap.kill(targetPos);
             currentGameMap.setFlag(actorPos, CellFlag.ACTION, true );
         }
 
@@ -236,21 +242,22 @@ public abstract class CodeExecutor {
                     if(GameConstants.ACTION_WITHOUT_CONSEQUENCE){
                         currentGameMap.setFlag(position , CellFlag.ACTION,true );
                         //this will have the effect that the target cell will be drawn, even though it did not change
-                        if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.ACTION,true);
+                        if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)
+                            currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.ACTION,true);
                     }
                     if(!(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)&&!(currentGameMap.getItem(currentGameMap.getTargetPoint(name)) == ItemType.BOULDER))
                         currentGameMap.setFlag(position , CellFlag.ACTION,true );
-                    currentGameMap.kill(currentGameMap.getTargetPoint(name)); //TODO: stattdessen mit getTargetPoint()?
+                    currentGameMap.kill(currentGameMap.getTargetPoint(name));
                     break;
 
                 case MOVE:
-                    tryToMoveCell(name,true); //TODO: stattdessen mit getTargetPoint()?
+                    tryToMoveCell(name,true);
                     break;
                 case BACK_OFF:
-                    tryToMoveCell(name,false); //TODO: stattdessen mit getTargetPoint()?
+                    tryToMoveCell(name,false);
                     break;
                 case TURN:
-                    tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);//evaluateIntVariable(methodCall.getExpressionTree().getRightCondition().getCode()));
+                    tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);
                     break;
                 case USE_ITEM:
                     if(currentGameMap.getEntity(position).getItem()==ItemType.NONE)break;

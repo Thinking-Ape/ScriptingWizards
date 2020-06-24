@@ -1,6 +1,12 @@
+Version 1.5e:
+    - fixed a bug where levels would be mapped onto the wrong best code
+    - fixed a bug where declaring a Knight as an existing one would lead to an exception
+    - fixed a bug where after scrolling an loading a different 'Best Code' the CodeArea would remain scrolled
+    - renamed targetIsDanger() to targetsDanger() in order to unify Method names
 Version 1.5d:
     - adjusted level difficulties
     - now stores whether level editor was unlocked in data.json
+    - improved error messages
     - more bugfixes
 Version 1.5c:
     - load best code button is now only available if code is stored for that level

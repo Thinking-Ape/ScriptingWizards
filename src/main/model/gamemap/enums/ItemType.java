@@ -5,7 +5,6 @@ import main.utility.Util;
 public enum ItemType {
 
     BOULDER,
-//    TREASURE,
     KEY,
     SWORD,
     SHOVEL,

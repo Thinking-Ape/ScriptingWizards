@@ -1,15 +1,11 @@
 package main.model.gamemap;
 
-// an interface for classes that use Behaviour
-// maybe make abstract class instead?
-
 import main.model.gamemap.enums.Direction;
 import main.model.gamemap.enums.EntityType;
 import main.model.gamemap.enums.ItemType;
 import static main.model.gamemap.enums.ItemType.NONE;
 import static main.model.GameConstants.NO_ENTITY;
 
-//maybe no use at all?? -> instead behavior map in level
 public class Entity {
 
     private String name;

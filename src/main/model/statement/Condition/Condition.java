@@ -16,7 +16,6 @@ public interface Condition {
         if(code == null || code.matches(" *"))return null;
         if(!code.matches(GameConstants.BOOLEAN_REGEX))throw new IllegalArgumentException("Condition could not be parsed!");
         code = code.trim();
-            //throw new IllegalArgumentException("You cannot have an empty condition");
         for(int i =0; i < code.length();i++){
             char c = code.charAt(i);
             char cc = ' ';
@@ -29,7 +28,6 @@ public interface Condition {
             if( foundAnd && depth == 0){
                 String firstArgument = Util.stripCode(code.substring(0,i));
                 String secondArgument = Util.stripCode(code.substring(i+2));
-//                return new ConditionTree(conditionFromString(firstArgument,level+1), ConditionType.AND, conditionFromString(secondArgument,level+1),level+1);
                 return new ConditionTree(getConditionFromString(firstArgument), AND, getConditionFromString(secondArgument));
             } else if( foundOr && depth == 0){
                 if(! (i+2 < code.length()-1)) throw new IllegalArgumentException("'" + c + "' is not allowed to stand here");
@@ -47,8 +45,6 @@ public interface Condition {
             boolean foundNeg = (c == '!'&& cc != '=');
             if( foundNeg && depth == 0){
                 if(! (i+2 < code.length()-1)) throw new IllegalArgumentException("'" + c + "' is not allowed to stand here");
-                //TODO: NEGATIONS!!!
-//                String firstArgument = stripCode(code.substring(0,i));
                 String secondArgument = Util.stripCode(code.substring(i+1));
                 return new ConditionTree(null, NEGATION, getConditionFromString(secondArgument));
             }

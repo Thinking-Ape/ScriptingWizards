@@ -130,94 +130,74 @@ public abstract class CodeParser {
     private static Statement parseString(String code) {
         for(StatementType statementType : StatementType.values()){
             Matcher matcher = Pattern.compile(statementType.getRegex()).matcher(code);
+            if(!matcher.matches()){
+                continue;
+            }
             switch (statementType){
                 case WHILE:
-                    if(matcher.matches()){
                         String conditionString = matcher.group(1);
                         Condition condition = Condition.getConditionFromString(conditionString);
                         if(condition == null)throw new IllegalArgumentException("Couldnt parse Condition from input " + conditionString);
                         checkConditionForUnknownVars(condition);
                         return new WhileStatement(condition);
-                    }
-                    break;
                 case FOR:
-                    if(matcher.matches()){
-                        String forInnerString = matcher.group(1);
-                        Matcher innerForMatcher = Pattern.compile(GameConstants.FOR_INNER_REGEX).matcher(forInnerString);
-                        if(innerForMatcher.matches()){
-                            String declarationString = innerForMatcher.group(1);
-                            String conditionString = innerForMatcher.group(2);
-                            String assignmentString = innerForMatcher.group(3);
-                            Matcher declarationMatcher = Pattern.compile(StatementType.DECLARATION.getRegex()).matcher(declarationString+";");
-                            Matcher assignmentMatcher = Pattern.compile(StatementType.ASSIGNMENT.getRegex()).matcher(assignmentString+";");
-                            if(!declarationMatcher.matches()) throw new IllegalArgumentException("String: "+declarationString+" should be a declaration!");
-                            if(!assignmentMatcher.matches()) throw new IllegalArgumentException("String: "+assignmentString+" should be an assignment!");
+                    String forInnerString = matcher.group(1);
+                    Matcher innerForMatcher = Pattern.compile(GameConstants.FOR_INNER_REGEX).matcher(forInnerString);
+                    if(innerForMatcher.matches()){
+                        String declarationString = innerForMatcher.group(1);
+                        conditionString = innerForMatcher.group(2);
+                        String assignmentString = innerForMatcher.group(3);
+                        Matcher declarationMatcher = Pattern.compile(StatementType.DECLARATION.getRegex()).matcher(declarationString+";");
+                        Matcher assignmentMatcher = Pattern.compile(StatementType.ASSIGNMENT.getRegex()).matcher(assignmentString+";");
+                        if(!declarationMatcher.matches()) throw new IllegalArgumentException("String: "+declarationString+" should be a declaration!");
+                        if(!assignmentMatcher.matches()) throw new IllegalArgumentException("String: "+assignmentString+" should be an assignment!");
 
-                            Assignment declaration = parseDeclaration(declarationMatcher.group(1),declarationMatcher.group(2),declarationMatcher.group(4));
-                            if(declaration == null) throw new IllegalArgumentException("Couldnt parse Declaration: "+declarationString);
-                            variableScope.addVariable(new Variable(declaration.getVariable()));
-                            Assignment assignment = parseAssignment(assignmentMatcher.group(1),assignmentMatcher.group(2),assignmentMatcher.group(3));
-                            Condition condition =Condition.getConditionFromString(conditionString);
-                            if(condition == null)throw new IllegalArgumentException("Couldnt parse Condition from input " + conditionString);
-                            checkConditionForUnknownVars(condition);
-                            if(assignment == null) throw new IllegalArgumentException("Couldnt parse Assignment: "+assignmentString);
-                            if(declaration.getVariable().getVariableType()!=VariableType.INT)throw new IllegalArgumentException("Declaration "+declarationString+" must be an int Variable!");
-                            variableScope.removeVariable(declaration.getVariable().getName());
-                            return new ForStatement(declaration,condition,assignment);
-                        }
-                        else throw new IllegalArgumentException("Illegal input for For-Statement: "+forInnerString);
+                        Assignment declaration = parseDeclaration(declarationMatcher.group(1),declarationMatcher.group(2),declarationMatcher.group(4));
+                        if(declaration == null) throw new IllegalArgumentException("Couldnt parse Declaration: "+declarationString);
+                        variableScope.addVariable(new Variable(declaration.getVariable()));
+                        Assignment assignment = parseAssignment(assignmentMatcher.group(1),assignmentMatcher.group(2),assignmentMatcher.group(3));
+                        condition =Condition.getConditionFromString(conditionString);
+                        if(condition == null)throw new IllegalArgumentException("Couldnt parse Condition from input " + conditionString);
+                        checkConditionForUnknownVars(condition);
+                        if(assignment == null) throw new IllegalArgumentException("Couldnt parse Assignment: "+assignmentString);
+                        if(declaration.getVariable().getVariableType()!=VariableType.INT)throw new IllegalArgumentException("Declaration "+declarationString+" must be an int Variable!");
+                        variableScope.removeVariable(declaration.getVariable().getName());
+                        return new ForStatement(declaration,condition,assignment);
                     }
-                    break;
+                    else throw new IllegalArgumentException("Illegal input for For-Statement: "+forInnerString);
                 case IF:
-                    if(matcher.matches()){
-                        String conditionString = matcher.group(1);
-
-                        Condition condition = Condition.getConditionFromString(conditionString);
-                        if(condition == null)throw new IllegalArgumentException("Couldnt parse Condition from input " + conditionString);
-                        checkConditionForUnknownVars(condition);
-                        return new ConditionalStatement(condition,false);
-                    }
-                    break;
+                    conditionString = matcher.group(1);
+                    condition = Condition.getConditionFromString(conditionString);
+                    if(condition == null)throw new IllegalArgumentException("Couldnt parse Condition from input " + conditionString);
+                    checkConditionForUnknownVars(condition);
+                    return new ConditionalStatement(condition,false);
                 case ELSE:
-                    if(matcher.matches()){
-                        String conditionString = matcher.group(2);
-                        if(conditionString == null)return new ConditionalStatement(null, true);
-                        Condition condition = Condition.getConditionFromString(conditionString);
-                        if(condition == null)throw new IllegalArgumentException("Couldnt parse Condition from input " + conditionString);
-                        checkConditionForUnknownVars(condition);
-                        return new ConditionalStatement(condition,true);
-                    }
-                    break;
+                    conditionString = matcher.group(2);
+                    if(conditionString == null)return new ConditionalStatement(null, true);
+                    condition = Condition.getConditionFromString(conditionString);
+                    if(condition == null)throw new IllegalArgumentException("Couldnt parse Condition from input " + conditionString);
+                    checkConditionForUnknownVars(condition);
+                    return new ConditionalStatement(condition,true);
                 case METHOD_CALL:
-                    if(matcher.matches()){
-                        String objectName = matcher.group(2);
-                        String methodName = matcher.group(3);
-                        String parameters = matcher.group(4);
-//                        if(!objectName.matches(GameConstants.VARIABLE_NAME_REGEX))throw new IllegalArgumentException("A variable must not be named: "+methodName);
-                        MethodCall methodCall = parseMethodCall(objectName, methodName, parameters);
-                        return methodCall;
-                    }
-                    break;
+                    String objectName = matcher.group(2);
+                    String methodName = matcher.group(3);
+                    String parameters = matcher.group(4);
+                    MethodCall methodCall = parseMethodCall(objectName, methodName, parameters);
+                    return methodCall;
                 case DECLARATION:
-                    if(matcher.matches()){
-                        String varName = matcher.group(2);
-                        String varType = matcher.group(1);
-                        String value = matcher.group(4);
-                        Assignment declaration = parseDeclaration(varType,varName,value);
-                        if(declaration == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
-                        return declaration;
-                    }
-                    break;
+                    String varName = matcher.group(2);
+                    String varType = matcher.group(1);
+                    String value = matcher.group(4);
+                    Assignment declaration = parseDeclaration(varType,varName,value);
+                    if(declaration == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
+                    return declaration;
                 case ASSIGNMENT:
-                    if(matcher.matches()){
-                        String varName = matcher.group(1);
-                        String operation = matcher.group(2);
-                        String value = matcher.group(3);
-                        Assignment assignment = parseAssignment(varName,operation,value);
-                        if(assignment == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
-                        return assignment;
-                    }
-                    break;
+                    varName = matcher.group(1);
+                    String operation = matcher.group(2);
+                    value = matcher.group(3);
+                    Assignment assignment = parseAssignment(varName,operation,value);
+                    if(assignment == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
+                    return assignment;
             }
         }
         char lastChar = code.charAt(code.length()-1);
@@ -259,7 +239,7 @@ public abstract class CodeParser {
     private static void testForCorrectParameters(String parameters, MethodType mType) {
         switch (mType){
             case ATTACK:
-            case TARGET_IS_DANGER:
+            case TARGETS_DANGER:
             case WAIT:
             case DROP_ITEM:
             case MOVE:
@@ -485,7 +465,6 @@ public abstract class CodeParser {
                 }}
                 break;
             case SKELETON:
-                //TODO
                 if(!value.matches(variableType.getAllowedRegex())){
                     expression1 = Expression.expressionFromString(value);
                     if(!expression1.isLeaf()) {
@@ -573,7 +552,6 @@ public abstract class CodeParser {
     }
 
     private static void checkConditionForUnknownVars(Condition condition) {
-        // I know this doenst belong here but no time left:
         if(condition == null||condition.getText().equals(""))throw new IllegalArgumentException("You cannot have an empty Condition!");
 
         testForCorrectValueType(VariableType.BOOLEAN,condition.getText());
@@ -629,9 +607,7 @@ public abstract class CodeParser {
         }
         else{
             if(valueTree.getText().matches("new .*\\(.*\\)"))return;
-            //TODO: only allow the right ENUMS when writing those methods!
             if(MethodType.getMethodTypeFromCall(valueTree.getText())!=null)return;
-            //TODO: make this relative to: VariableType.(.+).getAllowedRegex() + "|"
             if(valueTree.getText().matches("(-?\\d+|true|false|LEFT|RIGHT|AROUND|EAST|NORTH|SOUTH|WEST|"+GameConstants.RAND_INT_REGEX+")"))return;
             if(currentForVariable != null && valueTree.getText().equals(currentForVariable.getName())) return;
             if(valueTree.getText().split("\\.").length > 1){

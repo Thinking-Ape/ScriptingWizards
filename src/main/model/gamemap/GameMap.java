@@ -203,7 +203,7 @@ public class GameMap {
         setEntity(new Point(x, y), entity);
     }
 
-    public Entity getEntity(Point ecMapGet) {//TODO: sloppy Point vs x,y??
+    public Entity getEntity(Point ecMapGet) {
         if(ecMapGet== null||ecMapGet.getX() == -1 || ecMapGet.getY() ==-1)return NO_ENTITY;
         return cellArray2D[ecMapGet.getX()][ecMapGet.getY()].getEntity();
     }
@@ -420,7 +420,7 @@ public class GameMap {
             }
     }
 
-    // An alternative, more graphic way to visualize the current map
+    // An alternative, more graphic way to visualize the current map, used in DEBUG
     public void printMap(){
         for(int i = 0; i < cellArray2D[0].length;i++){
             for(int j = 0; j < cellArray2D.length;j++){

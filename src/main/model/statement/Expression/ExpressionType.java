@@ -3,8 +3,6 @@ package main.model.statement.Expression;
 import main.model.GameConstants;
 
 public enum ExpressionType {
-
-    //TODO: CAL('.'),
     ADD('+'),
     SUB('-'),
     DIV('/'),

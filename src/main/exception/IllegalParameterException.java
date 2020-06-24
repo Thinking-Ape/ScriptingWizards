@@ -16,7 +16,7 @@ public class IllegalParameterException extends IllegalArgumentException {
             case CAN_MOVE:
             case IS_ALIVE:
             case WAIT:
-            case TARGET_IS_DANGER:
+            case TARGETS_DANGER:
             case DROP_ITEM:
             case ATTACK:
                 if(!parameter.equals("")){

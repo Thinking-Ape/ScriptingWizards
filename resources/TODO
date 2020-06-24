@@ -3,82 +3,57 @@ OPTIONAL:
 -push() method? (Rather not)
 -delete() method? (rather not)
 -make traps trigger via pressure plates also?
--isAlive() method
--CodeAreaController -> rework? (branch!)
 -create a spellbook for Skeletons (steal() instead of collect?? attack?)
 -tutorial GUI -> make user codearea smaller when tutorial is active??
--CodeEvaluator vs CodeExecutor?!
--very ugly things happen in controller!!!
--very ugly things happen in view concerning codeareas!!
--evaluateRandom is never used? Check if randoms are working properly
--CodeArea Nullpointer -> check this!
 (-add getters for entities?)
 (-from executeIf(a.canMove(),...,...) -> executeIf(canMove())??? because it is not in line with if(a.canMove())?? (BUT: a.canMove() == k1.canMove()) is valid in my opinion?!)
-
+-execute one line at a time
+-cheap graphics option?
+-alle escape sequenzen implementieren
+-be able to reset various aspects of data?
+-Required Levels entfernen?
+-replace the number argument with a color and give the spawns different colors?? (CFlag.RED,CFlag.VIOLET)
+-Level_1_... Levelname conventions
+- Wenn möglich, die Zeilen etwas größer machen. Größere Fontsize für Code.
+- Buttons für das Entfernen und Hinzufügen von Zeilen an bestimmten Stellen wären super. ZB. ein rotes Kreuz bei allen Zeilen, die man gerade löschen kann.
+- Allgemein mehr Features für den Editor wie zB. Markieren oder Drag & Drop von Code-Zeilen wären sehr hilfreich.
+- add difficulty attribute
+- show difficulty and best result yet in selection mode
+- add all VariableTypes enumerated in the enum
+- evil wizard explains level editor?
+- leveleditor open with a dialog whether to open a level or create a new one
+- merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
+-----------------------------------
 IMPORTANT:
 -----------------------------------
-- define own methods?? (Big!!) <- didnt work out ~
+- define own methods?? <- didnt work out
 - language settings
-- duplicate code in new lvl, open lvl, edit lvl?
-- add all VariableTypes enumerated in the enum
-- Why is every assignment parsed twice?? (codeparser -> parseassignment sout -> twice in commandline)
--reimplement saving mechanism? New class UnsavedData or similarly named
-    OR
--message upon saving: the following levels will be saved too, due to changes they are connected to
--changes as a class? to make saving better -> store in model also keep a change list
-
-- optimize levels on automation
-- requiredlevels arent ordered in levelviewlist as in opening screen
-- merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
--> figure out how to evaluate values of conditions and assignments!
+- eliminate duplicate code in new lvl, open lvl, edit lvl?
+- code refactoring: more methods less nesting
 - newturns > turns but newlines < lines -> better? (not justifiable to give 2.5!)
-- evil wizard explains level editor
-- leveleditor open with a dialog whether to open a level or create a new one
-- index bugged out -> might have to do with creating a new level and not saving it (maybe it was because I named it like the other level and it is case insensitive!!!!)
-- Refactorings: no Direction enum, Use the allowedRegexes (instead of .matches(LEFT|RIGHT|...), evaluation of statements, Interface COndition is DUMB!
-- instead of unknown method it says variable not in scope
-- make Introduction Pane transparent, show first level and highlight every part of the screen one after the other (code section, spellbook)
+- index bugged out once -> might have to do with creating a new level and not saving it (check case insensitivity of level names)
+- Refactorings: no Direction enum, Use the allowedRegexes (instead of .matches(LEFT|RIGHT|...), evaluation of statements, Interface Condition questionable
 - create a clean event handling implementation!
 - CodeAreaController Listens to CodeArea and sets the handlers everytime it changes
-- Where to throw the error when COdeArea wrong? -> anyways when error change state of GamePane to "ErrorState" (Maybe there are also "PlayState" and "IdleState")
-- Is CodeParser okay to be abstract? (why errors in parser and in evaluator??)
-- control the amount of objects! (no need to create new codeAreas the whole time!!
-- linked cell list is not lost upon changing content but cellid is!
-- enemy parts in tutorial?
- controller btns -> codeareacontroller
- - Strg-S etc as abbreviations for opening, closing etc.
  - rethink required levels
- - add difficulty attribute
- - show difficulty and best result yet in selection mode!!!!!!!!
- - Save as option
  - cannot put empty or content when there wasnt a wall before...
  - check arguments of skeleton constructor whether they are viable...
- - replace the number argument with a color and give the spawns different colors?? (CFlag.RED,CFlag.VIOLET)
- - ! skells.canMove() doesnt work!!
- - level editor mit passwort vor schülern schützen
- - alle escape sequenzen implementieren
- - be able to reset various aspects of data?
- - cheap graphics option? (disable smoothing)
-
- - execute one line at a time??
- - Level_1_... Levelname conventions
- - Required Levels entfernen?
- - Wenn möglich, die Zeilen etwas größer machen. Größere Fontsize für Code.
- - Buttons für das Entfernen und Hinzufügen von Zeilen an bestimmten Stellen wären super. ZB. ein rotes Kreuz bei allen Zeilen, die man gerade löschen kann.
- - Allgemein mehr Features für den Editor wie zB. Markieren oder Drag & Drop von Code-Zeilen wären sehr hilfreich.
- ==========================
  - allow XOR (^)?
  - make controlElements ignore keyboard input?
- - Better Understand and clean up CodeParser
+ - Clean up CodeParser
  - readme
  - png to jpg? for smaller images?
  - cut empty from map?
  - find another way to load images?
  - reimplement Conditions with regex
- - test package
- - only test if DEBUG?
- - dont build into game?
+ - only test if DEBUG? - dont build into game?
+ - Kurse anstelle von Tutorial? -> 10. Klasse vs. 7. Klasse
+ - Möglichkeit, kurse zu erstellen!
+ - getCell()
+ - Ingame upon hovering over a cell -> show information about this cell as a tooltip
  - {"loc":4,"code":["Knight k = new Knight();","k.collect();","k.move();","k.useItem();"],"id":0,"turns":4},{"loc":13,"code":["Knight k = new Knight(EAST);","k.move();","k.collect();","k.move();","k.turn(RIGHT);","k.useItem();","k.turn(RIGHT);","k.dropItem();","k.turn(LEFT);","k.move();","k.collect();","k.move();","k.useItem();"],"id":1,"turns":13},{"loc":11,"code":["Knight k = new Knight(EAST);","k.move();","Knight k2 = new Knight(EAST);","k.turn(LEFT);","k.move();","k2.move();","k2.move();","k2.collect();","k2.move();","k2.turn(LEFT);","k2.useItem();"],"id":2,"turns":11},{"loc":22,"code":["Knight k = new Knight(EAST);","k.move();","Knight k2 = new Knight(SOUTH);","k2.collect();","k2.move();","k2.turn(LEFT);","k2.useItem();","k2.move();","k2.turn(LEFT);","k.turn(RIGHT);","k2.dropItem();","k.turn(LEFT);","k.collect();","k.turn(RIGHT);","k.dropItem();","k2.turn(AROUND);","k2.move();","k2.turn(RIGHT);","k2.collect();","k2.turn(AROUND);","k2.move();","k2.useItem();"],"id":3,"turns":22},{"loc":13,"code":["Knight k = new Knight(EAST);","k.collect();","k.turn(RIGHT);","k.collect();","k.turn(LEFT);","k.useItem();","k.turn(RIGHT);","k.collect();","k.turn(LEFT);","k.move();","k.move();","k.turn(RIGHT);","k.useItem();"],"id":4,"turns":13},{"loc":14,"code":["Knight k = new Knight(EAST);","k.collect();","k.move();","k.move();","k.turn(LEFT);","TurnDirection dir = RIGHT;","if (k.targetsEntity()) {","k.turn(AROUND);","dir = LEFT;","}","k.move();","k.turn(dir);","k.move();","k.useItem();"],"id":5,"turns":9},{"loc":9,"code":["Knight k = new Knight(EAST);","k.collect();","for(int l = 0;l < 9;l = l + 1) {","for(int i = 0;i < 10 - l;i = i + 1) {","k.move();","}","k.turn(RIGHT);","}","k.useItem();"],"id":6,"turns":66},{"loc":-1,"code":[],"id":7,"turns":-1}
+ - {"tutorialProgress":12,"editorUnlocked":false,"storedCode":["Knight k = new Knight(SOUTH);","k.collect();","k.turn(LEFT);","k.useItem();","k.move();","k.useItem();"],"statements":["","Knight","while","int","move","for","turn","Army","targetsCell","if","collect","dropItem","canMove","else","useItem","targetsItem","targetsDanger","wait","boolean","TurnDirection","backOff","targetsEntity","hasItem","isLooking"],"unlocks":[{"loc":4,"code":["Knight k = new Knight();","k.collect();","k.move();","k.useItem();"],"name":"HelloDungeon","turns":4},{"loc":13,"code":["Knight k = new Knight(EAST);","k.move();","k.collect();","k.move();","k.turn(RIGHT);","k.useItem();","k.move();","k.turn(AROUND);","k.dropItem();","k.turn(AROUND);","k.collect();","k.move();","k.useItem();"],"name":"TurnRightToWin","turns":13},{"loc":16,"code":["Knight k = new Knight(EAST);","k.collect();","k.move();","k.move();","k.turn(LEFT);","if (k.targetsEntity(SKELETON)) {","k.turn(AROUND);","k.move();","k.turn(LEFT);","}","else {","k.move();","k.turn(RIGHT);","}","k.move();","k.useItem();"],"name":"ForkInTheRoad","turns":9},{"loc":11,"code":["Knight k = new Knight(EAST);","k.move();","Knight k2 = new Knight(EAST);","k.turn(LEFT);","k.move();","k2.move();","k2.move();","k2.collect();","k2.move();","k2.turn(LEFT);","k2.useItem();"],"name":"IdenticalTwin","turns":11},{"loc":43,"code":["Knight k = new Knight(WEST);","while(!k.targetsCell(WALL)) {","if (k.targetsDanger()) {","k.wait();","}","else {","k.move();","}","}","k.turn(RIGHT);","k.move();","k.move();","k.move();","k.turn(RIGHT);","while(!k.targetsCell(WALL)) {","if (k.targetsItem(KEY)) {","k.collect();","}","else {","k.move();","}","}","k.turn(RIGHT);","while(!k.targetsEntity()) {","k.wait();","}","k.backOff();","k.backOff();","k.backOff();","while(!k.targetsEntity()) {","k.wait();","}","while(k.targetsEntity()) {","k.wait();","}","k.backOff();","k.move();","k.move();","k.turn(RIGHT);","while(!k.targetsCell(EXIT)) {","k.move();","}","k.useItem();"],"name":"NotAboutTiming","turns":55},{"loc":17,"code":["Knight knight = new Knight(WEST);","knight.collect();","TurnDirection dir = RIGHT;","TurnDirection dir2 = LEFT;","for(int i = 0;i <= 6;i = i + 1) {","for(int j = 0;j < 12;j = j + 1) {","knight.move();","}","knight.useItem();","knight.turn(dir);","knight.move();","knight.move();","knight.turn(dir);","TurnDirection tDir = dir;","dir = dir2;","dir2 = tDir;","}"],"name":"LoopingAround","turns":117},{"loc":34,"code":["Knight knight = new Knight(EAST);","knight.wait();","int turns = 0;","while(true) {","boolean b = knight.targetsEntity(SKELETON);","if ((!knight.targetsDanger()) && knight.canMove()) {","knight.move();","}","else if (knight.canMove() || knight.targetsCell(GATE)) {","knight.wait();","}","else if (b || knight.targetsCell(EXIT)) {","knight.useItem();","}","else if (knight.targetsItem(SWORD)) {","knight.collect();","knight.turn(LEFT);","knight.move();","knight.move();","knight.turn(RIGHT);","}","else if (knight.targetsItem(KEY)) {","knight.collect();","knight.turn(AROUND);","}","else if (turns < 3) {","turns = turns + 2;","knight.turn(LEFT);","}","else {","knight.turn(RIGHT);","turns = turns - 1;","}","}"],"name":"KeyThief","turns":60},{"loc":26,"code":["Knight knight = new Knight(NORTH);","knight.collect();","knight.move();","knight.collect();","knight.turn(AROUND);","knight.dropItem();","knight.turn(AROUND);","knight.collect();","knight.move();","knight.move();","knight.dropItem();","knight.turn(AROUND);","knight.move();","knight.move();","knight.collect();","knight.turn(AROUND);","knight.move();","knight.move();","knight.turn(AROUND);","knight.dropItem();","knight.turn(AROUND);","knight.collect();","knight.move();","knight.turn(RIGHT);","knight.move();","knight.useItem();"],"name":"CollectAndDrop","turns":26},{"loc":60,"code":["Knight knight = new Knight(EAST);","boolean step1 = true;","int kills = 0;","int press = 0;","for(int i = 0;i < 3;i = i + 1) {","knight.move();","}","knight.turn(LEFT);","for(int i = 0;i < 4;i = i + 1) {","knight.move();","}","while(step1) {","if (knight.targetsEntity(SKELETON)) {","knight.turn(AROUND);","knight.wait();","knight.wait();","knight.wait();","knight.move();","knight.turn(AROUND);","knight.move();","kills = kills + 1;","if (kills == 2) {","step1 = false;","knight.move();","knight.turn(RIGHT);","}","}","else {","knight.wait();","}","}","TurnDirection dir = LEFT;","while(true) {","if (knight.targetsCell(PRESSURE_PLATE)) {","press = press + 1;","}","if (press == 2) {","knight.move();","knight.move();","knight.turn(RIGHT);","for(int i = 0;i < 4;i = i + 1) {","knight.move();","}","dir = RIGHT;","press = press + 1;","}","else if (knight.canMove()) {","knight.move();","}","else if (knight.targetsItem(KEY)) {","knight.collect();","dir = LEFT;","}","else if (knight.targetsCell(EXIT)) {","knight.useItem();","}","else {","knight.turn(dir);","}","}"],"name":"WastePress","turns":64},{"loc":35,"code":["Knight k1 = new Knight(WEST);","k1.move();","Knight k2 = new Knight(EAST);","k2.move();","Knight k3 = new Knight(NORTH);","Army a = new Army(k1,k2,k3);","while(!k1.targetsCell(PRESSURE_PLATE)) {","a.move();","if (k1.targetsCell(WALL)) {","k1.turn(RIGHT);","k2.turn(LEFT);","}","}","a.move();","k2.turn(LEFT);","k2.move();","k2.move();","k2.move();","k2.collect();","k2.move();","k2.dropItem();","k3.turn(RIGHT);","k3.collect();","k3.turn(LEFT);","while(true) {","if (k3.canMove()) {","k3.move();","}","else if (k3.targetsCell(EXIT)) {","k3.useItem();","}","else {","k3.turn(LEFT);","}","}"],"name":"TheThreeBrothers","turns":38},{"loc":22,"code":["Knight k1 = new Knight(SOUTH);","k1.collect();","k1.move();","k1.turn(LEFT);","k1.useItem();","k1.move();","k1.turn(LEFT);","Knight k2 = new Knight(EAST);","k2.move();","k2.turn(RIGHT);","k1.dropItem();","k2.turn(LEFT);","k2.collect();","k2.turn(RIGHT);","k2.dropItem();","k1.turn(AROUND);","k1.move();","k1.turn(RIGHT);","k1.collect();","k1.turn(AROUND);","k1.move();","k1.useItem();"],"name":"LearnTheRopes","turns":22},{"loc":13,"code":["Knight k = new Knight(EAST);","k.collect();","k.turn(RIGHT);","k.collect();","k.turn(LEFT);","k.useItem();","k.turn(RIGHT);","k.collect();","k.turn(LEFT);","k.move();","k.move();","k.turn(RIGHT);","k.useItem();"],"name":"Opposition","turns":13},{"loc":9,"code":["Knight k = new Knight(EAST);","k.collect();","for(int l = 0;l < 9;l = l + 1) {","for(int i = 0;i < 10 - l;i = i + 1) {","k.move();","}","k.turn(RIGHT);","}","k.useItem();"],"name":"Spiral In","turns":66},{"loc":18,"code":["Knight k = new Knight(WEST);","for(int i = 0;i < 9;i = i + 1) {","k.move();","}","k.turn(RIGHT);","k.collect();","for(int i = 0;i < 10;i = i + 1) {","k.move();","}","k.turn(RIGHT);","for(int i = 0;i < 7;i = i + 1) {","k.move();","}","k.turn(RIGHT);","for(int i = 0;i < 4;i = i + 1) {","k.move();","}","k.useItem();"],"name":"Spiral Free","turns":36},{"loc":29,"code":["Knight k = new Knight(EAST);","int turns = 0;","while(!k.targetsItem(BOULDER)) {","if (k.targetsDanger()) {","k.wait();","}","else if (k.canMove()) {","k.move();","}","else if (turns > 1) {","k.turn(LEFT);","}","else {","k.turn(RIGHT);","turns = turns + 1;","}","}","k.collect();","while(!k.targetsItem(KEY)) {","k.wait();","}","k.collect();","k.turn(LEFT);","k.move();","k.turn(RIGHT);","k.move();","k.move();","k.turn(LEFT);","k.useItem();"],"name":"DangerTraps","turns":43},{"loc":28,"code":["Knight k = new Knight(WEST);","int turns = 0;","for(int j = 0;j < 8;j = j + 1) {","k.move();","}","k.turn(RIGHT);","while(true) {","if (k.targetsDanger()) {","k.wait();","}","else if (k.canMove()) {","k.move();","}","else if (k.targetsItem()) {","k.collect();","}","else if (k.targetsCell(EXIT)) {","k.useItem();","}","else if (turns < 4 || (turns > 6 && turns < 9)) {","k.turn(RIGHT);","turns = turns + 1;","}","else {","k.turn(LEFT);","turns = turns + 1;","}","}"],"name":"FastAndFurious","turns":93},{"loc":36,"code":["Knight k = new Knight(NORTH);","k.move();","Knight k2 = new Knight(EAST);","Army a = new Army(k,k2);","while(!k.targetsItem(KEY)) {","if (k.targetsCell(PRESSURE_PLATE)) {","a.move();","k2.move();","}","else if (k2.targetsCell(DIRT)) {","a.useItem();","}","else if (k.targetsItem()) {","a.collect();","}","if (k.canMove()) {","a.move();","}","else {","k.turn(RIGHT);","k2.turn(LEFT);","k.move();","k.move();","k.turn(RIGHT);","}","}","k.turn(AROUND);","k.dropItem();","k.turn(AROUND);","k.collect();","k.move();","k.turn(LEFT);","k.move();","k.move();","k.turn(LEFT);","k.useItem();"],"name":"The Final Stand","turns":47},{"loc":18,"code":["Knight k = new Knight(EAST);","int i = 1;","TurnDirection dir = LEFT;","while(!k.targetsItem()) {","if (k.canMove()) {","k.move();","}","else {","k.turn(dir);","i = i + 1;","if (i >= 4) {","dir = RIGHT;","}","}","}","k.collect();","k.turn(RIGHT);","k.useItem();"],"name":"UnexpectedTurn","turns":47},{"loc":32,"code":["Knight k = new Knight(WEST);","for(int i = 0;i < 3;i = i + 1) {","k.move();","k.turn(LEFT);","k.move();","k.move();","k.turn(RIGHT);","boolean walked = false;","while(!walked) {","while(k.targetsDanger()) {","k.wait();","}","k.move();","if (k.canMove()) {","k.move();","walked = true;","}","else {","k.backOff();","k.turn(RIGHT);","k.move();","k.turn(LEFT);","}","}","}","k.move();","k.turn(RIGHT);","k.move();","k.move();","k.collect();","k.move();","k.useItem();"],"name":"RandomizedLaboratory","turns":57},{"loc":33,"code":["Knight k = new Knight(EAST);","int turns = 0;","while(!k.targetsItem(BOULDER)) {","if (k.targetsDanger()) {","k.wait();","}","else if (k.canMove()) {","k.move();","}","else if (turns > 1) {","k.turn(LEFT);","}","else {","k.turn(RIGHT);","turns = turns + 1;","}","}","k.collect();","k.turn(LEFT);","k.move();","k.turn(RIGHT);","while(!k.targetsEntity()) {","k.wait();","}","k.wait();","k.wait();","k.move();","k.turn(RIGHT);","k.collect();","k.turn(LEFT);","k.move();","k.turn(LEFT);","k.useItem();"],"name":"DangerTrapsEvolved","turns":43},{"loc":10,"code":["Knight k = new Knight(EAST);","k.move();","k.move();","k.collect();","k = new Knight(SOUTH);","k.move();","k.collect();","k.move();","k.move();","k.useItem();"],"name":"DeathAssignment","turns":10},{"loc":24,"code":["Knight k = new Knight(EAST);","int i = 1;","TurnDirection dir = LEFT;","while(!k.targetsItem()) {","if (k.targetsDanger()) {","k.wait();","}","else if (k.canMove()) {","k.move();","}","else if (k.targetsCell(GATE)) {","k.backOff();","}","else {","k.turn(dir);","i = i + 1;","if (i >= 4) {","dir = RIGHT;","}","}","}","k.collect();","k.turn(RIGHT);","k.useItem();"],"name":"UnexpectedTraps","turns":71},{"turns": 24,"loc": 20,"code": ["Knight k = new Knight(WEST);","k.collect();","k.move();","k.turn(AROUND);","k.dropItem();","k.turn(AROUND);","int steps = 0;","while(k.isAlive()) {","k.move();","steps = steps + 1;","}","Knight k2 = new Knight(WEST);","for(int i = 0;i < steps;i = i + 1) {","k2.move();","}","k2.turn(RIGHT);","k2.move();","k2.move();","k2.move();","k2.useItem();"],"name": "Minesweeper"},{"turns":35,"loc": 48,"code": ["Knight k = new Knight(WEST);","k.collect();","k.turn(LEFT);","k.move();","for(int i = 0;i < 2;i = i + 1) {","while(k.targetsEntity(NONE)) {","k.wait();","}","k.useItem();","if (k.targetsItem(KEY) && i == 1) {","k.backOff();","k.backOff();","k.turn(RIGHT);","k.move();","k.dropItem();","k.turn(AROUND);","k.move();","k.turn(RIGHT);","}","else if (k.targetsItem(KEY)) {","k.turn(RIGHT);","k.move();","k.turn(LEFT);","k.collect();","k.turn(LEFT);","k.move();","k.turn(RIGHT);","k.collect();","k.backOff();","k.turn(LEFT);","i = i + 1;","}","else {","k.turn(AROUND);","k.move();","k.turn(RIGHT);","k.move();","}","}","while(!k.targetsCell(EXIT)) {","if (k.canMove()) {","k.move();","}","else {","k.collect();","}","}","k.useItem();"],"name":"The Revenant"}]}
+ - The Revenant 36,38
 ---------------------------------------------
 
 
@@ -231,7 +206,7 @@ display Levelname in Playmode!
 changing level name in editor -> extra button because name of file should be changed and the entry in data and requiredlevel also!!
 
 26.09.
-TODO:[might still be an issue]adjust to codeAreacontroller no longer "null"! Instead ask for isEmpty() [do controller and model search for null tests!]
+adjust to codeAreacontroller no longer "null"! Instead ask for isEmpty() [do controller and model search for null tests!]
 make codefield scrollable! no 2 blocks!!
 atm you cannot edit the intelligent codefield via clicks without have used arrow keys or enter etc. beforehand!
 
@@ -242,7 +217,7 @@ Knight <variable name> = new Knight(<Direction>); <- tooltips
 github
 
 21.09.
-see controller: Line 110 TODO???
+see controller: Line 110
 
 19.09:
 indexing

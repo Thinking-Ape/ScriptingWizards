@@ -20,8 +20,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import main.model.GameConstants;
 import main.model.ModelInformer;
-import main.model.gamemap.enums.TurnDirection;
-import main.model.statement.MethodType;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -533,7 +531,7 @@ public abstract class Util {
         }
         return minElement;
     }
-    public static int dist( char[] s1, char[] s2 ) {
+    private static int dist( char[] s1, char[] s2 ) {
 
         // memoize only previous line of distance matrix
         int[] prev = new int[ s2.length + 1 ];
@@ -571,23 +569,4 @@ public abstract class Util {
         }
         return names;
     }
-/*
-    public static int getApproxDistanceBetweenStrings(String shortString, String longString, int dist) {
-
-        if(longString.contains(shortString))return dist + longString.length() - shortString.length();
-        int minDist = longString.length();
-//        if(j < longString.length()){
-            for(int i = 0; i < shortString.length();i++){
-                int tempDist = minDist;
-                int index = i;
-                if(shortString.charAt(i) != longString.charAt(index)){
-                    String newValue = shortString.replaceFirst(shortString.substring(0, i+1), shortString.substring(0, i)+longString.charAt(index));
-                    tempDist = getApproxDistanceBetweenStrings(newValue, longString, dist+1);
-                }
-                if(minDist > tempDist) minDist = tempDist;
-            }
-            dist += minDist;
-//        }
-        return dist;
-    }*/
 }

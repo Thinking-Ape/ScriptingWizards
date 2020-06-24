@@ -18,35 +18,12 @@ public class Cell {
     private Entity entity = NO_ENTITY;
     private ItemType item = NONE;
 
-//    public Cell(CellContent content, CellFlag... flags){
-//        this.content = content;
-//        for(CellFlag cFlag :flags){
-//            flagList.add(cFlag);
-//        }
-//    }
-    public Cell(CellContent content, Entity entity, CellFlag... flags){
-        //this.cellId = cellId;
-        this.entity =entity;
-        this.content = content;
-        for(CellFlag cellFlag :flags){
-            flagList.add(cellFlag);
-        }
-    }
-//    public Cell(CellContent content, Entity entity,List<CellFlag> flags){
-//        this.entity = entity;
-//        this.content = content;
-//        for(CellFlag cFlag :flags){
-//            flagList.add(cFlag);
-//        }
-//
-//    }
     public Cell(CellContent content){
-        //this.cellId = cellId;
         this.content = content;
     }
 
     public Cell(CellContent content, ItemType item, Entity entity, List<CellFlag> flagList, List<Integer> linkedCellIdList, int cellId) {
-        if(item != NONE && entity != NO_ENTITY)throw new IllegalStateException("Cannot hava an item and an entity");
+        if(item != NONE && entity != NO_ENTITY)throw new IllegalStateException("Cannot have both an item and an entity");
         this.item=item;
         this.entity = entity;
         this.content = content;

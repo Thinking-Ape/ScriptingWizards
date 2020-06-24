@@ -484,7 +484,7 @@ public class Model {
             bestLoc =bestLOCMap.get(getCurrentId());
             bestTurnsMap.get(getCurrentId());
         }
-        // new result not better than existing one
+        // new result worse than existing one
         if(nStars < Util.calculateStars(bestTurns,bestLoc,getCurrentLevel().getTurnsToStarsCopy() , getCurrentLevel().getLocToStarsCopy()) )return false;
 
         if(bestLOCMap.containsKey(getCurrentId())){
@@ -569,7 +569,7 @@ public class Model {
     }
 
     public List<String> getCurrentlyBestCode() {
-        return getBestCodeOfLevel(currentLevelIndex);
+        return getBestCodeOfLevel(getCurrentId());
     }
 
     public List<Integer> getUnlockedLevelIds() {

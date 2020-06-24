@@ -43,13 +43,9 @@ public abstract class Tester {
         System.out.println(stringListA.equals(stringListA));
         System.out.println(stringListA.equals(stringListC));
         System.out.println(stringListA.equals(stringListD));
+        // Remove those in case of build
         new CodeEvaluatorTest().testEvaluateStatement();
         new CodeParserTest().testParseProgramCode();
         new CodeExecutorTest().testExecuteBehaviour();
-
-        System.out.println(Util.dist("allo".toCharArray(),"hallo".toCharArray()));
-        System.out.println(Util.dist("hall".toCharArray(),"hallo".toCharArray()));
-        System.out.println(Util.dist("eag".toCharArray(),"hallo".toCharArray()));
-        System.out.println(Util.dist("wa".toCharArray(),"wait".toCharArray()));
     }
 }

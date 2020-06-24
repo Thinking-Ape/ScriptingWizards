@@ -76,7 +76,7 @@ public class LevelOverviewPane extends VBox {
             Integer[] locToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
             double nStars = Util.calculateStars(turns,loc,turnsToStars,locToStars);
             GameMap gameMap = (GameMap) ModelInformer.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
-            // View.getIconFromMap(gameMap) is an intensive calculation!
+            // View.getIconFromMap(gameMap) requires long calculation!
             // Dont call this too often, because View.getIconFromMap(gameMap) is costly!
             LevelEntry le = new LevelEntry(View.getIconFromMap(gameMap),levelName,
                     getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
@@ -93,7 +93,6 @@ public class LevelOverviewPane extends VBox {
         Image image = View.getIconFromMap((GameMap)ModelInformer.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i));
         Integer[] turnsToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
         Integer[] locToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
-//        double nStars = Util.calculateStars(bestResults[1],bestResults[0],turnsToStars,locToStars)
         String levelName = (String)ModelInformer.getDataFromLevelWithIndex(LevelDataType.LEVEL_NAME,i);
         LevelEntry le = new LevelEntry(image,levelName,
                 getLevelTooltip(turnsToStars,locToStars),getBestScoreString(-1,-1,0),0);

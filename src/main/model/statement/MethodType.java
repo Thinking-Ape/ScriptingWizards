@@ -21,7 +21,7 @@ public enum MethodType {
     TARGETS_ITEM("targetsItem\\(.*\\)",BOOLEAN, false,true,"Optionally takes an ItemType Parameter. Returns true if this Knight's target cell contains an Item of a type equal to the parameter. If left blank any ItemType will return true."),
     TARGETS_ENTITY("targetsEntity\\(.*\\)",BOOLEAN, false,true,"Optionally takes an EntityType Parameter. Returns true if this Knight's target cell contains an Entity of a type equal to the parameter. If left blank any EntityType will return true."),
     WAIT("wait\\(\\)", VOID,false,false,"This Knight skips a turn."),
-    TARGET_IS_DANGER("targetIsDanger\\(\\)",BOOLEAN,false,false,"Returns a boolean value corresponding to whether this Knight's target cell will kill it upon moving forward."),
+    TARGETS_DANGER("targetsDanger\\(\\)",BOOLEAN,false,false,"Returns a boolean value corresponding to whether this Knight's target cell will kill it upon moving forward."),
     DROP_ITEM("dropItem\\(\\)", VOID,false,false,"Drops any item currently held by this Knight."),
     ATTACK("attack\\(\\)", VOID,false,false,"Only for Skeletons!"),
     IS_LOOKING("isLooking\\((.+)\\)", BOOLEAN,true,true,"Returns a boolean value corresponding to whether this Entity is looking in the given Direction!");
