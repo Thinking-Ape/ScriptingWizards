@@ -42,7 +42,7 @@ public class Main extends Application {
 
         model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelIdList,unlockedStatementList,isEditorUnlocked);
 
-        if(GameConstants.DEBUG)  Tester.runTests();
+        Tester.runTests();
 
         View view = View.getInstance(primaryStage);
 

@@ -12,7 +12,7 @@ import java.util.Random;
 
 public abstract class GameConstants {
     public static final boolean DEBUG = false;
-    public static final String VERSION = "1.5e";
+    public static final String VERSION = "1.5f";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
@@ -138,4 +138,5 @@ public abstract class GameConstants {
     public static final double BORDER_WIDTH = 10;
     public static final double HIGHLIGHT_STROKE_WIDTH = 2;
 
+    public static final double MAX_CELL_SIZE = SCREEN_WIDTH/10;
 }

@@ -1,5 +1,7 @@
 package main.model;
 
+import javafx.application.Platform;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +53,7 @@ public class LevelChangeSender {
             levelChangeListener.updateTemporaryChanges(levelChange);
         }
         levelChangeMap.clear();
-        levelChangeListener.updateAll();
+        Platform.runLater(()->levelChangeListener.updateAll());
         return output;
     }
 

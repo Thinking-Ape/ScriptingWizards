@@ -29,6 +29,7 @@ import main.model.gamemap.enums.CellFlag;
 import main.model.gamemap.enums.EntityType;
 import main.model.gamemap.enums.ItemType;
 import main.model.statement.ComplexStatement;
+import main.model.statement.StatementType;
 import main.parser.JSONParser;
 import main.parser.CodeParser;
 import main.utility.*;
@@ -304,8 +305,9 @@ public class View implements LevelChangeListener {
             tokenIView.setEffect(Util.getEffect(i+amountOfKnights,true));
             else
                 tokenIView.setImage(new  Image(GameConstants.EMPTY_TOKEN_PATH));
-            tokenIView.setFitHeight(cell_size/1.5);
-            tokenIView.setFitWidth(cell_size/1.5);
+            double token_size = cell_size/1.5 ;
+            tokenIView.setFitHeight(token_size);
+            tokenIView.setFitWidth(token_size);
             knightsLeftVBox.getChildren().add(tokenIView);
         }
     }
@@ -500,6 +502,7 @@ public class View implements LevelChangeListener {
         if(getCurrentSceneState() == SceneState.PLAY ||getCurrentSceneState() == SceneState.TUTORIAL)
             cell_size = cell_size*GameConstants.PLAY_CELL_SIZE_FACTOR;
         cell_size = Math.round(cell_size);
+        if(cell_size > MAX_CELL_SIZE) cell_size = MAX_CELL_SIZE;
     }
 
     public CodeArea getAiCodeArea() {
@@ -736,7 +739,7 @@ public class View implements LevelChangeListener {
                 ComplexStatement aiBehaviour = (ComplexStatement)ModelInformer.getDataFromCurrentLevel(LevelDataType.AI_CODE);
                 boolean hasAI = (boolean)ModelInformer.getDataFromCurrentLevel(LevelDataType.HAS_AI);
                 levelEditorModule.getHasAiValueLbl().setText("" + hasAI);
-                if (hasAI && aiBehaviour.getStatementListSize() == 0) {
+                if (hasAI && aiBehaviour.getStatementListSize() == 1 && aiBehaviour.getSubStatement(0).getStatementType() == StatementType.SIMPLE) {
                     aiCodeArea.updateCodeFields(aiBehaviour);
                     //THIS IS THE ONLY WORKING SOLUTION I FOUND FOR FINDING OUT POSITIONS OF NODES IN SCENE!!
                     double d = getMapGPane().localToScene(getMapGPane().getBoundsInLocal()).getMinX();

@@ -1,3 +1,7 @@
+Version 1.5f:
+    - fixed a bug where changing HasAI to true wouldnt update immediately
+    - fixed a bug where "Reload Level" would not appear visually
+    - restricted maximal cell_size
 Version 1.5e:
     - fixed a bug where levels would be mapped onto the wrong best code
     - fixed a bug where declaring a Knight as an existing one would lead to an exception

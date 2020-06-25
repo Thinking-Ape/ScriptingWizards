@@ -423,7 +423,6 @@ public class EditorController implements SimpleEventListener {
 
                 currentMapClone.changeHeight(height);
                 currentMapClone.changeWidth(width);
-                model.changeCurrentLevel(LevelDataType.MAP_DATA,currentMapClone);
                 model.changeCurrentLevel(LevelDataType.MAX_KNIGHTS,(int)maxKnightsSlider.getValue());
                 model.changeCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS,(int)amountOfPlaysSlider.getValue());
                 model.changeCurrentLevel(LevelDataType.LOC_TO_STARS,new Integer[]{Integer.valueOf(loc2StarsTField.getText()),Integer.valueOf(loc3StarsTField.getText())});
@@ -435,6 +434,7 @@ public class EditorController implements SimpleEventListener {
                     complexStatement.addSubStatement(new SimpleStatement());
                     model.changeCurrentLevel(LevelDataType.AI_CODE,complexStatement);
                 }
+                model.changeCurrentLevel(LevelDataType.MAP_DATA,currentMapClone);
                 setEditorHandlers();
             }
         });
