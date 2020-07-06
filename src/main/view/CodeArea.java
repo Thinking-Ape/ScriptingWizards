@@ -3,9 +3,12 @@ package main.view;
 
 import javafx.scene.control.Button;
 import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Effect;
+import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.paint.Color;
 import main.controller.Selection;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
@@ -40,6 +43,10 @@ public class CodeArea extends VBox {
     private  Button upBtn = new Button();
     private Button downBtn = new Button();
     private ImageView iconIView;
+    private static Image blueIconImage = new Image(GameConstants.BLUE_SCRIPT_ICON_PATH);
+    private static Image redIconImage = new Image(GameConstants.RED_SCRIPT_ICON_PATH);
+    private static Image redIconDeactivatedImage = new Image(GameConstants.RED_SCRIPT_ICON_DEACTIVATED_PATH);
+    private static Image blueIconDeactivatedImage = new Image(GameConstants.BLUE_SCRIPT_ICON_DEACTIVATED_PATH);
 
     private static CodeArea playerCodeArea;
     private static CodeArea aiCodeArea;
@@ -86,16 +93,17 @@ public class CodeArea extends VBox {
         HBox hb2 = new HBox(downBtn);
 
         if( CodeAreaType.AI != codeAreaType){
-            iconIView = new ImageView(new Image(GameConstants.BLUE_SCRIPT_ICON_PATH));
+            iconIView = new ImageView(blueIconImage);
             hb1.setAlignment(Pos.BOTTOM_RIGHT);
             hb2.setAlignment(Pos.TOP_RIGHT);
         }
         else{
-            iconIView = new ImageView(new Image(GameConstants.RED_SCRIPT_ICON_PATH));
+            iconIView = new ImageView(redIconImage);
             hb1.setAlignment(Pos.BOTTOM_LEFT);
             hb2.setAlignment(Pos.TOP_LEFT);
         }
 
+//        iconIView.setEffect(new DropShadow(GameConstants.BIG_FONT_SIZE, Color.WHITE));
         iconIView.setFitWidth(SMALL_BUTTON_SIZE);
         iconIView.setFitHeight(SMALL_BUTTON_SIZE);
 
@@ -398,9 +406,16 @@ public class CodeArea extends VBox {
         eventSender = new SimpleEventSender(eventListener);
     }
     public void setIconActive(boolean active){
-        // Just some numbers for color adjustment, chosen by eye
-        if(!active)iconIView.setEffect(new ColorAdjust(-0.5,-0.5,-0.5,-0.5));
-        else iconIView.setEffect(null);
+        if(!active){
+            if(isAi())iconIView.setImage(redIconDeactivatedImage);
+            else iconIView.setImage(blueIconDeactivatedImage);
+            iconIView.setEffect(new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.RED));
+        }
+        else{
+            if(isAi())iconIView.setImage(redIconImage);
+            else iconIView.setImage(blueIconImage);
+            iconIView.setEffect(GameConstants.WHITE_BORDER_EFFECT);
+        }
     }
 
     public ImageView getIcon() {
@@ -409,5 +424,19 @@ public class CodeArea extends VBox {
 
     public CodeAreaType getCodeAreaType() {
         return codeAreaType;
+    }
+
+    public void disable(boolean isDisabled){
+        this.setDisable(isDisabled);
+        if(isDisabled){
+            iconIView.setEffect(null);
+            if(isAi())iconIView.setImage(redIconDeactivatedImage);
+            else iconIView.setImage(blueIconDeactivatedImage);
+        }
+        else {
+
+            if(isAi())iconIView.setImage(redIconImage);
+            else iconIView.setImage(blueIconImage);
+        }
     }
 }

@@ -1,3 +1,10 @@
+Version 1.6a:
+    - fixed a bug where CodeFields containing '}' could not be selected by clicking
+    - removed restrictions of the amount of spawnable knights
+    - level ratings are now dependant on the amount of knights spawned (less is better)
+    - map cells now show information about content and other cell data when hovering the cursor above them
+    - the icons above the CodeArea are now highlighted depending on which CodeArea is currently active
+    - if the syntax checker is disabled the respective icon will now glow red
 Version 1.5f:
     - fixed a bug where changing HasAI to true wouldnt update immediately
     - fixed a bug where "Reload Level" would not appear visually

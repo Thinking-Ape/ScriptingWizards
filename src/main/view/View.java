@@ -294,6 +294,7 @@ public class View implements LevelChangeListener {
 
 
     private void redrawKnightsLeftVBox() {
+        if(!GameConstants.MAX_KNIGHTS_ACTIVATED)return;
         knightsLeftVBox.getChildren().clear();
         knightsLeftVBox.setSpacing(cell_size/4);
         knightsLeftVBox.setMinWidth(cell_size/1.5);
@@ -851,7 +852,11 @@ public class View implements LevelChangeListener {
         bottomHBox.setAlignment(Pos.BOTTOM_CENTER);
         switch (sceneState) {
             case LEVEL_EDITOR:
-                HBox editorCenterHBox = new HBox(knightsLeftVBox, new VBox(mapGPane), new VBox(levelEditorModule.getRightVBox()));
+                HBox editorCenterHBox;
+                if(MAX_KNIGHTS_ACTIVATED)
+                    editorCenterHBox = new HBox(knightsLeftVBox, new VBox(mapGPane), new VBox(levelEditorModule.getRightVBox()));
+                else editorCenterHBox = new HBox(new VBox(mapGPane), new VBox(levelEditorModule.getRightVBox()));
+
                 editorCenterHBox.autosize();
                 editorCenterHBox.setSpacing(GameConstants.CODEFIELD_HEIGHT /1.5);
                 editorCenterHBox.setAlignment(Pos.TOP_CENTER);
@@ -886,13 +891,19 @@ public class View implements LevelChangeListener {
                     isIntroduction = true;
                     clearCodeBtn.setDisable(true);
                     tutorialGroup.activateIntroduction();
+                    mapGPane.setDisable(true);
                     btnExecute.setMouseTransparent(true);
                     codeArea.setDisable(true);
                     speedSlider.setMouseTransparent(true);
                     showSpellBookBtn.setMouseTransparent(true);
                 }
                 if(isIntroduction){
-                    tutorialGroup.setEntries(Util.StringListFromArray(TUTORIAL_LINES));
+                    List<String> entries =Util.StringListFromArray(TUTORIAL_LINES);
+                    if(!MAX_KNIGHTS_ACTIVATED){
+                        entries.remove(4);
+
+                    }
+                    tutorialGroup.setEntries(entries);
                 }
                 else tutorialGroup.setEntries((List<String>)ModelInformer.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
                 break;
@@ -1095,6 +1106,7 @@ public class View implements LevelChangeListener {
         codeArea.setDisable(false);
         speedSlider.setMouseTransparent(false);
         showSpellBookBtn.setMouseTransparent(false);
+        mapGPane.setDisable(false);
     }
 
     public LevelOverviewPane getTutorialLevelOverviewPane() {
@@ -1102,46 +1114,48 @@ public class View implements LevelChangeListener {
     }
 
     public void highlightButtons() {
-        Effect dropShadow = new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.YELLOW);
+        Effect yellowShadow = new DropShadow(GameConstants.BIGGEST_FONT_SIZE, Color.YELLOW);
         // marks the index of the introduction tutorial messages where the Wizard starts to explain the respective GUI
         // Elements
         final int n = 3;
-        switch (getTutorialGroup().getCurrentIndex()){
+        int i = getTutorialGroup().getCurrentIndex();
+        if(i >= n+1 && !MAX_KNIGHTS_ACTIVATED)i++;
+        switch (i){
             case n:
                 removeEffectsOfControlElements();
-                mapGPane.setEffect(dropShadow);
+                mapGPane.setEffect(yellowShadow);
                 break;
             case n+1:
                 removeEffectsOfControlElements();
-                knightsLeftVBox.setEffect(dropShadow);
+                knightsLeftVBox.setEffect(yellowShadow);
                 break;
             case n+2:
                 removeEffectsOfControlElements();
                 break;
             case n+3:
                 removeEffectsOfControlElements();
-                getBackBtn().setEffect(dropShadow);
+                getBackBtn().setEffect(yellowShadow);
                 break;
             case n+4:
                 removeEffectsOfControlElements();
-                getBtnExecute().setEffect(dropShadow);
+                getBtnExecute().setEffect(yellowShadow);
                 break;
             case n+5:
                 removeEffectsOfControlElements();
-                getSpeedSlider().setEffect(dropShadow);
+                getSpeedSlider().setEffect(yellowShadow);
                 break;
             case n+6:
                 removeEffectsOfControlElements();
-                getBtnReset().setEffect(dropShadow);
+                getBtnReset().setEffect(yellowShadow);
                 break;
             case n+7:
                 removeEffectsOfControlElements();
-                getShowSpellBookBtn().setEffect(dropShadow);
+                getShowSpellBookBtn().setEffect(yellowShadow);
                 break;
 
             case n+8:
                 removeEffectsOfControlElements();
-                codeArea.setEffect(dropShadow);
+                codeArea.setEffect(yellowShadow);
                 break;
             default: break;
         }

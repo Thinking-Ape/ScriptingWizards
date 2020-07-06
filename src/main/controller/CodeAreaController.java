@@ -5,8 +5,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import main.model.LevelDataType;
 import main.model.Model;
@@ -17,6 +19,7 @@ import main.utility.SimpleEventListener;
 import main.utility.Util;
 import main.view.*;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -49,12 +52,14 @@ public class CodeAreaController implements SimpleEventListener {
         setAllHandlersForCodeArea(CodeArea.getInstance(CodeAreaType.AI));
     }
     public void setAllHandlersForCodeArea(CodeArea currentCodeArea) {
+        if(!currentCodeArea.isAi())currentCodeArea.getIcon().setEffect(GameConstants.WHITE_BORDER_EFFECT);
         for (CodeField codeField : currentCodeArea.getCodeFieldListClone()) {
             setHandlerForCodeField(codeField,currentCodeArea);
         }
         // Clicking the Icon above any of the two(three) CodeAreas will toggle the Compiler for that CodeArea
         currentCodeArea.getIcon().setOnMousePressed(keyEvent -> {
             if(View.getCurrentSceneState() != SceneState.LEVEL_EDITOR && currentCodeArea.isAi())return;
+
             compilerActive = !compilerActive;
             // if the compiler is inactive every code line may be edited
             if(!compilerActive){
@@ -122,13 +127,20 @@ public class CodeAreaController implements SimpleEventListener {
             // clicking the current CodeField will do nothing
             if(currentCodeArea.getSelectedCodeField() == currentCodeField)return;
 
+
+            if(currentCodeArea.isAi()){
+                view.getCodeArea().getIcon().setEffect(null);
+            }
+            else view.getAiCodeArea().getIcon().setEffect(null);
+
             showError = true;
 
-            if(compilerActive)
+            if(compilerActive){
                 handleCodeFieldEvent(currentCodeArea.getAllCode(),currentCodeArea);
-            if(!currentCodeField.isEditable() ){
+                currentCodeArea.getIcon().setEffect(GameConstants.WHITE_BORDER_EFFECT);
+            }
+            if(!currentCodeField.isEditable() && currentCodeArea.getSelectedCodeField() != null ){
                 currentCodeArea.getSelectedCodeField().requestFocus();
-                return;
             }
 
             if(!isError){
@@ -495,8 +507,8 @@ public class CodeAreaController implements SimpleEventListener {
     private void disableControlElements(boolean b, CodeArea codeArea) {
         view.getBtnExecute().setDisable(b);
         view.getStoreCodeBtn().setDisable(b);
-        if(codeArea.isAi())view.getCodeArea().setDisable(b);
-        else if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR) view.getAiCodeArea().setDisable(b);
+        if(codeArea.isAi())view.getCodeArea().disable(b);
+        else if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR) view.getAiCodeArea().disable(b);
         if(View.getCurrentSceneState() == SceneState.LEVEL_EDITOR && codeArea.isAi())
             view.getLevelEditorModule().getSaveLevelBtn().setDisable(b);
     }

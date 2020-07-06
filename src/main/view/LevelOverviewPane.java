@@ -71,10 +71,11 @@ public class LevelOverviewPane extends VBox {
             int loc =ModelInformer.getBestLocOfLevel(levelId);
             int turns =ModelInformer.getBestTurnsOfLevel(levelId);
             String levelName = ModelInformer.getNameOfLevelWithId(levelId);
-
+            int knightsUsed = ModelInformer.getAmountOfKnightsSpawned();
+            int maxKnights = (int) ModelInformer.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
             Integer[] turnsToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.TURNS_TO_STARS,i);
             Integer[] locToStars = (Integer[]) ModelInformer.getDataFromLevelWithIndex(LevelDataType.LOC_TO_STARS,i);
-            double nStars = Util.calculateStars(turns,loc,turnsToStars,locToStars);
+            double nStars = Util.calculateStars(turns,loc,knightsUsed, turnsToStars,locToStars, maxKnights);
             GameMap gameMap = (GameMap) ModelInformer.getDataFromLevelWithIndex(LevelDataType.MAP_DATA,i);
             // View.getIconFromMap(gameMap) requires long calculation!
             // Dont call this too often, because View.getIconFromMap(gameMap) is costly!
@@ -150,7 +151,9 @@ public class LevelOverviewPane extends VBox {
         int id = ModelInformer.getIdOfLevelWithName(levelName);
         int loc =ModelInformer.getBestLocOfLevel(id);
         int turns =ModelInformer.getBestTurnsOfLevel(id);
-        double nStars = Util.calculateStars(turns,loc,turnsToStars,locToStars);
+        int knightsUsed = ModelInformer.getAmountOfKnightsSpawned();
+        int maxKnights = (int) ModelInformer.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
+        double nStars = Util.calculateStars(turns,loc,knightsUsed,turnsToStars,locToStars,maxKnights);
         LevelEntry le = new LevelEntry(levelListView.getItems().get(index).getLevelImage(),ModelInformer.getNameOfLevelWithIndex(currentIndex),
                 getLevelTooltip(turnsToStars,locToStars),getBestScoreString(turns,loc,nStars),nStars);
         levelListView.getItems().set(index,le);

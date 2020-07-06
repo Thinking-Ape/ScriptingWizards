@@ -320,7 +320,7 @@ public abstract class Util {
         return currentRowCount;
     }
 
-    public static double calculateStars(int turns, int loc, Integer[] bestTurns, Integer[] bestLocs) {
+    public static double calculateStars(int turns, int loc, int usedKnights, Integer[] bestTurns, Integer[] bestLocs, int maxKnights) {
         if(loc == -1 && turns == -1)return 0;
         int turnStars = 1;
         if(turns <= bestTurns[0]) turnStars = 2;
@@ -329,6 +329,8 @@ public abstract class Util {
         if(loc <= bestLocs[0]) locStars = 2;
         if(loc <= bestLocs[1]) locStars = 3;
         double nStars = (turnStars + locStars)/2.0;
+        int knightDiff = usedKnights - maxKnights;
+        if (knightDiff > 0 && nStars - knightDiff >= 1)nStars -= knightDiff;
         return nStars;
     }
 

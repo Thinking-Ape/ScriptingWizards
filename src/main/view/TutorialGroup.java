@@ -199,7 +199,10 @@ public class TutorialGroup extends Group {
 
         prevBtn.setStyle("-fx-background-color: white;" +
                 "-fx-base: transparent;");
-        Platform.runLater(()->wizard.requestFocus());
+        Platform.runLater(()->{
+            wizard.requestFocus();
+        });
+
     }
     public boolean isLastMsg() {
         return index == tutorialEntries.size()-1;

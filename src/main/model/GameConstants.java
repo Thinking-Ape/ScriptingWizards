@@ -3,6 +3,7 @@ package main.model;
 import javafx.scene.effect.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.util.Duration;
 import main.model.gamemap.Entity;
 import main.model.gamemap.enums.EntityType;
 import main.model.statement.ComplexStatement;
@@ -11,8 +12,9 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 public abstract class GameConstants {
-    public static final boolean DEBUG = false;
-    public static final String VERSION = "1.5f";
+    public static final boolean DEBUG = true;
+    public static final boolean MAX_KNIGHTS_ACTIVATED = false;
+    public static final String VERSION = "1.6a";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
@@ -96,6 +98,8 @@ public abstract class GameConstants {
     public static final Font CHALLENGER_FONT = new Font("Times New Roman",CHALLENGER_FONT_SIZE);
     public static final String RED_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Red_Script_Icon.png";
     public static final String BLUE_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Blue_Script_Icon.png";
+    public static final String RED_SCRIPT_ICON_DEACTIVATED_PATH = "file:"+IMAGES_PATH+"Red_Script_Icon_Deactivated.png";
+    public static final String BLUE_SCRIPT_ICON_DEACTIVATED_PATH = "file:"+IMAGES_PATH+"Blue_Script_Icon_Deactivated.png";
     public static final String KNIGHT_TOKEN_PATH = "file:"+IMAGES_PATH+"Knight_Token.png";
     public static final Effect HIGHLIGHT_BTN_EFFECT = new Glow();
     public static final String PREV_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Prev_Btn.png";
@@ -139,4 +143,7 @@ public abstract class GameConstants {
     public static final double HIGHLIGHT_STROKE_WIDTH = 2;
 
     public static final double MAX_CELL_SIZE = SCREEN_WIDTH/10;
+    public static final Effect WHITE_BORDER_EFFECT = new DropShadow(GameConstants.BIG_FONT_SIZE,Color.WHITE);
+    public static final Duration TOOLTIP_DELAY = Duration.millis(50);
+    public static final Duration TOOLTIP_DELAY_LONG = Duration.millis(100);
 }

@@ -378,7 +378,7 @@ public class EditorController implements SimpleEventListener {
             widthSlider.valueProperty().addListener((observableValue, number, t1) -> widthLbl.setText(t1.intValue()+""));
             VBox sizeVBox = new VBox(new HBox(new Label("Width: "),widthLbl),widthSlider,new HBox(new Label("Height: "),heightLbl),heightSlider);
             sizeVBox.setAlignment(Pos.CENTER);
-            VBox sliderVBox = new VBox(new HBox(new Label("Max Knights: "),maxKnightsLbl),maxKnightsSlider,new HBox(new Label("Amount of Plays: "),amountOfPlaysLbl),amountOfPlaysSlider);
+            VBox sliderVBox = new VBox(new HBox(new Label("Optimal Knights: "),maxKnightsLbl),maxKnightsSlider,new HBox(new Label("Amount of Plays: "),amountOfPlaysLbl),amountOfPlaysSlider);
             formatSlider(heightSlider,GameConstants.MIN_LEVEL_SIZE,GameConstants.MAX_LEVEL_SIZE);
             formatSlider(widthSlider,GameConstants.MIN_LEVEL_SIZE,GameConstants.MAX_LEVEL_SIZE);
             formatSlider(maxKnightsSlider,1,GameConstants.MAX_KNIGHTS_AMOUNT);
@@ -552,6 +552,45 @@ public class EditorController implements SimpleEventListener {
                 final GameMap gameMap = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
                 final int k = x;
                 final int h = y;
+                stackPane.setOnMouseEntered(mouseEvent -> {
+                    Cell cell  = gameMap.getCellAtXYClone(k,h);
+                    String cellContentString = "Content: "+ cell.getContent().toString();
+                    String itemString = "Item: "+ cell.getItem().toString();
+
+                    Tooltip tooltip = new Tooltip(cellContentString);
+                    String cellIdString = "Cell Id: ";
+                    if(cell.getCellId() != -1)cellIdString+=cell.getCellId();
+                    else cellIdString += "NONE";
+                    StringBuilder linkedCellString = new StringBuilder("Linked Cell Ids: ");
+
+                    if(cell.getContent().isTraversable() ){
+                        tooltip.setText(tooltip.getText()+"\n"+itemString);
+                    }
+                    if(cell.getContent() == CellContent.PRESSURE_PLATE ||cell.getContent() == CellContent.ENEMY_SPAWN ){
+                        tooltip.setText(tooltip.getText()+"\n"+cellIdString);
+                        if(cell.getContent() == CellContent.PRESSURE_PLATE)tooltip.setText(tooltip.getText()+"\nIs Inverted: " + cell.hasFlag(CellFlag.INVERTED));
+                    }
+                    if(cell.getContent() == CellContent.TRAP){
+                        String trapStatus = "Unarmed";
+                        if(cell.hasFlag(CellFlag.ARMED))trapStatus = CellFlag.ARMED.getDisplayName();
+                        if(cell.hasFlag(CellFlag.PREPARING))trapStatus = CellFlag.PREPARING.getDisplayName();
+                        tooltip.setText(tooltip.getText()+"\nStatus: " + trapStatus);
+                    }
+                    if(cell.getContent() == CellContent.GATE){
+                        for(int i = 0;i < cell.getLinkedCellsSize();i++){
+                            linkedCellString.append(cell.getLinkedCellId(i));
+                            if(i !=cell.getLinkedCellsSize()-1) linkedCellString.append(",");
+                        }
+                        tooltip.setText(tooltip.getText()+"\n"+linkedCellString);
+                        tooltip.setText(tooltip.getText()+"\nIs Open: " + cell.hasFlag(CellFlag.OPEN));
+                        tooltip.setText(tooltip.getText()+"\nIs Turned: " + cell.hasFlag(CellFlag.TURNED));
+                    }
+                    tooltip.setShowDelay(GameConstants.TOOLTIP_DELAY_LONG);
+                    Tooltip.install(stackPane,tooltip );
+                });
+                if(View.getCurrentSceneState() != SceneState.LEVEL_EDITOR){
+                    continue;
+                }
                 stackPane.setOnMousePressed(mouseEvent -> {
                     List<Point> selectedList = new ArrayList<>();
                     if(mouseEvent.isControlDown()) {

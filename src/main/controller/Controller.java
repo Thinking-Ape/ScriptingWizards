@@ -112,6 +112,7 @@ public class Controller {
                     view.getShowSpellBookBtn().setMouseTransparent(false);
                     view.getCodeArea().setDisable(false);
                     view.getStage().requestFocus();
+                    view.getMapGPane().setDisable(false);
                     break;
                 case START_SCREEN:
                     System.exit(0);
@@ -203,15 +204,6 @@ public class Controller {
             }
             System.exit(0);
         });
-        view.getStage().getScene().setOnKeyPressed(evt -> {
-            evt.consume();
-            if (View.getCurrentSceneState() != SceneState.TUTORIAL) return;
-            if (evt.getCode() == KeyCode.RIGHT && evt.isAltDown()) {
-                if (!view.getTutorialGroup().getNextBtn().isDisabled()) view.getTutorialGroup().getNextBtn().fire();
-            } else if (evt.getCode() == KeyCode.LEFT && evt.isAltDown()) {
-                if (!view.getTutorialGroup().getPrevBtn().isDisabled()) view.getTutorialGroup().getPrevBtn().fire();
-            }
-        });
         view.getStartScreen().getTutorialBtn().setOnAction(actionEvent -> {
             model.resetTutorialIndex();
             if (model.getTutorialProgress() != -1) {
@@ -220,6 +212,15 @@ public class Controller {
             } else {
                 view.setSceneState(SceneState.TUTORIAL);
                 model.selectLevel(0);
+                editorController.setHandlersForMapCells();
+                view.getStage().getScene().setOnKeyPressed(evt -> {
+                    evt.consume();
+                    if (evt.getCode() == KeyCode.RIGHT && evt.isAltDown()) {
+                        if (!view.getTutorialGroup().getNextBtn().isDisabled()) view.getTutorialGroup().getNextBtn().fire();
+                    } else if (evt.getCode() == KeyCode.LEFT && evt.isAltDown()) {
+                        if (!view.getTutorialGroup().getPrevBtn().isDisabled()) view.getTutorialGroup().getPrevBtn().fire();
+                    }
+                });
             }
             view.getTutorialLevelOverviewPane().getBackBtn().setOnAction(actionEvent2 ->
                     view.setSceneState(SceneState.START_SCREEN)
@@ -229,6 +230,7 @@ public class Controller {
                 String levelName = view.getTutorialLevelOverviewPane().getLevelListView().getSelectionModel().getSelectedItem().getLevelName();
                 view.setSceneState(SceneState.TUTORIAL);
                 model.selectLevel(levelName);
+                editorController.setHandlersForMapCells();
             });
 
             view.getTutorialGroup().getNextBtn().setOnAction(evt -> {
@@ -279,6 +281,7 @@ public class Controller {
 
                 view.setSceneState(SceneState.PLAY);
                 model.selectLevel(levelName);
+                editorController.setHandlersForMapCells();
             });
         });
 
@@ -296,7 +299,6 @@ public class Controller {
                 view.getLevelEditorModule().setDisableAllEditorBtns(false);
                 if (hasAi) view.getAiCodeArea().setEditable(true);
                 editorController.setAllEditButtonsToDisable(false);
-                editorController.setHandlersForMapCells();
                 view.highlightInMap(List.of(new Point(0,0)));
             }
             isGameRunning = false;
@@ -305,6 +307,7 @@ public class Controller {
             view.drawMap(model.getCurrentMapCopy());
             view.getCodeArea().setEditable(true);
             view.getCodeArea().select(0, Selection.END);
+            editorController.setHandlersForMapCells();
         });
         view.getLoadBestCodeBtn().setOnAction(actionEvent -> {
             List<String> bestCode;
@@ -421,6 +424,8 @@ public class Controller {
                 if (model.isWon()) {
                     int turns = model.getTurnsTaken();
                     int loc = behaviour.getActualSize();
+                    int usedKnights = model.getAmountOfKnightsSpawned();
+                    int maxKnights = (int) model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
                     turnsList.add(turns);
                     locList.add(loc);
                     if((int)model.getDataFromCurrentLevel((LevelDataType.AMOUNT_OF_RERUNS))>model.getCurrentRound()){
@@ -434,7 +439,7 @@ public class Controller {
                         loc = Util.avgOfIntList(locList);
                     Integer[] turnsToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
                     Integer[] locToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
-                    double nStars = Util.calculateStars(turns, loc, turnsToStars, locToStars);
+                    double nStars = Util.calculateStars(turns, loc, usedKnights, turnsToStars, locToStars, maxKnights);
                     boolean newResultIsBetter = false;
                     if (View.getCurrentSceneState() == SceneState.PLAY || View.getCurrentSceneState() == SceneState.TUTORIAL || (View.getCurrentSceneState() == SceneState.LEVEL_EDITOR && GameConstants.DEBUG)) {
                         newResultIsBetter = model.putStatsIfBetter(loc, turns, nStars);
@@ -494,6 +499,7 @@ public class Controller {
                 }
                 if (model.isStackOverflow()) {
                     timeline.stop();
+                    view.getMapGPane().setDisable(false);
                     Alert alert = new Alert(Alert.AlertType.NONE, "You might have accidentally caused an endless loop! You are not allowed to use big loops without method calls!", ButtonType.OK);
                     Platform.runLater(() -> {
                         Optional<ButtonType> result = alert.showAndWait();
@@ -506,6 +512,7 @@ public class Controller {
 
 
             }));
+            view.getMapGPane().setDisable(true);
             timeline.play();
             if (View.getCurrentSceneState() == SceneState.LEVEL_EDITOR)
                 editorController.setAllEditButtonsToDisable(true);
@@ -518,9 +525,11 @@ public class Controller {
     private void setPauseAndRunHandler() {
         view.getBtnExecute().setOnAction(evt -> {
             timeline.pause();
+            view.getMapGPane().setDisable(false);
             ((ImageView) view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.EXECUTE_BTN_IMAGE_PATH));
             view.getBtnExecute().setOnAction(evt2 -> {
                 timeline.play();
+                view.getMapGPane().setDisable(true);
                 setPauseAndRunHandler();
                 ((ImageView) view.getBtnExecute().getGraphic()).setImage(new Image(GameConstants.PAUSE_BTN_IMAGE_PATH));
             });
@@ -567,6 +576,7 @@ public class Controller {
             switch (bnt.get().getButtonData()) {
                 case NEXT_FORWARD:
                     model.selectLevel(model.getCurrentIndex() + 1);
+                    editorController.setHandlersForMapCells();
                 case CANCEL_CLOSE:
                     break;
                 case BACK_PREVIOUS:

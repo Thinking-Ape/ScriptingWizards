@@ -6,6 +6,8 @@ import javafx.scene.control.Tooltip;
 import javafx.util.Duration;
 import main.model.GameConstants;
 
+import static main.model.GameConstants.TOOLTIP_DELAY;
+
 public class SpellBookLabel extends Label {
 
     SpellBookLabelType sBLType;
@@ -16,7 +18,7 @@ public class SpellBookLabel extends Label {
         this.setFont(GameConstants.MEDIUM_FONT);
         this.sBLType = sBLType;
         Tooltip tooltip = new Tooltip(tooltipString);
-        tooltip.setShowDelay(Duration.millis(50));
+        tooltip.setShowDelay(TOOLTIP_DELAY);
         if(!tooltipString.equals(""))this.setTooltip(tooltip);
         switch(sBLType){
             case VARIABLE_TYPE:

@@ -293,7 +293,7 @@ public class Model {
             // If the evaluated Statement is complex there is nothing to execute!
             if(evaluatedStatement.isComplex())continue;
 
-            boolean canSpawnKnights = getAmountOfKnightsSpawned() < getCurrentLevel().getMaxKnights();
+            boolean canSpawnKnights = getAmountOfKnightsSpawned() < getCurrentLevel().getMaxKnights() || !GameConstants.MAX_KNIGHTS_ACTIVATED;
             playerCalledMethod = CodeExecutor.executeBehaviour(evaluatedStatement,currentMap, true, canSpawnKnights);
             if(CodeExecutor.knightWasSpawned())knightsSpawned++;
             isWon = CodeExecutor.hasWon();
@@ -485,7 +485,8 @@ public class Model {
             bestTurnsMap.get(getCurrentId());
         }
         // new result worse than existing one
-        if(nStars < Util.calculateStars(bestTurns,bestLoc,getCurrentLevel().getTurnsToStarsCopy() , getCurrentLevel().getLocToStarsCopy()) )return false;
+        int maxKnights = (int)getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
+        if(nStars < Util.calculateStars(bestTurns,bestLoc,knightsSpawned,getCurrentLevel().getTurnsToStarsCopy() , getCurrentLevel().getLocToStarsCopy(),maxKnights) )return false;
 
         if(bestLOCMap.containsKey(getCurrentId())){
             bestLOCMap.replace(getCurrentId(),loc);
@@ -707,7 +708,7 @@ public class Model {
         return isStackOverflow;
     }
 
-    int getAmountOfKnightsSpawned() {
+    public int getAmountOfKnightsSpawned() {
         return knightsSpawned;
     }
     int getAmountOfSkeletonsSpawned() {

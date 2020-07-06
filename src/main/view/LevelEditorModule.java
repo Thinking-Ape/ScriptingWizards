@@ -24,7 +24,7 @@ public class LevelEditorModule {
     private Label widthValueLbl = new Label("");
     private Label heightLbl = new Label("Height: ");
     private Label maxKnightsValueLbl = new Label("");
-    private Label maxKnightsLbl = new Label("Max Knights: ");
+    private Label maxKnightsLbl = new Label("Optimal Knights: ");
     private Label amountOfRerunsValueLbl = new Label("");
     private Label amountOfRerunsLbl = new Label("Amount of Plays: ");
     private Label heightValueLbl = new Label("");
