@@ -19,6 +19,7 @@ Nachdem das Tutorial durchgespielt wurde, wird der Spiel-Modus Challenges frei-
 geschaltet. Hier findet sich eine Reihe an Level ohne Hinweise, die auf den
 Tutorial-Level aufbauen.
 ### Der Leveleditor
+!(https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/LevelEditor_new.png "Ein Level im Leveleditor")
 Wurden alle Challenges durchgespielt, wird zuletzt der Leveleditor freigeschaltet.
 Hier kann man nun eigene Level erstellen und bestehende Level löschen oder bearbeiten.
 Dafür gibt es entsprechende Knöpfe oben, unterhalb einer Leiste mit wichtigen
