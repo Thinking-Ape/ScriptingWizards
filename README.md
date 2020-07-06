@@ -37,4 +37,5 @@ angezeigt wird.
 ### Das Zauberbuch
 ![Zauberbuch](
 https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/SpellBook.png?token=ANI5EYNQDLJP5SQJPIUD5PS7ANNAS "Das fast vollständig ausgefüllte Zauberbuch")
+
 In allen 3 Modi kann jederzeit (außer wenn ein Level gerade ausgeführt wird) das sogenannte Zauberbuch geöffnet werden. Darin enthalten sind alle bisher erfolgreich angewandten Zaubersprüche abgespeichert.
