@@ -1,5 +1,5 @@
 # ScriptingWizards
-![StartScreen](https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/StartScreen.png?token=ANI5EYK62FFAZQNCCLUECD27ANMOA "Ein Level im Leveleditor")
+![StartScreen](https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/StartScreen.png?token=ANI5EYKUSPVPPM3X4ZJ64K27ANNPE "Ein Level im Leveleditor")
 ## Das Spiel starten
 
 Leider ist aus technischen Gründen das Spiel momentan nur unter Windows lauffähig.
@@ -20,7 +20,7 @@ Nachdem das Tutorial durchgespielt wurde, wird der Spiel-Modus Challenges frei-
 geschaltet. Hier findet sich eine Reihe an Level ohne Hinweise, die auf den
 Tutorial-Level aufbauen.
 ### Der Leveleditor
-![LevelEditor](https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/LevelEditor_new.png?token=ANI5EYKPDY4CQT2XVIR4AY27ANMIW "Ein Level im Leveleditor")
+![LevelEditor](https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/LevelEditor_new.png?token=ANI5EYPW3COOS2SROBVKKOK7ANNQS "Ein Level im Leveleditor")
 Wurden alle Challenges durchgespielt, wird zuletzt der Leveleditor freigeschaltet.
 Hier kann man nun eigene Level erstellen und bestehende Level löschen oder bearbeiten.
 Dafür gibt es entsprechende Knöpfe oben, unterhalb einer Leiste mit wichtigen
