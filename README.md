@@ -1,5 +1,5 @@
 # ScriptingWizards
-![StartScreen](https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/StartScreen.png?token=ANI5EYKUSPVPPM3X4ZJ64K27ANNPE "Ein Level im Leveleditor")
+![StartScreen](https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/StartScreen.png "Ein Level im Leveleditor")
 ## Das Spiel starten
 
 Leider ist aus technischen Gründen das Spiel momentan nur unter Windows lauffähig.
@@ -8,7 +8,7 @@ oder im Ordner "bin" ausführen.
 
 ## Der Funktionsumfang
 ### Das Tutorial
-![Tutorial](https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/Tutorial_Level_Opposition.png?token=ANI5EYPJ67D5Y73DNOSS2BK7ANNL6 "Ein Level im Tutorial, das gerade ausgeführt wird")
+![Tutorial](https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/Tutorial_Level_Opposition.png "Ein Level im Tutorial, das gerade ausgeführt wird")
 Das Tutorial besteht aus einer kurzen Einführung und mehreren Level. In der
 Einführung werden alle wichtigen Steuerungselemente erklärt. Hält man seinen
 Mauszeiger über diesen wird zudem eine kurze Beschreibung angezeigt. Die einzelnen
@@ -16,11 +16,12 @@ Level des Tutorials dienen dazu, wichtige Befehle und Kontrollstrukturen, etc.
 zu erklären. Dafür gibt es einen "Tutorial-Wizard", der neue Befehle einführt und
 wichtige Hinweise gibt.
 ### Die Challenges
+![Challenges](https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/Challenges.png "Das Levelauswahlmenü der Challenges")
 Nachdem das Tutorial durchgespielt wurde, wird der Spiel-Modus Challenges frei-
 geschaltet. Hier findet sich eine Reihe an Level ohne Hinweise, die auf den
 Tutorial-Level aufbauen.
 ### Der Leveleditor
-![LevelEditor](https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/LevelEditor_new.png?token=ANI5EYPW3COOS2SROBVKKOK7ANNQS "Ein Level im Leveleditor")
+![LevelEditor](https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/LevelEditor_new.png "Ein Level im Leveleditor")
 Wurden alle Challenges durchgespielt, wird zuletzt der Leveleditor freigeschaltet.
 Hier kann man nun eigene Level erstellen und bestehende Level löschen oder bearbeiten.
 Dafür gibt es entsprechende Knöpfe oben, unterhalb einer Leiste mit wichtigen
@@ -35,6 +36,6 @@ werden muss. Zudem lässt sich hier bestimmen, ob ein Level zum Tutorial gehört
 oder nicht, ob es erst freigeschaltet werden muss und welcher Text im Tutorial
 angezeigt wird.
 ### Das Zauberbuch
-![Zauberbuch](https://raw.githubusercontent.com/Thinking-Ape/ScriptingWizards/master/PresentationImages/SpellBook.png?token=ANI5EYNZLOA6Y2DMHE7WVVS7ANNVG "Das fast vollständig ausgefüllte Zauberbuch")
+![Zauberbuch](https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/SpellBook.png "Das fast vollständig ausgefüllte Zauberbuch")
 
 In allen 3 Modi kann jederzeit (außer wenn ein Level gerade ausgeführt wird) das sogenannte Zauberbuch geöffnet werden. Darin enthalten sind alle bisher erfolgreich angewandten Zaubersprüche abgespeichert.
