@@ -2,7 +2,7 @@
 ![](PresentationImages/StartScreen.png)
 ## Das Spiel starten
 
-Leider ist aus technischen Gründen das Image momentan nur unter Windows lauffähig. Zum Ausführen einfach die Datei "ScriptingWizards.bat" entweder im Hauptverzeichnis
+Leider ist aus technischen Gründen das Image momentan nur unter Windows lauffähig. Zum download des Images für die Lehrer-Version folgenden Link besuchen: "https://cloud.chrz.de/s/496ktHzYXyYJWT6", für die Schüler Version: "https://cloud.chrz.de/s/yHyjfLxgb83BaDk".  Zum Ausführen einfach die Datei "ScriptingWizards.bat" entweder im Hauptverzeichnis
 oder im Ordner "bin" ausführen.
 
 ## Der Funktionsumfang
@@ -21,7 +21,7 @@ Derzeit gibt es 13 Levels mit Erklärungen zu folgenden Bestandteilen der (Objek
 - Konstruktoren
 - Variablendeklarationen und -zuweisungen
 - Methodenaufrufe und Parameter
-- Bedingungen \('&&', '||', '!' sowie Vergleichszeichen und boolean-Methodenaufrufe\)
+- Bedingungen ('&&', '\|\|', '!' sowie Vergleichszeichen und boolean-Methodenaufrufe)
 - If-Else-Konstrukte
 - For- und While-Schleifen
 ![](PresentationImages/Tutorial_Level_Opposition.png)
@@ -40,3 +40,11 @@ In allen 3 Modi kann jederzeit (außer wenn ein Level gerade ausgeführt wird) d
 ![](PresentationImages/CodeArea.png)
 
 Zum Programmieren, wird das sogenannte Magische Skript verwendet, welches sich rechts oben befindet. Es kann immer nur eine Zeile gleichzeitig bearbeitet, über die Enter-Taste können neue Zeilen hinzugefügt und durch die Zurück- oder Entfernen-Taste können leere Felder wieder gelöscht werden. Falls die SuS einen Fehler begangen haben, kann das Skript erst weiter bearbeitet werden, bis die fehlerhafte Zeile wieder korrigiert wurde. Dies kann aber auch über einen Knopf über dem Magischen Skript deaktiviert werden, woraufhin die Syntax-Überprüfung ausgesetzt wird. Darüber hinaus werden Vorschläge angezeigt, worin ein eventueller Fehler bestehen könnte.
+## Ausblick
+Das Tutorial wird überarbeitet, um sich für die Einführung in das Programmieren mit Java zu eignen (bisher ist das Ziel die Intensivierung). Das Spiel wird außerdem über die Sommerferien weiterentwickelt und soll bis deren Ende:
+- eine neue "Einfache Programmiersprache" (ähnlich wie EOS) aufweisen, für den Einsatz in den unteren Jahrgangsstufen
+- neue Ritter und Skelette zum Einführen von Vererbung
+- evt. Arrays
+## Feedback
+Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: sgunzelmann@arcor.de
+Bei Fehlern bitte auch das CMD-Fenster für etwaige Fehlermeldungen überprüfen und diese anhängen.
