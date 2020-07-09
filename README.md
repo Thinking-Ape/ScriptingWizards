@@ -11,6 +11,7 @@ Das Ziel eines jeden Levels ist es, Ritter zu beschwören, diese einen Schlüsse
 1. Wie viele Code-Zeilen wurden gebraucht
 2. Wie viele Züge haben die Ritter gebraucht
 3. Wie viele Ritter wurden beschworen
+
 Es können für eine Lösung zwischen 1 und 3 Sternen erhalten werden, wobei die Kriterien für die Vergabe im Level-Editor festgelegt werden kann.
 In manchen Leveln gibt es zudem Gegner, die auf dieselbe Art programmiert wurden, wie die eigenen Ritter. Das zugehörige Skript wird auch angezeigt, kann aber nicht bearbeitet werden.
 ### Das Kurssystem
@@ -24,6 +25,7 @@ Derzeit gibt es 13 Levels mit Erklärungen zu folgenden Bestandteilen der (Objek
 - Bedingungen ('&&', '\|\|', '!' sowie Vergleichszeichen und boolean-Methodenaufrufe)
 - If-Else-Konstrukte
 - For- und While-Schleifen
+
 ![](PresentationImages/Tutorial_Level_Opposition.png)
 ### Die Challenges
 ![](PresentationImages/Challenges.png)
@@ -45,6 +47,7 @@ Das Tutorial wird überarbeitet, um sich für die Einführung in das Programmier
 - eine neue "Einfache Programmiersprache" (ähnlich wie EOS) aufweisen, für den Einsatz in den unteren Jahrgangsstufen
 - neue Ritter und Skelette zum Einführen von Vererbung
 - evt. Arrays
+
 ## Feedback
 Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: sgunzelmann@arcor.de
 Bei Fehlern bitte auch das CMD-Fenster für etwaige Fehlermeldungen überprüfen und diese anhängen.
