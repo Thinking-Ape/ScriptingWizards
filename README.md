@@ -39,4 +39,5 @@ In allen 3 Modi kann jederzeit (außer wenn ein Level gerade ausgeführt wird) d
 ### Das Magische Skript
 
 ![CodeArea](https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/CodeArea.png "3 Beispiele für das Magische Skript")
+
 Zum Programmieren, wird das sogenannte Magische Skript verwendet, welches sich rechts oben befindet. Es kann immer nur eine Zeile gleichzeitig bearbeitet, über die Enter-Taste können neue Zeilen hinzugefügt und durch die Zurück- oder Entfernen-Taste können leere Felder wieder gelöscht werden. Falls die SuS einen Fehler begangen haben, kann das Skript erst weiter bearbeitet werden, bis die fehlerhafte Zeile wieder korrigiert wurde. Dies kann aber auch über einen Knopf über dem Magischen Skript deaktiviert werden, woraufhin die Syntax-Überprüfung ausgesetzt wird. Darüber hinaus werden Vorschläge angezeigt, worin ein eventueller Fehler bestehen könnte.
