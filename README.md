@@ -1,5 +1,5 @@
 # ScriptingWizards
-![StartScreen](https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/StartScreen.png "Ein Level im Leveleditor")
+<img src="https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/StartScreen.png" class="img-responsive" alt=""> </div>
 ## Das Spiel starten
 
 Leider ist aus technischen Gründen das Image momentan nur unter Windows lauffähig. Zum Ausführen einfach die Datei "ScriptingWizards.bat" entweder im Hauptverzeichnis
