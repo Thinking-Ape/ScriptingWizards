@@ -17,31 +17,29 @@ public class Level {
     private Integer[] turnsToStars;
     private String name;
     private int maxKnights;
-    private boolean isTutorial;
     private ComplexStatement aiBehaviour;
     private int amountOfPlays;
     private final int ID;
 
     public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, List<Integer> requiredLevelIds, int maxKnights,
-                 boolean isTutorial, List<String> tutorialEntryList, int id, int amountOfReruns) {
+                  List<String> tutorialEntryList, int id, int amountOfReruns) {
         this.amountOfPlays = amountOfReruns;
         this.ID =id;
         this.name =name;
         this.maxKnights = maxKnights;
-        this.isTutorial = isTutorial;
         this.turnsToStars = turnsToStars;
         this.locToStars = locToStars;
         this.originalMap = new GameMap(originalArray);
         this.aiBehaviour = aiBehaviour;
         this.requiredLevelIds = new ArrayList<>(requiredLevelIds);
         this.tutorialMessages = new ArrayList<>();
-        if(isTutorial){
+//        if(isTutorial){
             if(tutorialEntryList.size() > 0){
                 tutorialMessages.addAll(tutorialEntryList);
             }
             else tutorialMessages.add("");
-        }
-        else tutorialMessages.add("");
+//        }
+//        else tutorialMessages.add("");
     }
 
     public ComplexStatement getAIBehaviourCopy() {
@@ -100,13 +98,13 @@ public class Level {
         this.maxKnights = maxKnights;
     }
 
-    boolean isTutorial() {
-        return isTutorial;
-    }
-
-    void setIsTutorial(boolean isTut) {
-        isTutorial= isTut;
-    }
+//    boolean isTutorial() {
+//        return isTutorial;
+//    }
+//
+//    void setIsTutorial(boolean isTut) {
+//        isTutorial= isTut;
+//    }
 
     public Integer getID(){
         return ID;

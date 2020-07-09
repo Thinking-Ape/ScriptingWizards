@@ -6,5 +6,6 @@ public enum SceneState {
     PLAY,
     START_SCREEN,
     TUTORIAL,
-    TUTORIAL_LEVEL_SELECT;
+    TUTORIAL_LEVEL_SELECT,
+    COURSE_SELECT;
 }

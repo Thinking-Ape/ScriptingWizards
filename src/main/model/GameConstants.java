@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 public abstract class GameConstants {
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     public static final boolean MAX_KNIGHTS_ACTIVATED = false;
     public static final String VERSION = "1.6a";
 
@@ -61,7 +61,7 @@ public abstract class GameConstants {
     public static final String TOOLTIP_VARIABLE_VALUE = "The value of the variable:\nint : a whole number, randInt(<lowestValue>,<highestValue>) or any other int variable as well as a term thereof:\nboolean: "+TOOLTIP_BOOLEAN+"\nDirection: EAST, WEST, NORTH, SOUTH\nTurnDirection: LEFT, RIGHT, AROUND\nCommand: a Method Call (see Knight Methods) but without an object name and the '.' e.g. move()";
     public static final String TOOLTIP_VARIABLE_TYPE = "Options are: int, boolean, Direction, TurnDirection, Command (, Knight and Army)";
     public static final double LEVEL_ENTRY_SIZE = SCREEN_HEIGHT/10;
-    public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.12;
+    public static final double SPELLBOOK_HEIGHT = SCREEN_HEIGHT/1.11;
     public static final double SPELLBOOK_WIDTH = SCREEN_WIDTH/3.25;
     public static final double BUTTON_SIZE = SCREEN_HEIGHT/10;
     public static final double SMALL_BUTTON_SIZE = SCREEN_HEIGHT/25;
@@ -95,7 +95,7 @@ public abstract class GameConstants {
     public static final Font CODE_FONT = new Font("Arial",GameConstants.FONT_SIZE);
     public static final Font BIG_FONT = new Font("System Regular",GameConstants.BIG_FONT_SIZE);
     public static final Font BIGGEST_FONT = new Font("Arial",GameConstants.BIGGEST_FONT_SIZE);
-    public static final Font CHALLENGER_FONT = new Font("Times New Roman",CHALLENGER_FONT_SIZE);
+    public static final Font GIANT_FONT = new Font("Times New Roman",CHALLENGER_FONT_SIZE);
     public static final String RED_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Red_Script_Icon.png";
     public static final String BLUE_SCRIPT_ICON_PATH = "file:"+IMAGES_PATH+"Blue_Script_Icon.png";
     public static final String RED_SCRIPT_ICON_DEACTIVATED_PATH = "file:"+IMAGES_PATH+"Red_Script_Icon_Deactivated.png";
@@ -146,4 +146,8 @@ public abstract class GameConstants {
     public static final Effect WHITE_BORDER_EFFECT = new DropShadow(GameConstants.BIG_FONT_SIZE,Color.WHITE);
     public static final Duration TOOLTIP_DELAY = Duration.millis(50);
     public static final Duration TOOLTIP_DELAY_LONG = Duration.millis(100);
+    public static final String CHALLENGE_COURSE_NAME = "Challenges";
+    public static final String WHITE_SHADOWED_STYLE = "-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);";
+
+    public static final String WILL_BE_REMOVED_STYLE = "-fx-text-fill: red;";
 }

@@ -3,12 +3,9 @@ package main.main;
 import main.controller.Controller;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import main.model.Level;
-import main.model.Model;
-import main.model.ModelInformer;
+import main.model.*;
 import main.parser.JSONParser;
 import main.parser.CodeParser;
-import main.model.GameConstants;
 import main.utility.Util;
 import main.view.View;
 
@@ -20,29 +17,34 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         JSONParser.init();
-        List<Integer> unlockedLevelIdList = JSONParser.getUnlockedLevelIds();
+//        List<Integer> unlockedLevelIdList = JSONParser.getUnlockedLevelIds();
         List<Level> levelList = JSONParser.parseAllLevels();
         Model model = Model.getInstance();
         ModelInformer.init(model);
         if(GameConstants.DEBUG)System.out.println("UNLOCKED LEVELS:");
         if(GameConstants.DEBUG)System.out.println("==================");
-        for(Level l : levelList){
-             model.addLevelLast(l,false);
-             if(unlockedLevelIdList.contains(l.getID())){
-                 if(GameConstants.DEBUG)System.out.println(l.getName());
-             }
-        }
+
         if(GameConstants.DEBUG)System.out.println("==================");
 
         Map<Integer,List<String>> bestCodeLinesMap = JSONParser.getBestCodeForLevels(levelList);
         Map<Integer,Integer> bestTurnsMap = JSONParser.getBestTurnsForLevels(levelList);
         Map<Integer,Integer> bestLOCMap = JSONParser.getBestLocForLevels(levelList);
+        Map<Integer,Integer> bestKnightsMap = JSONParser.getBestKnightsForLevels(levelList);
         List<String> unlockedStatementList = JSONParser.getUnlockedStatementList();
+        Map<String,List<Integer>> idToCourseMap = JSONParser.getIdToCourseMap();
+        Map<String, LevelDifficulty> courseNameToDifficultyMap = JSONParser.getCourseNameToDifficultyMap();
         boolean isEditorUnlocked = JSONParser.isEditorUnlocked();
 
-        model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, JSONParser.getTutorialProgressIndex(),unlockedLevelIdList,unlockedStatementList,isEditorUnlocked);
+//        for(String s : idToCourseMap.keySet()){
+//            System.out.println(s);
+//            for(int i : idToCourseMap.get(s))System.out.println(i);
+//        }
+
+        model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, bestKnightsMap, unlockedStatementList,isEditorUnlocked,idToCourseMap,courseNameToDifficultyMap,levelList);
 
         Tester.runTests();
+
+        System.out.println("Loading. This might take a few seconds...");
 
         View view = View.getInstance(primaryStage);
 
@@ -50,6 +52,8 @@ public class Main extends Application {
         model.selectLevel(0);
 
         Controller controller = Controller.getInstance(view,model);
+
+
 
         primaryStage.setOnCloseRequest(we -> {
             if(model.currentLevelHasChanged())controller.getEditorController().showSavingDialog();

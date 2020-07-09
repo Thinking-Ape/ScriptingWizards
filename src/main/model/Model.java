@@ -8,19 +8,27 @@ import main.model.gamemap.GameMap;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.model.statement.StatementIterator;
+import main.utility.SimpleSet;
 import main.utility.Util;
-
 import java.util.*;
 
-import static main.model.GameConstants.FALSE_STATEMENT;
-import static main.model.GameConstants.NO_ENTITY;
+import static main.model.GameConstants.*;
 
 public class Model {
-    private List<Level> levelList = new ArrayList<>();
-    private int currentLevelIndex = 0;
+    private Set<Level> levelSet = new SimpleSet<>();
+//    private int currentLevelIndex = 0;
+
+    //TODO::!!!!!
+    //TODO::!!!!!
+    //TODO::!!!!!
+    //TODO::!!!!!
+    //TODO::!!!!!
+    //TODO::!!!!!
+    //TODO::!!!!!
+    private int currentId = 0;
 
     private LevelChangeSender levelChangeSender;
-    private List<Integer> unlockedLevelIdList = new ArrayList<>();
+//    private List<Integer> unlockedLevelIdList = new ArrayList<>();
     private List<String> unlockedStatementsList = new ArrayList<>();
     private GameMap currentMap;
     private ComplexStatement playerBehaviour;
@@ -33,10 +41,14 @@ public class Model {
     private boolean aiFinished = false;
     private boolean isStackOverflow = false;
 
+//    private Map<String,Integer> courseNameProgressMap;
+    private Map<String,List<Integer>> courseNameToIdListMap;
+    private Map<String,LevelDifficulty> courseNameLevelDifficultyMap;
+
     private Map<Integer,List<String>> bestCodeMap;
     private Map<Integer,Integer> bestTurnsMap;
     private Map<Integer,Integer> bestLOCMap;
-    private int tutorialProgress = -1;
+    private Map<Integer, Integer> bestKnightsMap;
 
     private int currentTutorialMessageIndex = 0;
 
@@ -59,55 +71,86 @@ public class Model {
     }
 
     //needs to be run AFTER Levels have been added!
-    public void init(Map<Integer,List<String>> bestCodeMap, Map<Integer,Integer> bestTurnsMap, Map<Integer,Integer> bestLOCMap, int tutorialProgress,
-                     List<Integer> unlockedLevelsList, List<String> unlockedStatementsList, boolean editorUnlocked){
+    public void init(Map<Integer,List<String>> bestCodeMap, Map<Integer,Integer> bestTurnsMap, Map<Integer,Integer> bestLOCMap,Map<Integer,Integer> bestKnightsMap,
+                     List<String> unlockedStatementsList, boolean editorUnlocked,Map<String,List<Integer>> courseNameToIdListMap, Map<String,LevelDifficulty> courseNameLevelDifficultyMap, List<Level> levelList){
+        this.courseNameToIdListMap = courseNameToIdListMap;
+        this.courseNameLevelDifficultyMap =courseNameLevelDifficultyMap;
         this.bestCodeMap = bestCodeMap;
         this.bestLOCMap = bestLOCMap;
         this.bestTurnsMap = bestTurnsMap;
-        this.tutorialProgress = tutorialProgress;
-        this.unlockedLevelIdList = unlockedLevelsList;
-        if(unlockedLevelsList.size()==0)unlockedLevelsList.add(levelList.get(0).getID());
+        this.bestKnightsMap = bestKnightsMap;
+        this.levelSet = new SimpleSet<>(levelList);
+//        this.tutorialProgress = tutorialProgress;
+//        this.unlockedLevelIdList = unlockedLevelsList;
+//        if(unlockedLevelsList.size()==0)unlockedLevelsList.add(levelSet.get(0).getID());
         this.unlockedStatementsList = unlockedStatementsList;
         this.editorUnlocked = editorUnlocked;
+//        courseNameProgressMap =  new HashMap<>();
+//        for(String courseName : getAllCourseNames()){
+//            courseNameProgressMap.put(courseName, calculateProgressOfCourse(courseName));
+//        }
     }
 
-    public void addLevelLast(Level level, boolean isNew) {
-        addLevel(levelList.size(),level,isNew);
-    }
-    private void addLevel(int i,Level level, boolean isNew){
-        if(i == levelList.size())levelList.add(level);
-        else levelList.add(i,level);
+//    public void addLevelLast(Level level, boolean isNew) {
+//        addLevel(level,isNew);
+//    }
+
+    //TODO: fix this mess next 5 methods!
+    private void addLevel(int index, Level level, boolean isNew){
         if(isNew) {
-            selectLevel(level.getName());
+            levelSet.add(level);
+            bestLOCMap.put(level.getID(), -1);
+            bestTurnsMap.put(level.getID(), -1);
+            bestCodeMap.put(level.getID(), new ArrayList<>());
+            bestKnightsMap.put(level.getID(), -1);
+            if(!courseNameToIdListMap.get(getCurrentCourseName()).contains(level.getID()))
+                courseNameToIdListMap.get(getCurrentCourseName()).add( level.getID());
+            selectLevel(level.getName(),getCurrentCourseName());
             levelChangeSender.levelChanged(true);
         }
     }
-
-    public void selectLevel(int index) {
-        currentLevelIndex = index;
+    public void selectLevel(int id) {
+        selectLevel(id, getCurrentCourseName());
+    }
+    public void selectLevel(int id,String courseName) {
+        currentId = id;
         currentTutorialMessageIndex = 0;
         currentMap = getCurrentLevel().getOriginalMapCopy();
         levelChangeSender.levelChanged(false);
     }
+    public void selectLevel(String name,String courseName){
+        selectLevel(getIdOfLevelWithName(name),courseName);
+    }
     public void selectLevel(String name){
-        selectLevel(getIndexOfLevelInList(name));
+        selectLevel(getIdOfLevelWithName(name),findCourseOfLevelId(getIdOfLevelWithName(name)));
+    }
+
+    private String findCourseOfLevelId(Integer idOfLevelWithName) {
+        for(String courseName : getAllCourseNames()){
+            if(courseNameToIdListMap.get(courseName).contains(idOfLevelWithName))return courseName;
+        }
+        return CHALLENGE_COURSE_NAME;
     }
 
     public void removeCurrentLevel() {
-        for(Level l : levelList){
+        for(Level l : levelSet){
             List<Integer> reqLevels = new ArrayList<>();
             for(int id : l.getRequiredLevelIdsCopy()){
                 if(id != getCurrentLevel().getID())reqLevels.add(id);
             }
             l.setRequiredLevelIds(reqLevels);
         }
-        unlockedLevelIdList.remove(getCurrentId());
-        bestTurnsMap.remove(getCurrentId());
-        bestCodeMap.remove(getCurrentId());
-        bestLOCMap.remove(getCurrentId());
-        levelList.remove(currentLevelIndex);
-        if(currentLevelIndex != 0)currentLevelIndex--;
-        selectLevel(currentLevelIndex);
+//        unlockedLevelIdList.remove(getCurrentId());
+        Integer idToRemove = getCurrentId();
+        String currentCourseName = getCurrentCourseName();
+        if(getPrevId() != -1)
+            selectLevel(getPrevId(),getCurrentCourseName());
+        if(getPrevId() == -1) selectFirstLevelInCourse(getAllCourseNames().get(0));
+        bestTurnsMap.remove(idToRemove);
+        bestCodeMap.remove(idToRemove);
+        bestLOCMap.remove(idToRemove);
+        levelSet.remove(getLevelWithId(idToRemove));
+        courseNameToIdListMap.get(currentCourseName).remove(idToRemove);
     }
 
     public void initLevelChangeListener(LevelChangeListener levelChangeListener) {
@@ -156,8 +199,18 @@ public class Model {
             case REQUIRED_LEVELS:
                 getCurrentLevel().setRequiredLevelIds((List<Integer>) value);
                 break;
-            case IS_TUTORIAL:
-                getCurrentLevel().setIsTutorial((boolean) value);
+//            case IS_TUTORIAL:
+//                getCurrentLevel().setIsTutorial((boolean) value);
+            case COURSE:
+                for(String courseName : courseNameToIdListMap.keySet()){
+                    List<Integer> idList = courseNameToIdListMap.get(courseName);
+                    if(idList.contains(getCurrentId())){
+                        if(!courseName.equals(value))idList.remove(getCurrentId());
+                    }
+                    else if(courseName.equals(value)){
+                        idList.add(getCurrentId());
+                    }
+                }
 
                 break;
             case TUTORIAL_LINES:
@@ -172,35 +225,37 @@ public class Model {
 
     private void moveCurrentLevel(int targetIndex) {
         int step = 1;
-        if(targetIndex<currentLevelIndex)step = -1;
-        for(int i = currentLevelIndex; i != targetIndex; i+=step){
+        if(targetIndex<getCurrentIndex())step = -1;
+        for(int i = getCurrentIndex(); i != targetIndex; i+=step){
             if(step==1)moveCurrentLevelUp();
             else moveCurrentLevelDown();
         }
     }
 
     private void moveCurrentLevelDown() {
-        Level tempLevel = levelList.get(currentLevelIndex-1);
-        levelList.set(currentLevelIndex-1, getCurrentLevel());
-        levelList.set(currentLevelIndex, tempLevel);
-        currentLevelIndex--;
+        List<Integer> idList = courseNameToIdListMap.get(getCurrentCourseName());
+        int index = getIndexOfLevelWithId(currentId);
+        int tempId = idList.get(index-1);
+        idList.set(index-1, currentId);
+        idList.set(index, tempId);
     }
 
     private void moveCurrentLevelUp() {
-        Level tempLevel = levelList.get(currentLevelIndex+1);
-        levelList.set(currentLevelIndex+1, getCurrentLevel());
-        levelList.set(currentLevelIndex, tempLevel);
-        currentLevelIndex++;
+        List<Integer> idList = courseNameToIdListMap.get(getCurrentCourseName());
+        int index = getIndexOfLevelWithId(currentId);
+        int tempId = idList.get(index+1);
+        idList.set(index+1, currentId);
+        idList.set(index, tempId);
     }
 
     public void changeCurrentLevel(LevelDataType levelDataType, Object newValue){
-        Object oldValue;
+        Object oldValue = null;
         switch (levelDataType){
             case AMOUNT_OF_RERUNS:
                 oldValue = getCurrentLevel().getAmountOfPlays();
                 break;
             case LEVEL_INDEX:
-                oldValue = currentLevelIndex;
+                oldValue = getIndexOfLevelWithId(currentId);
                 break;
             case MAX_KNIGHTS:
                 oldValue = getCurrentLevel().getMaxKnights();
@@ -223,8 +278,16 @@ public class Model {
             case REQUIRED_LEVELS:
                 oldValue = getCurrentLevel().getRequiredLevelIdsCopy();
                 break;
-            case IS_TUTORIAL:
-                oldValue = getCurrentLevel().isTutorial();
+//            case IS_TUTORIAL:
+//                oldValue = getCurrentLevel().isTutorial();
+            case COURSE:
+                for(String courseName : courseNameToIdListMap.keySet()){
+                    List<Integer> idList = courseNameToIdListMap.get(courseName);
+                    if(idList.contains(getCurrentId())){
+                        oldValue = courseName;
+                    }
+                }
+                if(oldValue == null)oldValue = GameConstants.CHALLENGE_COURSE_NAME;
                 break;
             case TUTORIAL_LINES:
                 oldValue = getCurrentLevel().getTutorialMessagesCopy();
@@ -248,10 +311,11 @@ public class Model {
 
     public Map<LevelDataType,LevelChange> getAndConfirmCurrentChanges() {
         Map<LevelDataType,LevelChange> output = levelChangeSender.getAndConfirmChanges();
-        if(output.containsKey(LevelDataType.IS_TUTORIAL)){
-            if((boolean)output.get(LevelDataType.IS_TUTORIAL).getNewValue())
-                output.put(LevelDataType.REQUIRED_LEVELS,new LevelChange(LevelDataType.REQUIRED_LEVELS,getCurrentLevel().getRequiredLevelIdsCopy(),new ArrayList<>()));
-        }
+        //TODO:!!!
+//        if(output.containsKey(LevelDataType.IS_TUTORIAL)){
+//            if((boolean)output.get(LevelDataType.IS_TUTORIAL).getNewValue())
+//                output.put(LevelDataType.REQUIRED_LEVELS,new LevelChange(LevelDataType.REQUIRED_LEVELS,getCurrentLevel().getRequiredLevelIdsCopy(),new ArrayList<>()));
+//        }
         return output;
     }
 
@@ -419,7 +483,7 @@ public class Model {
         CodeExecutor.reset();
     }
 
-    public void updateUnlockedLevelsList(boolean isEditor) {
+    /*public void updateUnlockedLevelsList(boolean isEditor) {
 
         int foundLevels = 0;
         // If the current level was saved from within the LevelEditor -> Maybe Required Levels was changed
@@ -430,7 +494,7 @@ public class Model {
             for(Integer id : getCurrentLevel().getRequiredLevelIdsCopy()){
                 if (this.getIndexOfLevelWithId(id) < this.getCurrentIndex())requiredLevelsSize++;
             }
-             if(getCurrentLevel().isTutorial())return;
+             if(GameConstants.CHALLENGE_COURSE_NAME.equals(getDataFromCurrentLevel(LevelDataType.COURSE)))return;
             for (Integer s : getCurrentLevel().getRequiredLevelIdsCopy()) {
                 if (bestLOCMap.get(s) != null && bestLOCMap.get(s) > -1) {
                     foundLevels++;
@@ -452,7 +516,7 @@ public class Model {
             if(!bestLOCMap.containsKey(getCurrentId())||bestLOCMap.get(getCurrentId()).equals(-1))return;
 
             int i = 0;
-            for(Level l : levelList){
+            for(Level l : levelSet){
                 int requiredLevelsSize = 0;
                 for(Integer id : l.getRequiredLevelIdsCopy()){
                     if (this.getIndexOfLevelWithId(id) < this.getIndexOfLevelWithId(l.getID()))requiredLevelsSize++;
@@ -466,16 +530,17 @@ public class Model {
                             foundLevels++;
                 }
                 // Doesnt apply to tutorials
-                if(foundLevels >=  requiredLevelsSize&& !l.isTutorial())
+                boolean levelIsTut = getDataFromLevelWithId(LevelDataType.COURSE,getIndexOfLevelWithId(l.getID()) ).equals(GameConstants.CHALLENGE_COURSE_NAME);
+                if(foundLevels >=  requiredLevelsSize&& !levelIsTut)
                     if(!unlockedLevelIdList.contains(l.getID())) unlockedLevelIdList.add(l.getID());
                 // Unlock next tutorial if this level is a tutorial
                 // A check whether this level is a tutorial is not needed as in that case (getNextTutorialIndex()==i) is false
-                if((l.isTutorial() && getNextTutorialIndex()==i))
+                if((levelIsTut && getNextTutorialIndex()==i))
                     if(!unlockedLevelIdList.contains(l.getID())) unlockedLevelIdList.add(l.getID());
                 i++;
             }
         }
-    }
+    }*/
 
     public boolean putStatsIfBetter(int loc, int turns, double nStars) {
         int bestLoc = -1;
@@ -499,6 +564,9 @@ public class Model {
         if(bestCodeMap.containsKey(getCurrentId())){
             bestCodeMap.replace(getCurrentId(),playerBehaviour.getCodeLines());
         } else bestCodeMap.put(getCurrentId(),playerBehaviour.getCodeLines());
+        if(bestKnightsMap.containsKey(getCurrentId())){
+            bestKnightsMap.replace(getCurrentId(),knightsSpawned);
+        } else bestKnightsMap.put(getCurrentId(),knightsSpawned);
         return true;
     }
 
@@ -539,12 +607,8 @@ public class Model {
     }
 
     public void addLevelAtCurrentPos(Level level, boolean b) {
-        if(currentLevelIndex == levelList.size()-1)addLevelLast(level, b);
+        if(getCurrentIndex() == getAmountOfLevelsInCurrentCourse()-1)addLevel(getCurrentIndex(), level, b);
         else addLevel(getCurrentIndex()+1, level, b);
-    }
-
-    public void setTutorialProgress(int nextIndex) {
-        tutorialProgress = nextIndex;
     }
 
     public void increaseCurrentRound() {
@@ -565,18 +629,15 @@ public class Model {
 
     // Getters
 
-    public int getTutorialProgress() {
-        return tutorialProgress;
-    }
 
     public List<String> getCurrentlyBestCode() {
         return getBestCodeOfLevel(getCurrentId());
     }
 
-    public List<Integer> getUnlockedLevelIds() {
+   /* public List<Integer> getUnlockedLevelIds() {
         List<Integer> unlockedLevelIds = new ArrayList<>(unlockedLevelIdList);
         return unlockedLevelIds;
-    }
+    }*/
 
     public int getBestLocOfLevel(int i) {
         int output = -1;
@@ -587,6 +648,11 @@ public class Model {
     public int getBestTurnsOfLevel(int i) {
         int output = -1;
         if(bestTurnsMap.get(i)!=null)output = bestTurnsMap.get(i);
+        return output;
+    }
+    public int getBestKnightsOfLevel(int i) {
+        int output = -1;
+        if(bestKnightsMap.get(i)!=null)output = bestKnightsMap.get(i);
         return output;
     }
 
@@ -608,16 +674,18 @@ public class Model {
 
     public int getAmountOfTutorials() {
         int output = 0;
-        for(Level l : levelList){
-            if(l.isTutorial())output++;
+        for(Level l : levelSet){
+            boolean levelIsTut = getDataFromLevelWithId(LevelDataType.COURSE,l.getID() ).equals(GameConstants.CHALLENGE_COURSE_NAME);
+            if(levelIsTut)output++;
         }
         return output;
     }
 
     public int getNextTutorialIndex() {
         int output = 0;
-        for(Level l : levelList){
-                if(l.isTutorial()&&output>currentLevelIndex)return output;
+        for(Level l : levelSet){
+            boolean levelIsTut = getDataFromLevelWithId(LevelDataType.COURSE,l.getID() ).equals(GameConstants.CHALLENGE_COURSE_NAME);
+                if(levelIsTut&&output>getCurrentIndex())return output;
                 output++;
             }
         return -1;
@@ -625,8 +693,8 @@ public class Model {
 
 
     public Integer createUniqueId() {
-        int maxId = levelList.get(0).getID();
-        for(Level l : levelList){
+        int maxId = levelSet.iterator().next().getID();
+        for(Level l : levelSet){
             if(l.getID() > maxId)maxId = l.getID();
         }
         return maxId+1;
@@ -634,14 +702,14 @@ public class Model {
 
     public String getNameOfLevelWithId(int levelId) {
         if(levelId == -1)return null;
-        for(Level l : levelList){
+        for(Level l : levelSet){
             if(l.getID() == levelId)return l.getName();
         }
         return null;
     }
 
     public Integer getIdOfLevelWithName(String levelName) {
-        for(Level l : levelList){
+        for(Level l : levelSet){
             if(l.getName().equals(levelName))return l.getID();
         }
         return -1;
@@ -649,20 +717,20 @@ public class Model {
 
     List<Integer> getOrderedIds() {
         List<Integer> output = new ArrayList<>();
-        for(Level l : levelList){
+        for(Level l : levelSet){
             output.add(l.getID());
         }
         return output;
     }
 
     public Integer getCurrentId() {
-        return getCurrentLevel().getID();
+        return currentId;
     }
 
     public List<String> getCurrentRequiredLevels() {
         List<String> output = new ArrayList<>();
         for(Integer id : getCurrentLevel().getRequiredLevelIdsCopy()){
-            if(this.getIndexOfLevelWithId(id) < currentLevelIndex)output.add(getNameOfLevelWithId(id));
+            if(this.getIndexOfLevelWithId(id) < getCurrentIndex())output.add(getNameOfLevelWithId(id));
         }
         return output;
     }
@@ -717,16 +785,16 @@ public class Model {
 
 
     public int getCurrentIndex() {
-        return currentLevelIndex;
+        return getIndexOfLevelWithId(currentId);
     }
 
-    public Object getDataFromLevelWithIndex(LevelDataType dataType, int index){
-        Level level = levelList.get(index);
+    public Object getDataFromLevelWithId(LevelDataType dataType, int id){
+        Level level = getLevelWithId(id);
         switch (dataType){
             case AMOUNT_OF_RERUNS:
                 return level.getAmountOfPlays();
             case LEVEL_INDEX:
-                return index;
+                return getIndexOfLevelWithId(id);
             case MAX_KNIGHTS:
                 return level.getMaxKnights();
             case MAP_DATA:
@@ -739,8 +807,16 @@ public class Model {
                 return level.getTurnsToStarsCopy();
             case REQUIRED_LEVELS:
                 return level.getRequiredLevelIdsCopy();
-            case IS_TUTORIAL:
-                return level.isTutorial();
+//            case IS_TUTORIAL:
+//                return level.isTutorial();
+            case COURSE:
+                for(String cName : courseNameToIdListMap.keySet()){
+                    List<Integer> idList = courseNameToIdListMap.get(cName);
+                    if(idList.contains(level.getID())){
+                        return cName;
+                    }
+                }
+                return "";
             case TUTORIAL_LINES:
                 return level.getTutorialMessagesCopy();
             case LEVEL_NAME:
@@ -750,8 +826,13 @@ public class Model {
         }
         return null;
     }
+
+    private Level getLevelWithIndexInCourse(String courseName, int index) {
+        return getLevelWithId(courseNameToIdListMap.get(courseName).get(index));
+    }
+
     public Object getDataFromCurrentLevel(LevelDataType dataType){
-        return getDataFromLevelWithIndex(dataType, currentLevelIndex);
+        return getDataFromLevelWithId(dataType, getCurrentId());
     }
 
     public int getCurrentTutorialMessageIndex() {
@@ -766,33 +847,30 @@ public class Model {
         return new ArrayList<>(unlockedStatementsList);
     }
 
-    String getNameOfLevelWithIndex(int i) {
-        return levelList.get(i).getName();
+    String getNameOfLevelWithIndexInCourse(String courseName, int i) {
+        return getNameOfLevelWithId(courseNameToIdListMap.get(courseName).get(i));
     }
 
     public boolean hasLevelWithName(String t1) {
-        for(Level l : levelList){
+        for(Level l : levelSet){
             if(l.getName().equals(t1))return true;
         }
         return false;
     }
 
     public int getAmountOfLevels() {
-        return levelList.size();
+        return levelSet.size();
     }
 
     int getIndexOfLevelInList(String levelName) {
-        for(int i = 0; i < levelList.size(); i++){
-            Level l = levelList.get(i);
-            if(l.getName().equals(levelName))return i;
-        }
-        return -1;
+        return getIndexOfLevelWithId(getIdOfLevelWithName(levelName));
     }
     public int getIndexOfLevelWithId(int id) {
         if(id == -1)return -1;
-        for(int i = 0; i < levelList.size(); i++){
-            Level l = levelList.get(i);
-            if(l.getID()==id)return i;
+        for(List<Integer> idList : courseNameToIdListMap.values()){
+            for(int i = 0; i < idList.size();i++){
+                if(idList.get(i)==id)return i;
+            }
         }
         return -1;
     }
@@ -801,18 +879,154 @@ public class Model {
         return levelChangeSender.hasChanged() || levelChangeSender.isLevelNew();
     }
     private Level getCurrentLevel() {
-        return levelList.get(currentLevelIndex);
+        return getLevelWithId(currentId);
+    }
+
+    private Level getLevelWithId(int id) {
+        for(Level l : levelSet){
+            if(l.getID() == id)
+            return l;
+        }
+        return null;
     }
 
     public int getAmountOfCompletedLevels() {
         int amountOfCompletedLevels = 0;
-        for(int id : getUnlockedLevelIds()){
-            if(bestLOCMap.get(id)>-1 && bestTurnsMap.get(id)>-1)amountOfCompletedLevels++;
+        for(String s : getAllCourseNames()){
+            amountOfCompletedLevels += calculateProgressOfCourse(s);
         }
+       /* for(int id : getUnlockedLevelIds()){
+            if(bestLOCMap.get(id)>-1 && bestTurnsMap.get(id)>-1)amountOfCompletedLevels++;
+        }*/
         return amountOfCompletedLevels;
     }
+
+    public int calculateProgressOfCourse(String courseName) {
+        if(courseName.equals(CHALLENGE_COURSE_NAME))return getAmountOfLevelsInCourse(CHALLENGE_COURSE_NAME)-1;
+        int output = -1;
+        for(int id : courseNameToIdListMap.get(courseName)){
+            if(getBestLocOfLevel(id)==-1)return output;
+            output++;
+        }
+        return output;
+    }
+
     public boolean isEditorUnlocked() {
         return editorUnlocked;
     }
 
+    public List<String> getAllCourseNames() {
+        return new ArrayList<>(courseNameToIdListMap.keySet());
+    }
+
+    public int getAmountOfLevelsInCourse(String courseName) {
+        return courseNameToIdListMap.get(courseName).size();
+    }
+
+//    public void selectCourse(String currentCourse){
+//        this.currentCourse = currentCourse;
+//    }
+//TODO: change these?
+    public String getCurrentCourseName() {
+        for(String courseName : courseNameToIdListMap.keySet()){
+            if(courseNameToIdListMap.get(courseName).contains(currentId)){
+                return courseName;
+            }
+        }
+        return null;
+    }
+
+    private double getCurrentStarsOfLevel(int id){
+        Level level = getLevelWithId(id);
+        return Util.calculateStars(bestTurnsMap.get(id),bestLOCMap.get(id),bestKnightsMap.get(id),level.getTurnsToStarsCopy(),level.getLocToStarsCopy(),level.getMaxKnights());
+    }
+
+    public double getMinStarsOfCourse(String courseName) {
+        double minStar = 3;
+        if(courseNameToIdListMap.get(courseName).size()==0)return 0;
+        for(Integer id : courseNameToIdListMap.get(courseName)){
+            if(getCurrentStarsOfLevel(id)< minStar)minStar = getCurrentStarsOfLevel(id);
+        }
+        return minStar;
+    }
+
+    public LevelDifficulty getDifficultyOfCourse(String courseName) {
+        return courseNameLevelDifficultyMap.get(courseName);
+    }
+
+    private void addCourse(String text,LevelDifficulty difficulty) {
+        courseNameToIdListMap.put(text, new ArrayList<>());
+        courseNameLevelDifficultyMap.put(text, difficulty);
+    }
+
+    private void deleteCourse(String selectedItem) {
+        courseNameToIdListMap.remove(selectedItem);
+        courseNameLevelDifficultyMap.remove(selectedItem);
+    }
+
+    public void applyCourseChanges(Map<String, LevelDifficulty> courseDifficultyMap) {
+        for(String s : getAllCourseNames()){
+            if(!courseNameLevelDifficultyMap.containsKey(s))courseNameLevelDifficultyMap.put(s, courseDifficultyMap.get(s));
+            else if(getDifficultyOfCourse(s)!=courseDifficultyMap.get(s))courseNameLevelDifficultyMap.replace(s, courseDifficultyMap.get(s));
+        }
+    }
+
+    public List<Integer> getOrderedIdsFromCourse(String s) {
+        return new ArrayList<>(courseNameToIdListMap.get(s));
+    }
+
+    public List<Integer> getUnlockedLevelIds() {
+        List<Integer> outputList = new ArrayList<>();
+        for(String courseName : getAllCourseNames()){
+            int count = 0;
+            for(int i : courseNameToIdListMap.get(courseName)){
+                outputList.add(i);
+                if(count > calculateProgressOfCourse(courseName))break;
+            }
+        }
+        return outputList;
+    }
+
+    public int getCurrentCourseProgress() {
+        return calculateProgressOfCourse(getCurrentCourseName());
+    }
+
+    public void addAllCourses(List<String> newCourses) {
+        for(String courseName : newCourses)
+            courseNameToIdListMap.put(courseName,new ArrayList<>());
+    }
+    public void removeAllCourses(List<String> deletedCourses) {
+        for(String courseName : deletedCourses)
+            courseNameToIdListMap.remove(courseName);
+    }
+
+    public int getIdOfLevelInCurrentCourseAt(int i) {
+        return courseNameToIdListMap.get(getCurrentCourseName()).get(i);
+    }
+
+    public int getNextId() {
+        if(courseNameToIdListMap.get(getCurrentCourseName()).size() > getCurrentIndex()+1)
+            return courseNameToIdListMap.get(getCurrentCourseName()).get(getCurrentIndex()+1);
+        else return -1;
+    }
+    public int getPrevId() {
+        if(0 <= getCurrentIndex()-1)
+            return courseNameToIdListMap.get(getCurrentCourseName()).get(getCurrentIndex()-1);
+        else return -1;
+    }
+
+    public int getAmountOfLevelsInCurrentCourse() {
+        return getAmountOfLevelsInCourse(getCurrentCourseName());
+    }
+
+    public void selectFirstLevelInCourse(String course) {
+        selectLevel(courseNameToIdListMap.get(course).get(0));
+    }
+
+//    public void storeProgress() {
+//        if(courseNameProgressMap.containsKey(currentCourse))
+//        if(courseNameProgressMap.get(currentCourse) < currentLevelIndex){
+//            courseNameProgressMap.replace(currentCourse, currentLevelIndex);
+//        }
+//    }
 }

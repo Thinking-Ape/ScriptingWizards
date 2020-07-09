@@ -47,7 +47,7 @@ public class TutorialGroup extends Group {
         prevBtn.setGraphic(prevIV);
         nextBtn.setGraphic(nextIV);
 
-        if(ModelInformer.getTutorialProgress() == -1){
+        if(ModelInformer.getCurrentCourseProgress() == -1){
 
             nextBtn.setStyle("-fx-background-color: white;" +
                     "-fx-base: transparent;");

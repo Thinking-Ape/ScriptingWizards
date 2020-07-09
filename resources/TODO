@@ -23,6 +23,10 @@ OPTIONAL:
 - evil wizard explains level editor?
 - leveleditor open with a dialog whether to open a level or create a new one
 - merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
+- remove currentcourse <- widerspriucht evt currentlevel
+- cahnge name of course add the textfield
+- 3 Stars in all challenges might be near impossible... maybe only 2 Stars?
+- make cell_Ids automatic?
 -----------------------------------
 IMPORTANT:
 -----------------------------------
@@ -50,8 +54,9 @@ IMPORTANT:
  - Kurse anstelle von Tutorial? -> 10. Klasse vs. 7. Klasse
  - Möglichkeit, kurse zu erstellen!
  - getCell()
- - Ingame upon hovering over a cell -> show information about this cell as a tooltip
- - Button to revisit Introduction?
+ - How to apply patch for students?
+ - Verteile cell ids automactisch (xxyy? 0000 bis 1515 oder 0 bis 225)
+ - mehrere Player Spawns?
 ---------------------------------------------
 
 

@@ -48,7 +48,7 @@ import static main.model.GameConstants.TUTORIAL_LINES;
 public class View implements LevelChangeListener {
 
     private final BackgroundImage backgroundImage = new BackgroundImage(new Image( GameConstants.BG_LIGHT_TILE_PATH ), BackgroundRepeat.REPEAT,null,BackgroundPosition.CENTER,BackgroundSize.DEFAULT );
-    private LevelOverviewPane tutorialLevelOverviewPane;
+
     private Background brickBackground = new Background(backgroundImage);
     private Stage stage;
     private SimpleEventSender eventSender;
@@ -69,8 +69,9 @@ public class View implements LevelChangeListener {
     private LevelEditorModule levelEditorModule;
     private List<Point> selectedPointList;
     private static Map<String, Image> contentImageMap = new HashMap<>();
-
-    private LevelOverviewPane levelOverviewPane;
+    private List<LevelOverviewPane> tutorialLevelOverviewPaneList;
+    private LevelOverviewPane challengeOverviewPane;
+    private CourseOverviewPane courseOverviewPane;
 
     private Button backBtn = new Button();
     private static SceneState sceneState = SceneState.START_SCREEN;
@@ -132,8 +133,13 @@ public class View implements LevelChangeListener {
 
         knightsLeftVBox.setSpacing(cell_size / 4);
         knightsLeftVBox.setMinWidth(cell_size/1.5);
-        levelOverviewPane = new LevelOverviewPane(false);
-        tutorialLevelOverviewPane = new LevelOverviewPane( true);
+        challengeOverviewPane = new LevelOverviewPane(CHALLENGE_COURSE_NAME);
+        tutorialLevelOverviewPaneList = new ArrayList<>();
+        for(String courseName : ModelInformer.getAllCourseNames()){
+            if(courseName.equals(CHALLENGE_COURSE_NAME))continue;
+            tutorialLevelOverviewPaneList.add(new LevelOverviewPane(courseName));
+        }
+        courseOverviewPane = new CourseOverviewPane();
 
         stage.setWidth(GameConstants.SCREEN_WIDTH);
         stage.setHeight(GameConstants.SCREEN_HEIGHT);
@@ -621,10 +627,11 @@ public class View implements LevelChangeListener {
         levelEditorModule.getIndexValueLbl().setText("" + ModelInformer.getCurrentIndex());
         levelEditorModule.getMaxKnightsValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS));
         levelEditorModule.getAmountOfRerunsValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS));
-        levelEditorModule.getIsTutorialValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
+//        levelEditorModule.getIsTutorialValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
+        levelEditorModule.getCourseValueLbl().setText("" + ModelInformer.getDataFromCurrentLevel(LevelDataType.COURSE));
         levelEditorModule.getHeightValueLbl().setText("" + gameMap.getBoundY());
 
-        boolean isTutorial = (boolean)ModelInformer.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL);
+        boolean isTutorial = !CHALLENGE_COURSE_NAME.equals(ModelInformer.getDataFromCurrentLevel(LevelDataType.COURSE));
         if(isTutorial){
             levelEditorModule.showRequiredLevelsHBox(false);
         }
@@ -659,7 +666,7 @@ public class View implements LevelChangeListener {
             levelEditorModule.getMoveIndexDownBtn().setDisable(true);
         }
         else levelEditorModule.getMoveIndexDownBtn().setDisable(false);
-        if(ModelInformer.getCurrentIndex() == ModelInformer.getAmountOfLevels()-1){
+        if(ModelInformer.getCurrentIndex() == ModelInformer.getAmountOfLevelsInCurrentCourse()-1){
             levelEditorModule.getMoveIndexUpBtn().setDisable(true);
         }
         else levelEditorModule.getMoveIndexUpBtn().setDisable(false);
@@ -694,7 +701,7 @@ public class View implements LevelChangeListener {
         if (sceneState == SceneState.LEVEL_EDITOR) {
             updateLevelEditorModule();
         }
-        if (sceneState == SceneState.TUTORIAL && ModelInformer.getTutorialProgress()>-1) {
+        if (sceneState == SceneState.TUTORIAL && !isIntroduction) {
             tutorialGroup.setEntries((List<String>)ModelInformer.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         }
         spellBookPane.updateSpellbookEntries(ModelInformer.getUnlockedStatementList());
@@ -708,7 +715,6 @@ public class View implements LevelChangeListener {
      */
     @Override
     public void updateTemporaryChanges(LevelChange levelChange) {
-
         switch (levelChange.getLevelDataType()){
             case MAP_DATA:
                 GameMap gameMap = (GameMap)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
@@ -719,11 +725,18 @@ public class View implements LevelChangeListener {
             case LOC_TO_STARS:
             case TURNS_TO_STARS:
             case REQUIRED_LEVELS:
-            case IS_TUTORIAL:
-                if(levelChange.getLevelDataType().equals(LevelDataType.IS_TUTORIAL)){
-                    if((boolean)levelChange.getNewValue())
-                        Platform.runLater(()->tutorialLevelOverviewPane.addLevelWithIndex(ModelInformer.getCurrentIndex()));
-                    else tutorialLevelOverviewPane.removeCurrentLevel();
+//            case IS_TUTORIAL:
+//                if(levelChange.getLevelDataType().equals(LevelDataType.IS_TUTORIAL)){
+//                    if((boolean)levelChange.getNewValue())
+//                        Platform.runLater(()->tutorialLevelOverviewPane.addCourseAtIndex(ModelInformer.getCurrentIndex()));
+//                    else tutorialLevelOverviewPane.removeCurrentLevel();
+//                }
+            case COURSE:
+                if(levelChange.getLevelDataType().equals(LevelDataType.COURSE)){
+                    //TODO!!
+//                    if((String)levelChange.getNewValue())
+//                        Platform.runLater(()->tutorialLevelOverviewPane.addCourseAtIndex(ModelInformer.getCurrentIndex()));
+//                    else tutorialLevelOverviewPane.removeCurrentLevel();
                 }
             case TUTORIAL_LINES:
             case LEVEL_NAME:
@@ -765,8 +778,10 @@ public class View implements LevelChangeListener {
         }
         String levelName = ModelInformer.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"";
         if(levelChange.getLevelDataType()==LevelDataType.LEVEL_NAME)levelName = levelChange.getOldValue()+"";
-        if(tutorialLevelOverviewPane.containsLevel(levelName))tutorialLevelOverviewPane.updateLevel(levelName);
-        if(levelOverviewPane.containsLevel(levelName))levelOverviewPane.updateLevel(levelName);
+        for(LevelOverviewPane tutorialLevelOverviewPane : tutorialLevelOverviewPaneList){
+            if(tutorialLevelOverviewPane.containsLevel(levelName))tutorialLevelOverviewPane.updateLevel(levelName);
+        }
+        if(challengeOverviewPane.containsLevel(levelName)) challengeOverviewPane.updateLevel(levelName);
         updateLevelEditorModule();
     }
 
@@ -805,15 +820,24 @@ public class View implements LevelChangeListener {
                 stage.getScene().setRoot(levelPane);
                 break;
             case LEVEL_SELECT:
-                stage.getScene().setRoot(levelOverviewPane);
-                levelOverviewPane.getLevelListView().getSelectionModel().select(0);
-                levelOverviewPane.setBackground(brickBackground);
+                stage.getScene().setRoot(challengeOverviewPane);
+                challengeOverviewPane.getLevelListView().getSelectionModel().select(0);
+                challengeOverviewPane.setBackground(brickBackground);
+                break;
+            case COURSE_SELECT:
+                stage.getScene().setRoot(courseOverviewPane);
+                courseOverviewPane.getCourseListView().getSelectionModel().select(0);
+                courseOverviewPane.setBackground(brickBackground);
                 break;
 
             case TUTORIAL_LEVEL_SELECT:
-                stage.getScene().setRoot(tutorialLevelOverviewPane);
-                tutorialLevelOverviewPane.getLevelListView().getSelectionModel().select(0);
-                tutorialLevelOverviewPane.setBackground(brickBackground);
+                for(LevelOverviewPane tutorialLevelOverviewPane : tutorialLevelOverviewPaneList){
+                    if(tutorialLevelOverviewPane.getCourseName().equals(ModelInformer.getCurrentCourseName())){
+                        stage.getScene().setRoot(tutorialLevelOverviewPane);
+                        tutorialLevelOverviewPane.getLevelListView().getSelectionModel().select(0);
+                        tutorialLevelOverviewPane.setBackground(brickBackground);
+                    }
+                }
                 break;
             case PLAY:
                 drawMap(gameMap);
@@ -863,12 +887,14 @@ public class View implements LevelChangeListener {
                 centerVBox.getChildren().addAll(levelEditorModule.getBottomHBox(), editorCenterHBox);
                 centerVBox.setSpacing(GameConstants.CODEFIELD_HEIGHT /2);
                 baseContentVBox.getChildren().add(levelEditorModule.getTopHBox());
-                levelEditorModule.getTutorialVBox().setVisible((boolean)ModelInformer.getDataFromCurrentLevel(LevelDataType.IS_TUTORIAL));
+                boolean isChallenges = GameConstants.CHALLENGE_COURSE_NAME.equals(ModelInformer.getDataFromCurrentLevel(LevelDataType.COURSE)+"");
+                levelEditorModule.getTutorialVBox().setVisible(!isChallenges);
                 updateLevelEditorModule();
                 break;
             case START_SCREEN:
             case LEVEL_SELECT:
             case TUTORIAL_LEVEL_SELECT:
+            case COURSE_SELECT:
                 //This should not be possible;
                 throw new IllegalStateException("Illegal State! Method was called although SceneState"+sceneState.name()+" should not coincide with a call of this Method!");
             case PLAY:
@@ -887,15 +913,8 @@ public class View implements LevelChangeListener {
                 centerHBox.setAlignment(Pos.TOP_CENTER);
                 centerVBox.getChildren().addAll(levelNameLabel,centerHBox);
 
-                if(ModelInformer.getTutorialProgress()==-1){
-                    isIntroduction = true;
-                    clearCodeBtn.setDisable(true);
-                    tutorialGroup.activateIntroduction();
-                    mapGPane.setDisable(true);
-                    btnExecute.setMouseTransparent(true);
-                    codeArea.setDisable(true);
-                    speedSlider.setMouseTransparent(true);
-                    showSpellBookBtn.setMouseTransparent(true);
+                if(ModelInformer.getCurrentCourseProgress()==-1){
+                    prepareForIntroduction();
                 }
                 if(isIntroduction){
                     List<String> entries =Util.StringListFromArray(TUTORIAL_LINES);
@@ -931,10 +950,7 @@ public class View implements LevelChangeListener {
         baseContentVBox.getChildren().addAll(contentHBox);
         levelPane.getChildren().add(baseContentVBox);
         if (getCurrentSceneState() == SceneState.TUTORIAL) {
-
             levelPane.getChildren().add(tutorialGroup);
-
-
             StackPane.setAlignment(tutorialGroup, Pos.BOTTOM_RIGHT);
             if(isIntroduction){
                 StackPane.setAlignment(tutorialGroup, Pos.CENTER);}
@@ -944,6 +960,17 @@ public class View implements LevelChangeListener {
         levelPane.getChildren().add(spellBookPane);
         spellBookPane.setVisible(false);
         levelPane.setBackground(brickBackground);
+    }
+
+    public void prepareForIntroduction() {
+        isIntroduction = true;
+        clearCodeBtn.setDisable(true);
+        tutorialGroup.activateIntroduction();
+        mapGPane.setDisable(true);
+        btnExecute.setMouseTransparent(true);
+        codeArea.setDisable(true);
+        speedSlider.setMouseTransparent(true);
+        showSpellBookBtn.setMouseTransparent(true);
     }
 
     private void removeMapHighlights() {
@@ -972,8 +999,8 @@ public class View implements LevelChangeListener {
         return Util.makeTransparent(image);
     }
 
-    public LevelOverviewPane getLevelOverviewPane() {
-        return levelOverviewPane;
+    public LevelOverviewPane getChallengeOverviewPane() {
+        return challengeOverviewPane;
     }
 
     public Button getBackBtn() {
@@ -1109,8 +1136,8 @@ public class View implements LevelChangeListener {
         mapGPane.setDisable(false);
     }
 
-    public LevelOverviewPane getTutorialLevelOverviewPane() {
-        return tutorialLevelOverviewPane;
+    public LevelOverviewPane getCurrentTutorialLevelOverviewPane() {
+        return findTutorialLevelOverviewPane(ModelInformer.getCurrentCourseName());
     }
 
     public void highlightButtons() {
@@ -1180,6 +1207,49 @@ public class View implements LevelChangeListener {
         }else {
             tutorialGroup.getCurrentTutorialMessage().setText(ModelInformer.getCurrentTutorialMessage());
             if(ModelInformer.getCurrentTutorialSize()>ModelInformer.getCurrentTutorialMessageIndex()+1)tutorialGroup.getNextBtn().setDisable(false);
+        }
+    }
+
+    public CourseOverviewPane getCourseOverviewPane() {
+        return courseOverviewPane;
+    }
+
+    public List<LevelOverviewPane> getTutorialLevelOverviewPaneListCopy() {
+        return new ArrayList<>(tutorialLevelOverviewPaneList);
+    }
+
+    public LevelOverviewPane findTutorialLevelOverviewPane(String currentCourseName) {
+        for(LevelOverviewPane output : tutorialLevelOverviewPaneList){
+            if(output.getCourseName().equals(currentCourseName)){
+                return output;
+            }
+        }
+        return null;
+    }
+
+    public LevelOverviewPane getTutorialLevelOverviewPaneOfCourse(String courseName) {
+        for(LevelOverviewPane levelOverviewPane : tutorialLevelOverviewPaneList){
+            if(levelOverviewPane.getCourseName().equals(courseName))return levelOverviewPane;
+        }
+        return null;
+    }
+
+    public void addAllCourses(List<String> newCourses, Map<String, LevelDifficulty> courseDifficultyMap) {
+        courseOverviewPane.addAllCourses(newCourses, courseDifficultyMap);
+        for (String newCourse : newCourses) tutorialLevelOverviewPaneList.add(new LevelOverviewPane(newCourse));
+    }
+
+    public void removeAllCourses(List<String> deletedCourses) {
+        courseOverviewPane.removeAllCourses(deletedCourses);
+        for (String deletedName : deletedCourses) tutorialLevelOverviewPaneList.removeIf(o -> o.getCourseName().equals(deletedName));
+    }
+
+    public void sortAllLevelEntries(LevelChange levelChange) {
+        if(ModelInformer.getCurrentCourseName().equals(CHALLENGE_COURSE_NAME))
+            challengeOverviewPane.sortEntries(levelChange);
+        else for(LevelOverviewPane tutorialOverviewPane : tutorialLevelOverviewPaneList){
+            if(ModelInformer.getCurrentCourseName().equals(tutorialOverviewPane.getCourseName()))
+                tutorialOverviewPane.sortEntries(levelChange);
         }
     }
 }

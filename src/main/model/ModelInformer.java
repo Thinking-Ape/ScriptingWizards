@@ -1,6 +1,7 @@
 package main.model;
 
 import main.model.gamemap.GameMap;
+
 import java.util.List;
 
 
@@ -12,15 +13,16 @@ public abstract class ModelInformer {
         ModelInformer.model = model;
     }
 
-    public static int getTutorialProgress() {
-        return model.getTutorialProgress();
-    }
+//    public static int getTutorialProgress() {
+//        return model.getTutorialProgress();
+//    }
 
     public static List<String> getCurrentlyBestCode() {
         return model.getCurrentlyBestCode();
     }
 
     public static List<Integer> getUnlockedLevelIds() {
+
         return model.getUnlockedLevelIds();
     }
 
@@ -30,6 +32,9 @@ public abstract class ModelInformer {
 
     public static int getBestTurnsOfLevel(int i) {
         return model.getBestTurnsOfLevel(i);
+    }
+    public static int getBestKnightsOfLevel(int i) {
+        return model.getBestKnightsOfLevel(i);
     }
 
     public static GameMap getCurrentMapCopy(){
@@ -118,8 +123,8 @@ public abstract class ModelInformer {
         return model.getCurrentIndex();
     }
 
-    public static Object getDataFromLevelWithIndex(LevelDataType dataType, int index){
-        return model.getDataFromLevelWithIndex(dataType, index);
+    public static Object getDataFromLevelWithId(LevelDataType dataType, int id){
+        return model.getDataFromLevelWithId(dataType, id);
     }
     public static Object getDataFromCurrentLevel(LevelDataType dataType){
         return model.getDataFromCurrentLevel(dataType);
@@ -137,9 +142,9 @@ public abstract class ModelInformer {
         return model.getUnlockedStatementList();
     }
 
-    public static String getNameOfLevelWithIndex(int i) {
-        return model.getNameOfLevelWithIndex(i);
-    }
+//    public static String getNameOfLevelWithIndex(int i) {
+//        return model.getNameOfLevelWithIndexInCourse(i);
+//    }
 
     public static boolean hasLevelWithName(String t1) {
         return model.hasLevelWithName(t1);
@@ -166,5 +171,37 @@ public abstract class ModelInformer {
 
     public static boolean isEditorUnlocked() {
         return model.isEditorUnlocked();
+    }
+
+    public static List<String> getAllCourseNames() {
+        return model.getAllCourseNames();
+    }
+
+    public static int getAmountOfLevelsInCourse(String courseName) {
+        return model.getAmountOfLevelsInCourse(courseName);
+    }
+
+    public static String getCurrentCourseName() {
+        return model.getCurrentCourseName();
+    }
+
+    public static double getMinStarsOfCourse(String courseName) {
+        return model.getMinStarsOfCourse(courseName);
+    }
+
+    public static LevelDifficulty getDifficultyOfCourse(String courseName) {
+        return model.getDifficultyOfCourse(courseName);
+    }
+
+    public static List<Integer> getOrderedIdsFromCourse(String s) {
+        return model.getOrderedIdsFromCourse(s);
+    }
+
+    public static int getCurrentCourseProgress() {
+        return model.getCurrentCourseProgress();
+    }
+
+    public static int getAmountOfLevelsInCurrentCourse() {
+        return model.getAmountOfLevelsInCurrentCourse();
     }
 }

@@ -14,8 +14,6 @@ public abstract class Tester {
 
     public static void runTests(){
         // Remove those in case of build as junit is considered an automatic module that cannot be used with jlink
-        new CodeEvaluatorTest().testEvaluateStatement();
-        new CodeParserTest().testParseProgramCode();
-        new CodeExecutorTest().testExecuteBehaviour();
+
     }
 }

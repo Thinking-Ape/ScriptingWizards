@@ -52,7 +52,9 @@ public class LevelEditorModule {
     private Label indexLbl = new Label("Index: ");
     private Label indexValueLbl = new Label("");
     private Label isTutorialLbl = new Label("Is Tutorial: ");
-    private Label isTutorialValueLbl = new Label("");
+//    private Label isTutorialValueLbl = new Label("");
+    private Label courseLabel = new Label("Course: ");
+    private Label courseValueLbl = new Label("");
     private Button moveIndexUpBtn = new Button("Move Level Up");
     private Button moveIndexDownBtn = new Button("Move Level Down");
 
@@ -77,8 +79,9 @@ public class LevelEditorModule {
     private Button reloadLevelBtn = new Button("Reload Level");
     private HBox bottomHBox = new HBox(openLevelBtn, saveLevelBtn,newLevelBtn, copyLevelBtn, deleteLevelBtn, reloadLevelBtn, resetLevelScoresBtn);
     private VBox requiredLVBOX = new VBox(requiredLevelsLabel,requiredLevelsLView);
+    private Button editCoursesBtn = new Button("Edit Courses");
     private Button changeLvlNameBtn = new Button("Change Level Name");
-    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new VBox(new HBox(amountOfRerunsLbl,amountOfRerunsValueLbl),new HBox(maxKnightsLbl,maxKnightsValueLbl)),new HBox(),  new HBox(maxTurnsVbox,maxTurnsValueVbox),new HBox(maxLocVbox,maxLocValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(isTutorialLbl,isTutorialValueLbl),changeLvlBtn,requiredLVBOX,editRequiredLevelsBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
+    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new VBox(new HBox(amountOfRerunsLbl,amountOfRerunsValueLbl),new HBox(maxKnightsLbl,maxKnightsValueLbl)),new HBox(),  new HBox(maxTurnsVbox,maxTurnsValueVbox),new HBox(maxLocVbox,maxLocValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(courseLabel,courseValueLbl),changeLvlBtn,new Label(),new Separator(Orientation.VERTICAL),editCoursesBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
 
     private Label tutorialTextLbl = new Label("Tutorial Text Nr.");
     private Label tutorialNumberValueLbl = new Label("1");
@@ -100,13 +103,14 @@ public class LevelEditorModule {
     private Label cellDetailLbl = new Label("Cell Details:");
 
     LevelEditorModule(){
-        Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,isTutorialValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl,amountOfRerunsValueLbl);
+        Util.applyValueFormat(tutorialNumberValueLbl,indexValueLbl,courseValueLbl,widthValueLbl,heightValueLbl,levelNameValueLbl,hasAiValueLbl,cellIdValueLbl,maxLoc2StarsVLbl,maxLoc3StarsVLbl,maxTurns2StarsVLbl,maxTurns3StarsVLbl,maxKnightsValueLbl,amountOfRerunsValueLbl);
         levelNameValueLbl.setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
         Util.applyFontFormatRecursively(topHBox);
         isTurnedCBox.setStyle("-fx-background-color: white");
         isInvertedCBox.setStyle("-fx-background-color: white");
         topHBox.setSpacing(CODEFIELD_HEIGHT +5);
         topHBox.setBackground(new Background(new BackgroundFill(Color.LIGHTGREY,null,Insets.EMPTY)));
+        topHBox.setMinHeight(BUTTON_SIZE/2);
         cellTypeVBox.setAlignment(Pos.CENTER);
         cellTypeVBox.setStyle("-fx-background-color: lightgray");
         tutorialVBox.setStyle("-fx-background-color: lightgray");
@@ -213,8 +217,11 @@ public class LevelEditorModule {
                     requiredLevelsLView.getItems().add(ModelInformer.getNameOfLevelWithId(requiredLevel));
                 }
                 break;
-            case IS_TUTORIAL:
-                isTutorialValueLbl.setText(change.getNewValue()+"");
+//            case IS_TUTORIAL:
+//                isTutorialValueLbl.setText(change.getNewValue()+"");
+//                break;
+            case COURSE:
+                courseValueLbl.setText(change.getNewValue()+"");
                 break;
             case TUTORIAL_LINES:
                 List<String> tutorialLines = (List<String>)change.getNewValue();
@@ -379,8 +386,11 @@ public class LevelEditorModule {
         return indexValueLbl;
     }
 
-    Label getIsTutorialValueLbl() {
-        return isTutorialValueLbl;
+//    Label getIsTutorialValueLbl() {
+//        return isTutorialValueLbl;
+//    }
+    Label getCourseValueLbl() {
+        return courseValueLbl;
     }
 
     public Button getMoveIndexUpBtn() {
@@ -462,4 +472,5 @@ public class LevelEditorModule {
     Label getAmountOfRerunsValueLbl() {
         return amountOfRerunsValueLbl;
     }
+    public Button getEditCoursesBtn(){return editCoursesBtn;}
 }

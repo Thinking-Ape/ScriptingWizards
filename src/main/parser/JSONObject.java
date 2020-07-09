@@ -13,13 +13,14 @@ public class JSONObject {
     Map<String,Object> keyValueMap;
 
     public JSONObject (String pairs){
+        pairs = pairs.replaceAll("\n","");
         keyValueMap = new HashMap<>();
         if(!pairs.matches(JSON_OBJECT_REGEX))throw new IllegalArgumentException(pairs + " is no JSONObject!");
         pairs = Util.removeFirstAndLast(pairs);
         List<String> keyValueList = Util.splitValues( pairs);
         for(String keyValue : keyValueList){
-            String key = keyValue.replaceAll("^(\".*?\"):.*$", "$1");
-            String value = keyValue.replaceAll("^\".*?\":(.*)$", "$1");
+            String key = keyValue.replaceAll("^ *(\".*?\"):.*$", "$1");
+            String value = keyValue.replaceAll("^ *\".*?\":(.*) *$", "$1");
             value = value.trim();
             key = key.trim();
             if(key.equals(""))continue;

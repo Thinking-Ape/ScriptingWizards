@@ -8,7 +8,7 @@ import java.util.*;
  */
 public class SimpleSet<T> extends HashSet<T> {
 
-    public SimpleSet(Set<T> set){
+    public SimpleSet(Collection<T> set){
         super(set);
     }
     public SimpleSet(){

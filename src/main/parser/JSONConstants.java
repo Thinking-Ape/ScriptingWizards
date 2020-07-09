@@ -28,4 +28,9 @@ public abstract class JSONConstants {
     public static final String ORDER = "order";
     public static final String AMOUNT_OF_RERUNS = "reruns";
     public static final String EDITOR_UNLOCKED = "editorUnlocked";
+    public static final String BEST_KNIGHTS = "knights";
+    public static final String COURSES = "courses";
+    public static final String COURSE_NAME = "name";
+    public static final String ID_LIST = "idList";
+    public static final String DIFFICULTY = "difficulty";
 }

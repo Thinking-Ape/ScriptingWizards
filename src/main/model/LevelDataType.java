@@ -10,7 +10,8 @@ public enum LevelDataType {
     LOC_TO_STARS,
     TURNS_TO_STARS,
     REQUIRED_LEVELS,
-    IS_TUTORIAL,
+//    IS_TUTORIAL,
+    COURSE,
     TUTORIAL_LINES,
     AMOUNT_OF_RERUNS,
     LEVEL_NAME;

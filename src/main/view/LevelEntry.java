@@ -1,6 +1,7 @@
 package main.view;
 
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,7 +17,6 @@ public class LevelEntry extends HBox {
     private ImageView bestStars;
 
     LevelEntry(Image image, String name, String tooltipString,String bestScores,double nStars) {
-
         imageView = new ImageView(image);
         imageView.setFitHeight(GameConstants.LEVEL_ENTRY_SIZE);
         imageView.setFitWidth(GameConstants.LEVEL_ENTRY_SIZE);
