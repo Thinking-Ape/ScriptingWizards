@@ -15,7 +15,7 @@ Es können für eine Lösung zwischen 1 und 3 Sternen erhalten werden, wobei die
 In manchen Leveln gibt es zudem Gegner, die auf dieselbe Art programmiert wurden, wie die eigenen Ritter. Das zugehörige Skript wird auch angezeigt, kann aber nicht bearbeitet werden.
 ### Das Kurssystem
 
-![Courses](https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/Courses.png "Ein Level im Leveleditor")
+<img src="https://github.com/Thinking-Ape/ScriptingWizards/blob/master/PresentationImages/Courses.png" class="img-responsive" alt=""> </div>
 Es gibt die Möglichkeit, eigene Kurse zu erstellen und diese mit Leveln für die Schüler zu füllen.
 Das Spiel wird bereits mit einem Tutorial geliefert, welches einfach ein Kurs mit 13 Level ist, in dem den SuS einige Programmierkonzepte erklärt werden. Zu Beginn eines jeden Kurses wird automatisch eine Einführun in die Bedienung des Spiels angezeigt. In der Einführung werden alle wichtigen Steuerungselemente erklärt. Hält man seinen Mauszeiger über diesen wird zudem eine kurze Beschreibung angezeigt. Die einzelnen Level des Tutorials dienen dazu, wichtige Befehle und Kontrollstrukturen, etc. zu erklären. Dafür gibt es einen "Tutorial-Wizard", der neue Befehle einführt und wichtige Hinweise gibt.
 Derzeit gibt es 13 Levels mit Erklärungen zu folgenden Bestandteilen der (Objektorientierten) Programmierung:
