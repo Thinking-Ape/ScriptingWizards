@@ -2,7 +2,7 @@
 ![](PresentationImages/StartScreen.png)
 
 ## Das Spiel starten
-Leider ist aus technischen Gründen das Image momentan nur unter Windows lauffähig. Zum download des Images für die Lehrer-Version folgenden Link besuchen: "https://cloud.chrz.de/s/496ktHzYXyYJWT6", für die Schüler Version: "https://cloud.chrz.de/s/yHyjfLxgb83BaDk".  Zum Ausführen einfach die Datei "ScriptingWizards.bat" entweder im Hauptverzeichnis
+Leider ist aus technischen Gründen das Image momentan nur unter Windows lauffähig. Zum Download des Images für die Lehrer-Version diesen [Link](https://cloud.chrz.de/s/496ktHzYXyYJWT6) besuchen, für die Schüler Version diesen [Link](https://cloud.chrz.de/s/yHyjfLxgb83BaDk).  Zum Ausführen einfach die Datei "ScriptingWizards.bat" entweder im Hauptverzeichnis
 oder im Ordner "bin" ausführen.
 
 ## Der Funktionsumfang
@@ -58,5 +58,5 @@ Das Tutorial wird überarbeitet, um sich für die Einführung in das Programmier
 erhalten.
 
 ## Feedback
-Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: sgunzelmann[at]arcor[dot]de
+Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: sgunzelmann[at]arcor[dot]de.
 Bei Fehlern bitte auch das CMD-Fenster für etwaige Fehlermeldungen überprüfen und diese anhängen.
