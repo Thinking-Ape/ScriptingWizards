@@ -49,5 +49,5 @@ Das Tutorial wird überarbeitet, um sich für die Einführung in das Programmier
 - evt. Arrays
 
 ## Feedback
-Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: sgunzelmann@arcor.de
+Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: sgunzelmann[at]arcor[dot]de
 Bei Fehlern bitte auch das CMD-Fenster für etwaige Fehlermeldungen überprüfen und diese anhängen.
