@@ -50,9 +50,12 @@ Zum Programmieren, wird das sogenannte Magische Skript verwendet, welches sich r
 
 ## Ausblick
 Das Tutorial wird überarbeitet, um sich für die Einführung in das Programmieren mit Java zu eignen (bisher ist das Ziel die Intensivierung). Das Spiel wird außerdem über die Sommerferien weiterentwickelt und soll bis deren Ende:
-- eine neue "Einfache Programmiersprache" (ähnlich wie EOS) aufweisen, für den Einsatz in den unteren Jahrgangsstufen
-- neue Ritter und Skelette zum Einführen von Vererbung
-- evt. Arrays
+- eine Sprachoption
+- eine neue "Einfache Programmiersprache" (ähnlich wie EOS), für den Einsatz in den unteren Jahrgangsstufen
+- evt neue Ritter und Skelette zur Einführung von Vererbung
+- und evt. Arrays
+
+erhalten.
 
 ## Feedback
 Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: sgunzelmann[at]arcor[dot]de
