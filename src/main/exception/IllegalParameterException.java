@@ -15,6 +15,9 @@ public class IllegalParameterException extends IllegalArgumentException {
             case COLLECT:
             case CAN_MOVE:
             case IS_ALIVE:
+            case IS_POSSESSED:
+            case IS_SPECIALIZED:
+            case IS_DEAD:
             case WAIT:
             case TARGETS_DANGER:
             case DROP_ITEM:
@@ -27,6 +30,10 @@ public class IllegalParameterException extends IllegalArgumentException {
                 if(parameter.equals("")){
                     errorMessage = "Method " + mT.getName() + " needs parameters!";
                 }
+                else errorMessage = getErrorMessage(VariableType.TURN_DIRECTION,parameter);
+                break;
+            case DISPOSSESS:
+                errorMessage = getErrorMessage(VariableType.DIRECTION,parameter);
                 break;
             case HAS_ITEM:
                 errorMessage = getErrorMessage(VariableType.ITEM_TYPE,parameter);

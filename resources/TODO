@@ -24,9 +24,10 @@ OPTIONAL:
 - leveleditor open with a dialog whether to open a level or create a new one
 - merge new variabletype functionality with regexes used elsewhere (Direction enum not needed anymore?)
 - remove currentcourse <- widerspriucht evt currentlevel
-- cahnge name of course add the textfield
 - 3 Stars in all challenges might be near impossible... maybe only 2 Stars?
 - make cell_Ids automatic?
+- challenges always available?
+- cannotMove?
 -----------------------------------
 IMPORTANT:
 -----------------------------------

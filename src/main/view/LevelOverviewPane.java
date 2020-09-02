@@ -114,7 +114,8 @@ public class LevelOverviewPane extends VBox {
         LevelEntry le = new LevelEntry(image,levelName,
                 getLevelTooltip(turnsToStars,locToStars,maxKnights),getBestScoreString(turns,loc,nStars,usedKnights),nStars);
         int index = ModelInformer.getIndexOfLevelWithId(id);
-        levelListView.getItems().add(index,le);
+        if(index >= levelListView.getItems().size())levelListView.getItems().add(le);
+        else levelListView.getItems().add(index,le);
         if(levelListView.getItems().size() == 1){
             updateWidth(le);
         }
@@ -138,12 +139,13 @@ public class LevelOverviewPane extends VBox {
         return false;
     }
 
-    public void removeCurrentLevel() {
+    public LevelEntry removeCurrentLevel() {
         LevelEntry levelEntryToRemove = null;
         for(LevelEntry levelEntry : levelListView.getItems()){
             if(levelEntry.getLevelName().equals(ModelInformer.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME).toString()))levelEntryToRemove=levelEntry;
         }
         levelListView.getItems().remove(levelEntryToRemove  );
+        return levelEntryToRemove;
     }
 
 //    public boolean containsCurrentLevel() {
@@ -181,7 +183,7 @@ public class LevelOverviewPane extends VBox {
 
     private String getLevelTooltip(Integer[] turnsToStars, Integer[] locToStars, int maxKnights) {
         return "Max Turns for ***: "+turnsToStars[1]+", Max Turns for **: "+turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+
-                ", Max LOC for **: "+locToStars[0]+"\nMax Knights: "+maxKnights;
+                ", Max LOC for **: "+locToStars[0]+"\nOptimal Knights: "+maxKnights;
     }
 
     public CheckBox getIntroductionCheckbox(){
@@ -201,6 +203,7 @@ public class LevelOverviewPane extends VBox {
         int levelId = ModelInformer.getCurrentId();
         int oldIndex = (int)levelChange.getOldValue();
         int newIndex = (int)levelChange.getNewValue();
+        if(levelListView.getItems().size() == 0)return;
         LevelEntry levelEntry = levelListView.getItems().get(oldIndex);
         if(levelListView.getItems().size() > oldIndex && levelListView.getItems().get(oldIndex).getLevelName().equals(ModelInformer.getNameOfLevelWithId(levelId))){
 

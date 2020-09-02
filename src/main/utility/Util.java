@@ -7,8 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.Effect;
+import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
@@ -20,6 +19,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import main.model.GameConstants;
 import main.model.ModelInformer;
+import main.model.gamemap.enums.Direction;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -420,7 +420,9 @@ public abstract class Util {
         if(i >= 5)i*=2;
         double c1 = 0.67*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*6.8)*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*4.2);
         double c2 = -0.15*Math.sin(i/(double)GameConstants.MAX_KNIGHTS_AMOUNT*Math.PI*8.4);
-        return new ColorAdjust(c1,0,c2,opacityChange);
+
+        ColorAdjust output =  new ColorAdjust(c1,0,c2,opacityChange);
+        return output;
     }
 
     public static int getRandIntWithout(int bnd1, int bnd2, List<Integer> excludes) {
@@ -570,5 +572,9 @@ public abstract class Util {
             names.add(t.toString());
         }
         return names;
+    }
+
+    public static boolean isOppositeDir(Direction direction, Direction direction1) {
+        return (direction.ordinal()+direction1.ordinal())%2 == 0 && direction != direction1;
     }
 }

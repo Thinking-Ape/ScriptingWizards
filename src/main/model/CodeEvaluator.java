@@ -140,6 +140,7 @@ public class CodeEvaluator {
                     case TARGETS_CELL:
                     case TARGETS_ITEM:
                     case TURN:
+                    case DISPOSSESS:
                     case TARGETS_ENTITY:
                         newParameters = evaluateVariable(mC.getParameters()[0]).getText();
                         break;
@@ -162,7 +163,6 @@ public class CodeEvaluator {
                 currentStatement = new MethodCall(mC.getMethodType(), objectName, newParameters);
                 break;
             case DECLARATION:
-
                 Assignment declaration = (Assignment)currentStatement;
                 Variable variable = declaration.getVariable();
                 VariableType variableType = variable.getVariableType();
@@ -181,9 +181,17 @@ public class CodeEvaluator {
                 if(declaration.getVariable().getVariableType() == VariableType.KNIGHT){
                     Matcher knightMatcher = Pattern.compile(VariableType.KNIGHT.getAllowedRegex()).matcher(valueString);
                     if(knightMatcher.matches()){
-                        String direction = knightMatcher.group(1);
-                        direction = evaluateVariable(direction).getText();
-                        valueString = "new Knight("+direction+")";
+                        String[] directionAndId = knightMatcher.group(2).split(",");
+                        if(directionAndId.length == 1){
+                            String direction = evaluateVariable(directionAndId[0]).getText();
+                            valueString = valueString.replace(directionAndId[0],direction);
+                        }
+                        else {
+                            String direction = evaluateVariable(directionAndId[0]).getText();
+                            int id =  evaluateIntVariable(directionAndId[1]);
+                            valueString = valueString.replace(directionAndId[0],direction);
+                            valueString = valueString.replace(directionAndId[1],id+"");
+                        }
                     }
 
                     currentStatement = new Assignment(varNames, variableType, Expression.expressionFromString(valueString), true);
@@ -234,9 +242,17 @@ public class CodeEvaluator {
                     case KNIGHT:
                             Matcher knightMatcher = Pattern.compile(VariableType.KNIGHT.getAllowedRegex()).matcher(valueString);
                             if(knightMatcher.matches()){
-                                String direction = knightMatcher.group(1);
-                                direction = evaluateVariable(direction).getText();
-                                valueString = "new Knight("+direction+")";
+                                String[] directionAndId = knightMatcher.group(1).split(",");
+                                if(directionAndId.length == 1){
+                                    String direction = evaluateVariable(directionAndId[0]).getText();
+                                    valueString = valueString.replace(directionAndId[0],direction);
+                                }
+                                else {
+                                    String direction = evaluateVariable(directionAndId[0]).getText();
+                                    int id =  evaluateIntVariable(directionAndId[1]);
+                                    valueString = valueString.replace(directionAndId[0],direction);
+                                    valueString = valueString.replace(directionAndId[1],id+"");
+                                }
                             }
 //                            else {
 //                                varNames = valueString;
@@ -521,6 +537,7 @@ public class CodeEvaluator {
                 objectName = nameList[i];
                 Point actorPoint = currentGameMap.getEntityPosition(objectName);
                 if(actorPoint == null|| actorPoint.getX() == -1){
+                    if(MethodType.getMethodTypeFromName(methodName) == MethodType.IS_DEAD)continue;
                     deadEntities++;
                     if(deadEntities == nameList.length){
                         return false;
@@ -528,11 +545,12 @@ public class CodeEvaluator {
                     continue;
                 }
                 Point targetPoint = currentGameMap.getTargetPoint(objectName);
-                if(targetPoint.getX()==-1)return false;
+                MethodType mT = MethodType.getMethodTypeFromName(methodName);
+                if(targetPoint.getX()==-1)return mT == MethodType.IS_DEAD;
                 CellContent targetContent = currentGameMap.getContentAtXY(targetPoint);
                 Entity actorEntity = currentGameMap.getEntity(actorPoint);
                 Entity targetEntity = currentGameMap.getEntity(targetPoint);
-                switch (MethodType.getMethodTypeFromName(methodName)){
+                switch (mT){
                     case DROP_ITEM:
                     case WAIT:
                     case MOVE:
@@ -541,8 +559,17 @@ public class CodeEvaluator {
                     case COLLECT:
                     case BACK_OFF:
                     case ATTACK:
+                    case DISPOSSESS:
                         throw new IllegalStateException("Method: \"" + methodName + "\" is not allowed here!");
                     case IS_ALIVE:
+
+                    case IS_DEAD:
+                        continue;
+                    case IS_SPECIALIZED:
+                        output = output &&(actorEntity.isSpecialized());
+                        continue;
+                    case IS_POSSESSED:
+                        output = output &&(actorEntity.isPossessed());
                         continue;
                     case CAN_MOVE:
                         if(currentGameMap.isGateWrongDirection(actorPoint,targetPoint))output = false;

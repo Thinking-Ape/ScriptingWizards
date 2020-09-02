@@ -286,6 +286,8 @@ public class CodeAreaController implements SimpleEventListener {
                     else
                         codeLines.add(addBefore ? currentIndex : currentIndex+1, "");
 
+                    if(!compilerActive)currentCodeArea.addCodeField(addBefore ? currentIndex : currentIndex+1);
+
                     // If addBefore is true, we dont want to increase the currentIndex which will happen if needToIncreaseCurrentIndex is true
                     if (!addBefore)
                         needToIncreaseCurrentIndex = true;
@@ -331,6 +333,8 @@ public class CodeAreaController implements SimpleEventListener {
                             if(isError)break;
                             codeLines.remove(currentIndex);
                         }
+
+                        if(!compilerActive && currentCodeField.isEmpty() && currentCodeArea.getCodeFieldListClone().size() > 1)currentCodeArea.removeCodeField(currentIndex);
                         currentIndex = (currentIndex > 0) ? currentIndex-1 : currentIndex;
                         // This should never happen but better be safe than sorry
                         if(codeLines.size()==0)codeLines.add("");
@@ -394,6 +398,7 @@ public class CodeAreaController implements SimpleEventListener {
                             codeLines.remove(currentIndex+1);
                         }
                     }
+                    if(!compilerActive && currentCodeField.isEmpty() && currentCodeArea.getCodeFieldListClone().size() > 1)currentCodeArea.removeCodeField(currentIndex);
                     break;
                 case UP:
                     showError = true;

@@ -7,13 +7,11 @@ import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import main.model.GameConstants;
-import main.model.LevelChange;
-import main.model.LevelDifficulty;
-import main.model.ModelInformer;
+import main.model.*;
 import main.utility.Util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -72,13 +70,14 @@ public class CourseOverviewPane extends VBox {
             // View.getIconFromMap(gameMap) requires long calculation!
             // Dont call this too often, because View.getIconFromMap(gameMap) is costly!
             if(!courseName.equals(CHALLENGE_COURSE_NAME)){
-                CourseEntry le = new CourseEntry(courseName, ModelInformer.getAmountOfLevelsInCourse(courseName),LevelDifficulty.BEGINNER,ModelInformer.getMinStarsOfCourse(courseName));
+                CourseEntry le = new CourseEntry(courseName, ModelInformer.getAmountOfLevelsInCourse(courseName),LevelDifficulty.BEGINNER,ModelInformer.getMinStarsOfCourse(courseName),ModelInformer.getIdOfCourse(courseName));
                 le.autosize();
                 courseListView.setFixedCellSize(BUTTON_SIZE*1.25);
                 courseListView.getItems().add(le);
                 updateWidth(le);
             }
         }
+        updateAllUnlockedStatus();
     }
 //    public void updateCourseRating(LevelChange lC) {
 //        for(CourseEntry courseEntry : courseListView.getItems()){
@@ -160,7 +159,7 @@ public class CourseOverviewPane extends VBox {
 
     private String getLevelTooltip(Integer[] turnsToStars, Integer[] locToStars, int maxKnights) {
         return "Max Turns for ***: "+turnsToStars[1]+", Max Turns for **: "+turnsToStars[0]+"\nMax LOC for ***: "+locToStars[1]+
-                ", Max LOC for **: "+locToStars[0]+"\nMax Knights: "+maxKnights;
+                ", Max LOC for **: "+locToStars[0]+"\nOptimal Knights: "+maxKnights;
     }
 
     void removeAllCourses(List<String> deletedCourses) {
@@ -172,7 +171,8 @@ public class CourseOverviewPane extends VBox {
     }
     void addAllCourses(List<String> newCourses, Map<String,LevelDifficulty> courseToDifficultyMap ) {
         for(String courseName : newCourses){
-            CourseEntry courseEntry =new CourseEntry(courseName,0,courseToDifficultyMap.get(courseName),0);
+            if(courseName.equals(CHALLENGE_COURSE_NAME))continue;
+            CourseEntry courseEntry =new CourseEntry(courseName,0,courseToDifficultyMap.get(courseName),0,ModelInformer.getIdOfCourse(courseName));
             courseListView.getItems().add( courseEntry);
         }
     }
@@ -185,5 +185,55 @@ public class CourseOverviewPane extends VBox {
                 courseEntry.updateImage(Util.getStarImageFromDouble(ModelInformer.getMinStarsOfCourse(courseName)));
             }
         }
+    }
+
+    public void updateCourseName(int cId, String courseName) {
+        for(CourseEntry courseEntry :courseListView.getItems()) {
+            if (cId ==ModelInformer.getIdOfCourse(courseEntry.getCourseName())) {
+                courseEntry.changeCourseName(courseName);
+            }
+        }
+    }
+
+    public void updateUnlockedStatus(int cId, boolean isUnlocked) {
+        for(CourseEntry courseEntry :courseListView.getItems()) {
+            if (cId ==ModelInformer.getIdOfCourse(courseEntry.getCourseName())) {
+                courseEntry.setDisable(isUnlocked);
+            }
+        }
+    }
+
+    public void updateAllUnlockedStatus() {
+
+        for(CourseEntry courseEntry :courseListView.getItems()) {
+            int cId =ModelInformer.getIdOfCourse(courseEntry.getCourseName());
+            courseEntry.setDisable(!ModelInformer.isCourseUnlocked(cId));
+        }
+    }
+
+    public void updateAllCourseName() {
+        for(CourseEntry courseEntry :courseListView.getItems()) {
+            int cId =courseEntry.ID;
+            courseEntry.changeCourseName(ModelInformer.getCourseName(cId));
+        }
+    }
+
+    public void updateDeletedEntries() {
+        List<String> deletedEntries = new ArrayList<>();
+        for(CourseEntry courseEntry :courseListView.getItems()) {
+            if(!ModelInformer.getAllCourseNames().contains(courseEntry.getCourseName()))deletedEntries.add(courseEntry.getCourseName());
+        }
+        removeAllCourses(deletedEntries);
+    }
+    public void updateAddedEntries() {
+        List<String> deletedEntries = new ArrayList<>();
+        Map<String,LevelDifficulty> courseToDiffMap = new HashMap<>();
+        for(String courseName :ModelInformer.getAllCourseNames()) {
+            if(courseListView.getItems().stream().noneMatch(cE -> cE.getCourseName().equals(courseName))){
+                deletedEntries.add(courseName);
+                courseToDiffMap.put(courseName, ModelInformer.getDifficultyOfCourse(courseName));
+            }
+        }
+        addAllCourses(deletedEntries, courseToDiffMap);
     }
 }

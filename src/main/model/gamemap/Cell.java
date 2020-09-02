@@ -102,7 +102,7 @@ public class Cell {
     }
 
     public boolean isFree() {
-        return entity == NO_ENTITY && item == NONE;
+        return entity == NO_ENTITY && item == NONE && content.isTraversable();
     }
 
     public List<CellFlag> getFlags() {
@@ -145,5 +145,9 @@ public class Cell {
             return cellId == cell.cellId && content.equals(cell.content) && flagList.equals(cell.flagList) && entity.equals(cell.entity) && item.equals(cell.item) && linkedCellIdList.equals(cell.linkedCellIdList);
         }
         return super.equals(obj);
+    }
+
+    public List<Integer> getLinkedIds() {
+        return new ArrayList<>(linkedCellIdList);
     }
 }

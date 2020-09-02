@@ -14,13 +14,14 @@ public class CourseEntry extends HBox {
 
     private Label courseName;
     private ImageView minStarsIView;
+    public final int ID;
 
-    CourseEntry(String courseName, int amountOfLevels, LevelDifficulty difficultyRating, double minStars) {
+    CourseEntry(String courseName, int amountOfLevels, LevelDifficulty difficultyRating, double minStars, int id) {
 //        imageView = new ImageView(image);
 //        imageView.setFitHeight(GameConstants.LEVEL_ENTRY_SIZE);
 //        imageView.setFitWidth(GameConstants.LEVEL_ENTRY_SIZE);
 //        imageView.autosize();
-
+        ID = id;
         this.courseName = new Label(courseName);
         this.courseName.setFont(GameConstants.BIGGEST_FONT);
         this.courseName.layout();
@@ -52,6 +53,10 @@ public class CourseEntry extends HBox {
 
     public void updateImage(Image starImage) {
         minStarsIView.setImage(starImage);
+    }
+
+    public void changeCourseName(String courseName) {
+        this.courseName.setText(courseName);
     }
 
 //    Image getLevelImage() {

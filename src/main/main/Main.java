@@ -6,9 +6,11 @@ import javafx.stage.Stage;
 import main.model.*;
 import main.parser.JSONParser;
 import main.parser.CodeParser;
+import main.utility.SimpleSet;
 import main.utility.Util;
 import main.view.View;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,14 +35,16 @@ public class Main extends Application {
         List<String> unlockedStatementList = JSONParser.getUnlockedStatementList();
         Map<String,List<Integer>> idToCourseMap = JSONParser.getIdToCourseMap();
         Map<String, LevelDifficulty> courseNameToDifficultyMap = JSONParser.getCourseNameToDifficultyMap();
+
+        List<Course> courseSet = JSONParser.parseAllCourses();
         boolean isEditorUnlocked = JSONParser.isEditorUnlocked();
 
 //        for(String s : idToCourseMap.keySet()){
 //            System.out.println(s);
 //            for(int i : idToCourseMap.get(s))System.out.println(i);
 //        }
-
-        model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, bestKnightsMap, unlockedStatementList,isEditorUnlocked,idToCourseMap,courseNameToDifficultyMap,levelList);
+        boolean hasSeenIntroduction = JSONParser.hasSeenIntroduction();
+        model.init(bestCodeLinesMap,bestTurnsMap,bestLOCMap, bestKnightsMap, unlockedStatementList,isEditorUnlocked,courseSet,levelList,hasSeenIntroduction);
 
         Tester.runTests();
 

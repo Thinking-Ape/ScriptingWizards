@@ -194,12 +194,15 @@ public class SpellBookPane extends VBox {
             methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.METHOD_CALL,methodType.getName(),methodType.getTooltip()));
             methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,"(",""));
             switch (methodType){
+                case IS_SPECIALIZED:
                 case MOVE:
                 case BACK_OFF:
                 case USE_ITEM:
                 case COLLECT:
                 case CAN_MOVE:
                 case IS_ALIVE:
+                case IS_POSSESSED:
+                case IS_DEAD:
                 case WAIT:
                 case DROP_ITEM:
                 case TARGETS_DANGER:
@@ -249,6 +252,8 @@ public class SpellBookPane extends VBox {
                     }
                     tooltipString.append(". If left blank any ItemType will return true!");
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<ItemType>", tooltipString.toString()));
+                    break;
+                case DISPOSSESS:
                     break;
                 case IS_LOOKING:
                     tooltipString = new StringBuilder("One of the following: ");

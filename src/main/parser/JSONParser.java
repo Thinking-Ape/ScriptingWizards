@@ -596,15 +596,22 @@ public abstract class JSONParser {
             JSONObject courseJSONObject = new JSONObject();
             courseJSONObject.put(JSONConstants.COURSE_NAME, s);
             courseJSONObject.put(JSONConstants.DIFFICULTY, ModelInformer.getDifficultyOfCourse(s).ordinal());
+            courseJSONObject.put(JSONConstants.ID, ModelInformer.getIdOfCourse(s));
             JSONArray idJSONArray = new JSONArray();
             for(int i : ModelInformer.getOrderedIdsFromCourse(s)){
                 idJSONArray.put(i);
             }
+            JSONArray reqIdJSONArray = new JSONArray();
+            for(int i : ModelInformer.getReqIdsFromCourse(s)){
+                reqIdJSONArray.put(i);
+            }
             courseJSONObject.put(JSONConstants.ID_LIST, idJSONArray);
+            courseJSONObject.put(JSONConstants.REQ_ID_LIST, reqIdJSONArray);
             coursesJSONArray.put(courseJSONObject);
         }
         dataJSONObject.put(JSONConstants.UNLOCKED_STATEMENTS,jsonArray);
         dataJSONObject.put(JSONConstants.EDITOR_UNLOCKED,ModelInformer.isEditorUnlocked());
+        dataJSONObject.put(JSONConstants.HAS_SEEN_INTRODUCTION,ModelInformer.hasSeenIntroduction());
 //        dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, ModelInformer.getTutorialProgress());
         dataJSONObject.put(JSONConstants.COURSES, coursesJSONArray);
         List<Integer> unlockedLevelIds =ModelInformer.getUnlockedLevelIds();
@@ -702,4 +709,29 @@ public abstract class JSONParser {
     }
 
 
+    public static List<Course> parseAllCourses() {
+        List<Course> output = new ArrayList<>();
+        String courseName;
+        for(int i = 0; i<courseArray.length();i++){
+            courseName=courseArray.getJSONObject(i).getString(JSONConstants.COURSE_NAME,GameConstants.CHALLENGE_COURSE_NAME);
+            int diffString = courseArray.getJSONObject(i).getInt(JSONConstants.DIFFICULTY,LevelDifficulty.BEGINNER.ordinal());
+            int courseId = courseArray.getJSONObject(i).getInt(JSONConstants.ID,-1);
+            JSONArray idList =courseArray.getJSONObject(i).getJSONArray(JSONConstants.ID_LIST,new JSONArray());
+            List<Integer> idIntList = new ArrayList<>();
+            for(Object id : idList.keyList){
+                idIntList.add((Integer)id);
+            }
+            JSONArray reqIdList =courseArray.getJSONObject(i).getJSONArray(JSONConstants.REQ_ID_LIST,new JSONArray());
+            List<Integer> reqIdIntList = new ArrayList<>();
+            for(Object id : reqIdList.keyList){
+                reqIdIntList.add((Integer)id);
+            }
+            output.add(new Course(reqIdIntList,idIntList, LevelDifficulty.valueOfInt(diffString),courseName,courseId));
+        }
+        return output;
+    }
+
+    public static boolean hasSeenIntroduction() {
+        return dataJSONObject.getBoolean(JSONConstants.HAS_SEEN_INTRODUCTION, false);
+    }
 }

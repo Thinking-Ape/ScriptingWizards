@@ -26,8 +26,7 @@ import main.utility.Util;
 
 import java.util.*;
 
-import static main.model.GameConstants.MAX_CODE_LINES;
-import static main.model.GameConstants.SMALL_BUTTON_SIZE;
+import static main.model.GameConstants.*;
 
 public class CodeArea extends VBox {
 
@@ -207,11 +206,13 @@ public class CodeArea extends VBox {
         return new ArrayList<>(codeFieldList);
     }
 
-    private void removeCodeField(CodeField codeField) {
-        codeFieldList.remove(codeField);
+    public void removeCodeField(int index) {
+        codeFieldList.remove(index);
         int scrollAmount = getScrollAmount();
         if(scrollAmount+MAX_CODE_LINES > codeFieldList.size() && codeFieldList.size() >= MAX_CODE_LINES)
             scrollTo(scrollAmount-1);
+        draw();
+        select(index, Selection.END);
     }
 
     public int getSize() {
@@ -438,5 +439,14 @@ public class CodeArea extends VBox {
             if(isAi())iconIView.setImage(redIconImage);
             else iconIView.setImage(blueIconImage);
         }
+    }
+
+    public void addCodeField(int index) {
+        CodeField codeField = codeFieldList.get(index > 0 ? index-1: 0);
+        int depth = codeField.getDepth();
+        if(codeField.getText().matches(COMPLEX_STATEMENT_REGEX)) depth++;
+        codeFieldList.add(index,new CodeField("", depth, true) );
+        draw();
+        select(index, Selection.END);
     }
 }

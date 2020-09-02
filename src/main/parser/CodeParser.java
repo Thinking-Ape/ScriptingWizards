@@ -190,6 +190,8 @@ public abstract class CodeParser {
                     String value = matcher.group(4);
                     Assignment declaration = parseDeclaration(varType,varName,value);
                     if(declaration == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
+                    if(declaration.getVariable().isSpecialized() && value.matches("^ *new +Knight *\\(.*\\) *$"))throw new IllegalArgumentException("A Knight is no Guardian!");
+                    if(declaration.getVariable().isSpecialized() && value.matches("^ *new +Skeleton *\\(.*\\) *$"))throw new IllegalArgumentException("A Skeleton is no Ghost!");
                     return declaration;
                 case ASSIGNMENT:
                     varName = matcher.group(1);
@@ -197,13 +199,17 @@ public abstract class CodeParser {
                     value = matcher.group(3);
                     Assignment assignment = parseAssignment(varName,operation,value);
                     if(assignment == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
+                    if(assignment.getVariable().isSpecialized() && value.matches("^ *new +Knight *\\(.*\\) *$"))throw new IllegalArgumentException("A Knight is no Guardian!");
+                    if(assignment.getVariable().isSpecialized() && value.matches("^ *new +Skeleton *\\(.*\\) *$"))throw new IllegalArgumentException("A Skeleton is no Ghost!");
                     return assignment;
             }
         }
         char lastChar = code.charAt(code.length()-1);
         if(lastChar!=';' && lastChar!='{'){
+            if(lastChar == '[') code = code.substring(0, code.length()-1);
             Statement tempStatement2 = parseString(code + "{");
             if(tempStatement2 != null) throw new NoCurlyBracketException();
+            if(lastChar == ',') code = code.substring(0, code.length()-1);
             Statement tempStatement1 =  parseString(code+";");
             if(tempStatement1 != null) throw new NoSemicolonException();
         }
@@ -230,6 +236,7 @@ public abstract class CodeParser {
         if(mType.getOutputType() != VariableType.VOID) throw new IllegalArgumentException("Method " + methodName + " cannot stand here!");
 
         if(isPlayerCode && mType == MethodType.ATTACK) throw new IllegalArgumentException("Knights cannot attack! Collect a sword and refer to useItem()!");
+        if(mType == MethodType.DISPOSSESS)if(isPlayerCode || !variableScope.getVariable(objectName).isSpecialized() ) throw new IllegalArgumentException("Only Ghosts can becomePossessedBy!");
         return new MethodCall(mType,objectName,parameterString);
     }
 
@@ -247,9 +254,13 @@ public abstract class CodeParser {
             case USE_ITEM:
             case COLLECT:
             case CAN_MOVE:
+            case IS_DEAD:
+            case IS_POSSESSED:
+            case IS_SPECIALIZED:
             case IS_ALIVE:
                 if(!parameters.equals(""))throw new IllegalParameterException(mType,parameters);
                 return;
+
             case HAS_ITEM:
                 ItemType item = ItemType.getValueFromName(parameters);
                 if(parameters.equals("NONE"))return;
@@ -277,6 +288,14 @@ public abstract class CodeParser {
                     return;
                 }
                 break;
+
+            case DISPOSSESS:
+                if(parameters.equals(""))return;
+                if(parameters.matches(VariableType.DIRECTION.getAllowedRegex())||
+                    (variableScope.getVariable(parameters) != null &&
+                            variableScope.getVariable(parameters).getVariableType() == VariableType.DIRECTION)){
+                return;
+            }
             case TURN:
                 if(parameters.matches(VariableType.TURN_DIRECTION.getAllowedRegex())||
                         (variableScope.getVariable(parameters) != null &&
@@ -307,6 +326,7 @@ public abstract class CodeParser {
         Expression valueTree = Expression.expressionFromString(valueString);
         if(variableScope.getVariable(varName)==null)throw new NotInScopeException(varName,variableScope);
         VariableType variableType = variableScope.getVariable(varName).getVariableType();
+
         if(variableType == VariableType.BOOLEAN && !valueString.equals("")){
             Condition condition = Condition.getConditionFromString(valueString);
             checkConditionForUnknownVars(condition );
@@ -315,8 +335,8 @@ public abstract class CodeParser {
 
         testForCorrectValueType(variableType,valueString);
         if(valueString.matches(" *"))throw new IllegalArgumentException("You cannot assign an empty value!");
-
-        Assignment assignment = new Assignment(varName.trim(),variableType,valueTree,false);
+        Variable v = new Variable(variableType,varName.trim(),valueTree,variableScope.getVariable(varName).isSpecialized());
+        Assignment assignment = new Assignment(v,false);
         return assignment;
     }
 
@@ -337,13 +357,18 @@ public abstract class CodeParser {
         }
         else if(valueNotEmpty) checkExpressionTreeForUnknownVars(valueTree);
         if(valueNotEmpty) testForCorrectValueType(variableType,valueString);
-        Variable variable = new Variable(variableType, varName, valueTree);
+        Variable variable = new Variable(variableType, varName.trim(), valueTree);
+        if(valueString.matches("^ *new +Guardian *\\(.*\\) *$"))
+            variable = new Variable(variableType, varName.trim(), valueTree,true);
+
+        if(valueString.matches("^ *new +Ghost *\\(.*\\) *$"))
+            variable = new Variable(variableType, varName.trim(), valueTree,true);
         boolean isSkeleton = variable.getVariableType() == VariableType.SKELETON;
         boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
         if(isPlayerCode && (isSkeleton ))throw new StatementNotAllowedException();
         boolean isKnight = variable.getVariableType() == VariableType.KNIGHT;
         if(!isPlayerCode && isKnight )throw new StatementNotAllowedException();
-        Assignment declaration = new Assignment(varName.trim(),variableType,valueTree,true);
+        Assignment declaration = new Assignment(variable,true);
         return declaration;
     }
 
@@ -451,24 +476,10 @@ public abstract class CodeParser {
             case KNIGHT:
                 Expression expression1 = Expression.expressionFromString(value);
                 if(!value.matches(variableType.getAllowedRegex())){
-                    if(!expression1.isLeaf()) {
-                        ExpressionTree tree = (ExpressionTree)expression1;
-                        if (variableScope.getVariable(tree.getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION)
-                            return;
-                    }
                     throw new IllegalArgumentException(value + " is not a valid Knight constructor!");
-                }
-                if(!expression1.isLeaf()) {
-                    ExpressionTree tree = (ExpressionTree)expression1;
-                if(!tree.getRightNode().getText().equals("")){
-                    testForCorrectValueType(VariableType.DIRECTION,tree.getRightNode().getText());
-                }}
-                break;
-            case SKELETON:
-                if(!value.matches(variableType.getAllowedRegex())){
-                    expression1 = Expression.expressionFromString(value);
-                    if(!expression1.isLeaf()) {
+                    /*if(!expression1.isLeaf()) {
                         ExpressionTree tree = (ExpressionTree)expression1;
+//                        ((ExpressionTree) expression1).getLeftNode().
                         boolean varDirValid = variableScope.getVariable(tree.getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION;
                         boolean dirValid = tree.getRightNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
                         if(varDirValid || dirValid)return;
@@ -481,7 +492,41 @@ public abstract class CodeParser {
                             boolean intValid = tree2.getLeftNode().getText().matches(VariableType.INT.getAllowedRegex());
                             if((varDirValid || dirValid) && (varIntValid || intValid))return;
                         }
+                    }*/
+//                    throw new IllegalArgumentException(value + " is not a valid Knight constructor!");
+                }
+//                expression1 = Expression.expressionFromString(value);
+                if(!expression1.isLeaf()){
+                    ExpressionTree expressionTree = (ExpressionTree)expression1;
+                    if(!expressionTree.getRightNode().getText().equals("")){
+                        if(!expressionTree.getRightNode().isLeaf()){
+                            ExpressionTree rightTree = (ExpressionTree)expressionTree.getRightNode();
+                            testForCorrectValueType(VariableType.DIRECTION,rightTree.getLeftNode().getText());
+                            testForCorrectValueType(VariableType.INT,rightTree.getRightNode().getText());
+                        }
+                        else testForCorrectValueType(VariableType.DIRECTION,expressionTree.getRightNode().getText());
                     }
+                }
+                else throw new IllegalArgumentException(value + " is not a valid Knight constructor!");
+//                break;
+            case SKELETON:
+                if(!value.matches(variableType.getAllowedRegex())){
+//                    expression1 = Expression.expressionFromString(value);
+//                    if(!expression1.isLeaf()) {
+//                        ExpressionTree tree = (ExpressionTree)expression1;
+//                        boolean varDirValid = variableScope.getVariable(tree.getRightNode().getText()) != null && variableScope.getVariable(tree.getRightNode().getText()).getVariableType() == VariableType.DIRECTION;
+//                        boolean dirValid = tree.getRightNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
+//                        if(varDirValid || dirValid)return;
+//                        // 2 Parameters
+//                        if(!tree.getRightNode().isLeaf()){
+//                            ExpressionTree tree2 = (ExpressionTree)tree.getRightNode();
+//                            varDirValid = variableScope.getVariable(tree2.getLeftNode().getText()) != null && variableScope.getVariable(tree2.getLeftNode().getText()).getVariableType() == VariableType.DIRECTION;
+//                            dirValid = tree2.getLeftNode().getText().matches(VariableType.DIRECTION.getAllowedRegex());
+//                            boolean varIntValid = variableScope.getVariable(tree2.getRightNode().getText()) != null && variableScope.getVariable(tree2.getRightNode().getText()).getVariableType() == VariableType.INT;
+//                            boolean intValid = tree2.getLeftNode().getText().matches(VariableType.INT.getAllowedRegex());
+//                            if((varDirValid || dirValid) && (varIntValid || intValid))return;
+//                        }
+//                    }
                     throw new IllegalArgumentException(value + " is not a valid Skeleton constructor!");
                 }
 

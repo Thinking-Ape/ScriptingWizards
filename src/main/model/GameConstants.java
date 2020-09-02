@@ -4,11 +4,13 @@ import javafx.scene.effect.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
+import main.model.gamemap.Cell;
 import main.model.gamemap.Entity;
 import main.model.gamemap.enums.EntityType;
 import main.model.statement.ComplexStatement;
 import java.awt.*;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Random;
 
 public abstract class GameConstants {
@@ -42,7 +44,7 @@ public abstract class GameConstants {
     public static final boolean ACTION_WITHOUT_CONSEQUENCE = true;
     public static final int MAX_LOOP_SIZE = 500;
     public static final double PLAY_CELL_SIZE_FACTOR = 1.2;
-    public static final Entity NO_ENTITY = new Entity("", null, EntityType.NONE);
+    public static final Entity NO_ENTITY = new Entity("", null, EntityType.NONE,false);
     public final static ComplexStatement FALSE_STATEMENT = new ComplexStatement();
     public static final String TOOLTIP_VARIABLE_NAME = "Reference this variable via this name.";
     public static final String TOOLTIP_BOOLEAN = "True, false, a boolean variable, boolean method call or comparisons of int:\n" +
@@ -150,4 +152,6 @@ public abstract class GameConstants {
     public static final String WHITE_SHADOWED_STYLE = "-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);";
 
     public static final String WILL_BE_REMOVED_STYLE = "-fx-text-fill: red;";
+    public static final Course NO_COURSE = new Course(new ArrayList<>(), new ArrayList<>(), LevelDifficulty.BEGINNER, "");
+//    public static final Level NO_LEVEL = new Level("", new Cell[][]{new Cell[]{new Cell{}}}, null, null, null, new ArrayList<>(), 0, new ArrayList<>(), -1, 0);
 }

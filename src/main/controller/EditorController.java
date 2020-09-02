@@ -2,6 +2,7 @@ package main.controller;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -9,6 +10,8 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -32,6 +35,7 @@ import main.view.View;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EditorController implements SimpleEventListener {
 
@@ -68,6 +72,7 @@ public class EditorController implements SimpleEventListener {
             int k = p.getX();
             int h = p.getY();
             GameMap gameMapClone = (GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA);
+            if(k >= gameMapClone.getBoundX() || h >= gameMapClone.getBoundY())continue;
             int cellId  = gameMapClone.getCellID(k,h);
             if(cellId !=-1)view.getLevelEditorModule().getCellIdValueLbl().setText(cellId+"");
             else view.getLevelEditorModule().getCellIdValueLbl().setText("NONE");
@@ -167,24 +172,69 @@ public class EditorController implements SimpleEventListener {
             saveChanges(model.getAndConfirmCurrentChanges());
         });
         view.getLevelEditorModule().getOpenLevelBtn().setOnAction(event -> {
-            if(model.currentLevelHasChanged())
+            if (model.currentLevelHasChanged())
                 showSavingDialog();
 
-            ChoiceDialog<String> levelsToOpenDialog = new ChoiceDialog<>();
-            //TODO: better solution
-            for(String courseName : model.getAllCourseNames())
-            for (int i : model.getOrderedIdsFromCourse(courseName)) {
-                levelsToOpenDialog.getItems().add(model.getDataFromLevelWithId(LevelDataType.LEVEL_NAME,i)+"");
-            }
-            String levelName = (String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
-            levelsToOpenDialog.setSelectedItem(levelName);
-            Optional<String> s = levelsToOpenDialog.showAndWait();
-            s.ifPresent(s1 -> {
-                model.selectLevel(s1);
+            Dialog<ButtonType> openDialog = new Dialog<>();
+            ButtonType btnTypeCancel = new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
+            ButtonType btnTypeAccept = new ButtonType("Open",ButtonBar.ButtonData.OK_DONE);
+            ChoiceBox<String> courseCBox = new ChoiceBox<>();
+            courseCBox.getItems().addAll(model.getOrderedCourseNames());
+            courseCBox.getSelectionModel().select(model.getCurrentCourseName());
+            ChoiceBox<String> levelCBox = new ChoiceBox<>();
+            levelCBox.getItems().addAll(model.getAllLevelNamesOfCourse(courseCBox.getSelectionModel().getSelectedItem()));
+            if(levelCBox.getItems().size() > 0)levelCBox.getSelectionModel().select(model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"");
+            Label courseLbl = new Label("Course: ");
+            Label levelLbl = new Label("Level: ");
+            openDialog.getDialogPane().getButtonTypes().add(btnTypeCancel);
+            openDialog.getDialogPane().getButtonTypes().add(btnTypeAccept);
+            Image icon = new Image(GameConstants.BG_DARK_TILE_PATH);
+            if(levelCBox.getItems().size() > 0)icon = View.getIconFromMap((GameMap)model.getDataFromLevelWithId(LevelDataType.MAP_DATA,model.getIdOfLevelWithName(levelCBox.getSelectionModel().getSelectedItem())));
+            ImageView littleMap = new ImageView(icon);
+            littleMap.setFitHeight(GameConstants.BUTTON_SIZE);
+            littleMap.setFitWidth(GameConstants.BUTTON_SIZE);
+            VBox openVBox = new VBox(new HBox(courseLbl,courseCBox),new HBox(levelLbl,levelCBox),new Separator(Orientation.HORIZONTAL),littleMap);
+            openVBox.setSpacing(5);
+            openVBox.setAlignment(Pos.CENTER);
+            openDialog.getDialogPane().setContent(openVBox);
+
+            courseCBox.getSelectionModel().selectedItemProperty().addListener((observableValue, stringSingleSelectionModel, t1) -> {
+                if(t1 == null || stringSingleSelectionModel == null) return;
+                if(t1.equals(stringSingleSelectionModel))return;
+                levelCBox.getItems().clear();
+                levelCBox.getItems().addAll(model.getAllLevelNamesOfCourse(courseCBox.getSelectionModel().getSelectedItem()));
+                if(levelCBox.getItems().size() > 0){levelCBox.getSelectionModel().select(0);
+                littleMap.setImage(View.getIconFromMap((GameMap)model.getDataFromLevelWithId(LevelDataType.MAP_DATA,model.getIdOfLevelWithName(levelCBox.getSelectionModel().getSelectedItem()))));}
+            });
+            levelCBox.getSelectionModel().selectedItemProperty().addListener((observableValue, stringSingleSelectionModel, t1) -> {
+                if(t1 == null || stringSingleSelectionModel == null) return;
+                if(t1.equals(stringSingleSelectionModel))return;
+                littleMap.setImage(View.getIconFromMap((GameMap)model.getDataFromLevelWithId(LevelDataType.MAP_DATA,model.getIdOfLevelWithName(levelCBox.getSelectionModel().getSelectedItem()))));
+            });
+
+            Optional<ButtonType> buttonType = openDialog.showAndWait();
+            if(buttonType.isPresent()&&buttonType.get().getButtonData() == ButtonBar.ButtonData.OK_DONE){
+                if(levelCBox.getSelectionModel().isEmpty())return;
+                model.selectLevel(levelCBox.getSelectionModel().getSelectedItem());
                 Platform.runLater(() -> {
                     view.highlightInMap(List.of(new Point(0,0)));
                 });
-            });
+            }
+//            ChoiceDialog<String> levelsToOpenDialog = new ChoiceDialog<>();
+//            //TODO: better solution
+//            for(String courseName : model.getAllCourseNames())
+//            for (int i : model.getOrderedIdsFromCourse(courseName)) {
+//                levelsToOpenDialog.getItems().add(model.getDataFromLevelWithId(LevelDataType.LEVEL_NAME,i)+"");
+//            }
+//            String levelName = (String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME);
+//            levelsToOpenDialog.setSelectedItem(levelName);
+//            Optional<String> s = levelsToOpenDialog.showAndWait();
+//            s.ifPresent(s1 -> {
+//                model.selectLevel(s1);
+//                Platform.runLater(() -> {
+//                    view.highlightInMap(List.of(new Point(0,0)));
+//                });
+//            });
         });
         view.getLevelEditorModule().getDeleteLevelBtn().setOnAction(event -> {
 
@@ -287,7 +337,7 @@ public class EditorController implements SimpleEventListener {
                 Integer[] locToStars = new Integer[2];
                 locToStars[0] = 0;
                 locToStars[1] = 0;
-                int id = model.createUniqueId();
+                int id = model.createUniqueLevelId();
                 // Automatically makes this level a tutorial if the current Level is a tutorial. This makes it impossible
                 // to create non-Tutorial levels between tutorials (which would end the tutorial prematurely)
 
@@ -324,14 +374,14 @@ public class EditorController implements SimpleEventListener {
             Integer[] turnsToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.TURNS_TO_STARS);
             Integer[] locToStars = (Integer[]) model.getDataFromCurrentLevel(LevelDataType.LOC_TO_STARS);
             List<Integer> requiredLevelsList = (List<Integer>) model.getDataFromCurrentLevel(LevelDataType.REQUIRED_LEVELS);
-
+            int amountOfReruns = (int)model.getDataFromCurrentLevel(LevelDataType.AMOUNT_OF_RERUNS);
             List<String> tutorialEntries = (List<String>) model.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES);
             int maxKnights = (int) model.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
 
             String courseName = ""+ model.getDataFromCurrentLevel(LevelDataType.COURSE);
             boolean hasAI = (boolean) model.getDataFromCurrentLevel(LevelDataType.HAS_AI);
-            int id =model.createUniqueId();
-            model.addLevelAtCurrentPos(new Level(name,map,complexStatement,turnsToStars,locToStars,requiredLevelsList,maxKnights,tutorialEntries,id,1),true);
+            int id =model.createUniqueLevelId();
+            model.addLevelAtCurrentPos(new Level(name,map,complexStatement,turnsToStars,locToStars,requiredLevelsList,maxKnights,tutorialEntries,id,amountOfReruns),true);
 
             view.getLevelEditorModule().getDeleteLevelBtn().setDisable(false);
             if(((GameMap)model.getDataFromCurrentLevel(LevelDataType.MAP_DATA)).findSpawn().getX()==-1){
@@ -430,9 +480,7 @@ public class EditorController implements SimpleEventListener {
             hasAiCheckBox.setSelected(currentLevelHasAI);
 
             String courseName = ""+ model.getDataFromCurrentLevel(LevelDataType.COURSE);
-            for(String name : model.getAllCourseNames()){
-                courseNameCBox.getItems().add(name);
-            }
+            courseNameCBox.getItems().addAll(model.getOrderedCourseNames());
             courseNameCBox.getSelectionModel().select(courseName);
             // allow only those levels to be a tutorial whose predecessor is a tutorial to avoid weird required level dependencies!
 //            if(!prevLevelIsTut||nextLevelIsTut)isTutorialCheckBox.setDisable(true);
@@ -470,7 +518,7 @@ public class EditorController implements SimpleEventListener {
         TextField nameTField = new TextField((String)model.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME));
 
         nameTField.textProperty().addListener((observableValue, s, t1) -> {
-            if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Za-zäÄöÖüÜß_]+((\\d|[A-Za-zäÄöÖüÜß_ ])*(\\d|[A-Za-zäÄöÖüÜß_]))?")){
+            if(t1.matches("(\\d+.*)+")||!t1.matches("[A-Za-zäÄöÖüÜß_]+((\\d|[A-Za-zäÄöÖüÜß_ ])*(\\d|[A-Za-zäÄöÖüÜß_ ]))?")){
                 nameTField.setText(s);
             }
         });
@@ -481,7 +529,7 @@ public class EditorController implements SimpleEventListener {
 
         Optional<ButtonType> o  = changeLvlNameDialog.showAndWait();
         if(o.isPresent()&& o.get() == ButtonType.OK){
-            model.changeCurrentLevel(LevelDataType.LEVEL_NAME,nameTField.getText());
+            model.changeCurrentLevel(LevelDataType.LEVEL_NAME,nameTField.getText().trim());
         }
     });
 }
@@ -538,6 +586,7 @@ public class EditorController implements SimpleEventListener {
             alert.setTitle("Success!");
             alert.setHeaderText("");
             alert.showAndWait();
+            Platform.runLater(() -> view.highlightInMap(view.getSelectedPointList()));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -557,6 +606,7 @@ public class EditorController implements SimpleEventListener {
             else saveChanges(model.getAndConfirmCurrentChanges());
         }
         else if(btnType.isPresent()){
+            if(model.isCurrentLevelNew())model.removeCurrentLevel();
             model.reloadCurrentLevel();
         }
     }
@@ -588,6 +638,7 @@ public class EditorController implements SimpleEventListener {
     }
 
     void setHandlersForMapCells() {
+//        view.getMapGPane().setMouseTransparent(false);
         int columnC = view.getMapGPane().getColumnCount();
         int rowC = view.getMapGPane().getRowCount();
         for(int x = 0; x < columnC; x++){
@@ -611,7 +662,7 @@ public class EditorController implements SimpleEventListener {
                     if(cell.getContent().isTraversable() ){
                         tooltip.setText(tooltip.getText()+"\n"+itemString);
                     }
-                    if(cell.getContent() == CellContent.PRESSURE_PLATE ||cell.getContent() == CellContent.ENEMY_SPAWN ){
+                    if(cell.getContent() == CellContent.PRESSURE_PLATE ||cell.getContent() == CellContent.ENEMY_SPAWN ||cell.getContent() == CellContent.SPAWN){
                         tooltip.setText(tooltip.getText()+"\n"+cellIdString);
                         if(cell.getContent() == CellContent.PRESSURE_PLATE)tooltip.setText(tooltip.getText()+"\nIs Inverted: " + cell.hasFlag(CellFlag.INVERTED));
                     }
@@ -819,7 +870,8 @@ public class EditorController implements SimpleEventListener {
         }
         else view.setItemButtonDisabled(ItemType.NONE,true);
         if(view.getSelectedPointList().size() > 1){
-            view.setCContentButtonDisabled(CellContent.SPAWN,true);
+            //TODO: now allowed?
+//            view.setCContentButtonDisabled(CellContent.SPAWN,true);
             view.getLevelEditorModule().deactivateCellDetails();
             view.setItemButtonDisabled(ItemType.NONE,false);
             return;
@@ -851,7 +903,7 @@ public class EditorController implements SimpleEventListener {
                 model.changeCurrentLevel(LevelDataType.MAP_DATA,gameMap);
             });
         }
-        else if(content == CellContent.PRESSURE_PLATE||content == CellContent.ENEMY_SPAWN){
+        else if(content == CellContent.PRESSURE_PLATE||content == CellContent.ENEMY_SPAWN||content == CellContent.SPAWN){
             view.getLevelEditorModule().activateCellIDHBox(content == CellContent.PRESSURE_PLATE);
             view.getLevelEditorModule().getIsInvertedCBox().setSelected(gameMap.cellHasFlag(x,y, CellFlag.INVERTED));
         }
@@ -899,15 +951,16 @@ public class EditorController implements SimpleEventListener {
                 int row = p.getY();
                 gameMap.clearFlags(column,row);
                 if(content == null) throw new IllegalStateException("Content: " + btn.getText().toUpperCase().replaceAll(" ", "_") + " doesnt exist!");
-                if(content == CellContent.SPAWN){
-                    for(int x = 0; x < gameMap.getBoundX();x++){
-                        for(int y = 0; y < gameMap.getBoundY();y++){
-                            if(gameMap.getContentAtXY(x,y) == CellContent.SPAWN){
-                                gameMap.setContent(x,y, CellContent.PATH);
-                            }
-                        }
-                    }
-                }
+                //TODO: now allowed?
+//                if(content == CellContent.SPAWN){
+//                    for(int x = 0; x < gameMap.getBoundX();x++){
+//                        for(int y = 0; y < gameMap.getBoundY();y++){
+//                            if(gameMap.getContentAtXY(x,y) == CellContent.SPAWN){
+//                                gameMap.setContent(x,y, CellContent.PATH);
+//                            }
+//                        }
+//                    }
+//                }
                 int id = gameMap.getCellID(column,row);
                 if(id!=-1){
                     gameMap.setCellId(column,row,-1);
@@ -949,14 +1002,17 @@ public class EditorController implements SimpleEventListener {
         Dialog<ButtonType> editCoursesDialog = new Dialog<>();
         editCoursesDialog.getDialogPane().getButtonTypes().add(new ButtonType("Close",ButtonBar.ButtonData.FINISH));
         ListView<Label> courseNameLView = new ListView<>();
-        for(String courseName : model.getAllCourseNames()){
+        for(String courseName : model.getOrderedCourseNames()){
+            if(courseName.equals(GameConstants.CHALLENGE_COURSE_NAME))continue;
             Label l =new Label(courseName);
             l.setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
             courseNameLView.getItems().add(l);
         }
         Button createCourseBtn = new Button("Create Course");
         Button deleteCourseBtn = new Button("Delete Course");
-        //TODO: textfeld hinzfügen!
+        Button changeNameBtn = new Button("Change Name");
+        Button editReqIdsBtn = new Button("Edit Required Courses");
+
         TextField changeNameTxtField = new TextField();
         if(courseNameLView.getItems().size()>0){
             courseNameLView.getSelectionModel().select(0);
@@ -971,15 +1027,37 @@ public class EditorController implements SimpleEventListener {
         difficultyChoiceBox.getItems().addAll(LevelDifficulty.values());
         difficultyChoiceBox.getSelectionModel().select(0);
 
-        //TODO: courseChanges?!
         Button applyButton = new Button("Apply");
 
-        Map<String,LevelDifficulty> courseDifficultyMap = new HashMap<>();
-        List<String> newCourses = new ArrayList<>();
-        List<String> deletedCourses = new ArrayList<>();
+//        Map<Integer,LevelDifficulty> courseDifficultyMap = new HashMap<>();
+//        Map<Integer,String> courseNameMap = new HashMap<>();
+//        Map<Integer,List<Integer>> courseRequiredIdsMap = new HashMap<>();
+////        List<Course> courseChangeList = new ArrayList<>();
+//        List<Course> newCourses = new ArrayList<>();
+//        List<Integer> deletedCourses = new ArrayList<>();
+        List<Course> courseCopies = model.getCourseCopies();
         courseNameLView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         courseNameLView.getSelectionModel().selectedItemProperty().addListener((observableValue, stringMultipleSelectionModel, t1) -> {
-            if((model.getAllCourseNames().contains(t1.getText())&& model.getAmountOfLevelsInCourse(t1.getText() )== 0&& !deletedCourses.contains(t1.getText()))||newCourses.contains(t1.getText())) {
+            Course currentCourse = null;
+            int id = -1;
+            for(Course c : courseCopies){
+                if(c.getName().equals(t1.getText())){
+                    id = c.ID;
+                    currentCourse = c;
+                }
+            }
+//            if(id == -1){
+//                throw new IllegalStateException("Hösf");
+////                for(int id2 : courseNameMap.keySet()){
+////                    if(courseNameMap.get(id2).equals(t1.getText()))id = id2;
+////                }
+//            }
+            boolean inNewCourses = false;
+
+            if(!model.getAllCourseIds().contains(id))inNewCourses = true;
+            boolean courseDeleted = courseCopies.stream().noneMatch(c -> c.getName().equals(t1.getText()));
+            //auf neue Kursliste nvariable anpassen?
+            if((model.getAllCourseNames().contains(t1.getText())&& model.getAmountOfLevelsInCourse(t1.getText() )== 0&& !courseDeleted)||inNewCourses) {
                 deleteCourseBtn.setDisable(false);
                 difficultyChoiceBox.setDisable(false);
                 changeNameTxtField.setDisable(false);
@@ -987,34 +1065,156 @@ public class EditorController implements SimpleEventListener {
             }
             else {
                 deleteCourseBtn.setDisable(true);
-                if(deletedCourses.contains(t1.getText())){
+                if(courseDeleted){
                     difficultyChoiceBox.setDisable(true);
                     changeNameTxtField.setDisable(true);
                 }
             }
-            difficultyChoiceBox.getSelectionModel().select(courseDifficultyMap.get(t1.getText()));
+            difficultyChoiceBox.getSelectionModel().select(currentCourse.getDifficulty());
         });
 
 
-        for(String courseName : model.getAllCourseNames()){
-            courseDifficultyMap.put(courseName, model.getDifficultyOfCourse(courseName));
-        }
+//        for(String courseName : model.getAllCourseNames()){
+//            courseDifficultyMap.put(model.getCourseWithName(courseName).ID, model.getDifficultyOfCourse(courseName));
+//        }
         difficultyChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable,s,t1) -> {
+//model.getDifficultyOfCourse(courseNameLView.getSelectionModel().getSelectedItem().getText())
+            Course currentCourse = null;
+//            int id = -1;
+            for(Course c : courseCopies){
+                if(c.getName().equals(courseNameLView.getSelectionModel().getSelectedItem().getText())){
+//                    id = c.ID;
+                    currentCourse = c;
+                }
+            }
+            if(currentCourse.getDifficulty() != difficultyChoiceBox.getValue())
+                 courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_NOT_SAVED_STYLE);
+//            int id = model.getCourseWithName(courseNameLView.getSelectionModel().getSelectedItem().getText()).ID;
+            currentCourse.changeDifficulty(difficultyChoiceBox.getValue());
+        });
+        changeNameBtn.setOnAction(event -> {
+            Course currentCourse = null;
+            for(Course c : courseCopies){
+                if(c.getName().equals(courseNameLView.getSelectionModel().getSelectedItem().getText())){
+                    currentCourse = c;
+                }
+            }
+            Dialog<ButtonType> changeCourseNameDialog = new Dialog<>();
+            ButtonType btnTypeCancel = new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
+            ButtonType btnTypeAccept = new ButtonType("Accept",ButtonBar.ButtonData.OK_DONE);
 
-            if(model.getDifficultyOfCourse(courseNameLView.getSelectionModel().getSelectedItem().getText()) == difficultyChoiceBox.getValue())
-                courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
-            else courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_NOT_SAVED_STYLE);
-            courseDifficultyMap.replace(courseNameLView.getSelectionModel().getSelectedItem().getText(), t1  );
+            changeCourseNameDialog.getDialogPane().getButtonTypes().add(btnTypeCancel);
+            changeCourseNameDialog.getDialogPane().getButtonTypes().add(btnTypeAccept);
+            changeCourseNameDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+            TextField nameField = new TextField();
+            String oldName = courseNameLView.getSelectionModel().getSelectedItem().getText();
+            nameField.setText(oldName);
+            nameField.textProperty().addListener((observableValue, s, t1) -> {
+                boolean contains = false;
+                for(Label l : courseNameLView.getItems()){
+                    if(l.getText().equals(t1))contains = true;
+                }
+                if(contains || t1.equals("")||t1.matches("\\d+"))changeCourseNameDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+                else changeCourseNameDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(false);
+            });
+            changeCourseNameDialog.getDialogPane().setContent(nameField);
+            Optional<ButtonType> buttonType = changeCourseNameDialog.showAndWait();
+            if(buttonType.isPresent()&&buttonType.get().getButtonData() == ButtonBar.ButtonData.OK_DONE){
+//                Label labelToAdd = new Label(nameField.getText());
+                if(!oldName.equals(nameField.getText()))
+                     courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_NOT_SAVED_STYLE);
+                courseNameLView.getSelectionModel().getSelectedItem().setText(nameField.getText());
+//                int id = model.getCourseWithName(oldName).ID;
+                currentCourse.changeName(nameField.getText());
+            }
+        });
+
+        editReqIdsBtn.setOnAction(event -> {
+            Course currentCourse = null;
+            for(Course c : courseCopies){
+                if(c.getName().equals(courseNameLView.getSelectionModel().getSelectedItem().getText())){
+                    currentCourse = c;
+                }
+            }
+            Dialog<ButtonType> editReqIdDialog = new Dialog<>();
+            ButtonType btnTypeCancel = new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
+            ButtonType btnTypeAccept = new ButtonType("Accept",ButtonBar.ButtonData.OK_DONE);
+
+            editReqIdDialog.getDialogPane().getButtonTypes().add(btnTypeCancel);
+            editReqIdDialog.getDialogPane().getButtonTypes().add(btnTypeAccept);
+//            createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+            ListView<Label> reqCourseListView = new ListView<>();
+            reqCourseListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+            String currentName = courseNameLView.getSelectionModel().getSelectedItem().getText();
+            for(Course course : courseCopies){
+                String courseName = course.getName();
+                if(courseName.equals(GameConstants.CHALLENGE_COURSE_NAME) || courseName.equals(currentName))continue;
+                Label l =new Label(courseName);
+//                l.setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
+                reqCourseListView.getItems().add(l);
+            }
+            for(int i = 0; i < reqCourseListView.getItems().size();i++){
+                if(currentCourse.getReqCourseIds().contains(model.getCourseWithName(reqCourseListView.getItems().get(i).getText()).ID))reqCourseListView.getSelectionModel().select(i);
+            }
+            editReqIdDialog.getDialogPane().setContent(reqCourseListView);
+            Optional<ButtonType> buttonType = editReqIdDialog.showAndWait();
+            if(buttonType.isPresent()&&buttonType.get().getButtonData() == ButtonBar.ButtonData.OK_DONE){
+//                Label labelToAdd = new Label(nameField.getText());
+                int id =currentCourse.ID;
+                int amountOfSelectedItems = reqCourseListView.getSelectionModel().getSelectedItems() == null ? 0 : reqCourseListView.getSelectionModel().getSelectedItems().size();
+                boolean changed = amountOfSelectedItems != model.getCourseWithId(id).getReqCourseIds().size();
+                for(int i :currentCourse.getReqCourseIds()){
+                    if(reqCourseListView.getSelectionModel().getSelectedItems().stream().noneMatch(l -> model.getCourseWithName(l.getText()).ID == i))changed = true;
+                }
+                if(changed)
+                    courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_NOT_SAVED_STYLE);
+//                else courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
+                currentCourse.setRequiredIds(reqCourseListView.getSelectionModel().getSelectedItems().stream().map(l -> model.getCourseWithName(l.getText()).ID).collect(Collectors.toList()));
+//                courseRequiredIdsMap.put(id, reqCourseListView.getSelectionModel().getSelectedItems().stream().map(l -> model.getCourseWithName(l.getText()).ID).collect(Collectors.toList()));
+            }
         });
         applyButton.setOnAction(evt -> {
-            model.removeAllCourses(deletedCourses);
-            model.addAllCourses(newCourses);
-            model.applyCourseChanges(courseDifficultyMap);
-            view.removeAllCourses(deletedCourses);
-            view.addAllCourses(newCourses,courseDifficultyMap);
+            model.adaptCourses(courseCopies);
+
+//            for(int cId : model.getAllCourseIds()){
+            view.updateTutorialOverviewPaneList(courseCopies);
+                view.getLevelEditorModule().getCourseValueLbl().setText(model.getCurrentCourseName());
+//                if(courseNameMap.containsKey(cId))
+                view.getCourseOverviewPane().updateAllCourseName();
+                view.getCourseOverviewPane().updateDeletedEntries();
+                view.getCourseOverviewPane().updateAddedEntries();
+            view.getCourseOverviewPane().updateAllUnlockedStatus();
+//                if(courseRequiredIdsMap.containsKey(cId)){
+//                    boolean isUnlocked = model.isCourseUnlocked(cId);
+//                    view.getCourseOverviewPane().updateUnlockedStatus(cId, isUnlocked);
+//                }
+//                if(cId == model.getCurrentCourseId() && courseNameMap.containsKey(cId)){
+//                }
+//            }
+//            model.removeAllCourses(deletedCourses);
+//            model.addAllCourses(newCourses);
+//            model.applyCourseChanges(courseDifficultyMap,courseNameMap,courseRequiredIdsMap);
+//            List<String> deletedCourseNames = new ArrayList<>();
+//            for(int id: deletedCourses){
+//                deletedCourseNames.add(model.getCourseWithId(id).getName());
+//            }
+//            List<String> newCourseNames = new ArrayList<>();
+//            for(Course c : newCourses){
+//                newCourseNames.add(c.getName());
+//            }
+//            view.removeAllCourses(deletedCourseNames);
+//            Map<String,LevelDifficulty> newCourseDiffMap = new HashMap<>();
+//            for(String cName : newCourseNames){
+//                LevelDifficulty lDiff = LevelDifficulty.BEGINNER;
+//                for (Course newCourse : newCourses) {
+//                    if (newCourse.getName().equals(cName)) lDiff = newCourse.getDifficulty();
+//                }
+//                newCourseDiffMap.put(cName, lDiff);
+//            }
+//            view.addAllCourses(newCourseNames,newCourseDiffMap);
             for(int i = 0; i< courseNameLView.getItems().size();i++) {
                 Label l = courseNameLView.getItems().get(i);
-                if(deletedCourses.contains(l.getText())){
+                if(courseCopies.stream().noneMatch(course -> course.getName().equals(l.getText()))){
                     courseNameLView.getItems().remove(l );
                     i--;
                 }
@@ -1034,11 +1234,11 @@ public class EditorController implements SimpleEventListener {
             createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
             TextField nameField = new TextField();
             nameField.textProperty().addListener((observableValue, s, t1) -> {
-                boolean contains = false;
+                boolean contains = model.getAllCourseNames().contains(t1);
                 for(Label l : courseNameLView.getItems()){
                     if(l.getText().equals(t1))contains = true;
                 }
-                if(contains || t1.equals(""))createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+                if(contains || t1.equals("")||t1.matches("\\d+"))createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
                 else createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(false);
             });
             ChoiceBox<LevelDifficulty> difficultyChoiceBox2 = new ChoiceBox<>();
@@ -1054,14 +1254,16 @@ public class EditorController implements SimpleEventListener {
                 courseNameLView.getItems().add(labelToAdd);
                 LevelDifficulty levelDifficulty = difficultyChoiceBox2.getValue();
                 if(levelDifficulty == null)levelDifficulty = LevelDifficulty.BEGINNER;
-                courseDifficultyMap.put(nameField.getText(), levelDifficulty);
-                newCourses.add(nameField.getText());
-                deletedCourses.remove(nameField.getText());
+                int id = model.getCourseWithName(nameField.getText()).ID;
+                courseCopies.add(new Course(new ArrayList<>(), new ArrayList<>(), levelDifficulty, nameField.getText()  ));
+//                courseDifficultyMap.put(id, levelDifficulty);
+//                newCourses.add(new Course(new ArrayList<>(), new ArrayList<>(), levelDifficulty, nameField.getText()));
+//                deletedCourses.remove((Integer)id);
             }
         });
         deleteCourseBtn.setOnAction(evt -> {
             String courseName = courseNameLView.getSelectionModel().getSelectedItem().getText();
-            courseDifficultyMap.remove(courseName);
+//            courseDifficultyMap.remove(model.getCourseWithName(courseName).ID);
             Label lblToRmv = null;
             for(Label l : courseNameLView.getItems()){
                 if(l.getText().equals(courseName))lblToRmv = l;
@@ -1069,13 +1271,15 @@ public class EditorController implements SimpleEventListener {
             if(lblToRmv != null)lblToRmv.setStyle(GameConstants.WILL_BE_REMOVED_STYLE);
             if(!model.getAllCourseNames().contains(courseName))
                 courseNameLView.getItems().remove(lblToRmv);
-            deletedCourses.add(courseName);
-            newCourses.remove(courseName);
+//            deletedCourses.add(model.getCourseWithName(courseName).ID);
+//            newCourses.removeIf(c -> c.getName().equals(courseName));
+
+            courseCopies.removeIf(c -> c.getName().equals(courseName));
 
         });
 
         VBox leftVBox = new VBox(courseNameLView,applyButton);
-        VBox rightVBox = new VBox(createCourseBtn,deleteCourseBtn,difficultyChoiceBox);
+        VBox rightVBox = new VBox(createCourseBtn,deleteCourseBtn,difficultyChoiceBox,changeNameBtn,editReqIdsBtn);
         rightVBox.setSpacing(GameConstants.SMALL_FONT_SIZE);
         HBox contentHBox = new HBox(leftVBox,rightVBox);
 
@@ -1123,3 +1327,180 @@ public class EditorController implements SimpleEventListener {
     }
 
 }
+/*
+Dialog<ButtonType> editCoursesDialog = new Dialog<>();
+        editCoursesDialog.getDialogPane().getButtonTypes().add(new ButtonType("Close",ButtonBar.ButtonData.FINISH));
+        ListView<Label> courseNameLView = new ListView<>();
+        for(String courseName : model.getAllCourseNames()){
+            if(courseName.equals(GameConstants.CHALLENGE_COURSE_NAME))continue;
+            Label l =new Label(courseName);
+            l.setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
+            courseNameLView.getItems().add(l);
+        }
+        Button createCourseBtn = new Button("Create Course");
+        Button deleteCourseBtn = new Button("Delete Course");
+        Button changeNameBtn = new Button("Change Name");
+        Button editReqIdsBtn = new Button("Edit Required Ids");
+        //TODO: textfeld hinzfügen!
+        TextField changeNameTxtField = new TextField();
+        if(courseNameLView.getItems().size()>0){
+            courseNameLView.getSelectionModel().select(0);
+            changeNameTxtField.setText(courseNameLView.getSelectionModel().getSelectedItem().getText());
+            if(model.getAmountOfLevelsInCourse(courseNameLView.getSelectionModel().getSelectedItem().getText())>0)
+                deleteCourseBtn.setDisable(true);
+        }
+
+        courseNameLView.setMaxHeight(GameConstants.BUTTON_SIZE);
+
+        ChoiceBox<LevelDifficulty> difficultyChoiceBox = new ChoiceBox<>();
+        difficultyChoiceBox.getItems().addAll(LevelDifficulty.values());
+        difficultyChoiceBox.getSelectionModel().select(0);
+
+        //TODO: courseChanges?!
+        Button applyButton = new Button("Apply");
+
+//        Map<Integer,LevelDifficulty> courseDifficultyMap = new HashMap<>();
+//        Map<Integer,String> courseNameMap = new HashMap<>();
+//        Map<Integer,List<Integer>> courseRequiredIdsMap = new HashMap<>();
+////        List<Course> courseChangeList = new ArrayList<>();
+//        List<Course> newCourses = new ArrayList<>();
+//        List<Integer> deletedCourses = new ArrayList<>();
+        List<Course> courseCopies = model.getCourseCopies();
+        courseNameLView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        courseNameLView.getSelectionModel().selectedItemProperty().addListener((observableValue, stringMultipleSelectionModel, t1) -> {
+            Course currentCourse = null;
+            int id = -1;
+            for(Course c : courseCopies){
+                if(c.getName().equals(t1.getText())){
+                    id = c.ID;
+                    currentCourse = c;
+                }
+            }
+            if(id == -1){
+                throw new IllegalStateException("Hösf");
+//                for(int id2 : courseNameMap.keySet()){
+//                    if(courseNameMap.get(id2).equals(t1.getText()))id = id2;
+//                }
+            }
+            boolean inNewCourses = false;
+
+            if(!model.getAllCourseIds().contains(id))inNewCourses = true;
+            boolean courseDeleted = courseCopies.stream().noneMatch(c -> c.getName().equals(t1.getText()));
+            //auf neue Kursliste nvariable anpassen?
+            if((model.getAllCourseNames().contains(t1.getText())&& model.getAmountOfLevelsInCourse(t1.getText() )== 0&& !courseDeleted)||inNewCourses) {
+                deleteCourseBtn.setDisable(false);
+                difficultyChoiceBox.setDisable(false);
+                changeNameTxtField.setDisable(false);
+                changeNameTxtField.setText(courseNameLView.getSelectionModel().getSelectedItem().getText());
+            }
+            else {
+                deleteCourseBtn.setDisable(true);
+                if(courseDeleted){
+                    difficultyChoiceBox.setDisable(true);
+                    changeNameTxtField.setDisable(true);
+                }
+            }
+            difficultyChoiceBox.getSelectionModel().select(currentCourse.getDifficulty());
+        });
+
+
+//        for(String courseName : model.getAllCourseNames()){
+//            courseDifficultyMap.put(model.getCourseWithName(courseName).ID, model.getDifficultyOfCourse(courseName));
+//        }
+        difficultyChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable,s,t1) -> {
+//model.getDifficultyOfCourse(courseNameLView.getSelectionModel().getSelectedItem().getText())
+            Course currentCourse = null;
+//            int id = -1;
+            for(Course c : courseCopies){
+                if(c.getName().equals(courseNameLView.getSelectionModel().getSelectedItem().getText())){
+//                    id = c.ID;
+                    currentCourse = c;
+                }
+            }
+            if(currentCourse.getDifficulty() == difficultyChoiceBox.getValue())
+                courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
+            else courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_NOT_SAVED_STYLE);
+//            int id = model.getCourseWithName(courseNameLView.getSelectionModel().getSelectedItem().getText()).ID;
+            currentCourse.changeDifficulty(difficultyChoiceBox.getValue());
+        });
+        changeNameBtn.setOnAction(event -> {
+            Course currentCourse = null;
+            for(Course c : courseCopies){
+                if(c.getName().equals(courseNameLView.getSelectionModel().getSelectedItem().getText())){
+                    currentCourse = c;
+                }
+            }
+            Dialog<ButtonType> createCourseDialog = new Dialog<>();
+            ButtonType btnTypeCancel = new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
+            ButtonType btnTypeAccept = new ButtonType("Accept",ButtonBar.ButtonData.OK_DONE);
+
+            createCourseDialog.getDialogPane().getButtonTypes().add(btnTypeCancel);
+            createCourseDialog.getDialogPane().getButtonTypes().add(btnTypeAccept);
+            createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+            TextField nameField = new TextField();
+            String oldName = courseNameLView.getSelectionModel().getSelectedItem().getText();
+            nameField.setText(oldName);
+            nameField.textProperty().addListener((observableValue, s, t1) -> {
+                boolean contains = false;
+                for(Label l : courseNameLView.getItems()){
+                    if(l.getText().equals(t1))contains = true;
+                }
+                if(contains || t1.equals(""))createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+                else createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(false);
+            });
+            createCourseDialog.getDialogPane().setContent(nameField);
+            Optional<ButtonType> buttonType = createCourseDialog.showAndWait();
+            if(buttonType.isPresent()&&buttonType.get().getButtonData() == ButtonBar.ButtonData.OK_DONE){
+//                Label labelToAdd = new Label(nameField.getText());
+                if(oldName.equals(nameField.getText()))
+                    courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
+                else courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_NOT_SAVED_STYLE);
+                courseNameLView.getSelectionModel().getSelectedItem().setText(nameField.getText());
+//                int id = model.getCourseWithName(oldName).ID;
+                currentCourse.changeName(nameField.getText());
+            }
+        });
+
+        editReqIdsBtn.setOnAction(event -> {
+            Course currentCourse = null;
+            for(Course c : courseCopies){
+                if(c.getName().equals(courseNameLView.getSelectionModel().getSelectedItem().getText())){
+                    currentCourse = c;
+                }
+            }
+            Dialog<ButtonType> createCourseDialog = new Dialog<>();
+            ButtonType btnTypeCancel = new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
+            ButtonType btnTypeAccept = new ButtonType("Accept",ButtonBar.ButtonData.OK_DONE);
+
+            createCourseDialog.getDialogPane().getButtonTypes().add(btnTypeCancel);
+            createCourseDialog.getDialogPane().getButtonTypes().add(btnTypeAccept);
+//            createCourseDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+            ListView<Label> reqCourseListView = new ListView<>();
+            String currentName = courseNameLView.getSelectionModel().getSelectedItem().getText();
+            for(Course course : courseCopies){
+                String courseName = course.getName();
+                if(courseName.equals(GameConstants.CHALLENGE_COURSE_NAME) || courseName.equals(currentName))continue;
+                Label l =new Label(courseName);
+                l.setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
+                reqCourseListView.getItems().add(l);
+            }
+            for(int i = 0; i < reqCourseListView.getItems().size();i++){
+                if(currentCourse.getReqCourseIds().contains(model.getCourseWithName(reqCourseListView.getItems().get(i).getText()).ID))reqCourseListView.getSelectionModel().select(i);
+            }
+            createCourseDialog.getDialogPane().setContent(reqCourseListView);
+            Optional<ButtonType> buttonType = createCourseDialog.showAndWait();
+            if(buttonType.isPresent()&&buttonType.get().getButtonData() == ButtonBar.ButtonData.OK_DONE){
+//                Label labelToAdd = new Label(nameField.getText());
+                int id =currentCourse.ID;
+                int amountOfSelectedItems = reqCourseListView.getSelectionModel().getSelectedItems() == null ? 0 : reqCourseListView.getSelectionModel().getSelectedItems().size();
+                boolean changed = amountOfSelectedItems == model.getCourseWithId(id).getReqCourseIds().size();
+                for(int i :currentCourse.getReqCourseIds()){
+                    if(reqCourseListView.getSelectionModel().getSelectedItems().stream().noneMatch(l -> model.getCourseWithName(l.getText()).ID == i))changed = true;
+                }
+                if(changed)
+                    courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_NOT_SAVED_STYLE);
+                else courseNameLView.getSelectionModel().getSelectedItem().setStyle(GameConstants.LEVEL_IS_SAVED_STYLE);
+                currentCourse.setRequiredIds(reqCourseListView.getSelectionModel().getSelectedItems().stream().map(l -> model.getCourseWithName(l.getText()).ID).collect(Collectors.toList()));
+//                courseRequiredIdsMap.put(id, reqCourseListView.getSelectionModel().getSelectedItems().stream().map(l -> model.getCourseWithName(l.getText()).ID).collect(Collectors.toList()));
+            }
+ */

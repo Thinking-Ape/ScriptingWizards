@@ -91,6 +91,20 @@ public class GameMap {
         }
         return getContentAtXY(new Point(-1, -1));
     }
+
+    public Point getCellInDirection(Point point, Direction dir) {
+        switch (dir){
+            case NORTH:
+                return new Point(point.getX(),point.getY()-1);
+            case SOUTH:
+                return new Point(point.getX(),point.getY()+1);
+            case EAST:
+                return new Point(point.getX()+1,point.getY());
+            case WEST:
+                return new Point(point.getX()-1,point.getY());
+        }
+        return new Point(-1, -1);
+    }
     public Point findSpawn() {
         for(int x = 0; x < getBoundX(); x++){
             for(int y = 0; y < getBoundY(); y++){
@@ -105,6 +119,16 @@ public class GameMap {
         for(int x = 0; x < getBoundX(); x++){
             for(int y = 0; y < getBoundY(); y++){
                 if(getContentAtXY(x,y) == CellContent.ENEMY_SPAWN)output.add(new Point(x,y));
+            }
+        }
+        return output;
+    }
+
+    public List<Point> getSpawnList() {
+        List<Point> output = new ArrayList<>();
+        for(int x = 0; x < getBoundX(); x++){
+            for(int y = 0; y < getBoundY(); y++){
+                if(getContentAtXY(x,y) == CellContent.SPAWN)output.add(new Point(x,y));
             }
         }
         return output;
@@ -169,6 +193,7 @@ public class GameMap {
     public void kill(int x, int y) {
         Cell cell =cellArray2D[x][y];
         Entity entity = cell.getEntity();
+        if(entity.isSpecialized() && entity.getEntityType() == EntityType.SKELETON) return;
         if(entity==NO_ENTITY){
             if(cell.getItem()==ItemType.KEY)
                 cell = cell.getMutation(CellFlag.KEY_DESTROYED,true);
@@ -203,6 +228,9 @@ public class GameMap {
         setEntity(new Point(x, y), entity);
     }
 
+    public Entity getEntity(int x,int y) {
+        return getEntity(new Point(x, y));
+    }
     public Entity getEntity(Point ecMapGet) {
         if(ecMapGet== null||ecMapGet.getX() == -1 || ecMapGet.getY() ==-1)return NO_ENTITY;
         return cellArray2D[ecMapGet.getX()][ecMapGet.getY()].getEntity();
@@ -211,6 +239,7 @@ public class GameMap {
     public Point getTargetPoint(String actorName) {
         return getTargetPoint(actorName, true);
     }
+    // Whether the Entity moves forward or backwards
     public Point getTargetPoint(String actorName, boolean isForward) {
         Point p = getEntityPosition(actorName);
         Entity entity = cellArray2D[p.getX()][p.getY()].getEntity();
@@ -229,7 +258,29 @@ public class GameMap {
         return new Point(-1, -1);
     }
 
-
+    public Point getCellAfterTarget(String actorName) {
+        Point p = getEntityPosition(actorName);
+        Entity entity = cellArray2D[p.getX()][p.getY()].getEntity();
+        if(entity == NO_ENTITY) return new Point(-1, -1);
+        int d = 2;
+        Point returnPoint = new Point(-1, -1);
+        switch (entity.getDirection()){
+            case NORTH:
+                returnPoint = new Point(p.getX(), p.getY()-d);
+                break;
+            case SOUTH:
+                returnPoint = new Point(p.getX(), p.getY()+d);
+                break;
+            case EAST:
+                returnPoint =  new Point(p.getX()+d, p.getY());
+                break;
+            case WEST:
+                returnPoint = new Point(p.getX()-d, p.getY());
+                break;
+        }
+        if(returnPoint.getY() >= 0 && returnPoint.getY() < this.getBoundY() && returnPoint.getX() >= 0 && returnPoint.getX() < this.getBoundX()) return returnPoint;
+        return new Point(-1, -1);
+    }
 
     public CellContent getContentAtXY(Point targetPos) {
         return getContentAtXY(targetPos.getX(), targetPos.getY());
@@ -263,6 +314,7 @@ public class GameMap {
     }
 
     public boolean isCellFree(Point targetPoint) {
+        if(targetPoint.getY() < 0 || targetPoint.getX() < 0 || targetPoint.getY() >= getBoundY()|| targetPoint.getX() >= getBoundX())return false;
         return cellArray2D[targetPoint.getX()][targetPoint.getY()].isFree();
     }
 
@@ -479,4 +531,22 @@ public class GameMap {
             System.out.println();
         }
     }
+
+    public Entity findEntityPossessedBy(String name) {
+        for(Entity e : findAllEntities()){
+            if(e.isPossessedBy(name))return e;
+        }
+        return NO_ENTITY;
+    }
+
+    private Iterable<? extends Entity> findAllEntities() {
+        List<Entity> output = new ArrayList<>();
+        for(int x = 0; x < getBoundX(); x++){
+            for(int y = 0; y < getBoundY(); y++){
+                if(cellArray2D[x][y].getEntity() != NO_ENTITY)output.add(cellArray2D[x][y].getEntity());
+            }
+        }
+        return output;
+    }
+
 }

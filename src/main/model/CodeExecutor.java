@@ -8,6 +8,7 @@ import main.model.statement.*;
 import main.model.statement.Expression.Expression;
 import main.model.statement.Expression.ExpressionTree;
 import main.utility.Point;
+import main.utility.Util;
 import main.utility.Variable;
 import main.utility.VariableType;
 
@@ -43,6 +44,8 @@ public abstract class CodeExecutor {
             Variable var = assignment.getVariable();
             boolean replaced = false;
             if(var.getValue().getText().equals(""))return false;
+
+            if(currentGameMap.getEntity(var.getName()).isPossessed()||currentGameMap.findEntityPossessedBy(var.getName()) != NO_ENTITY)return true;
             if(!currentGameMap.getEntity(var.getName()).equals(NO_ENTITY)){
                 if(currentGameMap.getEntity(var.getName()).getEntityType().getDisplayName().equals(var.getVariableType().getName())){
                     currentGameMap.kill(currentGameMap.getEntityPosition(var.getName()));
@@ -59,19 +62,42 @@ public abstract class CodeExecutor {
                 if(expressionTree.getRightNode()!=null)
                     direction= Direction.getValueFromString(expressionTree.getRightNode().getText());
 
-                if(direction == null)
-                    direction = Direction.NORTH;
+                String spawnId = "";
+                if(expressionTree.getRightNode() != null){
+                    String s =expressionTree.getRightNode().getText();
+                    if(s.matches(".*,.*")){
 
-                Point spawn = currentGameMap.findSpawn();
+                        direction = Direction.valueOf(s.split(",")[0]);
+                        spawnId =s.split(",")[1];
+                    }
+                    else direction = Direction.getValueFromString(expressionTree.getRightNode().getText());
+
+                }
+                if(direction == null)direction = Direction.NORTH;
+                int index = GameConstants.RANDOM.nextInt(currentGameMap.getSpawnList().size());
+                Point spawnPoint = new Point(currentGameMap.getSpawnList().get(index).getX(),currentGameMap.getSpawnList().get(index).getY());
+
+                boolean isSpecialized = (((ExpressionTree) var.getValue()).getLeftNode()).getText().matches("new Guardian");
+
                 if(statement.getStatementType() == StatementType.ASSIGNMENT)
                     currentGameMap.getEntity(name).deleteIdentity();
 
-                if(spawn.getX() != -1 && currentGameMap.getEntity(spawn)==NO_ENTITY && (canSpawnKnights||replaced)){
+                if(!spawnId.equals("")&& (canSpawnKnights||replaced)){
+                    int i = Integer.valueOf(spawnId);
+                    for(Point point : currentGameMap.getSpawnList()){
+                        spawnPoint = point;
+                        if(currentGameMap.getCellID(spawnPoint)==i&&currentGameMap.getEntity(spawnPoint)==NO_ENTITY){
+                            if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
+                            currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.KNIGHT,isSpecialized));
+                            knightWasSpawned = !replaced;
+                        }
+                    }
+                }
+                else if(currentGameMap.getEntity(spawnPoint)==NO_ENTITY&& (canSpawnKnights||replaced)){
                     if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
-                    currentGameMap.spawn(spawn,new Entity(name,direction, EntityType.KNIGHT));
+                    currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.KNIGHT,isSpecialized));
                     knightWasSpawned = !replaced;
                 }
-
             }else if(var.getVariableType() == VariableType.SKELETON){
                 if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
                 methodWasCalled = true;
@@ -79,7 +105,7 @@ public abstract class CodeExecutor {
                 String name = var.getName();
                 Direction direction = Direction.NORTH;
                 ExpressionTree expressionTree = ((ExpressionTree)var.getValue());
-                if(!expressionTree.getText().matches(" *new *Skeleton\\(.*\\)")) return false;
+                if(!expressionTree.getText().matches(" *new *(Skeleton|Ghost)\\(.*\\)")) return false;
                 if(expressionTree.getRightNode()!= null)
                     direction = Direction.getValueFromString(expressionTree.getRightNode().getText());
                 String spawnId = "";
@@ -95,19 +121,23 @@ public abstract class CodeExecutor {
                 }
                 if(direction == null)direction = Direction.NORTH;
                 int index = GameConstants.RANDOM.nextInt(currentGameMap.getEnemySpawnList().size());
+                //TODO: new GHOUL new GHOST new SHADE new UNDEAD new BANSHEE
                 Point spawnPoint = new Point(currentGameMap.getEnemySpawnList().get(index).getX(),currentGameMap.getEnemySpawnList().get(index).getY());
+                boolean isSpecialized = (((ExpressionTree) var.getValue()).getLeftNode()).getText().matches("new Ghost");
                 if(!spawnId.equals("")){
                     int i = Integer.valueOf(spawnId);
                     for(Point point : currentGameMap.getEnemySpawnList()){
                         spawnPoint = point;
                         if(currentGameMap.getCellID(spawnPoint)==i&&currentGameMap.getEntity(spawnPoint)==NO_ENTITY){
-                            currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
+                            currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON,isSpecialized));
+//                            System.out.println("uhu1");
                             skeletonWasSpawned = !replaced;
                         }
                     }
                 }
                 else if(currentGameMap.getEntity(spawnPoint)==NO_ENTITY){
-                    currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON));
+                    currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON,isSpecialized));
+//                    System.out.println("uhu2");
                     skeletonWasSpawned = !replaced;
                 }
             }
@@ -127,6 +157,19 @@ public abstract class CodeExecutor {
             currentGameMap.setFlag(targetPos, CellFlag.OPEN, true);
             hasWon = true;
             return;
+        }
+        if(actorEntity.isSpecialized()){
+            currentGameMap.setFlag(actorPos , CellFlag.ACTION,true );
+            if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)
+                currentGameMap.setFlag(currentGameMap.getTargetPoint(name), CellFlag.HELPER_FLAG,true);
+            if(!currentGameMap.isCellFree(targetPos) && currentGameMap.isCellFree(currentGameMap.getCellAfterTarget(name))){
+                Entity entity = currentGameMap.getEntity(targetPos);
+                currentGameMap.setEntity(targetPos, NO_ENTITY);
+                currentGameMap.setEntity(currentGameMap.getCellAfterTarget(name), entity);
+                currentGameMap.setItem(currentGameMap.getCellAfterTarget(name), currentGameMap.getItem(targetPos));
+                currentGameMap.setItem(targetPos, ItemType.NONE);
+            }
+            else if(currentGameMap.getItem(targetPos)!=ItemType.BOULDER)currentGameMap.kill(targetPos);
         }
         if((actorEntity.getItem() == ItemType.SHOVEL||actorEntity.getItem() == ItemType.SWORD)&&GameConstants.ACTION_WITHOUT_CONSEQUENCE){
             currentGameMap.setFlag(actorPos , CellFlag.ACTION,true );
@@ -228,17 +271,34 @@ public abstract class CodeExecutor {
             nameList = new ArrayList<>(Arrays.asList(matcher.group(1).split(",")));
         }
         for(String name : nameList){
+            Entity currentEntity = currentGameMap.getEntity(name);
+            if(currentEntity.isPossessed())
+                continue;
             Point position = currentGameMap.getEntityPosition(name);
             if(position.getX() == -1 ){
                 if(isPlayer&& currentGameMap.getAmountOfEntities(EntityType.KNIGHT) == 0)hasLost=true;
-                continue;
+                Entity possessedEntity = currentGameMap.findEntityPossessedBy(name);
+                if(!isPlayer && possessedEntity != NO_ENTITY){
+                    currentEntity = possessedEntity;
+                    name = currentEntity.getName();
+                    position = currentGameMap.getEntityPosition(name);
+                }
+                else continue;
             }
             switch (methodCall.getMethodType()){
+                case DISPOSSESS:
+//                    if(isPlayer||!currentEntity.isSpecialized())throw new IllegalStateException("Only Ghosts can dispossess!");
+                    if(methodCall.getParameters()[0].equals(""))tryToDispossess(position);
+                    else tryToDispossess(position, Direction.getValueFromString(methodCall.getParameters()[0]));
+                    break;
                 case ATTACK:
-                    if(isPlayer)throw new IllegalStateException("You cannot attack as Player!");
-
+                    if(isPlayer)break;
+                    if(currentEntity.isSpecialized()){
+                        tryToPossess(position);
+                        break;
+                    }
                     // Can't attack with an item in hand
-                    if(currentGameMap.getEntity(name).getItem()!=ItemType.NONE)break;
+                    if(currentEntity.getItem()!=ItemType.NONE)break;
                     if(GameConstants.ACTION_WITHOUT_CONSEQUENCE){
                         currentGameMap.setFlag(position , CellFlag.ACTION,true );
                         //this will have the effect that the target cell will be drawn, even though it did not change
@@ -247,6 +307,9 @@ public abstract class CodeExecutor {
                     }
                     if(!(currentGameMap.getEntity(currentGameMap.getTargetPoint(name))==NO_ENTITY)&&!(currentGameMap.getItem(currentGameMap.getTargetPoint(name)) == ItemType.BOULDER))
                         currentGameMap.setFlag(position , CellFlag.ACTION,true );
+                    if(currentGameMap.getEntity(currentGameMap.getTargetPoint(name)).isSpecialized() && Util.isOppositeDir(currentEntity.getDirection(),currentGameMap.getEntity(currentGameMap.getTargetPoint(name)).getDirection()))
+                        break;
+
                     currentGameMap.kill(currentGameMap.getTargetPoint(name));
                     break;
 
@@ -260,19 +323,50 @@ public abstract class CodeExecutor {
                     tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);
                     break;
                 case USE_ITEM:
-                    if(currentGameMap.getEntity(position).getItem()==ItemType.NONE)break;
+                    if(!isPlayer)break;
+                    if(currentGameMap.getEntity(position).getItem()==ItemType.NONE && !currentGameMap.getEntity(position).isSpecialized())break;
                     tryToUseItem(position);
                     break;
                 case COLLECT:
+                    if(currentGameMap.getEntity(position).isSpecialized())break;
                     tryToCollect(position);
                     break;
                 case DROP_ITEM:
+                    if(currentGameMap.getEntity(position).isSpecialized())break;
                     if(currentGameMap.getEntity(position).getItem()==ItemType.NONE)break;
                     tryToDropItem(position);
                     break;
 
             }
         }
+    }
+    private static void tryToDispossess(Point actorPos) {
+        Entity actorEntity = currentGameMap.getEntity(actorPos);
+        tryToDispossess(actorPos, actorEntity.getDirection());
+    }
+    private static void tryToDispossess(Point actorPos, Direction dir) {
+        String name = currentGameMap.getEntity(actorPos).getName();
+        Point targetPos =  currentGameMap.getTargetPoint(name);
+        Entity actorEntity = currentGameMap.getEntity(actorPos);
+        if(!currentGameMap.isCellFree(currentGameMap.getCellInDirection(actorPos,dir))){
+            if(currentGameMap.getEntity(targetPos) != NO_ENTITY && !(currentGameMap.getEntity(targetPos).getEntityType() == EntityType.SKELETON && currentGameMap.getEntity(targetPos).isSpecialized())){
+                Entity targetEntity = currentGameMap.getEntity(targetPos);
+                targetEntity.becomePossessedBy(actorEntity.dispossess(dir));
+            }
+            return;
+        }
+        Entity ghost = actorEntity.dispossess(dir);
+        currentGameMap.setEntity(currentGameMap.getCellInDirection(actorPos,dir), ghost);
+    }
+
+    private static void tryToPossess(Point actorPos) {
+        String name = currentGameMap.getEntity(actorPos).getName();
+        Point targetPos =  currentGameMap.getTargetPoint(name);
+        Entity actorEntity = currentGameMap.getEntity(actorPos);
+        Entity targetEntity = currentGameMap.getEntity(targetPos);
+        if(targetEntity == NO_ENTITY ||( targetEntity.getEntityType() == EntityType.SKELETON && targetEntity.isSpecialized()))return;
+        currentGameMap.setFlag(actorPos, CellFlag.ACTION,true);
+        targetEntity.becomePossessedBy(actorEntity);
     }
 
     public static boolean knightWasSpawned() {

@@ -17,7 +17,9 @@ public enum CellFlag {
     DIRT_REMOVED(true),
     ACTION(true),
     CHANGE_COLOR(true),
-    HELPER_FLAG(true); //used to mark that a cell has changed
+    HELPER_FLAG(true), //used to mark that a cell has changed
+//    POSSESSING(true)
+    ;
     boolean isTemporary;
 
     CellFlag(boolean isTemporary) {

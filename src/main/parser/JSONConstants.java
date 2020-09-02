@@ -33,4 +33,6 @@ public abstract class JSONConstants {
     public static final String COURSE_NAME = "name";
     public static final String ID_LIST = "idList";
     public static final String DIFFICULTY = "difficulty";
+    public static final String REQ_ID_LIST = "reqIdList";
+    public static final String HAS_SEEN_INTRODUCTION = "hasSeenIntro";
 }

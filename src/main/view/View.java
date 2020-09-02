@@ -1,6 +1,6 @@
 package main.view;
 
-import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.*;
 import main.controller.Selection;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -13,8 +13,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.Effect;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -354,7 +352,9 @@ public class View implements LevelChangeListener {
                     if(entityActionList.contains(cell.getEntity())){
                         number = 3;
                     }
+
                     String entityName = cell.getEntity().getEntityType().getDisplayName();
+                    if(cell.getEntity().isSpecialized())entityName += "_Specialized";
                     if(cell.getEntity().getItem()!= ItemType.NONE && contentImageMap.containsKey(entityName+"_"+cell.getEntity().getItem().getDisplayName()))entityName+="_"+cell.getEntity().getItem().getDisplayName();
                     if(cell.hasFlag(CellFlag.ACTION) && contentImageMap.containsKey(entityName+"_Action_"+number))entityName+="_Action_"+number;
                     ImageView entityImageView = getEntityImageView( cell,entityName);
@@ -442,6 +442,29 @@ public class View implements LevelChangeListener {
         if(cell.getEntity().getEntityType() == EntityType.SKELETON){
             entityColorMap.putIfAbsent(cell.getEntity().getName(), Util.getEffect(skeletonCount-1,true));
         }
+        if(cell.getEntity().isPossessed()){
+            Effect e = entityColorMap.get(cell.getEntity().getName());
+//            Glow glow = new Glow(cell_size/100);
+//            glow.setInput(e);
+            InnerShadow innerShadow = new InnerShadow(20, new Color(0, .3,.1,0.8));
+            innerShadow.setRadius(cell_size/3);
+            MotionBlur mB = new MotionBlur();
+            mB.setRadius(cell_size/50);
+//            ColorAdjust c = new ColorAdjust(0,0,0,-0.2);//new ColorAdjust(0.5,0.5,0.5,0.5);
+//            c.setBrightness(-0.1);
+//            c.setContrast(0.5);
+//            c.setHue(-0.3);
+//            c.setSaturation(-0.4);
+            innerShadow.setInput(e);
+            mB.setInput(innerShadow);
+//            c.setInput(innerShadow);
+            imageView.setEffect(mB);
+            imageView.setOpacity(0.8);
+
+
+//            imageView.setEffect(b);
+            return imageView;
+        }
         imageView.setEffect(entityColorMap.get(cell.getEntity().getName()));
 
         return imageView;
@@ -484,7 +507,8 @@ public class View implements LevelChangeListener {
         if(isTurned)imageView.setRotate(270);
         int amountOfKnights = ModelInformer.getAmountOfKnightsSpawned();
         int maxKnights = (int)ModelInformer.getDataFromCurrentLevel(LevelDataType.MAX_KNIGHTS);
-        if((amountOfKnights< maxKnights &&cell.getContent()== CellContent.SPAWN))
+        if((//amountOfKnights< maxKnights &&
+                cell.getContent()== CellContent.SPAWN))
             imageView.setEffect(Util.getEffect(amountOfKnights,false));
         if(cell.getContent()== CellContent.ENEMY_SPAWN){
             int skelCount = ModelInformer.getAmountOfSkeletonsSpawned();
@@ -645,7 +669,7 @@ public class View implements LevelChangeListener {
             levelEditorModule.getTutorialTextArea().setText(tutorialLines.get(ModelInformer.getCurrentTutorialMessageIndex()));
             updateTutorialMessage();
         }
-        levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
+        if(ModelInformer.getCurrentTutorialMessageIndex() == 0)levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
         if(ModelInformer.getCurrentTutorialSize()<= 1){
             levelEditorModule.getNextTutorialTextBtn().setDisable(true);
             levelEditorModule.getPrevTutorialTextBtn().setDisable(true);
@@ -705,7 +729,8 @@ public class View implements LevelChangeListener {
             tutorialGroup.setEntries((List<String>)ModelInformer.getDataFromCurrentLevel(LevelDataType.TUTORIAL_LINES));
         }
         spellBookPane.updateSpellbookEntries(ModelInformer.getUnlockedStatementList());
-        if(ModelInformer.getBestTurnsOfLevel(ModelInformer.getCurrentId()) == -1) loadBestCodeBtn.setDisable(true);
+        if(!ModelInformer.currentLevelHasStoredCode())
+            loadBestCodeBtn.setDisable(true);
         else loadBestCodeBtn.setDisable(false);
     }
 
@@ -733,8 +758,14 @@ public class View implements LevelChangeListener {
 //                }
             case COURSE:
                 if(levelChange.getLevelDataType().equals(LevelDataType.COURSE)){
-                    //TODO!!
-//                    if((String)levelChange.getNewValue())
+                    String courseName = (String)levelChange.getNewValue();
+                    String oldCourseName = (String)levelChange.getOldValue();
+                    if(!oldCourseName.equals(CHALLENGE_COURSE_NAME))
+                        findTutorialLevelOverviewPane(oldCourseName).removeCurrentLevel();
+                    if(!courseName.equals(CHALLENGE_COURSE_NAME))
+                        findTutorialLevelOverviewPane(courseName).addLevelWithId(ModelInformer.getCurrentId());
+                    courseOverviewPane.updateAllUnlockedStatus();
+//                    if()
 //                        Platform.runLater(()->tutorialLevelOverviewPane.addCourseAtIndex(ModelInformer.getCurrentIndex()));
 //                    else tutorialLevelOverviewPane.removeCurrentLevel();
                 }
@@ -982,7 +1013,7 @@ public class View implements LevelChangeListener {
      * @param originalMap
      * @return
      */
-    static Image getIconFromMap(GameMap originalMap) {
+    public static Image getIconFromMap(GameMap originalMap) {
         GridPane gridPane = new GridPane();
 
         StackPane[][] stackPaneField = getStackPaneFieldFromMap(originalMap,Util.getAllPointsIn(new Point(0,0),new Point(originalMap.getBoundX(),originalMap.getBoundY())));
@@ -1075,7 +1106,7 @@ public class View implements LevelChangeListener {
         backBtn.setDisable(isRunning);
         speedSlider.setDisable(isRunning);
         showSpellBookBtn.setDisable(isRunning);
-        loadBestCodeBtn.setDisable(ModelInformer.getBestLocOfLevel(ModelInformer.getCurrentId())==-1 || isRunning);
+        loadBestCodeBtn.setDisable(ModelInformer.getBestCodeOfLevel(ModelInformer.getCurrentId()).size()== 0 || isRunning);
         clearCodeBtn.setDisable(isRunning);
         btnExecute.setDisable(isRunning);
         btnReset.setDisable(!isRunning);
@@ -1244,12 +1275,23 @@ public class View implements LevelChangeListener {
         for (String deletedName : deletedCourses) tutorialLevelOverviewPaneList.removeIf(o -> o.getCourseName().equals(deletedName));
     }
 
+
+
     public void sortAllLevelEntries(LevelChange levelChange) {
         if(ModelInformer.getCurrentCourseName().equals(CHALLENGE_COURSE_NAME))
             challengeOverviewPane.sortEntries(levelChange);
         else for(LevelOverviewPane tutorialOverviewPane : tutorialLevelOverviewPaneList){
             if(ModelInformer.getCurrentCourseName().equals(tutorialOverviewPane.getCourseName()))
                 tutorialOverviewPane.sortEntries(levelChange);
+        }
+    }
+
+    public void updateTutorialOverviewPaneList(List<Course> courseCopies) {
+        for(Course c : courseCopies){
+            if(courseOverviewPane.getCourseListView().getItems().stream().noneMatch(cE -> cE.getCourseName().equals(c.getName()))) tutorialLevelOverviewPaneList.add(new LevelOverviewPane(c.getName()));
+        }
+        for(CourseEntry courseEntry : courseOverviewPane.getCourseListView().getItems()){
+            if(courseCopies.stream().noneMatch(c -> c.getName().equals(courseEntry.getCourseName()))) tutorialLevelOverviewPaneList.removeIf(o -> o.getCourseName().equals(courseEntry.getCourseName()));
         }
     }
 }

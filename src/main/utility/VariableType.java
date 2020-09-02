@@ -7,8 +7,8 @@ import main.model.gamemap.enums.ItemType;
 public enum VariableType {
     INT("int","^-?\\d+$"),
     VOID("void",""),
-    KNIGHT("Knight","^new +Knight\\( *+(.*?) *+\\)$"),
-    SKELETON("Skeleton","^new +Skeleton\\( *+(.*|(.+?),-?\\d+) *+\\)$"),
+    KNIGHT("Knight","^new +(Knight|Guardian)\\( *+(.*|(.+?),-?\\d+) *+\\)$"),
+    SKELETON("Skeleton","^new +(Skeleton|Ghost)\\( *+(.*|(.+?),-?\\d+) *+\\)$"),
     DIRECTION ("Direction","^(NORTH|SOUTH|EAST|WEST)$"),
     TURN_DIRECTION ("TurnDirection","^((LEFT)|(RIGHT)|(AROUND))$"),
     CELL_CONTENT("CellContent", "^"+Util.getRegEx(CellContent.values())+"$"),
@@ -44,6 +44,8 @@ public enum VariableType {
             if(variableTypeString.equals(variableType.name))return variableType;
         }
         if (variableTypeString.equals(""))return VOID;
+        if(variableTypeString.equals("Guardian"))return KNIGHT;
+        if(variableTypeString.equals("Ghost"))return SKELETON;
         throw new IllegalArgumentException("VariableType "+ variableTypeString +" doesnt exist!");
     }
     public String getName(){

@@ -14,6 +14,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import main.model.LevelDataType;
 import main.model.Model;
+import main.model.ModelInformer;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.parser.JSONParser;
@@ -103,7 +104,7 @@ public class Controller {
                     break;
                 case TUTORIAL:
                     if (isGameRunning) view.getBtnReset().fire();
-                    if (model.calculateProgressOfCourse(model.getCurrentCourseName()) == -1) view.setSceneState(SceneState.COURSE_SELECT);
+                    if (model.calculateProgressOfCourse(model.getCurrentCourseName()) == 0) view.setSceneState(SceneState.COURSE_SELECT);
                     else view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
                     view.getBtnExecute().setMouseTransparent(false);
                     view.getSpeedSlider().setMouseTransparent(false);
@@ -211,7 +212,9 @@ public class Controller {
             addHighlightingEffect(view.getCourseOverviewPane().getBackBtn(),view.getCourseOverviewPane().getPlayBtn());
             if(model.getAmountOfLevelsInCourse(view.getCourseOverviewPane().getCourseListView().getSelectionModel().getSelectedItem().getCourseName())==0)view.getCourseOverviewPane().getPlayBtn().setDisable(true);
             view.getCourseOverviewPane().getCourseListView().getSelectionModel().selectedItemProperty().addListener((observableValue, courseEntry, t1) ->{
-                if(model.getAmountOfLevelsInCourse(t1.getCourseName())==0)view.getCourseOverviewPane().getPlayBtn().setDisable(true);}
+                if(t1 == null)return;
+                if(model.getAmountOfLevelsInCourse(t1.getCourseName())==0)
+                    view.getCourseOverviewPane().getPlayBtn().setDisable(true);}
             );
             view.getCourseOverviewPane().getPlayBtn().setOnAction(evt2 -> {
                 String course = view.getCourseOverviewPane().getCourseListView().getSelectionModel().getSelectedItem().getCourseName();
@@ -225,6 +228,7 @@ public class Controller {
                     setMessageNavigationHandler();
                 }
                 for( LevelOverviewPane tutorialOverviewPane : view.getTutorialLevelOverviewPaneListCopy()){
+                    tutorialOverviewPane.getIntroductionCheckbox().setSelected(!ModelInformer.hasSeenIntroduction());
                     tutorialOverviewPane.getBackBtn().setOnAction(actionEvent2 ->
                             view.setSceneState(SceneState.COURSE_SELECT)
                     );
@@ -235,6 +239,7 @@ public class Controller {
                             view.prepareForIntroduction();
                             tutorialOverviewPane.getIntroductionCheckbox().setSelected(false);
                         }
+                        else view.leaveIntroductions();
                         view.setSceneState(SceneState.TUTORIAL);
                         model.selectLevel(levelName);
                         editorController.setHandlersForMapCells();
@@ -257,6 +262,7 @@ public class Controller {
                         view.getTutorialGroup().getEndIntroductionBtn().setVisible(true);
                     view.getTutorialGroup().getEndIntroductionBtn().setOnAction(event -> {
                         view.leaveIntroductions();
+                        model.introductionWasSeen();
                         view.getCodeArea().setEffect(null);
                     });
                     sp.setCache(false);
@@ -320,6 +326,7 @@ public class Controller {
             view.drawMap(model.getCurrentMapCopy());
             view.getCodeArea().setEditable(true);
             view.getCodeArea().select(0, Selection.END);
+            view.getMapGPane().setDisable(false);
             editorController.setHandlersForMapCells();
         });
         view.getLoadBestCodeBtn().setOnAction(actionEvent -> {
@@ -472,7 +479,8 @@ public class Controller {
                         model.updateUnlockedStatements();
                     }
                     timeline.stop();
-                    String winString = "You have won!" + "\nYou earned " + (int) nStars + (Math.round(nStars) != (int) nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (") + turns + " Turns, " + loc + " Lines of Code)";
+                    String knightsSpawnedString =  model.getAmountOfKnightsSpawned() ==1 ? "1 Knight spawned":model.getAmountOfKnightsSpawned() +" Knights spawned";
+                    String winString = "You have won!" + "\nYou earned " + (int) nStars + (Math.round(nStars) != (int) nStars ? ".5" : "") + (nStars > 1 ? " Stars! (" : " Star! (") + turns + " Turns, " + loc + " Lines of Code, "+knightsSpawnedString+")";
 
                     String courseName = ""+ model.getDataFromCurrentLevel(LevelDataType.COURSE);
                     // This is only to stop levels with enemies from having differently colored SpawnPoints in LevelOverview
@@ -490,7 +498,7 @@ public class Controller {
                                 view.getCurrentTutorialLevelOverviewPane().addLevelWithId(model.getNextId());
                         }
                         else if (model.getNextId() == -1){
-
+                            view.getCourseOverviewPane().updateAllUnlockedStatus();
 //                            for(int id : model.getUnlockedLevelIds()){
 //                                int i = model.getIndexOfLevelWithId(id);
 //                                String iCourseName = ""+ model.getDataFromLevelWithId(LevelDataType.COURSE,i);
@@ -513,7 +521,8 @@ public class Controller {
 //                            if(view.getChallengeOverviewPane().containsLevel(model.getNameOfLevelWithId(id)) || iIsTutorial)continue;
 //                            view.getChallengeOverviewPane().addLevelWithIndex(i);
 //                        }
-                        if(model.getMinStarsOfCourse(CHALLENGE_COURSE_NAME)==3)
+                        //TODO: Wann wird editor freigeschaltet?
+                        if(model.getMinStarsOfCourse(CHALLENGE_COURSE_NAME)>=2)
                             model.unlockEditor();
                         view.getStartScreen().getLvlEditorBtn().setDisable(!model.isEditorUnlocked());
                     }
@@ -525,7 +534,8 @@ public class Controller {
                     isGameRunning = false;
                     if (view.getChallengeOverviewPane().getLevelListView().getItems().size() > 0)
                         view.getStartScreen().getPlayBtn().setDisable(false);
-                    view.getSpellBookPane().updateSpellbookEntries(model.getUnlockedStatementList());}
+                    view.getSpellBookPane().updateSpellbookEntries(model.getUnlockedStatementList());
+                    }
                 }
                 if (model.isStackOverflow()) {
                     timeline.stop();
@@ -588,9 +598,19 @@ public class Controller {
         winLabel.setFont(GameConstants.BIGGEST_FONT);
         VBox contentVBox = new VBox(starsIV, winLabel);
         contentVBox.setAlignment(Pos.CENTER);
+        Button storeCodeBtn = new Button("Store Best Code");
+        storeCodeBtn.setOnAction(evt -> {
+            model.storeCurrentCode();
+            new Alert(Alert.AlertType.INFORMATION,"Code was stored!").showAndWait();
+            view.getLoadBestCodeBtn().setDisable(false);
+        });
+        if (sceneState == SceneState.LEVEL_EDITOR) {
+            contentVBox.getChildren().add(storeCodeBtn);
+        }
         winDialog.getDialogPane().setContent(contentVBox);
         ButtonType replayBtn = new ButtonType("Replay", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType nextBtn = new ButtonType("Next", ButtonBar.ButtonData.NEXT_FORWARD);
+//        ButtonType storeCodeBtn = new ButtonType("Store Best Code", ButtonBar.ButtonData.APPLY);
         ButtonType backBtn = new ButtonType("Back To Menu", ButtonBar.ButtonData.BACK_PREVIOUS);
 
         winDialog.getDialogPane().getButtonTypes().addAll(backBtn, replayBtn);
@@ -604,7 +624,9 @@ public class Controller {
                 case NEXT_FORWARD:
                     model.selectLevel(model.getNextId() );
                     editorController.setHandlersForMapCells();
+                    break;
                 case CANCEL_CLOSE:
+                    editorController.setHandlersForMapCells();
                     break;
                 case BACK_PREVIOUS:
                     view.getBackBtn().fire();

@@ -9,11 +9,13 @@ public class Variable {
     private String name;
     private Expression value;
     private VariableType variableType;
+    private boolean isSpecialized = false;
 
     public Variable (Variable v){
         this.name = v.name;
         this.variableType = v.variableType;
         this.value = Expression.expressionFromString(v.value.getText());
+        this.isSpecialized = v.isSpecialized;
     }
 
     public Variable( VariableType variableType,String variableName, Expression value) {
@@ -22,6 +24,10 @@ public class Variable {
             throw new IllegalArgumentException("A variable must not be named: " + name + "!" );
         this.value = value;
         this.variableType = variableType;
+    }
+    public Variable( VariableType variableType,String variableName, Expression value,boolean isSpecialized) {
+        this(variableType,variableName,value);
+        this.isSpecialized = isSpecialized;
     }
 
     public String getName(){return name;}
@@ -45,5 +51,9 @@ public class Variable {
 
     public void update(Expression value) {
         this.value = value;
+    }
+
+    public boolean isSpecialized() {
+        return isSpecialized;
     }
 }

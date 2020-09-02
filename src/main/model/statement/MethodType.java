@@ -16,6 +16,9 @@ public enum MethodType {
     COLLECT("collect\\(\\)", VOID,false,false,"Collect any item that is in front of this Knight. If this Knight already has an Item equipped, swap them!"),
     CAN_MOVE("canMove\\(\\)",BOOLEAN,false,false,"Returns a boolean value corresponding to whether this Knight can move in its current Direction"),
     IS_ALIVE("isAlive\\(\\)",BOOLEAN,false,false,"Returns a boolean value corresponding to whether this Knight is alive"),
+    IS_POSSESSED("isPossessed\\(\\)",BOOLEAN,false,false,"Returns a boolean value corresponding to whether this Knight is possessed"),
+    IS_SPECIALIZED("isSpecialized\\(\\)",BOOLEAN,false,false,"Returns a boolean value corresponding to whether this Knight is a Guardian"),
+    IS_DEAD("isDead\\(\\)",BOOLEAN,false,false,"Returns a boolean value corresponding to whether this Knight is dead"),
     HAS_ITEM("hasItem\\(.*\\)",BOOLEAN,false,true,"Optionally takes an ItemType Parameter. Returns true if this Knight is holding an Item of the specified type or if left blank any Item at all."),
     TARGETS_CELL("targetsCell\\(.+\\)",BOOLEAN,true,true,"Requires a CellContent Parameter. Returns true, if this Knight's target cell is of a type equal to the parameter."), //TODO: DISALLOW ITEMS -> PATH
     TARGETS_ITEM("targetsItem\\(.*\\)",BOOLEAN, false,true,"Optionally takes an ItemType Parameter. Returns true if this Knight's target cell contains an Item of a type equal to the parameter. If left blank any ItemType will return true."),
@@ -24,6 +27,8 @@ public enum MethodType {
     TARGETS_DANGER("targetsDanger\\(\\)",BOOLEAN,false,false,"Returns a boolean value corresponding to whether this Knight's target cell will kill it upon moving forward."),
     DROP_ITEM("dropItem\\(\\)", VOID,false,false,"Drops any item currently held by this Knight."),
     ATTACK("attack\\(\\)", VOID,false,false,"Only for Skeletons!"),
+//    POSSESS("possess\\(\\)", VOID,false,false,"Only for Ghosts!"),
+    DISPOSSESS("dispossess\\((.+)\\)", VOID,false,true,"Only for Ghosts!"),
     IS_LOOKING("isLooking\\((.+)\\)", BOOLEAN,true,true,"Returns a boolean value corresponding to whether this Entity is looking in the given Direction!");
 
     private final String regex;

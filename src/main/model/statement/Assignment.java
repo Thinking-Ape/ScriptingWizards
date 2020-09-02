@@ -5,6 +5,7 @@ import main.model.statement.Expression.Expression;
 import main.utility.Variable;
 
 
+
 public class Assignment extends SimpleStatement {
 
     private Variable variable;
@@ -12,7 +13,12 @@ public class Assignment extends SimpleStatement {
     public Assignment(String variableName, VariableType variableType, Expression value, boolean isDeclaration) {
         super(isDeclaration ? StatementType.DECLARATION : StatementType.ASSIGNMENT);
 
-       this.variable = new Variable(variableType,variableName,value);
+        this.variable = new Variable(variableType,variableName,value);
+    }
+    public Assignment(Variable variable, boolean isDeclaration) {
+        super(isDeclaration ? StatementType.DECLARATION : StatementType.ASSIGNMENT);
+
+        this.variable = new Variable(variable);
     }
 
     public Variable getVariable(){
@@ -22,7 +28,11 @@ public class Assignment extends SimpleStatement {
     @Override
     public String getCode(){
         VariableType variableType = variable.getVariableType();
-        String vTypeString =  statementType == StatementType.ASSIGNMENT ? "" : variableType.getName()+" ";
+        String vType = variableType.getName();
+        //TODO: less important bug
+//        if(variable.isSpecialized() && variableType == VariableType.KNIGHT)vType = "Guardian";
+//        if(variable.isSpecialized() && variableType == VariableType.SKELETON)vType = "Ghost";
+        String vTypeString =  statementType == StatementType.ASSIGNMENT ? "" : vType+" ";
         if(variable.getValue().getText().matches(" *"))return vTypeString+ variable.getName()+";";
         return vTypeString+ variable.getName()+" = "+variable.getValue().getText()+";";
     }

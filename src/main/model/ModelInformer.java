@@ -63,7 +63,7 @@ public abstract class ModelInformer {
 
 
     public static Integer createUniqueId() {
-        return model.createUniqueId();
+        return model.createUniqueLevelId();
     }
 
     public static String getNameOfLevelWithId(int levelId) {
@@ -174,7 +174,7 @@ public abstract class ModelInformer {
     }
 
     public static List<String> getAllCourseNames() {
-        return model.getAllCourseNames();
+        return model.getOrderedCourseNames();
     }
 
     public static int getAmountOfLevelsInCourse(String courseName) {
@@ -203,5 +203,30 @@ public abstract class ModelInformer {
 
     public static int getAmountOfLevelsInCurrentCourse() {
         return model.getAmountOfLevelsInCurrentCourse();
+    }
+
+    public static int getIdOfCourse(String s) {
+        return model.getCourseWithName(s).getID();
+    }
+
+    public static List<Integer> getReqIdsFromCourse(String s) {
+
+        return model.getCourseWithName(s).getReqCourseIds();
+    }
+
+    public static boolean isCourseUnlocked(int cId) {
+        return model.isCourseUnlocked(cId);
+    }
+
+    public static String getCourseName(int cId) {
+        return model.getCourseWithId(cId).getName();
+    }
+
+    public static boolean currentLevelHasStoredCode() {
+        return model.getCurrentlyBestCode().size() > 0;
+    }
+
+    public static boolean hasSeenIntroduction() {
+        return model.hasSeenIntroduction();
     }
 }

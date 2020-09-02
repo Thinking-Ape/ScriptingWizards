@@ -1,3 +1,16 @@
+Version 2.0a:
+    - added 2 specializations (subclasses):
+        - The Guardian: A Knight that always holds a shield, cannot be attacked from the front and may push enemies and items away
+        - The Ghost: An invincible Skeleton that can possess an Entity instead of attacking and thereby control it
+    - courses can now be created, renamed and may need other courses to be completed in order to be unlocked
+    - now saves whether the Introduction has been seen before
+    - unlocking the level editor now requires you to complete all challenges with at least 2 stars
+    - created multiple courses for different learning content
+    - now allowing multiple spawns and spawns can now have a cell id
+    - Knights can now be spawned at a specific Spawn
+    - open menu in editor is now sorted by course and shows an icon of the chosen level
+    - improved editing code while syntax checker is deactivated
+    - minor bug fixes
 Version 1.6a:
     - fixed a bug where CodeFields containing '}' could not be selected by clicking
     - removed restrictions of the amount of spawnable knights

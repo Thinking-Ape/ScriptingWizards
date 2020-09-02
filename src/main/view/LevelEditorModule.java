@@ -389,7 +389,7 @@ public class LevelEditorModule {
 //    Label getIsTutorialValueLbl() {
 //        return isTutorialValueLbl;
 //    }
-    Label getCourseValueLbl() {
+    public Label getCourseValueLbl() {
         return courseValueLbl;
     }
 
