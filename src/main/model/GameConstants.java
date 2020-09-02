@@ -16,7 +16,7 @@ import java.util.Random;
 public abstract class GameConstants {
     public static final boolean DEBUG = false;
     public static final boolean MAX_KNIGHTS_ACTIVATED = false;
-    public static final String VERSION = "1.6a";
+    public static final String VERSION = "2.0a";
 
     public static final double SCREEN_WIDTH = Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     public static final double SCREEN_HEIGHT = Toolkit.getDefaultToolkit().getScreenSize().getHeight();
