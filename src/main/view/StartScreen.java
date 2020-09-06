@@ -14,12 +14,12 @@ import main.utility.Util;
 public class StartScreen extends BorderPane {
 
     private Button tutorialBtn = new Button("");
-    private Button playBtn = new Button("");
+    private Button challengesBtn = new Button("");
     private Button exitBtn = new Button("");
     private Button lvlEditor  = new Button("");
 
     StartScreen(){
-        Util.applyStartButtonFormat(tutorialBtn,playBtn,exitBtn,lvlEditor);
+        Util.applyStartButtonFormat(tutorialBtn, challengesBtn,exitBtn,lvlEditor);
         Label versionLabel = new Label("Version"+ GameConstants.VERSION);
         versionLabel.setStyle("-fx-text-fill: white");
 
@@ -37,10 +37,10 @@ public class StartScreen extends BorderPane {
         playImageView.setFitWidth(playImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
         playImageView.setFitHeight(playImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
         playImageView.autosize();
-        playBtn.setGraphic(playImageView);
-        playBtn.setStyle("-fx-background-color: transparent;" +
+        challengesBtn.setGraphic(playImageView);
+        challengesBtn.setStyle("-fx-background-color: transparent;" +
                 "-fx-base: transparent;");
-        playBtn.autosize();
+        challengesBtn.autosize();
         ImageView editorImageView = new ImageView(new Image(GameConstants.LVL_EDITOR_BTN_PATH));
         editorImageView.setPreserveRatio(false);
         editorImageView.setFitWidth(editorImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
@@ -73,19 +73,19 @@ public class StartScreen extends BorderPane {
         this.setBottom(vBox);
         exitBtn.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
         lvlEditor.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
-        playBtn.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
+        challengesBtn.setMaxHeight(quitImageView.getLayoutBounds().getHeight());
         vBox.setAlignment(Pos.BASELINE_CENTER);
         vBox.setMaxHeight(quitImageView.getLayoutBounds().getHeight()*10);
         vBox.setSpacing(0);
-        vBox.getChildren().addAll(tutorialBtn,playBtn,lvlEditor,exitBtn);
+        vBox.getChildren().addAll(tutorialBtn, challengesBtn,lvlEditor,exitBtn);
     }
 
     public Button getTutorialBtn() {
         return tutorialBtn;
     }
 
-    public Button getPlayBtn() {
-        return playBtn;
+    public Button getChallengesBtn() {
+        return challengesBtn;
     }
 
     public Button getExitBtn() {

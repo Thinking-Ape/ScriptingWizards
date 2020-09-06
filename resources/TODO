@@ -27,7 +27,12 @@ OPTIONAL:
 - 3 Stars in all challenges might be near impossible... maybe only 2 Stars?
 - make cell_Ids automatic?
 - challenges always available?
+- Knight assignment -> multiple knights used? because they are different objects? -> no replaced!
+- required Ids -> boolean?!
+- resetlevelscore immediately updated?
+- zip mit freigeschaltetem Level-Editor für die SuS?
 - cannotMove?
+- data is zugemüllt nach import mit alten daten... sollte aufgeräumt werden
 -----------------------------------
 IMPORTANT:
 -----------------------------------

@@ -351,7 +351,7 @@ public class GameMap {
 
     public void spawn(Point spawnPoint, Entity entity) {
         ItemType item = getItem(spawnPoint);
-        setItem(spawnPoint,  ItemType.NONE);
+        kill(spawnPoint);
         entity.setItem(item);
         setEntity(spawnPoint, entity);
     }

@@ -148,6 +148,12 @@ public class CodeEvaluator {
                         break;
                 }
                 String objectName = mC.getObjectName();
+
+//                String alternateObjectName = objectName;
+//                String pattern = GameConstants.GET_ENTITY_REGEX;
+//                Matcher m = Pattern.compile(pattern).matcher(objectName);
+//                if(m.matches())objectName = objectName.replaceAll(pattern,"$1" );
+                MethodType mT = mC.getMethodType();
                 if(variableScope.getVariable(objectName).getVariableType() == VariableType.KNIGHT)
                     while(!variableScope.getVariable(objectName).getValue().getText().matches(VariableType.KNIGHT.getAllowedRegex())){
                         objectName = variableScope.getVariable(objectName).getValue().getText();
@@ -160,7 +166,12 @@ public class CodeEvaluator {
                     objectName = evaluateVariable(objectName).getText().replaceAll(VariableType.ARMY.getAllowedRegex(), "$1");
                     if(objectName.contains(","))objectName="("+objectName+")";
                 }
-                currentStatement = new MethodCall(mC.getMethodType(), objectName, newParameters);
+//                while(alternateObjectName.matches(pattern)){
+//                    alternateObjectName = alternateObjectName.replaceFirst("\\."+MethodType.GET_TARGET_ENTITY.getRegex(), "");
+//                    objectName = ModelInformer.getCurrentMapCopy().getEntity(ModelInformer.getCurrentMapCopy().getTargetPoint(objectName)).getName();
+//                }
+//                if(isDelegate)objectName = ModelInformer.getCurrentMapCopy().getEntity(ModelInformer.getCurrentMapCopy().getTargetPoint(objectName)).getName();
+                currentStatement = new MethodCall(mT, objectName, newParameters);
                 break;
             case DECLARATION:
                 Assignment declaration = (Assignment)currentStatement;
@@ -199,7 +210,7 @@ public class CodeEvaluator {
                 else if(declaration.getVariable().getVariableType() == VariableType.SKELETON) {
                     Matcher skeletonMatcher = Pattern.compile(VariableType.SKELETON.getAllowedRegex()).matcher(valueString);
                     if(skeletonMatcher.matches()){
-                        String[] directionAndId = skeletonMatcher.group(1).split(",");
+                        String[] directionAndId = skeletonMatcher.group(2).split(",");
                         if(directionAndId.length == 1){
                             String direction = evaluateVariable(directionAndId[0]).getText();
                             valueString = valueString.replace(directionAndId[0],direction);
@@ -242,7 +253,7 @@ public class CodeEvaluator {
                     case KNIGHT:
                             Matcher knightMatcher = Pattern.compile(VariableType.KNIGHT.getAllowedRegex()).matcher(valueString);
                             if(knightMatcher.matches()){
-                                String[] directionAndId = knightMatcher.group(1).split(",");
+                                String[] directionAndId = knightMatcher.group(2).split(",");
                                 if(directionAndId.length == 1){
                                     String direction = evaluateVariable(directionAndId[0]).getText();
                                     valueString = valueString.replace(directionAndId[0],direction);
@@ -262,7 +273,7 @@ public class CodeEvaluator {
                     case SKELETON:
                         Matcher skeletonMatcher = Pattern.compile(VariableType.SKELETON.getAllowedRegex()).matcher(valueString);
                         if(skeletonMatcher.matches()){
-                            String[] directionAndId = skeletonMatcher.group(1).split(",");
+                            String[] directionAndId = skeletonMatcher.group(2).split(",");
                             if(directionAndId.length == 1){
                                 String direction = evaluateVariable(directionAndId[0]).getText();
                                 valueString = valueString.replace(directionAndId[0],direction);
@@ -421,7 +432,11 @@ public class CodeEvaluator {
         if(currentStatement.getStatementType() == StatementType.FOR) variable = variableScope.getVariable(variableString);
         // the value of this variable might be a term that needs to be evaluated
         if(variable!= null)return evaluateNumericalExpression(variable.getValue());
-        else return Integer.valueOf(variableString);
+        else {
+            if(variableString.matches("[+-]?\\d+"))return Integer.valueOf(variableString);
+            else return evaluateNumericalExpression(ExpressionTree.expressionFromString(variableString));
+
+        }
     }
 
     /** Evaluates a boolean expression represented by a ConditionLeaf Object. It may be a boolean MethodCall such as
@@ -536,7 +551,11 @@ public class CodeEvaluator {
             for(int i = 0; i < nameList.length; i++){
                 objectName = nameList[i];
                 Point actorPoint = currentGameMap.getEntityPosition(objectName);
-                if(actorPoint == null|| actorPoint.getX() == -1){
+                if(actorPoint.getX() == -1){
+                    objectName = currentGameMap.findEntityPossessedBy(objectName).getName();
+                    actorPoint = currentGameMap.getEntityPosition(objectName);
+                }
+                if(actorPoint == null|| actorPoint.getX() == -1||objectName.equals("")){
                     if(MethodType.getMethodTypeFromName(methodName) == MethodType.IS_DEAD)continue;
                     deadEntities++;
                     if(deadEntities == nameList.length){
@@ -550,6 +569,7 @@ public class CodeEvaluator {
                 CellContent targetContent = currentGameMap.getContentAtXY(targetPoint);
                 Entity actorEntity = currentGameMap.getEntity(actorPoint);
                 Entity targetEntity = currentGameMap.getEntity(targetPoint);
+                unlockedStatements.add(mT.getName() );
                 switch (mT){
                     case DROP_ITEM:
                     case WAIT:
@@ -599,6 +619,9 @@ public class CodeEvaluator {
                     // has become pretty useless after deleting executeIf
                     case IS_LOOKING:
                         output = output && ((actorEntity.getDirection() == Direction.getValueFromString(parameterString)));
+                        continue;
+                    case TARGET_IS_LOOKING:
+                        output = output && ((targetEntity.getDirection() == Direction.getValueFromString(parameterString)));
                         continue;
                 }
 

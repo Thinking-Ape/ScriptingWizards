@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import main.model.*;
 import main.model.gamemap.Cell;
@@ -19,8 +20,10 @@ import main.model.statement.ComplexStatement;
 import main.utility.Util;
 import main.view.CodeAreaType;
 
+import static main.model.GameConstants.NO_COURSE;
 import static main.model.LevelDataType.*;
 import static main.model.GameConstants.NO_ENTITY;
+import static main.parser.JSONConstants.COURSES;
 
 public abstract class JSONParser {
 
@@ -40,17 +43,17 @@ public abstract class JSONParser {
 
         dataJSONString = String.join("", Files.readAllLines(dataFilePath));
         dataJSONObject = new JSONObject(dataJSONString);
-        unlocksArray = dataJSONObject.getJSONArray(JSONConstants.UNLOCKED_LEVELS,null);
+        unlocksArray = dataJSONObject.getJSONArray(JSONConstants.UNLOCKED_LEVELS,new JSONArray());
         levelFolder = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString());
         levelFileList = levelFolder.listFiles();
 
-        courseArray = dataJSONObject.getJSONArray(JSONConstants.COURSES, new JSONArray());
+        courseArray = dataJSONObject.getJSONArray(COURSES, new JSONArray());
     }
 
-    public static void saveCurrentLevel() throws IOException {
+    public static JSONObject getJSONObjectFromLevelWithId(int id){
         JSONObject levelJSONObject = new JSONObject();
         JSONArray mapLines = new JSONArray();
-        GameMap map = (GameMap) ModelInformer.getDataFromCurrentLevel(MAP_DATA);
+        GameMap map = (GameMap) ModelInformer.getDataFromLevelWithId(MAP_DATA,id);
 
         for(int y = 0; y < map.getBoundY(); y++){
 
@@ -82,31 +85,31 @@ public abstract class JSONParser {
         }
 
         JSONArray requiredLevelsArray = new JSONArray();
-        List<Integer> requiredLevelIdsList = ((List<Integer>) ModelInformer.getDataFromCurrentLevel(REQUIRED_LEVELS));
-        List<String> tutorialEntries = (List<String>) ModelInformer.getDataFromCurrentLevel(TUTORIAL_LINES);
-        Integer[] locToStars = (Integer[]) ModelInformer.getDataFromCurrentLevel(LOC_TO_STARS);
-        Integer[] turnsToStars = (Integer[]) ModelInformer.getDataFromCurrentLevel(TURNS_TO_STARS);
-        int maxKnights = (int) ModelInformer.getDataFromCurrentLevel(MAX_KNIGHTS);
-        String courseName = ""+ ModelInformer.getDataFromCurrentLevel(COURSE);
-        ComplexStatement aiBehaviour = (ComplexStatement) ModelInformer.getDataFromCurrentLevel(AI_CODE);
+        List<Integer> requiredLevelIdsList = ((List<Integer>) ModelInformer.getDataFromLevelWithId(REQUIRED_LEVELS,id));
+        List<String> tutorialEntries = (List<String>) ModelInformer.getDataFromLevelWithId(TUTORIAL_LINES,id);
+        Integer[] locToStars = (Integer[]) ModelInformer.getDataFromLevelWithId(LOC_TO_STARS,id);
+        Integer[] turnsToStars = (Integer[]) ModelInformer.getDataFromLevelWithId(TURNS_TO_STARS,id);
+        int maxKnights = (int) ModelInformer.getDataFromLevelWithId(MAX_KNIGHTS,id);
+        String courseName = ""+ ModelInformer.getDataFromLevelWithId(COURSE,id);
+        ComplexStatement aiBehaviour = (ComplexStatement) ModelInformer.getDataFromLevelWithId(AI_CODE,id);
 
         if(courseName.equals(GameConstants.CHALLENGE_COURSE_NAME))for(int i = 0; i < requiredLevelIdsList.size();i++){
-            if(ModelInformer.getIndexOfLevelWithId(requiredLevelIdsList.get(i)) < ModelInformer.getCurrentIndex())
-             requiredLevelsArray.put(requiredLevelIdsList.get(i));
+            if(ModelInformer.getIndexOfLevelWithId(requiredLevelIdsList.get(i)) < id)
+                requiredLevelsArray.put(requiredLevelIdsList.get(i));
         }
         JSONArray locToStarsArray = new JSONArray();
         fillJSONArrayWithObjects(locToStarsArray,locToStars);
         JSONArray turnsToStarsArray = new JSONArray();
         fillJSONArrayWithObjects(turnsToStarsArray,turnsToStars);
         if(requiredLevelsArray.length() > 0)
-        levelJSONObject.put(JSONConstants.REQUIRED_LEVELS,requiredLevelsArray);
+            levelJSONObject.put(JSONConstants.REQUIRED_LEVELS,requiredLevelsArray);
         levelJSONObject.put(JSONConstants.LOC_TO_STARS,locToStarsArray);
         levelJSONObject.put(JSONConstants.TURNS_TO_STARS,turnsToStarsArray);
         levelJSONObject.put(JSONConstants.MAP_DATA,mapLines);
         levelJSONObject.put(JSONConstants.MAX_KNIGHTS,maxKnights);
-        levelJSONObject.put(JSONConstants.AMOUNT_OF_RERUNS,ModelInformer.getDataFromCurrentLevel(AMOUNT_OF_RERUNS));
-        levelJSONObject.put(JSONConstants.ID,ModelInformer.getCurrentId());
-        levelJSONObject.put(JSONConstants.COURSES,courseName);
+        levelJSONObject.put(JSONConstants.AMOUNT_OF_RERUNS,ModelInformer.getDataFromLevelWithId(AMOUNT_OF_RERUNS,id));
+        levelJSONObject.put(JSONConstants.ID,id);
+//        levelJSONObject.put(JSONConstants.COURSES,courseName);
         if(!courseName.equals(GameConstants.CHALLENGE_COURSE_NAME)){
             JSONArray tutorialJSONArray = new JSONArray();
             for(String entry : tutorialEntries){
@@ -115,20 +118,18 @@ public abstract class JSONParser {
             levelJSONObject.put(JSONConstants.TUTORIAL_LINES, tutorialJSONArray);
         }
         JSONArray aiJSONArray = new JSONArray();
-        if((boolean)ModelInformer.getDataFromCurrentLevel(HAS_AI)){
+        if((boolean)ModelInformer.getDataFromLevelWithId(HAS_AI,id)){
             for(String s : aiBehaviour.getAllText().split("\\n")){
                 if(s.equals(""))continue;
                 aiJSONArray.put(s);
             }
             levelJSONObject.put(JSONConstants.AI_CODE,aiJSONArray);
-            }
-        try (FileWriter dataFileWriter = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+ModelInformer.getDataFromCurrentLevel(LEVEL_NAME)+".json")) {
-            dataFileWriter.write(levelJSONObject.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        dataJSONString = String.join("", Files.readAllLines(dataFilePath));
-        dataJSONObject = new JSONObject(dataJSONString);
+        return levelJSONObject;
+    }
+
+    public static void saveCurrentLevel() throws IOException {
+        saveLevel(ModelInformer.getCurrentId());
     }
 
     private static void fillJSONArrayWithObjects(JSONArray requiredLevelsArray, Object[] requiredLevels) {
@@ -137,15 +138,11 @@ public abstract class JSONParser {
         }
     }
 
-    public static Level parseLevelJSON(String filePathString) throws IOException {
+    public static Level parseLevelJSON(JSONObject jsonObject, String name) throws IOException {
 
-        Path filePath = Path.of(GameConstants.LEVEL_ROOT_PATH,filePathString);
-        if(GameConstants.DEBUG)System.out.println(filePathString);
-        String jsonString = String.join("", Files.readAllLines(filePath));
-        JSONObject jsonObject = new JSONObject(jsonString);
 //        boolean isTutorial = jsonObject.getBoolean(JSONConstants.IS_TUTORIAL);
 
-        JSONArray mapLines = jsonObject.getJSONArray(JSONConstants.MAP_DATA,null);
+        JSONArray mapLines = jsonObject.getJSONArray(JSONConstants.MAP_DATA,new JSONArray());
 
         Cell[][] originalState = new Cell[mapLines.getJSONArray(0).length()][mapLines.length()];
         for (int row = 0; row < mapLines.length(); row++) {
@@ -167,8 +164,6 @@ public abstract class JSONParser {
 
             }
         }
-        String name = filePathString;
-        name = name.replaceAll(".json","");
         JSONArray aiLineArray = jsonObject.getJSONArray(JSONConstants.AI_CODE,null);
         List<String> aiLines = new ArrayList<>();
         ComplexStatement complexStatement = new ComplexStatement();
@@ -253,7 +248,11 @@ public abstract class JSONParser {
 //        }
 //        List<Integer> ordering = getOrderingFromData();
         for(File file : levelFileList){
-            Level level = parseLevelJSON(file.getName());
+            Path filePath = Path.of(GameConstants.LEVEL_ROOT_PATH,file.getName());
+            if(GameConstants.DEBUG)System.out.println(file.getName());
+            String jsonString = String.join("", Files.readAllLines(filePath));
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Level level = parseLevelJSON(jsonObject,file.getName().replaceAll("\\.json", ""));
 //            int index = -1;
 //            for(int i = 0; i < ordering.size();i++){
 //                if(level.getID().equals(ordering.get(i)))index = i;
@@ -264,7 +263,7 @@ public abstract class JSONParser {
     }
 
     private static List<Integer> getOrderingFromData() {
-        JSONArray ordering = dataJSONObject.getJSONArray(JSONConstants.COURSES,null);
+        JSONArray ordering = dataJSONObject.getJSONArray(COURSES,null);
         List<Integer> output = new ArrayList<>();
         for(int i = 0; i < ordering.length();i++){
             output.add(ordering.getInt(i, -1));
@@ -314,7 +313,7 @@ public abstract class JSONParser {
         for(int i = 0; i<unlocksArray.length();i++){
             id=unlocksArray.getJSONObject(i).getInt(JSONConstants.ID,-1);
             if(id == levelId){
-                JSONArray codeArray = unlocksArray.getJSONObject(i).getJSONArray(JSONConstants.BEST_CODE,null);
+                JSONArray codeArray = unlocksArray.getJSONObject(i).getJSONArray(JSONConstants.BEST_CODE,new JSONArray());
                 if(codeArray == null)return new ArrayList<>();
                 for(int j = 0; j<codeArray.length();j++){
                     output.add(codeArray.getString(j,""));
@@ -327,7 +326,7 @@ public abstract class JSONParser {
 
     public static List<String> getUnlockedStatementList() {
         List<String> unlockedStatementList = new ArrayList<>();
-        JSONArray unlocksArray = dataJSONObject.getJSONArray(JSONConstants.UNLOCKED_STATEMENTS,null);
+        JSONArray unlocksArray = dataJSONObject.getJSONArray(JSONConstants.UNLOCKED_STATEMENTS,new JSONArray());
         if(unlocksArray == null)return new ArrayList<>();
         String s;
         for(int i = 0; i<unlocksArray.length();i++){
@@ -571,13 +570,13 @@ public abstract class JSONParser {
         return idToCourseMap;
     }
 
-    public static Map<String, LevelDifficulty> getCourseNameToDifficultyMap() {
-        Map<String,LevelDifficulty> courseNameToDifficultyMap = new HashMap<>();
+    public static Map<String, CourseDifficulty> getCourseNameToDifficultyMap() {
+        Map<String, CourseDifficulty> courseNameToDifficultyMap = new HashMap<>();
         String courseName;
         for(int i = 0; i<courseArray.length();i++){
             courseName=courseArray.getJSONObject(i).getString(JSONConstants.COURSE_NAME,GameConstants.CHALLENGE_COURSE_NAME);
-            int diffString = courseArray.getJSONObject(i).getInt(JSONConstants.DIFFICULTY,LevelDifficulty.BEGINNER.ordinal());
-            courseNameToDifficultyMap.put(courseName, LevelDifficulty.valueOfInt(diffString));
+            int diffString = courseArray.getJSONObject(i).getInt(JSONConstants.DIFFICULTY, CourseDifficulty.BEGINNER.ordinal());
+            courseNameToDifficultyMap.put(courseName, CourseDifficulty.valueOfInt(diffString));
         }
         return courseNameToDifficultyMap;
     }
@@ -597,40 +596,48 @@ public abstract class JSONParser {
             courseJSONObject.put(JSONConstants.COURSE_NAME, s);
             courseJSONObject.put(JSONConstants.DIFFICULTY, ModelInformer.getDifficultyOfCourse(s).ordinal());
             courseJSONObject.put(JSONConstants.ID, ModelInformer.getIdOfCourse(s));
+            courseJSONObject.put(JSONConstants.NEEDS_PREV_COURSE, ModelInformer.getNeedsPreviousCourse(s));
             JSONArray idJSONArray = new JSONArray();
             for(int i : ModelInformer.getOrderedIdsFromCourse(s)){
                 idJSONArray.put(i);
             }
-            JSONArray reqIdJSONArray = new JSONArray();
-            for(int i : ModelInformer.getReqIdsFromCourse(s)){
-                reqIdJSONArray.put(i);
-            }
+//            JSONArray reqIdJSONArray = new JSONArray();
+//            for(int i : ModelInformer.getReqIdsFromCourse(s)){
+//                reqIdJSONArray.put(i);
+//            }
             courseJSONObject.put(JSONConstants.ID_LIST, idJSONArray);
-            courseJSONObject.put(JSONConstants.REQ_ID_LIST, reqIdJSONArray);
+//            courseJSONObject.put(JSONConstants.REQ_ID_LIST, reqIdJSONArray);
             coursesJSONArray.put(courseJSONObject);
         }
         dataJSONObject.put(JSONConstants.UNLOCKED_STATEMENTS,jsonArray);
         dataJSONObject.put(JSONConstants.EDITOR_UNLOCKED,ModelInformer.isEditorUnlocked());
         dataJSONObject.put(JSONConstants.HAS_SEEN_INTRODUCTION,ModelInformer.hasSeenIntroduction());
 //        dataJSONObject.put(JSONConstants.TUTORIAL_PROGRESS, ModelInformer.getTutorialProgress());
-        dataJSONObject.put(JSONConstants.COURSES, coursesJSONArray);
-        List<Integer> unlockedLevelIds =ModelInformer.getUnlockedLevelIds();
-        List<Integer> lockedIndexes = new ArrayList<>();
+        dataJSONObject.put(COURSES, coursesJSONArray);
+        //TODO: ich habe hier anstelle nur der Unlocked Levels jetzt alle gespeichert.
+        List<Integer> unlockedLevelIds = ModelInformer.getOrderedIds();//ModelInformer.getUnlockedLevelIds();
 
-        for(int j = 0; j<unlocksArray.length();j++){
-            int currentId = unlocksArray.getJSONObject(j).getInt(JSONConstants.ID,-1);
-            boolean found = false;
-            for(int i = 0; i < unlockedLevelIds.size(); i++){
-                int unlockedId = unlockedLevelIds.get(i);
-                if(currentId==unlockedId){
-                    found = true;
-                }
-            }
-            if(!found)lockedIndexes.add(j);
-        }
-        for(Integer i : lockedIndexes){
-            unlocksArray.remove(i);
-        }
+        //TODO: das macht jetzt nichts mehr
+//        List<Integer> lockedIndexes = new ArrayList<>();
+//        for(int j = 0; j<unlocksArray.length();j++){
+//            int currentId = unlocksArray.getJSONObject(j).getInt(JSONConstants.ID,-1);
+//            boolean found = false;
+//            for(int i = 0; i < unlockedLevelIds.size(); i++){
+//                int unlockedId = unlockedLevelIds.get(i);
+//                if(currentId==unlockedId){
+//                    found = true;
+//                }
+//            }
+//            if(!found){/*
+//                unlocksArray.getJSONObject(j).put(JSONConstants.BEST_LOC, -1);
+//                unlocksArray.getJSONObject(j).put(JSONConstants.BEST_KNIGHTS, 0);
+//                unlocksArray.getJSONObject(j).put(JSONConstants.BEST_TURNS, -1);*/
+//                lockedIndexes.add(j);
+//            }
+//        }
+//        for(Integer i : lockedIndexes){
+//            unlocksArray.remove((Integer)i);
+//        }
         for(int i = 0; i < unlockedLevelIds.size(); i++){
             int id = unlockedLevelIds.get(i);
             int loc = ModelInformer.getBestLocOfLevel(id);
@@ -679,7 +686,7 @@ public abstract class JSONParser {
     public static void deleteLevel(String levelName) throws IOException {
         File file = new File(Paths.get(GameConstants.LEVEL_ROOT_PATH).toString()+"/"+levelName+".json");
         if(file.exists()){
-            deleteRequiredLevelEntry(ModelInformer.getIdOfLevelWithName(levelName));
+//            deleteRequiredLevelEntry(ModelInformer.getIdOfLevelWithName(levelName));
             file.delete();
         }
     }
@@ -711,27 +718,166 @@ public abstract class JSONParser {
 
     public static List<Course> parseAllCourses() {
         List<Course> output = new ArrayList<>();
-        String courseName;
+        Map<Integer,Integer> idIndexMap = new HashMap<>();
         for(int i = 0; i<courseArray.length();i++){
-            courseName=courseArray.getJSONObject(i).getString(JSONConstants.COURSE_NAME,GameConstants.CHALLENGE_COURSE_NAME);
-            int diffString = courseArray.getJSONObject(i).getInt(JSONConstants.DIFFICULTY,LevelDifficulty.BEGINNER.ordinal());
-            int courseId = courseArray.getJSONObject(i).getInt(JSONConstants.ID,-1);
-            JSONArray idList =courseArray.getJSONObject(i).getJSONArray(JSONConstants.ID_LIST,new JSONArray());
-            List<Integer> idIntList = new ArrayList<>();
-            for(Object id : idList.keyList){
-                idIntList.add((Integer)id);
-            }
-            JSONArray reqIdList =courseArray.getJSONObject(i).getJSONArray(JSONConstants.REQ_ID_LIST,new JSONArray());
-            List<Integer> reqIdIntList = new ArrayList<>();
-            for(Object id : reqIdList.keyList){
-                reqIdIntList.add((Integer)id);
-            }
-            output.add(new Course(reqIdIntList,idIntList, LevelDifficulty.valueOfInt(diffString),courseName,courseId));
+
+            Course course = parseCourseFromJSONObject(courseArray.getJSONObject(i));
+            idIndexMap.put(course.ID, i);
+            //TODO: correct order!!
+            output.add(course);
         }
+        output = output.stream().sorted((c1,c2) -> idIndexMap.get(c1.ID) <idIndexMap.get(c2.ID) ? -1 : 1).collect(Collectors.toList());
+
         return output;
+    }
+
+    private static Course parseCourseFromJSONObject(JSONObject jsonObject) {
+
+        String courseName=jsonObject.getString(JSONConstants.COURSE_NAME,GameConstants.CHALLENGE_COURSE_NAME);
+        int diffString = jsonObject.getInt(JSONConstants.DIFFICULTY, CourseDifficulty.BEGINNER.ordinal());
+        int courseId = jsonObject.getInt(JSONConstants.ID,-1);
+//            int courseIndex = courseArray.getJSONObject(i).getInt(JSONConstants.INDEX,-1);
+//            JSONArray reqIdList =courseArray.getJSONObject(i).getJSONArray(JSONConstants.REQ_ID_LIST,new JSONArray());
+//            List<Integer> reqIdIntList = new ArrayList<>();
+//            for(Object id : reqIdList.keyList){
+//                reqIdIntList.add((Integer)id);
+//            }
+        JSONArray idList =jsonObject.getJSONArray(JSONConstants.ID_LIST,new JSONArray());
+        List<Integer> idIntList = new ArrayList<>();
+        for(Object id : idList.keyList){
+            idIntList.add((Integer)id);
+        }
+        boolean needsPreviousLevel = jsonObject.getBoolean(JSONConstants.NEEDS_PREV_COURSE,false);
+        return new Course(needsPreviousLevel,idIntList, CourseDifficulty.valueOfInt(diffString),courseName,courseId);
     }
 
     public static boolean hasSeenIntroduction() {
         return dataJSONObject.getBoolean(JSONConstants.HAS_SEEN_INTRODUCTION, false);
+    }
+
+    public static void exportCourses(Iterator<String> iterator,String fileName) {
+        JSONObject jsonObject = new JSONObject();
+        JSONArray courseJSONArray = new JSONArray();
+        while(iterator.hasNext()){
+            String courseName = iterator.next();
+            JSONObject courseJSONObject = new JSONObject();
+            CourseDifficulty lDiff = ModelInformer.getDifficultyOfCourse(courseName);
+            courseJSONObject.put(JSONConstants.DIFFICULTY, lDiff.ordinal());
+            courseJSONObject.put(JSONConstants.COURSE_NAME, courseName);
+            courseJSONObject.put(JSONConstants.NEEDS_PREV_COURSE, ModelInformer.getNeedsPreviousCourse(courseName));
+            //TODO: add index
+//            courseJSONObject.put(JSONConstants.REQ_ID_LIST, ModelInformer.getReqIdsFromCourse(courseName));
+
+
+            JSONArray levelArray = new JSONArray();
+            for(int id : ModelInformer.getOrderedIdsFromCourse(courseName)) {
+                JSONObject levelJSONObject = getJSONObjectFromLevelWithId(id);
+                levelJSONObject.put(JSONConstants.LEVEL_NAME, ModelInformer.getNameOfLevelWithId(id));
+                levelJSONObject.put(JSONConstants.BEST_LOC, -1);
+                levelJSONObject.put(JSONConstants.BEST_KNIGHTS, 0);
+                levelJSONObject.put(JSONConstants.BEST_TURNS, -1);
+                levelJSONObject.put(JSONConstants.BEST_CODE, new JSONArray());
+                //has ID value that is unnecessary!
+                levelArray.put(levelJSONObject);
+//                Level levelCopy = ModelInformer.getCopyOfLevel(id);
+            }
+
+            courseJSONObject.put(JSONConstants.LEVELS, levelArray);
+            courseJSONArray.put(courseJSONObject);
+        }
+        jsonObject.put(COURSES, courseJSONArray);
+
+        try (FileWriter dataFileWriter = new FileWriter(GameConstants.EXPORT_ROOT_PATH +"/"+fileName+".json")) {
+            dataFileWriter.write(jsonObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<String> getPossibleImportFiles() throws IOException {
+        List<String> output = new ArrayList<>();
+        File importFolder = new File(Paths.get(GameConstants.IMPORT_ROOT_PATH).toString());
+        if(!importFolder.exists())throw new IOException("Import folder doesn't exist!");
+        for(File f : Objects.requireNonNull(importFolder.listFiles())){
+            if(!f.getName().matches(".*\\.json"))continue;
+            output.add(f.getName().replaceAll("\\.json", ""));
+        }
+        return output;
+    }
+
+    public static List<Level> importLevelsFromCourseInFile(String courseName, String selectedItem) throws IOException {
+        List<Level> output = new ArrayList<>();
+        String importJSONString = String.join("", Files.readAllLines(Paths.get(GameConstants.IMPORT_ROOT_PATH+"\\" + selectedItem + ".json")));
+        JSONObject jsonObject = new JSONObject(importJSONString);
+        JSONArray coursesJSONArray = jsonObject.getJSONArray(COURSES, new JSONArray());
+        for(int i = 0; i < coursesJSONArray.length(); i++){
+            JSONObject courseObject = coursesJSONArray.getJSONObject(i);
+            if(courseName.equals(courseObject.getString(JSONConstants.COURSE_NAME, ""))){
+                JSONArray levelJSONArray = courseObject.getJSONArray(JSONConstants.LEVELS, new JSONArray());
+                for(int j = 0; j < levelJSONArray.length(); j++){
+                    JSONObject levelJSONObject = levelJSONArray.getJSONObject(j);
+                    Level level = parseLevelJSON(levelJSONObject,levelJSONObject.getString(JSONConstants.LEVEL_NAME, ""));
+                    output.add(level );
+                }
+            }
+        }
+        return output;
+    }
+
+    public static List<String> getCourseNamesFromFile(String selectedItem) throws IOException {
+        List<String> output = new ArrayList<>();
+        String importJSONString = String.join("", Files.readAllLines(Paths.get(GameConstants.IMPORT_ROOT_PATH+ "\\"+selectedItem + ".json")));
+        JSONObject jsonObject = new JSONObject(importJSONString);
+        JSONArray coursesJSONArray = jsonObject.getJSONArray(COURSES, new JSONArray());
+        for(int i = 0; i < coursesJSONArray.length(); i++){
+            JSONObject courseObject = coursesJSONArray.getJSONObject(i);
+            String courseName = courseObject.getString(JSONConstants.COURSE_NAME, "");
+            output.add(courseName );
+        }
+        return output;
+    }
+
+    public static Course importCourseFromFile(String courseName, String selectedItem) throws IOException {
+
+        String importJSONString = String.join("", Files.readAllLines(Paths.get(GameConstants.IMPORT_ROOT_PATH + "\\"+selectedItem + ".json")));
+        JSONObject jsonObject = new JSONObject(importJSONString);
+        JSONArray coursesJSONArray = jsonObject.getJSONArray(COURSES, new JSONArray());
+        for(int i = 0; i < coursesJSONArray.length(); i++){
+            JSONObject courseObject = coursesJSONArray.getJSONObject(i);
+            if(courseName.equals(courseObject.getString(JSONConstants.COURSE_NAME, ""))){
+                return parseCourseFromJSONObject(courseObject);
+            }
+        }
+        return NO_COURSE;
+    }
+
+    public static void removeUnwantedLevels() throws IOException {
+        if(levelFolder.listFiles() == null)return;
+        for(File f : levelFolder.listFiles()){
+            String levelName = f.getName().replaceAll("\\.json", "");
+            if(!ModelInformer.getAllLevelNames().contains(levelName)){
+                deleteLevel(levelName);
+            }
+        }
+    }
+
+    public static void saveLevel(int id) throws IOException {
+        JSONObject levelJSONObject = getJSONObjectFromLevelWithId(id);
+        try (FileWriter dataFileWriter = new FileWriter(GameConstants.LEVEL_ROOT_PATH +"/"+ModelInformer.getDataFromLevelWithId(LEVEL_NAME,id)+".json")) {
+            dataFileWriter.write(levelJSONObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        dataJSONString = String.join("", Files.readAllLines(dataFilePath));
+        dataJSONObject = new JSONObject(dataJSONString);
+    }
+
+    public static boolean exportFileExists(String name) throws IOException {
+        File exportFolder = new File(Paths.get(GameConstants.EXPORT_ROOT_PATH).toString());
+        if(!exportFolder.exists())throw new IOException("Export folder doesn't exist!");
+        for(File f : Objects.requireNonNull(exportFolder.listFiles())){
+            if(f.getName().equals(name+".json"))return true;
+        }
+        return false;
     }
 }

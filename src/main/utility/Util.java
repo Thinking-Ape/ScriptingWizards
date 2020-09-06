@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import main.model.Course;
 import main.model.GameConstants;
 import main.model.ModelInformer;
 import main.model.gamemap.enums.Direction;
@@ -576,5 +577,14 @@ public abstract class Util {
 
     public static boolean isOppositeDir(Direction direction, Direction direction1) {
         return (direction.ordinal()+direction1.ordinal())%2 == 0 && direction != direction1;
+    }
+
+    public static List<Course> sortCourses(List<Course> courseCopies, List<String> nameList) {
+        List<Course> output = new ArrayList<>();
+        for(String s : nameList){
+            for(Course c : courseCopies)
+                if(s.equals(c.getName()))output.add(c );
+        }
+        return output;
     }
 }

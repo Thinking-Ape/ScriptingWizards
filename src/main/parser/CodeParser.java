@@ -1,6 +1,7 @@
 package main.parser;
 
 import main.exception.*;
+import main.model.ModelInformer;
 import main.model.VariableScope;
 import main.model.gamemap.enums.CellContent;
 import main.model.gamemap.enums.Direction;
@@ -17,6 +18,8 @@ import main.model.statement.Expression.ExpressionTree;
 import main.model.statement.Expression.ExpressionType;
 import main.model.GameConstants;
 import main.view.CodeAreaType;
+
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -190,8 +193,8 @@ public abstract class CodeParser {
                     String value = matcher.group(4);
                     Assignment declaration = parseDeclaration(varType,varName,value);
                     if(declaration == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
-                    if(declaration.getVariable().isSpecialized() && value.matches("^ *new +Knight *\\(.*\\) *$"))throw new IllegalArgumentException("A Knight is no Guardian!");
-                    if(declaration.getVariable().isSpecialized() && value.matches("^ *new +Skeleton *\\(.*\\) *$"))throw new IllegalArgumentException("A Skeleton is no Ghost!");
+//                    if(declaration.getVariable().isSpecialized() && value.matches("^ *new +Knight *\\(.*\\) *$"))throw new IllegalArgumentException("A Knight is no Guardian!");
+//                    if(declaration.getVariable().isSpecialized() && value.matches("^ *new +Skeleton *\\(.*\\) *$"))throw new IllegalArgumentException("A Skeleton is no Ghost!");
                     return declaration;
                 case ASSIGNMENT:
                     varName = matcher.group(1);
@@ -199,17 +202,17 @@ public abstract class CodeParser {
                     value = matcher.group(3);
                     Assignment assignment = parseAssignment(varName,operation,value);
                     if(assignment == null)throw new IllegalArgumentException("Couldnt parse Assignment from input " + code);
-                    if(assignment.getVariable().isSpecialized() && value.matches("^ *new +Knight *\\(.*\\) *$"))throw new IllegalArgumentException("A Knight is no Guardian!");
-                    if(assignment.getVariable().isSpecialized() && value.matches("^ *new +Skeleton *\\(.*\\) *$"))throw new IllegalArgumentException("A Skeleton is no Ghost!");
+//                    if(assignment.getVariable().isSpecialized() && value.matches("^ *new +Knight *\\(.*\\) *$"))throw new IllegalArgumentException("A Knight is no Guardian!");
+//                    if(assignment.getVariable().isSpecialized() && value.matches("^ *new +Skeleton *\\(.*\\) *$"))throw new IllegalArgumentException("A Skeleton is no Ghost!");
                     return assignment;
             }
         }
         char lastChar = code.charAt(code.length()-1);
         if(lastChar!=';' && lastChar!='{'){
-            if(lastChar == '[') code = code.substring(0, code.length()-1);
+            if(lastChar == '['||lastChar == '(') code = code.substring(0, code.length()-1);
             Statement tempStatement2 = parseString(code + "{");
             if(tempStatement2 != null) throw new NoCurlyBracketException();
-            if(lastChar == ',') code = code.substring(0, code.length()-1);
+            if(lastChar == ','||lastChar == ':') code = code.substring(0, code.length()-1);
             Statement tempStatement1 =  parseString(code+";");
             if(tempStatement1 != null) throw new NoSemicolonException();
         }
@@ -221,6 +224,10 @@ public abstract class CodeParser {
      */
     private static MethodCall parseMethodCall(String objectName, String methodName, String parameterString) {
         if(objectName == null)throw new IllegalArgumentException("You're lacking an object for your Method!");
+//        String alternateObjectName = objectName;
+//        String pattern = GameConstants.GET_ENTITY_REGEX;
+//        Matcher m = Pattern.compile(pattern).matcher(objectName);
+//        if(m.matches())objectName = objectName.replaceAll(pattern,"$1" );
         if(objectName.matches(" *"))throw new IllegalArgumentException("You cant have an empty object!");
         boolean isPlayerCode = codeAreaType != CodeAreaType.AI;
         if(variableScope.getVariable(objectName) == null)throw new NotInScopeException(objectName,variableScope);
@@ -230,7 +237,8 @@ public abstract class CodeParser {
             if(!isPlayerCode && variableScope.getVariable(objectName).getVariableType() != VariableType.SKELETON)throw new IllegalArgumentException("Object "+objectName+ " must be a Skeleton");
         }
         MethodType mType = MethodType.getMethodTypeFromName(methodName);
-        if(mType == null) throw new MethodUnknownException(methodName);
+        if(mType == null)
+            throw new MethodUnknownException(methodName);
         testForCorrectParameters(parameterString, mType);
         // Makes lines such as: knight.targetsCell(EXIT); illegal (they need the condition context!)
         if(mType.getOutputType() != VariableType.VOID) throw new IllegalArgumentException("Method " + methodName + " cannot stand here!");
@@ -256,6 +264,7 @@ public abstract class CodeParser {
             case CAN_MOVE:
             case IS_DEAD:
             case IS_POSSESSED:
+//            case GET_TARGET_ENTITY:
             case IS_SPECIALIZED:
             case IS_ALIVE:
                 if(!parameters.equals(""))throw new IllegalParameterException(mType,parameters);
@@ -310,6 +319,14 @@ public abstract class CodeParser {
                         (variableScope.getVariable(parameters)!=null &&
                                 variableScope.getVariable(parameters).getVariableType()==VariableType.DIRECTION&&
                                     !variableScope.getVariable(parameters).getValue().getText().equals(""))){
+                    return;
+                }
+                break;
+            case TARGET_IS_LOOKING:
+                if(parameters.matches(VariableType.DIRECTION.getAllowedRegex())||
+                        (variableScope.getVariable(parameters)!=null &&
+                                variableScope.getVariable(parameters).getVariableType()==VariableType.DIRECTION&&
+                                !variableScope.getVariable(parameters).getValue().getText().equals(""))){
                     return;
                 }
                 break;
@@ -388,9 +405,10 @@ public abstract class CodeParser {
 
                 if(!expression.isLeaf()){
                     ExpressionTree tree = (ExpressionTree)expression;
-                    if(value.matches(GameConstants.RAND_INT_REGEX)){
-                        String lowerBound = tree.getRightNode().getText().split(",")[0];
-                        String upperBound = tree.getRightNode().getText().split(",")[1];
+                    Matcher m = Pattern.compile(GameConstants.RAND_INT_REGEX).matcher(value);
+                    if(m.matches()){
+                        String lowerBound = m.group(1);
+                        String upperBound = m.group(2);
                         testForCorrectValueType(VariableType.INT,lowerBound);
                         testForCorrectValueType(VariableType.INT,upperBound);
                     }
@@ -461,12 +479,18 @@ public abstract class CodeParser {
                             if(mt== null){
                                 if(MethodType.getMethodTypeFromCall(conditionLeaf.getRightExpression().getText()+"()")!=null)
                                     throw new IllegalArgumentException("You might have forgotten brackets: " + conditionLeaf.getText());
-                                else throw new MethodUnknownException(conditionLeaf.getRightExpression().getText());
+                                else
+                                    throw new MethodUnknownException(conditionLeaf.getRightExpression().getText());
                             }
                             if(mt.getOutputType()== VariableType.BOOLEAN){
                                 Expression expression1 = conditionLeaf.getRightExpression();
                                 if(expression1.isLeaf())throw new IllegalArgumentException("This MethodCall is invalid!");
-
+//                                String parameter = conditionLeaf.getRightExpression().getText();
+//                                Matcher pMatcher = Pattern.compile(".*\\((.*)\\)").matcher(parameter);
+//                                if(pMatcher.matches()){
+//                                    parameter = pMatcher.group(1) != null ? pMatcher.group(1) : "" ;
+//                                }
+//                                else parameter = "";
                                 testForCorrectParameters(((ExpressionTree)expression1).getRightNode().getText(), mt);
                                 return;
                             }
@@ -529,7 +553,7 @@ public abstract class CodeParser {
 //                    }
                     throw new IllegalArgumentException(value + " is not a valid Skeleton constructor!");
                 }
-
+                value = Util.removeUnnecessaryBrackets(value);
                 expression1 = Expression.expressionFromString(value);
                 if(!expression1.isLeaf()){
                     ExpressionTree expressionTree = (ExpressionTree)expression1;
@@ -627,11 +651,13 @@ public abstract class CodeParser {
                     if(variableScope.getVariable(conditionLeaf.getLeftExpression().getText())==null)throw new NotInScopeException(conditionLeaf.getLeftExpression().getText(),variableScope);
                     checkExpressionTreeForUnknownVars(conditionLeaf.getLeftExpression());
                     ExpressionTree rightNode = (ExpressionTree)conditionLeaf.getRightExpression();
-                    if(rightNode.getLeftNode() == null)throw new MethodUnknownException(conditionLeaf.getRightExpression().getText());
+                    if(rightNode.getLeftNode() == null)
+                        throw new MethodUnknownException(conditionLeaf.getRightExpression().getText());
                     Expression leftNode = conditionLeaf.getLeftExpression();
                     MethodType mT = MethodType.getMethodTypeFromName(rightNode.getLeftNode().getText());
                     if(mT==null)throw new IllegalArgumentException("No such Method " + leftNode.getText()+"!");
-                    if(mT.getOutputType()!=VariableType.BOOLEAN)throw new IllegalArgumentException("Method " + conditionLeaf.getLeftExpression().getText()+" has illegal type!");
+                    if(mT.getOutputType()!=VariableType.BOOLEAN)
+                        throw new IllegalArgumentException("Method " + conditionLeaf.getLeftExpression().getText()+" has illegal type!");
                     testForCorrectParameters(rightNode.getRightNode().getText(), mT);
                     return;
             }

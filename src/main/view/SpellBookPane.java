@@ -265,6 +265,16 @@ public class SpellBookPane extends VBox {
                     }
                     methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<Direction>", tooltipString.toString()));
                     break;
+                case TARGET_IS_LOOKING:
+                    tooltipString = new StringBuilder("One of the following: ");
+                    i = 0;
+                    for(Direction d : Direction.values()){
+                        if(i>0)tooltipString.append(", ");
+                        i++;
+                        tooltipString.append(d.name().toUpperCase());
+                    }
+                    methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.PARAMETERS,"<Direction>", tooltipString.toString()));
+                    break;
 
             }
             methodHBox.getChildren().add(new SpellBookLabel(SpellBookLabelType.DEFAULT,");",""));

@@ -80,8 +80,9 @@ public class LevelEditorModule {
     private HBox bottomHBox = new HBox(openLevelBtn, saveLevelBtn,newLevelBtn, copyLevelBtn, deleteLevelBtn, reloadLevelBtn, resetLevelScoresBtn);
     private VBox requiredLVBOX = new VBox(requiredLevelsLabel,requiredLevelsLView);
     private Button editCoursesBtn = new Button("Edit Courses");
+    private Button exportCoursesBtn = new Button("Export Courses");
     private Button changeLvlNameBtn = new Button("Change Level Name");
-    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new VBox(new HBox(amountOfRerunsLbl,amountOfRerunsValueLbl),new HBox(maxKnightsLbl,maxKnightsValueLbl)),new HBox(),  new HBox(maxTurnsVbox,maxTurnsValueVbox),new HBox(maxLocVbox,maxLocValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(courseLabel,courseValueLbl),changeLvlBtn,new Label(),new Separator(Orientation.VERTICAL),editCoursesBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
+    private HBox topHBox =new HBox(new HBox(levelNameLbl,levelNameValueLbl),changeLvlNameBtn,new Separator(Orientation.VERTICAL),new VBox(new HBox(widthLbl, widthValueLbl), new HBox(heightLbl, heightValueLbl)),new VBox(new HBox(maxKnightsLbl,maxKnightsValueLbl),new HBox(amountOfRerunsLbl,amountOfRerunsValueLbl)),new HBox(),  new HBox(maxTurnsVbox,maxTurnsValueVbox),new HBox(maxLocVbox,maxLocValueVbox), new HBox(hasAiLbl,hasAiValueLbl),new HBox(courseLabel,courseValueLbl),changeLvlBtn,new Label(),new Separator(Orientation.VERTICAL),exportCoursesBtn,editCoursesBtn,new Separator(Orientation.VERTICAL), new HBox(indexLbl,indexValueLbl),new HBox(moveIndexUpBtn,moveIndexDownBtn));
 
     private Label tutorialTextLbl = new Label("Tutorial Text Nr.");
     private Label tutorialNumberValueLbl = new Label("1");
@@ -176,7 +177,7 @@ public class LevelEditorModule {
         }
         bottomHBox.setAlignment(Pos.TOP_CENTER);
         topHBox.setAlignment(Pos.BASELINE_CENTER);
-        if(ModelInformer.getAmountOfLevels()==1)deleteLevelBtn.setDisable(true);
+        if(!ModelInformer.canDelete())deleteLevelBtn.setDisable(true);
     }
 
     void update(LevelChange change) {
@@ -352,7 +353,7 @@ public class LevelEditorModule {
     }
 
     public void setDisableAllEditorBtns(boolean b) {
-        deleteLevelBtn.setDisable(b);
+        deleteLevelBtn.setDisable(b||!ModelInformer.canDelete());
         openLevelBtn.setDisable(b);
         newLevelBtn.setDisable(b);
         copyLevelBtn.setDisable(b);
@@ -365,9 +366,9 @@ public class LevelEditorModule {
         moveIndexDownBtn.setDisable(b);
         changeLvlNameBtn.setDisable(b);
         deleteTutorialTextBtn.setDisable(b);
-        prevTutorialTextBtn.setDisable(b);
+        prevTutorialTextBtn.setDisable(b||ModelInformer.getCurrentTutorialMessageIndex()==0);
         editTutorialTextBtn.setDisable(b);
-        nextTutorialTextBtn.setDisable(b);
+        nextTutorialTextBtn.setDisable(b||ModelInformer.getCurrentTutorialMessageIndex()+1==ModelInformer.getCurrentTutorialSize());
         newTutorialTextBtn.setDisable(b);
     }
 
@@ -473,4 +474,5 @@ public class LevelEditorModule {
         return amountOfRerunsValueLbl;
     }
     public Button getEditCoursesBtn(){return editCoursesBtn;}
+    public Button getExportCoursesBtn(){return exportCoursesBtn;}
 }

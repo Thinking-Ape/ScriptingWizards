@@ -102,7 +102,7 @@ public class Cell {
     }
 
     public boolean isFree() {
-        return entity == NO_ENTITY && item == NONE && content.isTraversable();
+        return entity == NO_ENTITY && item == NONE && (content.isTraversable()||content == CellContent.GATE);
     }
 
     public List<CellFlag> getFlags() {

@@ -2,7 +2,10 @@ package main.model;
 
 import main.model.gamemap.GameMap;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static main.model.GameConstants.CHALLENGE_COURSE_NAME;
 
 
 public abstract class ModelInformer {
@@ -189,7 +192,7 @@ public abstract class ModelInformer {
         return model.getMinStarsOfCourse(courseName);
     }
 
-    public static LevelDifficulty getDifficultyOfCourse(String courseName) {
+    public static CourseDifficulty getDifficultyOfCourse(String courseName) {
         return model.getDifficultyOfCourse(courseName);
     }
 
@@ -209,10 +212,10 @@ public abstract class ModelInformer {
         return model.getCourseWithName(s).getID();
     }
 
-    public static List<Integer> getReqIdsFromCourse(String s) {
-
-        return model.getCourseWithName(s).getReqCourseIds();
-    }
+//    public static List<Integer> getReqIdsFromCourse(String s) {
+//
+//        return model.getCourseWithName(s).getReqCourseIds();
+//    }
 
     public static boolean isCourseUnlocked(int cId) {
         return model.isCourseUnlocked(cId);
@@ -228,5 +231,36 @@ public abstract class ModelInformer {
 
     public static boolean hasSeenIntroduction() {
         return model.hasSeenIntroduction();
+    }
+
+    public static Level getCopyOfLevel(int id) {
+        return model.getCopyOfLevelWithId(id);
+    }
+
+    public static boolean getNeedsPreviousCourse(String courseName) {
+        return model.getCourseWithName(courseName).needsPreviousCourse();
+    }
+
+    public static int getIndexOfCourse(String courseName) {
+        return model.getIndexOfCourseWithId(getIdOfCourse(courseName));
+    }
+
+    public static int getProgressOfCourse(String courseName) {
+        return model.calculateProgressOfCourse(courseName);
+    }
+
+    public static List<String> getAllLevelNames() {
+        List<String> output = new ArrayList<>();
+        for(String s : getAllCourseNames()) output.addAll(model.getAllLevelNamesOfCourse(s));
+        return output;
+    }
+
+    public static boolean levelExists(int levelId) {
+//        System.out.println(levelId + ": " +model.getIndexOfLevelWithId(levelId));
+        return model.levelExists(levelId);
+    }
+
+    public static boolean canDelete() {
+        return !((model.getAmountOfLevelsInCourse(CHALLENGE_COURSE_NAME)== 1 && model.getCurrentCourseName().equals(CHALLENGE_COURSE_NAME))||model.getAmountOfLevels()==1);
     }
 }

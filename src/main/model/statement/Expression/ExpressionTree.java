@@ -21,10 +21,10 @@ public class ExpressionTree extends Expression{
     public String getText(){
         String leftNodeText = leftNode.getText();
         String rightNodeText = rightNode.getText();
-        if(!leftNode.isLeaf())
+        if(!leftNode.isLeaf()&&getExpressionType()!=ExpressionType.PAR)
             leftNodeText = "("+leftNode.getText()+")";
         // parameters are put in brackets twice else!
-        if(!rightNode.isLeaf() && !rightNodeText.matches(".*,.*"))
+        if(!rightNode.isLeaf() && !rightNodeText.matches(".*,.*")&&getExpressionType()!=ExpressionType.PAR)
             rightNodeText = "("+rightNode.getText()+")";
         switch (getExpressionType()){
             case ADD:

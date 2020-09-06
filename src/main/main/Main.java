@@ -6,11 +6,9 @@ import javafx.stage.Stage;
 import main.model.*;
 import main.parser.JSONParser;
 import main.parser.CodeParser;
-import main.utility.SimpleSet;
 import main.utility.Util;
 import main.view.View;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +16,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        System.out.println("WARNING: Do NOT close this window! It may lead to save file corruption!");
         JSONParser.init();
 //        List<Integer> unlockedLevelIdList = JSONParser.getUnlockedLevelIds();
         List<Level> levelList = JSONParser.parseAllLevels();
@@ -34,7 +33,8 @@ public class Main extends Application {
         Map<Integer,Integer> bestKnightsMap = JSONParser.getBestKnightsForLevels(levelList);
         List<String> unlockedStatementList = JSONParser.getUnlockedStatementList();
         Map<String,List<Integer>> idToCourseMap = JSONParser.getIdToCourseMap();
-        Map<String, LevelDifficulty> courseNameToDifficultyMap = JSONParser.getCourseNameToDifficultyMap();
+        Map<String, CourseDifficulty> courseNameToDifficultyMap = JSONParser.getCourseNameToDifficultyMap();
+
 
         List<Course> courseSet = JSONParser.parseAllCourses();
         boolean isEditorUnlocked = JSONParser.isEditorUnlocked();
@@ -63,6 +63,7 @@ public class Main extends Application {
             if(model.currentLevelHasChanged())controller.getEditorController().showSavingDialog();
             JSONParser.storeAllData();
             try{
+                JSONParser.removeUnwantedLevels();
                 CodeParser.parseProgramCode(view.getCodeArea().getAllCode());
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllCode()));
             }

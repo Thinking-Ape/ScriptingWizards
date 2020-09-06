@@ -20,9 +20,9 @@ public abstract class Expression {
         code = Util.removeUnnecessaryBrackets(code);
 
 
-        Matcher parameterMatcher = Pattern.compile("^([^{}();,]+?),([^{}();]++)$").matcher(code);
+        Matcher parameterMatcher = Pattern.compile("^(?![^{}();,]++\\()([^{};,]+?),([^{};]+?)$").matcher(code);
         if(parameterMatcher.matches()){
-            return new ExpressionTree(expressionFromString(parameterMatcher.group(1)),ExpressionType.PAR, expressionFromString(parameterMatcher.group(2)));
+            return new ExpressionTree(expressionFromString(Util.removeUnnecessaryBrackets(parameterMatcher.group(1))),ExpressionType.PAR, expressionFromString(Util.removeUnnecessaryBrackets(parameterMatcher.group(2))));
         }
         Pair<ExpressionType,Integer> expressionTypeAtPos = findExpressionTypeAtPos(code,ExpressionType.ADD,ExpressionType.SUB);
         if(expressionTypeAtPos.getValue() != -1 && expressionTypeAtPos.getValue() !=0){

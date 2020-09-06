@@ -23,21 +23,27 @@ public class Level {
 
     public Level(String name, Cell[][] originalArray, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, List<Integer> requiredLevelIds, int maxKnights,
                   List<String> tutorialEntryList, int id, int amountOfReruns) {
+        this(name, new GameMap(originalArray),  aiBehaviour,  turnsToStars,  locToStars,  requiredLevelIds, maxKnights,
+         tutorialEntryList, id, amountOfReruns);
+
+    }
+    public Level(String name, GameMap gameMap, ComplexStatement aiBehaviour, Integer[] turnsToStars, Integer[] locToStars, List<Integer> requiredLevelIds, int maxKnights,
+                 List<String> tutorialEntryList, int id, int amountOfReruns) {
         this.amountOfPlays = amountOfReruns;
         this.ID =id;
         this.name =name;
         this.maxKnights = maxKnights;
         this.turnsToStars = turnsToStars;
         this.locToStars = locToStars;
-        this.originalMap = new GameMap(originalArray);
+        this.originalMap =gameMap;
         this.aiBehaviour = aiBehaviour;
         this.requiredLevelIds = new ArrayList<>(requiredLevelIds);
         this.tutorialMessages = new ArrayList<>();
 //        if(isTutorial){
-            if(tutorialEntryList.size() > 0){
-                tutorialMessages.addAll(tutorialEntryList);
-            }
-            else tutorialMessages.add("");
+        if(tutorialEntryList.size() > 0){
+            tutorialMessages.addAll(tutorialEntryList);
+        }
+        else tutorialMessages.add("");
 //        }
 //        else tutorialMessages.add("");
     }

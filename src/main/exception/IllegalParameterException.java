@@ -51,6 +51,7 @@ public class IllegalParameterException extends IllegalArgumentException {
                 errorMessage = getErrorMessage(VariableType.ENTITY_TYPE,parameter);
                 break;
             case IS_LOOKING:
+            case TARGET_IS_LOOKING:
                 if(parameter.equals("")){
                     errorMessage = "Method " + mT.getName() + " needs parameters!";
                 }

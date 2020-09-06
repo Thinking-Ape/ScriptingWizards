@@ -29,7 +29,9 @@ public enum MethodType {
     ATTACK("attack\\(\\)", VOID,false,false,"Only for Skeletons!"),
 //    POSSESS("possess\\(\\)", VOID,false,false,"Only for Ghosts!"),
     DISPOSSESS("dispossess\\((.+)\\)", VOID,false,true,"Only for Ghosts!"),
-    IS_LOOKING("isLooking\\((.+)\\)", BOOLEAN,true,true,"Returns a boolean value corresponding to whether this Entity is looking in the given Direction!");
+    IS_LOOKING("isLooking\\((.+)\\)", BOOLEAN,true,true,"Returns a boolean value corresponding to whether this Entity is looking in the given Direction!"),
+    TARGET_IS_LOOKING("targetIsLooking\\((.+)\\)", BOOLEAN,true,true,"Returns a boolean value corresponding to whether the targeted Entity is looking in the given Direction!");
+//    GET_TARGET_ENTITY("getTarget\\(\\)", VariableType.ENTITY,false,false,"Returns the Entity in front for further Method calls!");
 
     private final String regex;
     private final String tooltip;
@@ -47,6 +49,14 @@ public enum MethodType {
 
     public static MethodType getMethodTypeFromCall(String methodName) throws IllegalArgumentException{
 
+//        Matcher matcher2 = Pattern.compile("^"+GET_TARGET_ENTITY.regex+"\\.(.+)$").matcher(methodName);
+//
+//        if(matcher2.matches() && matcher2.group(1)!=null && getMethodTypeFromCall(matcher2.group(1))!=null)return getMethodTypeFromCall(matcher2.group(1));
+//        else {
+//            if(matcher2.matches() &&matcher2.group(1)!=null) System.out.println(matcher2.group(1));
+//
+//            System.out.println(matcher2.pattern().pattern()+" doesnt match: " + methodName);
+//        }
         for(MethodType methodType : values()){
             Pattern mTPattern = Pattern.compile(methodType.getRegex());
             Matcher matcher = mTPattern.matcher(methodName);
@@ -55,7 +65,12 @@ public enum MethodType {
         return null;
     }
     public static MethodType getMethodTypeFromName(String methodName) throws IllegalArgumentException{
-
+//        Matcher matcher = Pattern.compile("^"+GET_TARGET_ENTITY.regex+"\\.(.+)$").matcher(methodName);
+//
+//        if(matcher.matches() && matcher.group(1)!=null && getMethodTypeFromName(matcher.group(1))!=null)return getMethodTypeFromName(matcher.group(1));
+//        else {
+////            System.out.println(matcher.pattern().pattern()+" doesnt match: " + methodName);
+//        }
         for(MethodType methodType : values()){
             if(methodType.getName().equals(methodName))return methodType;
         }

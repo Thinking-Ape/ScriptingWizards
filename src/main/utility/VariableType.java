@@ -1,5 +1,6 @@
 package main.utility;
 
+import main.model.GameConstants;
 import main.model.gamemap.enums.CellContent;
 import main.model.gamemap.enums.EntityType;
 import main.model.gamemap.enums.ItemType;
@@ -16,7 +17,9 @@ public enum VariableType {
     ENTITY_TYPE("EntityType", "^"+Util.getRegEx(EntityType.values())+"$"),
     ARMY("Army","^new Army\\( *+(.+|(.+?,)+.+) *+\\)$"),
     BOOLEAN("boolean","^(true|false)$"),
+//    ENTITY("Entity", GameConstants.VARIABLE_NAME_REGEX);
     ;
+
 
     final private String name;
 

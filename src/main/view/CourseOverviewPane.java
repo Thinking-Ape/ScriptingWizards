@@ -22,22 +22,29 @@ public class CourseOverviewPane extends VBox {
     private ListView<CourseEntry> courseListView = new ListView<>();
     private Button playBtn = new Button();
     private Button backBtn = new Button();
+    private Button importCoursesBtn = new Button();
 
     public CourseOverviewPane(){
         updateAllCourses();
         backBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE*0.75);
         playBtn.setPrefSize(BUTTON_SIZE,BUTTON_SIZE);
+        importCoursesBtn.setPrefSize(BUTTON_SIZE*1.75,BUTTON_SIZE);
         ImageView backBtnIV = new ImageView(GameConstants.BACK_BTN_IMAGE_PATH);
         backBtnIV.setFitHeight(backBtnIV.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
         backBtnIV.setFitWidth(backBtnIV.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
+        ImageView importBtnIV = new ImageView(IMPORT_BTN_IMAGE_PATH);
+        importBtnIV.setFitHeight(importCoursesBtn.getPrefHeight());
+        importBtnIV.setFitWidth(importCoursesBtn.getPrefWidth());
         ImageView executeBtnIV = new ImageView(GameConstants.EXECUTE_BTN_IMAGE_PATH);
         executeBtnIV.setFitHeight(executeBtnIV.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
         executeBtnIV.setFitWidth(executeBtnIV.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
         playBtn.setGraphic(executeBtnIV);
         backBtn.setGraphic(backBtnIV);
+        importCoursesBtn.setGraphic(importBtnIV);
+        importCoursesBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
         backBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
         playBtn.setStyle("-fx-background-color: rgba(0,0,0,0)");
-        HBox hBox = new HBox(backBtn,playBtn);
+        HBox hBox = new HBox(backBtn,playBtn,importCoursesBtn);
 
         hBox.setAlignment(Pos.CENTER);
         hBox.setSpacing(BUTTON_SIZE);
@@ -62,6 +69,9 @@ public class CourseOverviewPane extends VBox {
     public Button getBackBtn() {
         return backBtn;
     }
+    public Button getImportCoursesBtn() {
+        return importCoursesBtn;
+    }
 
 
     public void updateAllCourses() {
@@ -70,7 +80,7 @@ public class CourseOverviewPane extends VBox {
             // View.getIconFromMap(gameMap) requires long calculation!
             // Dont call this too often, because View.getIconFromMap(gameMap) is costly!
             if(!courseName.equals(CHALLENGE_COURSE_NAME)){
-                CourseEntry le = new CourseEntry(courseName, ModelInformer.getAmountOfLevelsInCourse(courseName),LevelDifficulty.BEGINNER,ModelInformer.getMinStarsOfCourse(courseName),ModelInformer.getIdOfCourse(courseName));
+                CourseEntry le = new CourseEntry(courseName, ModelInformer.getAmountOfLevelsInCourse(courseName), CourseDifficulty.BEGINNER,ModelInformer.getMinStarsOfCourse(courseName),ModelInformer.getIdOfCourse(courseName));
                 le.autosize();
                 courseListView.setFixedCellSize(BUTTON_SIZE*1.25);
                 courseListView.getItems().add(le);
@@ -78,6 +88,7 @@ public class CourseOverviewPane extends VBox {
             }
         }
         updateAllUnlockedStatus();
+        updateLevelAmounts();
     }
 //    public void updateCourseRating(LevelChange lC) {
 //        for(CourseEntry courseEntry : courseListView.getItems()){
@@ -169,7 +180,7 @@ public class CourseOverviewPane extends VBox {
         }
         courseListView.getItems().removeAll( entriesToDelete);
     }
-    void addAllCourses(List<String> newCourses, Map<String,LevelDifficulty> courseToDifficultyMap ) {
+    void addAllCourses(List<String> newCourses, Map<String, CourseDifficulty> courseToDifficultyMap ) {
         for(String courseName : newCourses){
             if(courseName.equals(CHALLENGE_COURSE_NAME))continue;
             CourseEntry courseEntry =new CourseEntry(courseName,0,courseToDifficultyMap.get(courseName),0,ModelInformer.getIdOfCourse(courseName));
@@ -227,7 +238,7 @@ public class CourseOverviewPane extends VBox {
     }
     public void updateAddedEntries() {
         List<String> deletedEntries = new ArrayList<>();
-        Map<String,LevelDifficulty> courseToDiffMap = new HashMap<>();
+        Map<String, CourseDifficulty> courseToDiffMap = new HashMap<>();
         for(String courseName :ModelInformer.getAllCourseNames()) {
             if(courseListView.getItems().stream().noneMatch(cE -> cE.getCourseName().equals(courseName))){
                 deletedEntries.add(courseName);
@@ -235,5 +246,36 @@ public class CourseOverviewPane extends VBox {
             }
         }
         addAllCourses(deletedEntries, courseToDiffMap);
+    }
+
+    public void updateOrder() {
+        courseListView.getItems().sort((c1,c2) -> {
+            if(ModelInformer.getIndexOfCourse(c1.getCourseName()) < ModelInformer.getIndexOfCourse(c2.getCourseName())){
+                if(GameConstants.DEBUG)System.out.println(c1.getCourseName() + " has lesser Index ("+ModelInformer.getIndexOfCourse(c1.getCourseName())+") than "+ c2.getCourseName() +" ("+ModelInformer.getIndexOfCourse(c2.getCourseName())+")");
+                return -1;
+            }
+            if(ModelInformer.getIndexOfCourse(c1.getCourseName()) > ModelInformer.getIndexOfCourse(c2.getCourseName())){
+                if(GameConstants.DEBUG)System.out.println(c1.getCourseName() + " has greater Index ("+ModelInformer.getIndexOfCourse(c1.getCourseName())+") than "+ c2.getCourseName() +" ("+ModelInformer.getIndexOfCourse(c2.getCourseName())+")");
+                return 1;
+            }
+            else {
+                if(GameConstants.DEBUG)System.out.println(c1.getCourseName() + " has equal Index ("+ModelInformer.getIndexOfCourse(c1.getCourseName())+") than "+ c2.getCourseName() +" ("+ModelInformer.getIndexOfCourse(c2.getCourseName())+")");
+                return 0;
+            }
+//            for(int i = 0; i < courseListView.getItems().size();i++){
+//                if(courseListView.getItems().get(i).equals(c1)){
+//                    if( < i)return 1;
+//                    else if(ModelInformer.getIndexOfCourse(c1.getCourseName()) > i)return -1;
+//                    else return 0;
+//                }
+//            }
+        });
+    }
+
+    public void updateLevelAmounts() {
+        for(CourseEntry courseEntry :courseListView.getItems()) {
+//            int cId =courseEntry.ID;
+            courseEntry.changeAmountOfLevels(ModelInformer.getAmountOfLevelsInCourse(courseEntry.getCourseName()));
+        }
     }
 }

@@ -4,10 +4,10 @@ import javafx.scene.effect.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
-import main.model.gamemap.Cell;
 import main.model.gamemap.Entity;
 import main.model.gamemap.enums.EntityType;
 import main.model.statement.ComplexStatement;
+
 import java.awt.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -32,6 +32,8 @@ public abstract class GameConstants {
     public static final String RAND_INT_REGEX = "randInt\\((.*),(.*)\\)";
     public static final Random RANDOM = new Random();
     public static final String LEVEL_ROOT_PATH = Paths.get("resources/levels/").toString();
+    public static final String EXPORT_ROOT_PATH = Paths.get("export/").toString();
+    public static final String IMPORT_ROOT_PATH = Paths.get("import/").toString();
     public static final String IMAGES_PATH = "resources/images/";
     public static final String ROOT_PATH = Paths.get("resources/").toString();
     public static final int MAX_CODE_LINES = (int)(29*SCREEN_HEIGHT/1080.0);
@@ -73,6 +75,7 @@ public abstract class GameConstants {
     public static final double BIG_FONT_SIZE = 17.0*SCREEN_WIDTH/1920.0;
     public static final double CHALLENGER_FONT_SIZE = 40.0*SCREEN_WIDTH/1920.0;
     public static final String BACK_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Back_Btn.png";
+    public static final String IMPORT_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Import_Btn.png";
     public static final String EXECUTE_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Execute_Btn.png";
     public static final String PAUSE_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Pause_Btn.png";
     public static final String RESET_BTN_IMAGE_PATH = "file:"+IMAGES_PATH+"Reset_Btn.png";
@@ -152,6 +155,7 @@ public abstract class GameConstants {
     public static final String WHITE_SHADOWED_STYLE = "-fx-text-fill: white;-fx-effect: dropshadow(three-pass-box, black, 10, 0.6, 0.6, 0);";
 
     public static final String WILL_BE_REMOVED_STYLE = "-fx-text-fill: red;";
-    public static final Course NO_COURSE = new Course(new ArrayList<>(), new ArrayList<>(), LevelDifficulty.BEGINNER, "");
+    public static final Course NO_COURSE = new Course(false, new ArrayList<>(), CourseDifficulty.BEGINNER, "");
+//    public static final String GET_ENTITY_REGEX = "^([^ .]+?)\\."+MethodType.GET_TARGET_ENTITY.getName()+"\\(\\).*$";
 //    public static final Level NO_LEVEL = new Level("", new Cell[][]{new Cell[]{new Cell{}}}, null, null, null, new ArrayList<>(), 0, new ArrayList<>(), -1, 0);
 }

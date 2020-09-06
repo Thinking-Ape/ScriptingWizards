@@ -1265,7 +1265,7 @@ public class View implements LevelChangeListener {
         return null;
     }
 
-    public void addAllCourses(List<String> newCourses, Map<String, LevelDifficulty> courseDifficultyMap) {
+    public void addAllCourses(List<String> newCourses, Map<String, CourseDifficulty> courseDifficultyMap) {
         courseOverviewPane.addAllCourses(newCourses, courseDifficultyMap);
         for (String newCourse : newCourses) tutorialLevelOverviewPaneList.add(new LevelOverviewPane(newCourse));
     }
@@ -1293,5 +1293,17 @@ public class View implements LevelChangeListener {
         for(CourseEntry courseEntry : courseOverviewPane.getCourseListView().getItems()){
             if(courseCopies.stream().noneMatch(c -> c.getName().equals(courseEntry.getCourseName()))) tutorialLevelOverviewPaneList.removeIf(o -> o.getCourseName().equals(courseEntry.getCourseName()));
         }
+    }
+
+    public void addTutorialOverviewPane(Course course) {
+//        courseOverviewPane.addAllCourses(newCourses, courseDifficultyMap);
+        tutorialLevelOverviewPaneList.add(new LevelOverviewPane(course.getName()));
+    }
+
+    public void updateEntryOfCourse(String currentCourseName) {
+        if(currentCourseName.equals(CHALLENGE_COURSE_NAME)){
+            challengeOverviewPane.updateLevel(ModelInformer.getNameOfLevelWithId(ModelInformer.getCurrentId()));
+        }
+        else findTutorialLevelOverviewPane(ModelInformer.getCurrentCourseName()).updateLevel(ModelInformer.getNameOfLevelWithId(ModelInformer.getCurrentId()));
     }
 }

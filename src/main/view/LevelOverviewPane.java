@@ -9,11 +9,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import main.model.LevelChange;
-import main.model.LevelDataType;
-import main.model.ModelInformer;
+import main.model.*;
 import main.model.gamemap.GameMap;
-import main.model.GameConstants;
 import main.utility.Util;
 
 import static main.model.GameConstants.*;
@@ -76,10 +73,15 @@ public class LevelOverviewPane extends VBox {
 
     public void updateUnlockedLevels() {
         levelListView.getItems().clear();
-        for(int levelId : ModelInformer.getUnlockedLevelIds()){
-
-            String levelCourseName = ModelInformer.getDataFromLevelWithId(LevelDataType.COURSE,levelId)+"";
-            if(!levelCourseName.equals(courseName))continue;
+        int index =0;
+        boolean disabled = false;
+        for(int levelId : ModelInformer.getOrderedIdsFromCourse(courseName)){
+            if(!ModelInformer.levelExists(levelId))continue;
+            if(ModelInformer.getProgressOfCourse(courseName)<index )disabled = true;
+            index ++;
+//            System.out.println(courseName + " "+ ModelInformer.getNameOfLevelWithId(levelId));
+//            String levelCourseName = ModelInformer.getDataFromLevelWithId(LevelDataType.COURSE,levelId)+"";
+//            if(!levelCourseName.equals(courseName))continue;
             int i = ModelInformer.getIndexOfLevelWithId(levelId);
             int loc =ModelInformer.getBestLocOfLevel(levelId);
             int turns =ModelInformer.getBestTurnsOfLevel(levelId);
@@ -92,12 +94,13 @@ public class LevelOverviewPane extends VBox {
             GameMap gameMap = (GameMap) ModelInformer.getDataFromLevelWithId(LevelDataType.MAP_DATA,levelId);
             // View.getIconFromMap(gameMap) requires long calculation!
             // Dont call this too often, because View.getIconFromMap(gameMap) is costly!
+//            System.out.println(levelName);
             LevelEntry le = new LevelEntry(View.getIconFromMap(gameMap),levelName,
                     getLevelTooltip(turnsToStars,locToStars,maxKnights),getBestScoreString(turns,loc,nStars,knightsUsed),nStars);
             le.autosize();
             levelListView.setFixedCellSize(BUTTON_SIZE*1.25);
             levelListView.getItems().add(le);
-
+            if(disabled)le.setDisable(true);
             updateWidth(le);
         }
     }
@@ -119,6 +122,7 @@ public class LevelOverviewPane extends VBox {
         if(levelListView.getItems().size() == 1){
             updateWidth(le);
         }
+        if(ModelInformer.getProgressOfCourse(courseName)<index || !ModelInformer.levelExists(id))le.setDisable(true);
     }
 
     private void updateWidth(LevelEntry le) {
@@ -172,6 +176,9 @@ public class LevelOverviewPane extends VBox {
         LevelEntry le = new LevelEntry(levelListView.getItems().get(index).getLevelImage(),ModelInformer.getDataFromCurrentLevel(LevelDataType.LEVEL_NAME)+"",
                 getLevelTooltip(turnsToStars,locToStars,maxKnights),getBestScoreString(turns,loc,nStars,knightsUsed),nStars);
         levelListView.getItems().set(index,le);
+
+        if(ModelInformer.getProgressOfCourse(courseName)<index || !ModelInformer.levelExists(id))le.setDisable(true);
+        else le.setDisable(false);
         return true;
     }
 
@@ -195,8 +202,6 @@ public class LevelOverviewPane extends VBox {
     }
 
     public void sortEntries(LevelChange levelChange) {
-        //TODO: smart sorting of entries!
-        //TODO: do sth smart idk
 //        for(LevelEntry lE : levelListView.getItems()){
 //            System.out.println(lE.getLevelName());
 //        }
@@ -204,7 +209,9 @@ public class LevelOverviewPane extends VBox {
         int oldIndex = (int)levelChange.getOldValue();
         int newIndex = (int)levelChange.getNewValue();
         if(levelListView.getItems().size() == 0)return;
+        //Problem ist, dass die anderen Kurse nicht angezeigt werden -> wie wäre es mit anzeigen, aber nicht freigschaltet?!
         LevelEntry levelEntry = levelListView.getItems().get(oldIndex);
+
         if(levelListView.getItems().size() > oldIndex && levelListView.getItems().get(oldIndex).getLevelName().equals(ModelInformer.getNameOfLevelWithId(levelId))){
 
             levelListView.getItems().remove(levelEntry );
@@ -216,7 +223,15 @@ public class LevelOverviewPane extends VBox {
 //            throw new IllegalStateException("Current Level is not in expected position!");
 
         }
-
+        updateUnlockedStatus();
 
     }
+
+    public void updateUnlockedStatus() {
+        for(LevelEntry lE : getLevelListView().getItems()){
+            if(ModelInformer.getIndexOfLevelWithId(ModelInformer.getIdOfLevelWithName(lE.getLevelName())) > ModelInformer.getCurrentCourseProgress())lE.setDisable(true);
+            else lE.setDisable(false);
+        }
+    }
+
 }

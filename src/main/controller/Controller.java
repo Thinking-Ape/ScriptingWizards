@@ -10,26 +10,24 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
-import main.model.LevelDataType;
-import main.model.Model;
-import main.model.ModelInformer;
+import main.model.*;
 import main.model.statement.ComplexStatement;
 import main.model.statement.Statement;
 import main.parser.JSONParser;
 import main.parser.CodeParser;
-import main.model.GameConstants;
 import main.utility.Point;
 import main.utility.Util;
 import main.view.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static main.model.GameConstants.CHALLENGE_COURSE_NAME;
-import static main.model.GameConstants.WHITE_SHADOWED_STYLE;
+import static main.model.GameConstants.*;
 
 public class Controller {
     private static Controller single_Instance = null;
@@ -104,8 +102,9 @@ public class Controller {
                     break;
                 case TUTORIAL:
                     if (isGameRunning) view.getBtnReset().fire();
-                    if (model.calculateProgressOfCourse(model.getCurrentCourseName()) == 0) view.setSceneState(SceneState.COURSE_SELECT);
-                    else view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
+//                    if (model.calculateProgressOfCourse(model.getCurrentCourseName()) == 0) view.setSceneState(SceneState.COURSE_SELECT);
+//                    else
+                        view.setSceneState(SceneState.TUTORIAL_LEVEL_SELECT);
                     view.getBtnExecute().setMouseTransparent(false);
                     view.getSpeedSlider().setMouseTransparent(false);
                     view.getShowSpellBookBtn().setMouseTransparent(false);
@@ -143,21 +142,21 @@ public class Controller {
             view.getStartScreen().getExitBtn().setGraphic(quitImageView);
         });
 
-        view.getStartScreen().getPlayBtn().setOnMouseEntered(event -> {
+        view.getStartScreen().getChallengesBtn().setOnMouseEntered(event -> {
             ImageView playImageView = new ImageView(new Image(GameConstants.CHALLENGES_BTN_ACTIVATED_PATH));
             playImageView.setPreserveRatio(false);
             playImageView.setFitWidth(playImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
             playImageView.setFitHeight(playImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
             playImageView.autosize();
-            view.getStartScreen().getPlayBtn().setGraphic(playImageView);
+            view.getStartScreen().getChallengesBtn().setGraphic(playImageView);
         });
-        view.getStartScreen().getPlayBtn().setOnMouseExited(event -> {
+        view.getStartScreen().getChallengesBtn().setOnMouseExited(event -> {
             ImageView playImageView = new ImageView(new Image(GameConstants.CHALLENGES_BTN_PATH));
             playImageView.setPreserveRatio(false);
             playImageView.setFitWidth(playImageView.getLayoutBounds().getWidth()*GameConstants.WIDTH_RATIO);
             playImageView.setFitHeight(playImageView.getLayoutBounds().getHeight()*GameConstants.HEIGHT_RATIO);
             playImageView.autosize();
-            view.getStartScreen().getPlayBtn().setGraphic(playImageView);
+            view.getStartScreen().getChallengesBtn().setGraphic(playImageView);
         });
 
         view.getStartScreen().getLvlEditorBtn().setOnMouseEntered(event -> {
@@ -196,6 +195,7 @@ public class Controller {
         view.getStartScreen().getExitBtn().setOnAction(actionEvent -> {
             JSONParser.storeAllData();
             try {
+                JSONParser.removeUnwantedLevels();
                 CodeParser.parseProgramCode(view.getCodeArea().getAllCode());
                 JSONParser.storeCode(Util.trimStringList(view.getCodeArea().getAllCode()));
             } catch (Exception e) {
@@ -209,14 +209,127 @@ public class Controller {
             view.getCourseOverviewPane().getBackBtn().setOnAction(evt -> {
                 view.setSceneState(SceneState.START_SCREEN);
             });
-            addHighlightingEffect(view.getCourseOverviewPane().getBackBtn(),view.getCourseOverviewPane().getPlayBtn());
+
+            view.getCourseOverviewPane().getImportCoursesBtn().setOnAction(evt -> {
+                Dialog<ButtonType> importCoursesDialog = new Dialog<>();
+                ButtonType btnTypeCancel = new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
+                ButtonType btnTypeAccept = new ButtonType("Import",ButtonBar.ButtonData.OK_DONE);
+                ListView<String> courseLView = new ListView<>();
+//        for(String s : model.getAllCourseNames()){
+                try {
+                    courseLView.getItems().addAll(JSONParser.getPossibleImportFiles());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+//        }
+                courseLView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+                courseLView.getSelectionModel().select(-1);
+
+                importCoursesDialog.getDialogPane().getButtonTypes().add(btnTypeCancel);
+                importCoursesDialog.getDialogPane().getButtonTypes().add(btnTypeAccept);
+                importCoursesDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+                courseLView.getSelectionModel().selectedItemProperty().addListener((observableValue, s, t1) -> {
+                    if(t1 != null)importCoursesDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(false);
+                    else importCoursesDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+                });
+
+                importCoursesDialog.getDialogPane().setContent(courseLView);
+                Optional<ButtonType> buttonType = importCoursesDialog.showAndWait();
+                if(buttonType.isPresent()&&buttonType.get().getButtonData() == ButtonBar.ButtonData.OK_DONE){
+//                    List<Course> newCourses = new ArrayList<>();
+                    boolean courseAdded = false;
+                    try {
+                        for(String courseName : JSONParser.getCourseNamesFromFile(courseLView.getSelectionModel().getSelectedItem())){
+                            List<Level> levelList = new ArrayList<>();
+                            Course course = JSONParser.importCourseFromFile(courseName,courseLView.getSelectionModel().getSelectedItem());
+                            if(model.getCourseWithName(course.getName())!=NO_COURSE){
+                                Dialog<ButtonType> importCoursesDialog2 = new Dialog<>();
+                                ButtonType btnTypeCancel2 = new ButtonType("Keep",ButtonBar.ButtonData.CANCEL_CLOSE);
+                                ButtonType btnTypeAccept2 = new ButtonType("Overwrite",ButtonBar.ButtonData.OK_DONE);
+
+                                importCoursesDialog2.getDialogPane().getButtonTypes().add(btnTypeCancel2);
+                                importCoursesDialog2.getDialogPane().getButtonTypes().add(btnTypeAccept2);
+//                                importCoursesDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+
+                                importCoursesDialog2.getDialogPane().setContent(new Text("The Course "+ courseName + " already exists! Do you want to keep the existing or overwrite it?"));
+                                Optional<ButtonType> buttonType2 = importCoursesDialog2.showAndWait();
+                                if(buttonType2.isPresent()&&buttonType2.get().getButtonData() == ButtonBar.ButtonData.OK_DONE){
+                                    model.removeCourseWithName(courseName);
+//                                    newCourses.add(course) ;
+                                    courseAdded = true;
+                                }
+                            }
+                            else {courseAdded = true;
+//                                newCourses.add(course) ;
+                            }
+                            if(courseAdded){//newCourses.contains(course)){
+
+                                boolean replaceAll = false;
+                                boolean keepAll = false;
+                            for(Level level: JSONParser.importLevelsFromCourseInFile(courseName,courseLView.getSelectionModel().getSelectedItem())){
+
+                                if(model.getIdOfLevelWithName(level.getName())!=-1){
+                                    if(keepAll)continue;
+                                    if(replaceAll){
+                                        model.removeLevel(level.getName());
+                                        levelList.add(level) ;
+                                        continue;
+                                    }
+                                    Dialog<ButtonType> importLevelDialog = new Dialog<>();
+                                    ButtonType btnTypeCancel2 = new ButtonType("Keep",ButtonBar.ButtonData.CANCEL_CLOSE);
+                                    ButtonType btnTypeAccept2 = new ButtonType("Overwrite",ButtonBar.ButtonData.OK_DONE);
+                                    CheckBox checkBox = new CheckBox("Repeat for all Levels");
+                                    importLevelDialog.getDialogPane().getButtonTypes().add(btnTypeCancel2);
+                                    importLevelDialog.getDialogPane().getButtonTypes().add(btnTypeAccept2);
+//                                importCoursesDialog.getDialogPane().lookupButton(btnTypeAccept).setDisable(true);
+
+                                    importLevelDialog.getDialogPane().setContent(new Text("Level "+ level.getName() + " already exists! Do you want to keep the existing or overwrite it?"));
+                                    Optional<ButtonType> buttonType2 = importLevelDialog.showAndWait();
+                                    if(buttonType2.isPresent()&&buttonType2.get().getButtonData() == ButtonBar.ButtonData.OK_DONE){
+                                        if(checkBox.isSelected())replaceAll = true;
+                                        model.removeLevel(level.getName());
+                                        levelList.add(level) ;
+                                    }else {
+                                        if(checkBox.isSelected())keepAll = true;
+                                    }
+                                }
+                                else {
+                                    levelList.add(level) ;
+                                }
+                            }
+                            model.addNewCourse(course);
+                            for(Level l : levelList){
+//                                System.out.println("aha: "+l.getName());
+                                model.addImportedLevelToCourse(l,model.getCourseWithName(courseName).ID);
+                                JSONParser.saveLevel(model.getIdOfLevelWithName(l.getName()));
+                                model.selectLevel(model.getIdOfLevelWithName(l.getName()));
+                            }
+                            view.addTutorialOverviewPane(course);
+                            }
+
+                        }
+                        view.getCourseOverviewPane().updateAllCourses();
+                        view.getChallengeOverviewPane().updateUnlockedLevels();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    new Alert(Alert.AlertType.INFORMATION,"Courses imported successfully!").showAndWait();
+                }
+            });
+
+            addHighlightingEffect(view.getCourseOverviewPane().getBackBtn(),view.getCourseOverviewPane().getPlayBtn(),view.getCourseOverviewPane().getImportCoursesBtn());
+            if(view.getCourseOverviewPane().getCourseListView().getItems().size() == 0)return;
             if(model.getAmountOfLevelsInCourse(view.getCourseOverviewPane().getCourseListView().getSelectionModel().getSelectedItem().getCourseName())==0)view.getCourseOverviewPane().getPlayBtn().setDisable(true);
+            if(view.getCourseOverviewPane().getCourseListView().getSelectionModel().getSelectedItem().isDisabled())view.getCourseOverviewPane().getPlayBtn().setDisable(true);
             view.getCourseOverviewPane().getCourseListView().getSelectionModel().selectedItemProperty().addListener((observableValue, courseEntry, t1) ->{
                 if(t1 == null)return;
-                if(model.getAmountOfLevelsInCourse(t1.getCourseName())==0)
-                    view.getCourseOverviewPane().getPlayBtn().setDisable(true);}
-            );
+                if(model.getAmountOfLevelsInCourse(t1.getCourseName())==0 || view.getCourseOverviewPane().getCourseListView().getSelectionModel().getSelectedItem().isDisabled())
+                    view.getCourseOverviewPane().getPlayBtn().setDisable(true);
+                else view.getCourseOverviewPane().getPlayBtn().setDisable(false);
+            });
+
             view.getCourseOverviewPane().getPlayBtn().setOnAction(evt2 -> {
+                if(view.getCourseOverviewPane().getCourseListView().getSelectionModel().getSelectedItem()==null)return;
                 String course = view.getCourseOverviewPane().getCourseListView().getSelectionModel().getSelectedItem().getCourseName();
                 model.selectFirstLevelInCourse(course);
                 if (model.getCurrentCourseProgress() != -1) {
@@ -228,6 +341,11 @@ public class Controller {
                     setMessageNavigationHandler();
                 }
                 for( LevelOverviewPane tutorialOverviewPane : view.getTutorialLevelOverviewPaneListCopy()){
+                    if(tutorialOverviewPane.getLevelListView().getSelectionModel().getSelectedItem() != null && tutorialOverviewPane.getLevelListView().getSelectionModel().getSelectedItem().isDisabled())tutorialOverviewPane.getPlayBtn().setDisable(true);
+                    tutorialOverviewPane.getLevelListView().getSelectionModel().selectedItemProperty().addListener((observableValue, levelEntry, t1) ->{
+                    if(tutorialOverviewPane.getLevelListView().getSelectionModel().getSelectedItem().isDisabled())tutorialOverviewPane.getPlayBtn().setDisable(true);
+                    else tutorialOverviewPane.getPlayBtn().setDisable(false);}
+                    );
                     tutorialOverviewPane.getIntroductionCheckbox().setSelected(!ModelInformer.hasSeenIntroduction());
                     tutorialOverviewPane.getBackBtn().setOnAction(actionEvent2 ->
                             view.setSceneState(SceneState.COURSE_SELECT)
@@ -290,8 +408,8 @@ public class Controller {
         });
 
         if (view.getChallengeOverviewPane().getLevelListView().getItems().size() == 0)
-            view.getStartScreen().getPlayBtn().setDisable(true);
-        view.getStartScreen().getPlayBtn().setOnAction(actionEvent -> {
+            view.getStartScreen().getChallengesBtn().setDisable(true);
+        view.getStartScreen().getChallengesBtn().setOnAction(actionEvent -> {
             view.setSceneState(SceneState.LEVEL_SELECT);
             view.getChallengeOverviewPane().getBackBtn().setOnAction(actionEvent2 ->
                     view.setSceneState(SceneState.START_SCREEN)
@@ -488,6 +606,7 @@ public class Controller {
                     String nextLevelName;
 //                    boolean isTutorial = !courseName.equals(GameConstants.CHALLENGE_COURSE_NAME);
                     if (View.getCurrentSceneState() == SceneState.TUTORIAL) {
+                        view.getCurrentTutorialLevelOverviewPane().updateUnlockedStatus();
                         if (newResultIsBetter){
                             view.getCurrentTutorialLevelOverviewPane().updateCurrentLevel();
                             view.getCourseOverviewPane().updateCourseRating(courseName);
@@ -506,10 +625,11 @@ public class Controller {
 //                                if(view.getChallengeOverviewPane().containsLevel(model.getNameOfLevelWithId(id)) || iIsTutorial)continue;
 //                                view.getChallengeOverviewPane().addLevelWithIndex(i);
 //                            }
-//                            if(view.getChallengeOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getPlayBtn().setDisable(true);
-//                            else view.getStartScreen().getPlayBtn().setDisable(false);
+//                            if(view.getChallengeOverviewPane().getLevelListView().getItems().size() == 0)view.getStartScreen().getChallengesBtn().setDisable(true);
+//                            else view.getStartScreen().getChallengesBtn().setDisable(false);
                         }
                     } else if (View.getCurrentSceneState() == SceneState.PLAY) {
+                        view.getChallengeOverviewPane().updateUnlockedStatus();
                         if (newResultIsBetter)
                             view.getChallengeOverviewPane().updateCurrentLevel();
 
@@ -533,7 +653,7 @@ public class Controller {
                     });
                     isGameRunning = false;
                     if (view.getChallengeOverviewPane().getLevelListView().getItems().size() > 0)
-                        view.getStartScreen().getPlayBtn().setDisable(false);
+                        view.getStartScreen().getChallengesBtn().setDisable(false);
                     view.getSpellBookPane().updateSpellbookEntries(model.getUnlockedStatementList());
                     }
                 }

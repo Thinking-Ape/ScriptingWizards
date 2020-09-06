@@ -89,14 +89,14 @@ public abstract class CodeExecutor {
                         if(currentGameMap.getCellID(spawnPoint)==i&&currentGameMap.getEntity(spawnPoint)==NO_ENTITY){
                             if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
                             currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.KNIGHT,isSpecialized));
-                            knightWasSpawned = !replaced;
+                            knightWasSpawned = true;//!replaced;
                         }
                     }
                 }
                 else if(currentGameMap.getEntity(spawnPoint)==NO_ENTITY&& (canSpawnKnights||replaced)){
                     if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
                     currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.KNIGHT,isSpecialized));
-                    knightWasSpawned = !replaced;
+                    knightWasSpawned = true;//!replaced;
                 }
             }else if(var.getVariableType() == VariableType.SKELETON){
                 if(statement.getStatementType()== StatementType.ASSIGNMENT) replaced = true;
@@ -128,17 +128,17 @@ public abstract class CodeExecutor {
                     int i = Integer.valueOf(spawnId);
                     for(Point point : currentGameMap.getEnemySpawnList()){
                         spawnPoint = point;
-                        if(currentGameMap.getCellID(spawnPoint)==i&&currentGameMap.getEntity(spawnPoint)==NO_ENTITY){
+                        if(currentGameMap.getCellID(spawnPoint)==i){
                             currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON,isSpecialized));
 //                            System.out.println("uhu1");
-                            skeletonWasSpawned = !replaced;
+                            skeletonWasSpawned = true;//!replaced;
                         }
                     }
                 }
-                else if(currentGameMap.getEntity(spawnPoint)==NO_ENTITY){
+                else {
                     currentGameMap.spawn(spawnPoint,new Entity(name,direction,EntityType.SKELETON,isSpecialized));
 //                    System.out.println("uhu2");
-                    skeletonWasSpawned = !replaced;
+                    skeletonWasSpawned = true;//!replaced;
                 }
             }
 
@@ -148,6 +148,8 @@ public abstract class CodeExecutor {
 
 
     private static void tryToUseItem(Point actorPos) {
+        if(currentGameMap.getEntity(actorPos).getEntityType() == EntityType.SKELETON)return;
+        if(currentGameMap.getEntity(actorPos).getItem()==ItemType.NONE && !currentGameMap.getEntity(actorPos).isSpecialized())return;
         String name = currentGameMap.getEntity(actorPos).getName();
         Point targetPos =  currentGameMap.getTargetPoint(name);
         Entity actorEntity = currentGameMap.getEntity(actorPos);
@@ -244,7 +246,8 @@ public abstract class CodeExecutor {
         Point targetPoint = currentGameMap.getTargetPoint(name,forwards);
 
         boolean isOpen = currentGameMap.cellHasFlag(targetPoint, CellFlag.OPEN) ^ currentGameMap.cellHasFlag(targetPoint, CellFlag.INVERTED);
-        if(currentGameMap.isGateWrongDirection(actorPoint, targetPoint))return;
+        if(currentGameMap.isGateWrongDirection(actorPoint, targetPoint))
+            return;
         if((currentGameMap.getContentAtXY(targetPoint).isTraversable()||isOpen) && currentGameMap.isCellFree(targetPoint)){
             CellContent targetContent =currentGameMap.getContentAtXY(targetPoint);
             currentGameMap.removeEntity(actorPoint);
@@ -323,8 +326,6 @@ public abstract class CodeExecutor {
                     tryToTurnCell(position,methodCall.getExpressionTree().getRightNode().getText(),methodCall);
                     break;
                 case USE_ITEM:
-                    if(!isPlayer)break;
-                    if(currentGameMap.getEntity(position).getItem()==ItemType.NONE && !currentGameMap.getEntity(position).isSpecialized())break;
                     tryToUseItem(position);
                     break;
                 case COLLECT:
@@ -365,6 +366,7 @@ public abstract class CodeExecutor {
         Entity actorEntity = currentGameMap.getEntity(actorPos);
         Entity targetEntity = currentGameMap.getEntity(targetPos);
         if(targetEntity == NO_ENTITY ||( targetEntity.getEntityType() == EntityType.SKELETON && targetEntity.isSpecialized()))return;
+        if(targetEntity.isPossessed())return;
         currentGameMap.setFlag(actorPos, CellFlag.ACTION,true);
         targetEntity.becomePossessedBy(actorEntity);
     }
