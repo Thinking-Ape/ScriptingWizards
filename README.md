@@ -64,5 +64,5 @@ Das Spiel kann bei Nachfrage außerdem weiterentwickelt werden und bspw. durch f
 - eine neue "Einfache Programmiersprache" (ähnlich wie EOS), für den Einsatz in den unteren Jahrgangsstufen
 
 ## Feedback
-Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: sgunzelmann[at]arcor[dot]de.
+Zwecks gefundener Fehler und feature-requests bitte eine Mail an folgende Mail-Adresse: S.Gunzelmann[at]campus[dot]lmu[dot]de.
 Bei Fehlern bitte auch das CMD-Fenster für etwaige Fehlermeldungen überprüfen und diese anhängen.
